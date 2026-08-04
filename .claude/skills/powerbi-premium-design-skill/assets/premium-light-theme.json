@@ -1,0 +1,44 @@
+{
+  "name": "Industrial Premium Light",
+  "dataColors": [
+    "#123B52",
+    "#2D6F8E",
+    "#1F8A70",
+    "#D99000",
+    "#D64550",
+    "#9AA7B2",
+    "#6B5B95",
+    "#4F7CAC"
+  ],
+  "background": "#F4F6F8",
+  "foreground": "#172B3A",
+  "tableAccent": "#2D6F8E",
+  "good": "#1F8A70",
+  "neutral": "#D99000",
+  "bad": "#D64550",
+  "maximum": "#D64550",
+  "center": "#F4F6F8",
+  "minimum": "#1F8A70",
+  "textClasses": {
+    "callout": {
+      "fontFace": "Segoe UI Semibold",
+      "fontSize": 32,
+      "color": "#172B3A"
+    },
+    "title": {
+      "fontFace": "Segoe UI Semibold",
+      "fontSize": 14,
+      "color": "#172B3A"
+    },
+    "header": {
+      "fontFace": "Segoe UI Semibold",
+      "fontSize": 12,
+      "color": "#172B3A"
+    },
+    "label": {
+      "fontFace": "Segoe UI",
+      "fontSize": 11,
+      "color": "#667785"
+    }
+  }
+}

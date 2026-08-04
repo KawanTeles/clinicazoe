@@ -1,0 +1,207 @@
+{
+  "name": "Premium Dark — Pareto Orange",
+  "dataColors": [
+    "#E8662D",
+    "#B2BAC0",
+    "#697685",
+    "#42B894",
+    "#D5DD28",
+    "#F47A3A",
+    "#B84D28",
+    "#9AA7B2"
+  ],
+  "background": "#1A1E2B",
+  "foreground": "#F3F6F8",
+  "tableAccent": "#E8662D",
+  "good": "#42B894",
+  "neutral": "#D99000",
+  "bad": "#BD6079",
+  "maximum": "#BD6079",
+  "center": "#1A1E2B",
+  "minimum": "#42B894",
+  "textClasses": {
+    "callout": {
+      "fontFace": "Segoe UI Semibold",
+      "fontSize": 32,
+      "color": "#F3F6F8"
+    },
+    "title": {
+      "fontFace": "Segoe UI Semibold",
+      "fontSize": 14,
+      "color": "#F3F6F8"
+    },
+    "header": {
+      "fontFace": "Segoe UI Semibold",
+      "fontSize": 12,
+      "color": "#F3F6F8"
+    },
+    "label": {
+      "fontFace": "Segoe UI",
+      "fontSize": 11,
+      "color": "#9EA8B3"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#212836" } }
+          }
+        ],
+        "border": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#354251" } },
+            "radius": 12
+          }
+        ]
+      }
+    },
+    "page": {
+      "*": {
+        "outspace": [
+          {
+            "color": { "solid": { "color": "#1A1E2B" } }
+          }
+        ]
+      }
+    },
+    "lineChart": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#212836" } }
+          }
+        ],
+        "categoryAxis": [
+          {
+            "labelColor": { "solid": { "color": "#9EA8B3" } },
+            "gridlineColor": { "solid": { "color": "#354251" } },
+            "gridlineOpacity": 0.10
+          }
+        ],
+        "valueAxis": [
+          {
+            "labelColor": { "solid": { "color": "#9EA8B3" } },
+            "gridlineColor": { "solid": { "color": "#354251" } },
+            "gridlineOpacity": 0.10
+          }
+        ]
+      }
+    },
+    "barChart": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#212836" } }
+          }
+        ],
+        "categoryAxis": [
+          {
+            "labelColor": { "solid": { "color": "#9EA8B3" } }
+          }
+        ],
+        "valueAxis": [
+          {
+            "labelColor": { "solid": { "color": "#9EA8B3" } },
+            "gridlineColor": { "solid": { "color": "#354251" } },
+            "gridlineOpacity": 0.10
+          }
+        ]
+      }
+    },
+    "donutChart": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#212836" } }
+          }
+        ],
+        "legend": [
+          {
+            "labelColor": { "solid": { "color": "#9EA8B3" } }
+          }
+        ]
+      }
+    },
+    "pivotTable": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#252D3A" } }
+          }
+        ],
+        "border": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#354251" } },
+            "radius": 8
+          }
+        ],
+        "gridlineColor": [
+          { "solid": { "color": "#354251" } }
+        ],
+        "rowHeaders": [
+          {
+            "fontColor": { "solid": { "color": "#F3F6F8" } },
+            "backColor": { "solid": { "color": "#212836" } },
+            "outlineColor": { "solid": { "color": "#354251" } }
+          }
+        ],
+        "columnHeaders": [
+          {
+            "fontColor": { "solid": { "color": "#F3F6F8" } },
+            "backColor": { "solid": { "color": "#212836" } },
+            "outlineColor": { "solid": { "color": "#354251" } }
+          }
+        ],
+        "values": [
+          {
+            "fontColor": { "solid": { "color": "#DCE1E6" } },
+            "backColor": { "solid": { "color": "#252D3A" } }
+          }
+        ]
+      }
+    },
+    "slicer": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#212836" } }
+          }
+        ],
+        "border": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#354251" } },
+            "radius": 8
+          }
+        ]
+      }
+    },
+    "cardVisual": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#2A3342" } }
+          }
+        ],
+        "border": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#354251" } },
+            "radius": 16
+          }
+        ]
+      }
+    }
+  }
+}

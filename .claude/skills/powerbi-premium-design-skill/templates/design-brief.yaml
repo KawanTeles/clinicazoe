@@ -1,0 +1,222 @@
+Design Brief:
+  generated_by: powerbi-premium-design
+  contract_version: 2
+  mode: brownfield # greenfield | brownfield
+  theme_mode: light    # light | dark
+  audience: ""
+  decision_to_enable: ""
+  ten_second_narrative: ""
+
+  design_identity:
+    tone: industrial-premium-light  # or executive-premium-dark | analytical-dark
+    signature: exception-first      # or depth-first | cyan-first | orange-first
+    accent_strategy: semantic       # monochromatic | class-based | semantic
+    rationale: ""
+
+  canvas:
+    width: 1440
+    height: 810
+    margin: 28
+    gutter: 20
+    snap: 8
+    columns: 12
+
+  # ── Light Premium tokens (populate when theme_mode: light) ──
+  light_tokens:
+    canvas: "#F4F6F8"
+    surface: "#FFFFFF"
+    border: "#E3E8EF"
+    text_primary: "#172B3A"
+    text_secondary: "#667785"
+    accent_primary: "#123B52"
+    accent_secondary: "#2D6F8E"
+    positive: "#1F8A70"
+    warning: "#D99000"
+    negative: "#D64550"
+    neutral_data: "#9AA7B2"
+    radius: 12
+
+  # ── Dark Premium tokens (populate when theme_mode: dark) ──
+  dark_tokens:
+    canvas: "#1A1E2B"
+    surface_primary: "#212836"
+    surface_secondary: "#252D3A"
+    surface_elevated: "#2A3342"
+    border: "#354251"
+    text_primary: "#F3F6F8"
+    text_secondary: "#9EA8B3"
+    accent_primary: ""            # e.g. "#00BCD0" (cyan) or "#E8662D" (orange)
+    accent_secondary: ""          # e.g. "#0794A6" or "#F47A3A"
+    positive: "#42B894"
+    warning: "#D99000"
+    negative: "#BD6079"
+    neutral_data: "#697685"
+    nav_rail_bg: "#161A24"
+    nav_rail_icon: "#6B7A8D"
+    radius: 12
+
+  # ── Surface hierarchy ──
+  surface_hierarchy:
+    levels: 2                     # 2 for light, 3-4 for dark
+    canvas: ""                    # level 0
+    container: ""                 # level 1
+    card: ""                      # level 2 (dark only)
+    elevated: ""                  # level 3 (dark only)
+
+  # ── Shadow system ──
+  shadow_system:
+    enabled: false                # true for dark, false for light
+    default_visual_shadow: ""     # shadow-sm | shadow-md | shadow-lg
+    kpi_card_shadow: ""           # shadow-sm | shadow-md | shadow-lg
+    primary_visual_shadow: ""     # shadow-sm | shadow-md | shadow-lg
+    # Preset reference:
+    #   shadow-sm: Offset 2px, Blur 4px, Black 25%
+    #   shadow-md: Offset 4px, Blur 8px, Black 35%
+    #   shadow-lg: Offset 6px, Blur 12px, Black 45%
+
+  # ── Glow effects (dark KPI cards) ──
+  glow_effects:
+    enabled: false
+    applied_to: []                # list of placement IDs
+    technique: accent_border      # currently the only native technique
+    border_color: ""              # accent color
+    border_opacity: 0.4           # 30-50%
+    combined_with_shadow: ""      # shadow-lg recommended
+
+  page:
+    name: ""
+    role: analytical              # executive-summary | operational-monitor | diagnostic-analysis | benchmark | guided-narrative
+    regions:
+      header: { x: 28, y: 24, w: 1384, h: 72 }
+      kpis: { x: 28, y: 112, w: 1384, h: 116 }
+      primary_left: { x: 28, y: 244, w: 824, h: 258 }
+      primary_right: { x: 872, y: 244, w: 540, h: 258 }
+      detail_left: { x: 28, y: 518, w: 824, h: 264 }
+      detail_right: { x: 872, y: 518, w: 540, h: 264 }
+
+    placements:
+      - id: page_title
+        region: header
+        kind: textbox
+        purpose: provide analysis context
+        title: ""
+
+      - id: period_slicer
+        region: header
+        kind: slicer
+        purpose: select the reporting period
+        field_bindings: ""
+
+      - id: kpi_actual
+        region: kpis
+        kind: cardVisual
+        purpose: show actual value for the selected period
+        field_bindings: ""
+        format: "$ #,0.0,, M"
+        surface_level: ""         # elevated (dark) or surface (light)
+        shadow_level: ""          # shadow-lg (dark) or none (light)
+        glow: false               # true for dark hero KPI
+
+      - id: kpi_budget
+        region: kpis
+        kind: cardVisual
+        purpose: show budget for the selected period
+        field_bindings: ""
+        surface_level: ""
+        shadow_level: ""
+
+      - id: kpi_variance_amount
+        region: kpis
+        kind: cardVisual
+        purpose: show financial impact
+        field_bindings: ""
+        conditional_color: negative_when_unfavorable
+        surface_level: ""
+        shadow_level: ""
+
+      - id: kpi_variance_pct
+        region: kpis
+        kind: cardVisual
+        purpose: show relative variance intensity
+        field_bindings: ""
+        surface_level: ""
+        shadow_level: ""
+
+      - id: pareto
+        region: primary_left
+        kind: comboChart
+        purpose: identify the accounts that concentrate the variance
+        field_bindings: ""
+        sort: variance_desc
+        rules:
+          - top_n_plus_others
+          - cumulative_80_line
+          - no_scrollbar
+        surface_level: ""
+
+      - id: control_chart
+        region: primary_right
+        kind: lineChart
+        purpose: assess temporal stability
+        field_bindings: ""
+        rules:
+          - hide_future_empty_periods
+          - highlight_out_of_control_points
+          - subtle_control_band
+        surface_level: ""
+
+      - id: department_heatmap
+        region: detail_left
+        kind: pivotTable
+        purpose: locate critical departments and months
+        field_bindings: ""
+        rules:
+          - divergent_heatmap_center_zero
+          - one_decimal_max
+          - tooltip_with_amount_and_pct
+        surface_level: ""
+
+      - id: entity_ranking
+        region: detail_right
+        kind: barChart
+        purpose: compare the largest actual values without crushing the long tail
+        field_bindings: ""
+        rules:
+          - top_8_plus_others
+          - horizontal_labels
+          - value_labels
+        surface_level: ""
+
+  interactions:
+    cross_filter: true
+    drillthrough: ""
+    tooltip_pages: []
+
+  # ── Quick formatting reference (copy-paste ready) ──
+  formatting_cheatsheet:
+    font_family: "Segoe UI"
+    visual_background: ""         # hex: surface (light) or surface-primary (dark)
+    visual_border_color: ""       # hex: border token
+    visual_border_width: 1
+    visual_border_radius: 12
+    visual_shadow_preset: ""      # None | Light | Medium | Heavy
+    page_background: ""           # hex: canvas token
+    gridline_color: ""            # hex: border token (dark), #E3E8EF (light)
+    gridline_opacity: 0.10
+    title_font_size: 14
+    title_font_color: ""          # hex: text-primary
+    kpi_value_font_size: 32
+    kpi_label_font_size: 11
+    axis_font_size: 10
+    axis_font_color: ""           # hex: text-secondary
+
+  acceptance_criteria:
+    - no overlaps or truncation
+    - no technical field names exposed
+    - no scrollbar in primary visuals
+    - empty future periods hidden
+    - theme consistency (all visuals belong to the same theme_mode)
+    - (dark) minimum 2 distinct surface levels
+    - (dark) shadows applied with hierarchy
+    - (dark) accent colors desaturated for dark background
+    - review score >= 85
