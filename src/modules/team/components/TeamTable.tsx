@@ -10,49 +10,49 @@ type Profile = Database["public"]["Tables"]["profiles"]["Row"] & { avatarUrl: st
 export function TeamTable({ members }: { members: Profile[] }) {
   if (members.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center text-sm text-text-secondary">
+      <div className="rounded-2xl border border-dashed border-[#255044] bg-[#102A22] p-12 text-center text-sm font-medium text-[#C8D4CF]">
         Nenhum membro encontrado.
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-card">
+    <div className="overflow-x-auto rounded-2xl border border-[#255044] bg-[#102A22] shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
       <table className="w-full min-w-[640px] text-left text-sm">
-        <thead className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
+        <thead className="border-b border-[#255044] bg-[#17382D]/80 text-xs font-bold uppercase tracking-wider text-[#C8D4CF]">
           <tr>
-            <th className="px-4 py-3 font-medium">Nome</th>
-            <th className="px-4 py-3 font-medium">Cargo</th>
-            <th className="px-4 py-3 font-medium">Status</th>
-            <th className="px-4 py-3 font-medium">Telefone</th>
-            <th className="px-4 py-3 font-medium" />
+            <th className="px-5 py-4 font-bold">Nome</th>
+            <th className="px-5 py-4 font-bold">Cargo</th>
+            <th className="px-5 py-4 font-bold">Status</th>
+            <th className="px-5 py-4 font-bold">Telefone</th>
+            <th className="px-5 py-4 font-bold text-right">Ações</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-border">
+        <tbody className="divide-y divide-[#255044]/40">
           {members.map((member) => (
-            <tr key={member.id}>
-              <td className="px-4 py-3">
-                <Link href={`/team/${member.id}`} className="flex items-center gap-3">
-                  <Avatar src={member.avatarUrl} name={member.full_name || "?"} size={32} />
-                  <span className="font-medium text-text-primary">
+            <tr key={member.id} className="transition-colors hover:bg-[#17382D]/50">
+              <td className="px-5 py-4">
+                <Link href={`/team/${member.id}`} className="flex items-center gap-3 group">
+                  <Avatar src={member.avatarUrl} name={member.full_name || "?"} size={36} />
+                  <span className="font-semibold text-[#F5F7F6] group-hover:text-[#5ED39D] transition-colors">
                     {member.full_name || "Sem nome"}
                   </span>
                 </Link>
               </td>
-              <td className="px-4 py-3 text-text-secondary">
+              <td className="px-5 py-4 font-medium text-[#C8D4CF]">
                 {ROLE_LABELS[member.role] ?? member.role}
               </td>
-              <td className="px-4 py-3">
+              <td className="px-5 py-4">
                 <Badge tone={member.status === "active" ? "success" : "neutral"}>
                   {member.status === "active" ? "Ativo" : "Inativo"}
                 </Badge>
               </td>
-              <td className="px-4 py-3 text-text-secondary">{member.phone || "—"}</td>
-              <td className="px-4 py-3">
+              <td className="px-5 py-4 text-[#C8D4CF]">{member.phone || "—"}</td>
+              <td className="px-5 py-4">
                 <div className="flex justify-end gap-2">
                   <Link
                     href={`/team/${member.id}`}
-                    className="inline-flex h-8 items-center rounded-lg border border-border px-3 text-sm font-medium text-text-primary hover:bg-bg-soft"
+                    className="inline-flex h-9 items-center rounded-xl border border-[#255044] bg-[#17382D] px-3.5 text-xs font-semibold text-[#F5F7F6] transition-all hover:border-[#2E8B57]/50 hover:bg-[#102A22]"
                   >
                     Editar
                   </Link>
@@ -66,3 +66,4 @@ export function TeamTable({ members }: { members: Profile[] }) {
     </div>
   );
 }
+

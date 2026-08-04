@@ -314,8 +314,8 @@ export function TeamMemberForm({
       />
 
       {role === "profissional" && (
-        <div className="flex flex-col gap-4 rounded-lg border border-border bg-bg-soft p-4">
-          <p className="text-sm font-medium text-text-primary">Dados profissionais</p>
+        <div className="flex flex-col gap-5 rounded-2xl border border-[#255044] bg-[#17382D]/50 p-6">
+          <p className="text-base font-bold text-[#F5F7F6]">Dados profissionais</p>
           <Select
             label="Especialidade"
             name="specialty_id"
@@ -337,8 +337,8 @@ export function TeamMemberForm({
             onChange={(e) => setLicenseNumber(e.target.value)}
           />
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-text-primary" htmlFor="bio">
-              Descrição
+            <label className="text-sm font-medium text-[#C8D4CF]" htmlFor="bio">
+              Descrição / Bio
             </label>
             <textarea
               id="bio"
@@ -346,7 +346,7 @@ export function TeamMemberForm({
               rows={3}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-text-primary focus:outline-2 focus:outline-offset-1 focus:outline-accent"
+              className="w-full rounded-xl border border-[#255044] bg-[#17382D] px-4 py-3 text-sm text-[#F5F7F6] placeholder:text-[#7A9187] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
             />
           </div>
 
@@ -360,8 +360,8 @@ export function TeamMemberForm({
             onChange={(e) => setDuration(e.target.value)}
           />
 
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium text-text-primary">
+          <div className="flex flex-col gap-3">
+            <p className="text-sm font-bold text-[#F5F7F6]">
               Valores particular (deixe em branco se não atender por esse meio)
             </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -395,21 +395,22 @@ export function TeamMemberForm({
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium text-text-primary">Convênios aceitos e valores</p>
-            <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
+            <p className="text-sm font-bold text-[#F5F7F6]">Convênios aceitos e valores</p>
+            <div className="flex flex-col gap-3">
               {convenios.length === 0 && (
-                <span className="text-xs text-text-secondary">Nenhum convênio ativo cadastrado.</span>
+                <span className="text-xs text-[#7A9187]">Nenhum convênio ativo cadastrado.</span>
               )}
               {convenios.map((insurance) => {
                 const checked = insurance.id in insuranceValues;
                 return (
                   <div key={insurance.id} className="flex items-center gap-3">
-                    <label className="flex w-40 items-center gap-1.5 text-sm text-text-primary">
+                    <label className="flex w-44 items-center gap-2 text-sm font-medium text-[#F5F7F6] cursor-pointer">
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleInsurance(insurance.id)}
+                        className="h-4 w-4 rounded border-[#255044] bg-[#17382D] accent-[#2E8B57]"
                       />
                       {insurance.name}
                     </label>
@@ -423,7 +424,7 @@ export function TeamMemberForm({
                         onChange={(e) =>
                           setInsuranceValues((prev) => ({ ...prev, [insurance.id]: e.target.value }))
                         }
-                        className="h-9 w-32 rounded-lg border border-border bg-white px-2 text-sm focus:outline-2 focus:outline-offset-1 focus:outline-accent"
+                        className="h-10 w-36 rounded-xl border border-[#255044] bg-[#17382D] px-3 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
                       />
                     )}
                   </div>
@@ -433,18 +434,18 @@ export function TeamMemberForm({
           </div>
 
           <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-text-primary">Cor da agenda</label>
+            <label className="text-sm font-medium text-[#C8D4CF]">Cor da agenda</label>
             <input
               type="color"
               value={agendaColor}
               onChange={(e) => setAgendaColor(e.target.value)}
-              className="h-9 w-14 cursor-pointer rounded border border-border bg-white"
+              className="h-10 w-16 cursor-pointer rounded-xl border border-[#255044] bg-[#17382D] p-1"
             />
           </div>
         </div>
       )}
 
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
 
       <div className="flex gap-3">
         <Button type="submit" disabled={saving}>
@@ -457,3 +458,4 @@ export function TeamMemberForm({
     </form>
   );
 }
+

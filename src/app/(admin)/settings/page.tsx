@@ -18,8 +18,8 @@ export default async function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold text-text-primary">Configurações</h1>
-        <p className="text-sm text-text-secondary">Dados gerais da clínica.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Configurações</h1>
+        <p className="mt-1 text-sm text-[#C8D4CF]">Dados gerais da clínica.</p>
       </div>
 
       <Card className="max-w-xl">
@@ -40,3 +40,4 @@ export default async function SettingsPage() {
     </div>
   );
 }
+

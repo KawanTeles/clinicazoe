@@ -21,37 +21,37 @@ export default async function ProfessionalsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold text-text-primary">Profissionais</h1>
-        <p className="text-sm text-text-secondary">
-          Consulta de profissionais ativos e seus horários. Somente leitura.
+        <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Profissionais</h1>
+        <p className="mt-1 text-sm text-[#C8D4CF]">
+          Consulta de profissionais ativos e seus horários de atendimento.
         </p>
       </div>
 
       {professionals.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center text-sm text-text-secondary">
+        <div className="rounded-2xl border border-dashed border-[#255044] bg-[#102A22] p-12 text-center text-sm font-medium text-[#C8D4CF]">
           Nenhum profissional ativo cadastrado.
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {professionals.map((professional) => (
             <Link key={professional.id} href={`/professionals/${professional.id}`}>
-              <Card className="h-full transition-shadow hover:shadow-md">
-                <CardContent className="flex flex-col gap-3 py-5">
-                  <div className="flex items-center gap-3">
-                    <Avatar src={professional.avatarUrl} name={professional.full_name} size={48} />
+              <Card className="h-full transition-all hover:border-[#2E8B57] hover:shadow-[0_15px_40px_rgba(11,61,46,0.3)]">
+                <CardContent className="flex flex-col justify-between gap-4 py-6">
+                  <div className="flex items-center gap-4">
+                    <Avatar src={professional.avatarUrl} name={professional.full_name} size={52} />
                     <div className="min-w-0">
-                      <p className="truncate font-medium text-text-primary">
+                      <p className="truncate text-base font-bold text-[#F5F7F6]">
                         {professional.full_name}
                       </p>
                       {professional.specialtyName && (
-                        <p className="truncate text-sm text-text-secondary">
+                        <p className="truncate text-sm font-medium text-[#5ED39D] mt-0.5">
                           {professional.specialtyName}
                         </p>
                       )}
                     </div>
                   </div>
                   {professional.licenseNumber && (
-                    <Badge tone="neutral">{professional.licenseNumber}</Badge>
+                    <Badge tone="neutral" className="w-fit">{professional.licenseNumber}</Badge>
                   )}
                 </CardContent>
               </Card>
@@ -62,3 +62,4 @@ export default async function ProfessionalsPage() {
     </div>
   );
 }
+

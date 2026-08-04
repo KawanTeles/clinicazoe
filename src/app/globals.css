@@ -1,49 +1,102 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #2f8f83;
-  --color-primary-dark: #1f5f59;
-  --color-accent: #3baa9b;
-  --color-premium: #d6b36a;
+  /* Official Forest Green Palette */
+  --color-primary: #0B3D2E;
+  --color-primary-hover: #145A43;
+  --color-primary-dark: #0A2E23;
+  --color-secondary: #1F6B52;
+  --color-accent: #2E8B57;
+  --color-accent-light: #5ED39D;
+  --color-success: #3BAF75;
 
-  --color-bg: #ffffff;
-  --color-bg-soft: #f7faf9;
-  --color-card: #fafcfb;
+  /* Backgrounds */
+  --color-bg: #081C15;
+  --color-bg-soft: #081C15;
+  --color-card: #102A22;
+  --color-card-elevated: #17382D;
 
-  --color-text-primary: #1f2937;
-  --color-text-secondary: #6b7280;
+  /* Borders & Dividers */
+  --color-border: #255044;
+  --color-divider: rgba(255, 255, 255, 0.08);
 
-  --color-border: #e5e9e8;
+  /* Typography Colors */
+  --color-text-primary: #F5F7F6;
+  --color-text-secondary: #C8D4CF;
+  --color-text-muted: #7A9187;
 
-  --color-success: #2f8f83;
-  --color-warning: #d6b36a;
-  --color-danger: #dc4f4f;
+  /* Status Colors */
+  --color-warning: #D6B36A;
+  --color-danger: #DC4F4F;
+  --color-premium: #5ED39D;
 }
 
 @theme inline {
   --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
   --color-primary-dark: var(--color-primary-dark);
+  --color-secondary: var(--color-secondary);
   --color-accent: var(--color-accent);
-  --color-premium: var(--color-premium);
+  --color-accent-light: var(--color-accent-light);
+  --color-success: var(--color-success);
 
   --color-bg: var(--color-bg);
   --color-bg-soft: var(--color-bg-soft);
   --color-card: var(--color-card);
+  --color-card-elevated: var(--color-card-elevated);
+
+  --color-border: var(--color-border);
+  --color-divider: var(--color-divider);
 
   --color-text-primary: var(--color-text-primary);
   --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
 
-  --color-border: var(--color-border);
-
-  --color-success: var(--color-success);
   --color-warning: var(--color-warning);
   --color-danger: var(--color-danger);
+  --color-premium: var(--color-premium);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* Base Body Styles */
 body {
-  background: var(--color-bg-soft);
-  color: var(--color-text-primary);
+  background-color: #081C15;
+  color: #F5F7F6;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
+
+/* Text Selection */
+::selection {
+  background-color: #2E8B57;
+  color: #ffffff;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #081C15;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #145A43;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2E8B57;
+}
+
+/* Custom Gradients */
+.bg-gradient-forest {
+  background: linear-gradient(135deg, #0B3D2E 0%, #145A43 45%, #2E8B57 100%);
+}
+
+.bg-gradient-forest-subtle {
+  background: linear-gradient(180deg, #081C15 0%, #102A22 100%);
+}
+

@@ -28,58 +28,58 @@ export default async function AuditPage({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold text-text-primary">Auditoria</h1>
-        <p className="text-sm text-text-secondary">
+        <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Auditoria</h1>
+        <p className="mt-1 text-sm text-[#C8D4CF]">
           Ações registradas no sistema, com autor, data e hora.
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
+      <div className="overflow-x-auto rounded-2xl border border-[#255044] bg-[#102A22] shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
         <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
+          <thead className="border-b border-[#255044] bg-[#17382D]/80 text-xs font-bold uppercase tracking-wider text-[#C8D4CF]">
             <tr>
-              <th className="px-4 py-3 font-medium">Quando</th>
-              <th className="px-4 py-3 font-medium">Autor</th>
-              <th className="px-4 py-3 font-medium">Ação</th>
-              <th className="px-4 py-3 font-medium">Entidade</th>
-              <th className="px-4 py-3 font-medium">Detalhes</th>
+              <th className="px-5 py-4 font-bold">Quando</th>
+              <th className="px-5 py-4 font-bold">Autor</th>
+              <th className="px-5 py-4 font-bold">Ação</th>
+              <th className="px-5 py-4 font-bold">Entidade</th>
+              <th className="px-5 py-4 font-bold">Detalhes</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-[#255044]/40">
             {logs.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-text-secondary">
+                <td colSpan={5} className="px-5 py-6 text-center text-[#7A9187]">
                   Nenhum evento registrado ainda.
                 </td>
               </tr>
             )}
             {logs.map((log) => (
-              <tr key={log.id}>
-                <td className="whitespace-nowrap px-4 py-3 text-text-secondary">
+              <tr key={log.id} className="transition-colors hover:bg-[#17382D]/50">
+                <td className="whitespace-nowrap px-5 py-4 font-medium text-[#C8D4CF]">
                   {dateFormatter.format(new Date(log.created_at))}
                 </td>
-                <td className="px-4 py-3 text-text-primary">{log.actorName}</td>
-                <td className="px-4 py-3">
+                <td className="px-5 py-4 font-semibold text-[#F5F7F6]">{log.actorName}</td>
+                <td className="px-5 py-4">
                   <Badge tone="neutral">{log.action}</Badge>
                 </td>
-                <td className="px-4 py-3 text-text-secondary">
+                <td className="px-5 py-4 text-[#C8D4CF]">
                   {log.entity}
                   {log.entity_id && (
-                    <span className="ml-1 font-mono text-xs text-text-secondary/70">
+                    <span className="ml-1 font-mono text-xs text-[#5ED39D]">
                       #{log.entity_id.slice(0, 8)}
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-5 py-4">
                   {log.metadata && Object.keys(log.metadata).length > 0 ? (
-                    <details>
-                      <summary className="cursor-pointer text-xs text-accent">ver</summary>
-                      <pre className="mt-1 max-w-xs overflow-x-auto rounded bg-bg-soft p-2 text-xs text-text-secondary">
+                    <details className="group">
+                      <summary className="cursor-pointer text-xs font-semibold text-[#5ED39D] hover:text-[#86E5B8]">ver detalhes</summary>
+                      <pre className="mt-2 max-w-xs overflow-x-auto rounded-xl border border-[#255044] bg-[#17382D] p-3 font-mono text-xs text-[#C8D4CF]">
                         {JSON.stringify(log.metadata, null, 2)}
                       </pre>
                     </details>
                   ) : (
-                    <span className="text-xs text-text-secondary">—</span>
+                    <span className="text-xs text-[#7A9187]">—</span>
                   )}
                 </td>
               </tr>
@@ -91,3 +91,4 @@ export default async function AuditPage({
     </div>
   );
 }
+

@@ -16,8 +16,8 @@ export default async function InsurancesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold text-text-primary">Convênios</h1>
-        <p className="text-sm text-text-secondary">
+        <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Convênios</h1>
+        <p className="mt-1 text-sm text-[#C8D4CF]">
           Cadastre e gerencie os convênios aceitos pela clínica. &ldquo;Particular&rdquo; também
           é configurável como qualquer outro convênio.
         </p>
@@ -27,3 +27,4 @@ export default async function InsurancesPage() {
     </div>
   );
 }
+

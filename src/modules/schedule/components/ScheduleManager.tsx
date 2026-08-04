@@ -169,8 +169,8 @@ export function ScheduleManager({
 
   return (
     <div className="flex flex-col gap-6">
-      <form onSubmit={handleCreate} className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
-        <p className="text-sm font-medium text-text-primary">Novo horário</p>
+      <form onSubmit={handleCreate} className="flex flex-col gap-5 rounded-2xl border border-[#255044] bg-[#102A22] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
+        <p className="text-base font-bold text-[#F5F7F6]">Novo horário de atendimento</p>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Select label="Dia da semana" value={dayOfWeek} onChange={(e) => setDayOfWeek(e.target.value)}>
@@ -182,58 +182,60 @@ export function ScheduleManager({
           </Select>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-text-primary">Início</label>
+            <label className="text-sm font-medium text-[#C8D4CF]">Início</label>
             <input
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="h-10 rounded-lg border border-border bg-white px-3 text-sm focus:outline-2 focus:outline-offset-1 focus:outline-accent"
+              className="h-11 rounded-xl border border-[#255044] bg-[#17382D] px-4 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-text-primary">Fim</label>
+            <label className="text-sm font-medium text-[#C8D4CF]">Fim</label>
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="h-10 rounded-lg border border-border bg-white px-3 text-sm focus:outline-2 focus:outline-offset-1 focus:outline-accent"
+              className="h-11 rounded-xl border border-[#255044] bg-[#17382D] px-4 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-text-primary">Vagas simultâneas</label>
+            <label className="text-sm font-medium text-[#C8D4CF]">Vagas simultâneas</label>
             <input
               type="number"
               min={1}
               value={capacity}
               onChange={(e) => setCapacity(e.target.value)}
-              className="h-10 rounded-lg border border-border bg-white px-3 text-sm focus:outline-2 focus:outline-offset-1 focus:outline-accent"
+              className="h-11 rounded-xl border border-[#255044] bg-[#17382D] px-4 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
             />
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="flex items-center gap-2 text-sm text-text-primary">
+          <label className="flex items-center gap-2 text-sm font-medium text-[#F5F7F6] cursor-pointer">
             <input
               type="checkbox"
               checked={allInsurances}
               onChange={(e) => setAllInsurances(e.target.checked)}
+              className="h-4 w-4 rounded border-[#255044] bg-[#17382D] accent-[#2E8B57]"
             />
             Aceita todos os convênios
           </label>
 
           {!allInsurances && (
-            <div className="flex flex-wrap gap-3 rounded-lg border border-border bg-bg-soft p-3">
+            <div className="flex flex-wrap gap-3 rounded-xl border border-[#255044] bg-[#17382D]/60 p-4">
               {insurances.length === 0 && (
-                <span className="text-xs text-text-secondary">Nenhum convênio ativo cadastrado.</span>
+                <span className="text-xs text-[#7A9187]">Nenhum convênio ativo cadastrado.</span>
               )}
               {insurances.map((insurance) => (
-                <label key={insurance.id} className="flex items-center gap-1.5 text-sm text-text-primary">
+                <label key={insurance.id} className="flex items-center gap-2 text-sm text-[#C8D4CF] cursor-pointer hover:text-[#F5F7F6]">
                   <input
                     type="checkbox"
                     checked={selectedInsurances.includes(insurance.id)}
                     onChange={() => toggleInsurance(insurance.id)}
+                    className="h-4 w-4 rounded border-[#255044] bg-[#17382D] accent-[#2E8B57]"
                   />
                   {insurance.name}
                 </label>
@@ -242,40 +244,40 @@ export function ScheduleManager({
           )}
         </div>
 
-        {error && <p className="text-sm text-danger">{error}</p>}
+        {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
 
         <Button type="submit" disabled={saving} className="w-fit">
           {saving ? "Adicionando..." : "Adicionar horário"}
         </Button>
       </form>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
+      <div className="overflow-x-auto rounded-2xl border border-[#255044] bg-[#102A22] shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
         <table className="w-full min-w-[560px] text-left text-sm">
-          <thead className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
+          <thead className="border-b border-[#255044] bg-[#17382D]/80 text-xs font-bold uppercase tracking-wider text-[#C8D4CF]">
             <tr>
-              <th className="px-4 py-3 font-medium">Dia</th>
-              <th className="px-4 py-3 font-medium">Horário</th>
-              <th className="px-4 py-3 font-medium">Convênios</th>
-              <th className="px-4 py-3 font-medium">Vagas</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium" />
+              <th className="px-5 py-4 font-bold">Dia</th>
+              <th className="px-5 py-4 font-bold">Horário</th>
+              <th className="px-5 py-4 font-bold">Convênios</th>
+              <th className="px-5 py-4 font-bold">Vagas</th>
+              <th className="px-5 py-4 font-bold">Status</th>
+              <th className="px-5 py-4 font-bold text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-[#255044]/40">
             {slots.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-text-secondary">
+                <td colSpan={6} className="px-5 py-6 text-center text-[#7A9187]">
                   Nenhum horário cadastrado.
                 </td>
               </tr>
             )}
             {slots.map((slot) => (
-              <tr key={slot.id}>
-                <td className="px-4 py-3 text-text-primary">{DAY_LABELS[slot.day_of_week]}</td>
-                <td className="px-4 py-3 text-text-primary">
+              <tr key={slot.id} className="transition-colors hover:bg-[#17382D]/50">
+                <td className="px-5 py-4 font-semibold text-[#F5F7F6]">{DAY_LABELS[slot.day_of_week]}</td>
+                <td className="px-5 py-4 font-semibold text-[#F5F7F6]">
                   {slot.start_time.slice(0, 5)} – {slot.end_time.slice(0, 5)}
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-5 py-4">
                   {slot.insuranceNames.length === 0 ? (
                     <Badge tone="neutral">Todos</Badge>
                   ) : (
@@ -288,13 +290,13 @@ export function ScheduleManager({
                     </div>
                   )}
                 </td>
-                <td className="px-4 py-3 text-text-primary">{slot.capacity}</td>
-                <td className="px-4 py-3">
+                <td className="px-5 py-4 font-semibold text-[#F5F7F6]">{slot.capacity}</td>
+                <td className="px-5 py-4">
                   <Badge tone={slot.status === "active" ? "success" : "neutral"}>
                     {slot.status === "active" ? "Ativo" : "Inativo"}
                   </Badge>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-5 py-4">
                   <div className="flex justify-end gap-2">
                     <Button
                       size="sm"
@@ -322,48 +324,48 @@ export function ScheduleManager({
 
       <div className="flex flex-col gap-4">
         <div>
-          <p className="text-sm font-medium text-text-primary">Bloqueios e férias</p>
-          <p className="text-xs text-text-secondary">
-            Período em que você fica indisponível — some das datas de agendamento.
+          <p className="text-base font-bold text-[#F5F7F6]">Bloqueios e férias</p>
+          <p className="text-xs text-[#C8D4CF]">
+            Período em que você fica indisponível — desabilita os horários em datas específicas.
           </p>
         </div>
 
         <form
           onSubmit={handleCreateBlock}
-          className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4"
+          className="flex flex-col gap-4 rounded-2xl border border-[#255044] bg-[#102A22] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.25)]"
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-text-primary">De</label>
+              <label className="text-sm font-medium text-[#C8D4CF]">De</label>
               <input
                 type="date"
                 value={blockStart}
                 onChange={(e) => setBlockStart(e.target.value)}
-                className="h-10 rounded-lg border border-border bg-white px-3 text-sm focus:outline-2 focus:outline-offset-1 focus:outline-accent"
+                className="h-11 rounded-xl border border-[#255044] bg-[#17382D] px-4 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-text-primary">Até</label>
+              <label className="text-sm font-medium text-[#C8D4CF]">Até</label>
               <input
                 type="date"
                 value={blockEnd}
                 onChange={(e) => setBlockEnd(e.target.value)}
-                className="h-10 rounded-lg border border-border bg-white px-3 text-sm focus:outline-2 focus:outline-offset-1 focus:outline-accent"
+                className="h-11 rounded-xl border border-[#255044] bg-[#17382D] px-4 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-text-primary">Motivo (opcional)</label>
+              <label className="text-sm font-medium text-[#C8D4CF]">Motivo (opcional)</label>
               <input
                 type="text"
                 placeholder="Férias, congresso..."
                 value={blockReason}
                 onChange={(e) => setBlockReason(e.target.value)}
-                className="h-10 rounded-lg border border-border bg-white px-3 text-sm focus:outline-2 focus:outline-offset-1 focus:outline-accent"
+                className="h-11 rounded-xl border border-[#255044] bg-[#17382D] px-4 text-sm text-[#F5F7F6] placeholder:text-[#7A9187] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
               />
             </div>
           </div>
 
-          {blockError && <p className="text-sm text-danger">{blockError}</p>}
+          {blockError && <p className="text-sm font-medium text-[#FF8A8A]">{blockError}</p>}
 
           <Button type="submit" disabled={blockSaving} className="w-fit">
             {blockSaving ? "Adicionando..." : "Bloquear período"}
@@ -371,24 +373,24 @@ export function ScheduleManager({
         </form>
 
         {exceptions.length > 0 && (
-          <div className="overflow-x-auto rounded-xl border border-border bg-card">
+          <div className="overflow-x-auto rounded-2xl border border-[#255044] bg-[#102A22] shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
             <table className="w-full min-w-[420px] text-left text-sm">
-              <thead className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
+              <thead className="border-b border-[#255044] bg-[#17382D]/80 text-xs font-bold uppercase tracking-wider text-[#C8D4CF]">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Período</th>
-                  <th className="px-4 py-3 font-medium">Motivo</th>
-                  <th className="px-4 py-3 font-medium" />
+                  <th className="px-5 py-4 font-bold">Período</th>
+                  <th className="px-5 py-4 font-bold">Motivo</th>
+                  <th className="px-5 py-4 font-bold text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-[#255044]/40">
                 {exceptions.map((exception) => (
-                  <tr key={exception.id}>
-                    <td className="px-4 py-3 text-text-primary">
+                  <tr key={exception.id} className="transition-colors hover:bg-[#17382D]/50">
+                    <td className="px-5 py-4 font-semibold text-[#F5F7F6]">
                       {dateFormatter.format(new Date(`${exception.start_date}T00:00:00`))} –{" "}
                       {dateFormatter.format(new Date(`${exception.end_date}T00:00:00`))}
                     </td>
-                    <td className="px-4 py-3 text-text-secondary">{exception.reason || "—"}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4 text-[#C8D4CF]">{exception.reason || "—"}</td>
+                    <td className="px-5 py-4">
                       <div className="flex justify-end">
                         <Button
                           size="sm"
@@ -410,3 +412,4 @@ export function ScheduleManager({
     </div>
   );
 }
+

@@ -22,14 +22,14 @@ export function RevenueBarChart({ data }: { data: DailyStat[] }) {
   const barWidth = (groupWidth - BAR_GAP) / 2;
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-4 text-xs text-text-secondary">
-        <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--color-premium)" }} />
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-5 text-xs font-medium text-[#C8D4CF]">
+        <span className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#5ED39D] shadow-[0_0_8px_#5ED39D]" />
           Prevista
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--color-primary)" }} />
+        <span className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#1F6B52]" />
           Recebida
         </span>
       </div>
@@ -46,7 +46,7 @@ export function RevenueBarChart({ data }: { data: DailyStat[] }) {
             y1={HEIGHT - PADDING_BOTTOM}
             x2={WIDTH}
             y2={HEIGHT - PADDING_BOTTOM}
-            stroke="var(--color-border)"
+            stroke="#255044"
             strokeWidth={1}
           />
           {data.map((day, index) => {
@@ -55,14 +55,14 @@ export function RevenueBarChart({ data }: { data: DailyStat[] }) {
             const recHeight = (day.revenueRecebida / max) * chartHeight;
 
             return (
-              <g key={day.date}>
+              <g key={day.date} className="cursor-pointer">
                 <rect
                   x={groupX}
                   y={HEIGHT - PADDING_BOTTOM - prevHeight}
                   width={barWidth}
                   height={Math.max(prevHeight, 2)}
-                  rx={3}
-                  fill="var(--color-premium)"
+                  rx={4}
+                  fill="#5ED39D"
                   opacity={hovered?.index === index && hovered.series === "prevista" ? 1 : 0.85}
                   onMouseEnter={() => setHovered({ index, series: "prevista" })}
                   onMouseLeave={() => setHovered(null)}
@@ -72,8 +72,8 @@ export function RevenueBarChart({ data }: { data: DailyStat[] }) {
                   y={HEIGHT - PADDING_BOTTOM - recHeight}
                   width={barWidth}
                   height={Math.max(recHeight, 2)}
-                  rx={3}
-                  fill="var(--color-primary)"
+                  rx={4}
+                  fill="#1F6B52"
                   opacity={hovered?.index === index && hovered.series === "recebida" ? 1 : 0.85}
                   onMouseEnter={() => setHovered({ index, series: "recebida" })}
                   onMouseLeave={() => setHovered(null)}
@@ -83,7 +83,7 @@ export function RevenueBarChart({ data }: { data: DailyStat[] }) {
                   y={HEIGHT - 8}
                   textAnchor="middle"
                   fontSize="11"
-                  fill="var(--color-text-secondary)"
+                  fill="#C8D4CF"
                 >
                   {day.label}
                 </text>
@@ -93,7 +93,7 @@ export function RevenueBarChart({ data }: { data: DailyStat[] }) {
         </svg>
         {hovered && (
           <div
-            className="pointer-events-none absolute rounded-lg border border-border bg-white px-2 py-1 text-xs text-text-primary shadow-md"
+            className="pointer-events-none absolute rounded-xl border border-[#255044] bg-[#17382D] px-3 py-1.5 text-xs font-semibold text-[#F5F7F6] shadow-[0_10px_30px_rgba(0,0,0,0.4)]"
             style={{
               left: `${((hovered.index * (groupWidth + GROUP_GAP) + groupWidth / 2) / WIDTH) * 100}%`,
               top: 0,
@@ -101,11 +101,12 @@ export function RevenueBarChart({ data }: { data: DailyStat[] }) {
             }}
           >
             {hovered.series === "prevista"
-              ? formatCurrency(data[hovered.index].revenuePrevista)
-              : formatCurrency(data[hovered.index].revenueRecebida)}
+              ? `Prevista: ${formatCurrency(data[hovered.index].revenuePrevista)}`
+              : `Recebida: ${formatCurrency(data[hovered.index].revenueRecebida)}`}
           </div>
         )}
       </div>
     </div>
   );
 }
+

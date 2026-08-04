@@ -20,32 +20,33 @@ export function Pagination({ page, totalPages, basePath, searchParams }: Paginat
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between gap-3">
-      <p className="text-xs text-text-secondary">
-        Página {page} de {totalPages}
+    <div className="flex items-center justify-between gap-3 pt-2">
+      <p className="text-xs text-[#C8D4CF]">
+        Página <span className="font-semibold text-[#F5F7F6]">{page}</span> de{" "}
+        <span className="font-semibold text-[#F5F7F6]">{totalPages}</span>
       </p>
       <div className="flex gap-2">
         {page > 1 ? (
           <Link
             href={buildHref(basePath, page - 1, searchParams)}
-            className="inline-flex h-8 items-center rounded-lg border border-border px-3 text-sm font-medium text-text-primary hover:bg-bg-soft"
+            className="inline-flex h-9 items-center rounded-xl border border-[#255044] bg-[#17382D] px-4 text-xs font-semibold text-[#F5F7F6] transition-all hover:border-[#2E8B57]/50 hover:bg-[#102A22]"
           >
             Anterior
           </Link>
         ) : (
-          <span className="inline-flex h-8 cursor-not-allowed items-center rounded-lg border border-border px-3 text-sm font-medium text-text-secondary/50">
+          <span className="inline-flex h-9 cursor-not-allowed items-center rounded-xl border border-[#255044]/40 bg-[#17382D]/40 px-4 text-xs font-semibold text-[#7A9187]">
             Anterior
           </span>
         )}
         {page < totalPages ? (
           <Link
             href={buildHref(basePath, page + 1, searchParams)}
-            className="inline-flex h-8 items-center rounded-lg border border-border px-3 text-sm font-medium text-text-primary hover:bg-bg-soft"
+            className="inline-flex h-9 items-center rounded-xl border border-[#255044] bg-[#17382D] px-4 text-xs font-semibold text-[#F5F7F6] transition-all hover:border-[#2E8B57]/50 hover:bg-[#102A22]"
           >
             Próxima
           </Link>
         ) : (
-          <span className="inline-flex h-8 cursor-not-allowed items-center rounded-lg border border-border px-3 text-sm font-medium text-text-secondary/50">
+          <span className="inline-flex h-9 cursor-not-allowed items-center rounded-xl border border-[#255044]/40 bg-[#17382D]/40 px-4 text-xs font-semibold text-[#7A9187]">
             Próxima
           </span>
         )}
@@ -53,3 +54,4 @@ export function Pagination({ page, totalPages, basePath, searchParams }: Paginat
     </div>
   );
 }
+

@@ -7,13 +7,16 @@ export const metadata = {
 
 export default function SignupPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-bg-soft px-4">
+    <main className="flex min-h-screen items-center justify-center bg-[#081C15] px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-primary-dark">ClinicaZoe</h1>
-          <p className="mt-1 text-sm text-text-secondary">Crie sua conta de paciente</p>
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-forest text-lg font-bold text-white shadow-[0_0_20px_rgba(46,139,87,0.3)] mb-3">
+            CZ
+          </div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-[#F5F7F6]">ClinicaZoe</h1>
+          <p className="mt-1.5 text-sm text-[#C8D4CF]">Crie sua conta de paciente</p>
         </div>
-        <Card>
+        <Card className="shadow-[0_15px_50px_rgba(0,0,0,0.4)]">
           <CardContent className="py-6">
             <SignupForm />
           </CardContent>
@@ -22,3 +25,4 @@ export default function SignupPage() {
     </main>
   );
 }
+

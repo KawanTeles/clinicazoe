@@ -161,13 +161,13 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
   if (result) {
     return (
       <Card className="max-w-xl">
-        <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl text-primary-dark">
+        <CardContent className="flex flex-col items-center gap-5 py-10 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#2E8B57]/20 text-3xl text-[#5ED39D] border border-[#2E8B57]/40 shadow-[0_0_20px_rgba(46,139,87,0.25)]">
             ✓
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-text-primary">Agendamento enviado!</h2>
-            <p className="mt-1 text-sm text-text-secondary">
+            <h2 className="text-xl font-bold text-[#F5F7F6]">Agendamento enviado!</h2>
+            <p className="mt-2 text-sm text-[#C8D4CF] leading-relaxed">
               Sua consulta está pendente de confirmação pela recepção. Você pode acompanhar em
               &quot;Minhas Consultas&quot;.
             </p>
@@ -186,18 +186,18 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <ol className="flex flex-wrap gap-2 text-xs text-text-secondary">
+    <div className="flex flex-col gap-6">
+      <ol className="flex flex-wrap gap-2 text-xs">
         {["Especialidade", "Convênio", "Profissional", "Data", "Horário", "Confirmação"].map(
           (label, index) => (
             <li key={label}>
               <span
                 className={
                   step === index + 1
-                    ? "rounded-full bg-accent px-3 py-1 font-medium text-white"
+                    ? "inline-flex items-center rounded-full bg-[#2E8B57] px-3.5 py-1.5 font-bold text-white shadow-[0_0_12px_rgba(46,139,87,0.3)]"
                     : step > index + 1
-                      ? "rounded-full bg-primary/10 px-3 py-1 text-primary-dark"
-                      : "rounded-full bg-bg-soft px-3 py-1"
+                      ? "inline-flex items-center rounded-full bg-[#2E8B57]/20 border border-[#2E8B57]/30 px-3.5 py-1.5 font-semibold text-[#5ED39D]"
+                      : "inline-flex items-center rounded-full bg-[#17382D] border border-[#255044] px-3.5 py-1.5 font-medium text-[#7A9187]"
                 }
               >
                 {index + 1}. {label}
@@ -207,7 +207,7 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
         )}
       </ol>
 
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
 
       {step === 1 && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -216,7 +216,7 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
               key={option.id}
               type="button"
               onClick={() => selectSpecialty(option)}
-              className="rounded-xl border border-border bg-card p-4 text-left text-sm font-medium text-text-primary transition-colors hover:border-accent hover:bg-primary/5"
+              className="rounded-2xl border border-[#255044] bg-[#102A22] p-5 text-left text-base font-semibold text-[#F5F7F6] shadow-[0_4px_20px_rgba(0,0,0,0.2)] transition-all hover:border-[#2E8B57] hover:bg-[#17382D] hover:shadow-[0_8px_25px_rgba(11,61,46,0.3)] cursor-pointer"
             >
               {option.name}
             </button>
@@ -226,14 +226,14 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
 
       {step === 2 && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {loading && <p className="text-sm text-text-secondary">Carregando...</p>}
+          {loading && <p className="text-sm text-[#C8D4CF]">Carregando...</p>}
           {!loading &&
             insurances.map((option) => (
               <button
                 key={option.id}
                 type="button"
                 onClick={() => selectInsurance(option)}
-                className="rounded-xl border border-border bg-card p-4 text-left text-sm font-medium text-text-primary transition-colors hover:border-accent hover:bg-primary/5"
+                className="rounded-2xl border border-[#255044] bg-[#102A22] p-5 text-left text-base font-semibold text-[#F5F7F6] shadow-[0_4px_20px_rgba(0,0,0,0.2)] transition-all hover:border-[#2E8B57] hover:bg-[#17382D] hover:shadow-[0_8px_25px_rgba(11,61,46,0.3)] cursor-pointer"
               >
                 {option.name}
               </button>
@@ -243,19 +243,19 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
 
       {step === 3 && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {loading && <p className="text-sm text-text-secondary">Carregando...</p>}
+          {loading && <p className="text-sm text-[#C8D4CF]">Carregando...</p>}
           {!loading &&
             professionals.map((option) => (
               <button
                 key={option.id}
                 type="button"
                 onClick={() => selectProfessional(option)}
-                className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-accent hover:bg-primary/5"
+                className="flex items-center gap-4 rounded-2xl border border-[#255044] bg-[#102A22] p-5 text-left shadow-[0_4px_20px_rgba(0,0,0,0.2)] transition-all hover:border-[#2E8B57] hover:bg-[#17382D] hover:shadow-[0_8px_25px_rgba(11,61,46,0.3)] cursor-pointer"
               >
-                <Avatar src={option.avatarUrl} name={option.fullName} size={44} />
+                <Avatar src={option.avatarUrl} name={option.fullName} size={48} />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-text-primary">{option.fullName}</p>
-                  {option.bio && <p className="truncate text-xs text-text-secondary">{option.bio}</p>}
+                  <p className="truncate text-base font-semibold text-[#F5F7F6]">{option.fullName}</p>
+                  {option.bio && <p className="truncate text-xs text-[#C8D4CF] mt-0.5">{option.bio}</p>}
                 </div>
               </button>
             ))}
@@ -263,15 +263,15 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
       )}
 
       {step === 4 && (
-        <div className="flex flex-wrap gap-2">
-          {loading && <p className="text-sm text-text-secondary">Carregando...</p>}
+        <div className="flex flex-wrap gap-3">
+          {loading && <p className="text-sm text-[#C8D4CF]">Carregando...</p>}
           {!loading &&
             dates.map((iso) => (
               <button
                 key={iso}
                 type="button"
                 onClick={() => selectDate(iso)}
-                className="rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-accent hover:bg-primary/5"
+                className="rounded-xl border border-[#255044] bg-[#102A22] px-4 py-3 text-sm font-semibold text-[#F5F7F6] shadow-[0_4px_20px_rgba(0,0,0,0.2)] transition-all hover:border-[#2E8B57] hover:bg-[#17382D] cursor-pointer"
               >
                 {WEEKDAY_FORMATTER.format(new Date(`${iso}T00:00:00`))}
               </button>
@@ -280,15 +280,15 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
       )}
 
       {step === 5 && (
-        <div className="flex flex-wrap gap-2">
-          {loading && <p className="text-sm text-text-secondary">Carregando...</p>}
+        <div className="flex flex-wrap gap-3">
+          {loading && <p className="text-sm text-[#C8D4CF]">Carregando...</p>}
           {!loading &&
             times.map((option) => (
               <button
                 key={`${option.slotId}-${option.startTime}`}
                 type="button"
                 onClick={() => selectTime(option)}
-                className="rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-accent hover:bg-primary/5"
+                className="rounded-xl border border-[#255044] bg-[#102A22] px-4 py-3 text-sm font-semibold text-[#F5F7F6] shadow-[0_4px_20px_rgba(0,0,0,0.2)] transition-all hover:border-[#2E8B57] hover:bg-[#17382D] cursor-pointer"
               >
                 {option.startTime}
               </button>
@@ -298,30 +298,32 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
 
       {step === 6 && specialty && insurance && professional && date && time && (
         <Card>
-          <CardContent className="flex flex-col gap-4 py-6">
-            <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+          <CardContent className="flex flex-col gap-6 py-6">
+            <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 rounded-xl border border-[#255044] bg-[#17382D]/50 p-4">
               <p>
-                <span className="text-text-secondary">Especialidade: </span>
-                {specialty.name}
+                <span className="text-[#C8D4CF]">Especialidade: </span>
+                <span className="font-semibold text-[#F5F7F6]">{specialty.name}</span>
               </p>
               <p>
-                <span className="text-text-secondary">Convênio: </span>
-                {insurance.name}
+                <span className="text-[#C8D4CF]">Convênio: </span>
+                <span className="font-semibold text-[#F5F7F6]">{insurance.name}</span>
               </p>
               <p>
-                <span className="text-text-secondary">Profissional: </span>
-                {professional.fullName}
+                <span className="text-[#C8D4CF]">Profissional: </span>
+                <span className="font-semibold text-[#F5F7F6]">{professional.fullName}</span>
               </p>
               <p>
-                <span className="text-text-secondary">Data/Hora: </span>
-                {WEEKDAY_FORMATTER.format(new Date(`${date}T00:00:00`))} às {time.startTime}
+                <span className="text-[#C8D4CF]">Data/Hora: </span>
+                <span className="font-semibold text-[#5ED39D]">
+                  {WEEKDAY_FORMATTER.format(new Date(`${date}T00:00:00`))} às {time.startTime}
+                </span>
               </p>
             </div>
 
             {pricing.length > 0 ? (
-              <div className="flex flex-col gap-2">
-                <p className="text-sm font-medium text-text-primary">Forma de pagamento</p>
-                <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col gap-3">
+                <p className="text-sm font-bold text-[#F5F7F6]">Forma de pagamento</p>
+                <div className="flex flex-wrap gap-3">
                   {pricing.map((option) => (
                     <button
                       key={option.paymentMethod}
@@ -329,8 +331,8 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
                       onClick={() => setPaymentMethod(option.paymentMethod)}
                       className={
                         paymentMethod === option.paymentMethod
-                          ? "rounded-lg border border-accent bg-primary/10 px-3 py-2 text-sm font-medium text-primary-dark"
-                          : "rounded-lg border border-border bg-white px-3 py-2 text-sm text-text-primary hover:border-accent"
+                          ? "rounded-xl border-2 border-[#2E8B57] bg-[#2E8B57]/20 px-4 py-3 text-sm font-bold text-[#5ED39D] shadow-[0_0_15px_rgba(46,139,87,0.2)] cursor-pointer"
+                          : "rounded-xl border border-[#255044] bg-[#17382D] px-4 py-3 text-sm font-medium text-[#F5F7F6] hover:border-[#2E8B57] cursor-pointer"
                       }
                     >
                       {PAYMENT_LABELS[option.paymentMethod]} — {formatCurrency(option.value)}
@@ -339,12 +341,12 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-danger">
+              <p className="text-sm font-medium text-[#FF8A8A]">
                 Este profissional não tem valor configurado para esse convênio.
               </p>
             )}
 
-            {error && <p className="text-sm text-danger">{error}</p>}
+            {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
 
             <Button type="button" disabled={loading || !paymentMethod} onClick={handleConfirm}>
               {loading ? "Enviando..." : "Confirmar agendamento"}
@@ -361,3 +363,4 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
     </div>
   );
 }
+

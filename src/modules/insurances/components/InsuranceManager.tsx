@@ -83,7 +83,7 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <form onSubmit={handleCreate} className="flex flex-wrap items-end gap-3">
         <div className="w-full max-w-xs">
           <Input
@@ -99,28 +99,28 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
         </Button>
       </form>
 
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
+      <div className="overflow-x-auto rounded-2xl border border-[#255044] bg-[#102A22] shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
         <table className="w-full min-w-[480px] text-left text-sm">
-          <thead className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
+          <thead className="border-b border-[#255044] bg-[#17382D]/80 text-xs font-bold uppercase tracking-wider text-[#C8D4CF]">
             <tr>
-              <th className="px-4 py-3 font-medium">Nome</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium" />
+              <th className="px-5 py-4 font-bold">Nome</th>
+              <th className="px-5 py-4 font-bold">Status</th>
+              <th className="px-5 py-4 font-bold text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-[#255044]/40">
             {insurances.map((insurance) => (
-              <tr key={insurance.id}>
-                <td className="px-4 py-3">
+              <tr key={insurance.id} className="transition-colors hover:bg-[#17382D]/50">
+                <td className="px-5 py-4">
                   {editingId === insurance.id ? (
                     <div className="flex items-center gap-2">
                       <input
                         autoFocus
                         value={editingName}
                         onChange={(e) => setEditingName(e.target.value)}
-                        className="h-9 rounded-lg border border-border bg-white px-2 text-sm focus:outline-2 focus:outline-offset-1 focus:outline-accent"
+                        className="h-10 rounded-xl border border-[#255044] bg-[#17382D] px-3 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
                       />
                       <Button
                         size="sm"
@@ -134,15 +134,15 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
                       </Button>
                     </div>
                   ) : (
-                    <span className="font-medium text-text-primary">{insurance.name}</span>
+                    <span className="font-semibold text-[#F5F7F6]">{insurance.name}</span>
                   )}
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-5 py-4">
                   <Badge tone={insurance.status === "active" ? "success" : "neutral"}>
                     {insurance.status === "active" ? "Ativo" : "Inativo"}
                   </Badge>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-5 py-4">
                   <div className="flex justify-end gap-2">
                     {editingId !== insurance.id && (
                       <Button
@@ -182,3 +182,4 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
     </div>
   );
 }
+

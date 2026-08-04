@@ -24,7 +24,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
           y1={HEIGHT - PADDING_BOTTOM}
           x2={WIDTH}
           y2={HEIGHT - PADDING_BOTTOM}
-          stroke="var(--color-border)"
+          stroke="#255044"
           strokeWidth={1}
         />
         {data.map((day, index) => {
@@ -36,6 +36,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
           return (
             <g
               key={day.date}
+              className="cursor-pointer transition-opacity"
               onMouseEnter={() => setHovered(index)}
               onMouseLeave={() => setHovered(null)}
             >
@@ -44,8 +45,8 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
                 y={y}
                 width={barWidth}
                 height={Math.max(barHeight, 2)}
-                rx={4}
-                fill="var(--color-primary)"
+                rx={6}
+                fill={isHovered ? "#5ED39D" : "#2E8B57"}
                 opacity={isHovered ? 1 : 0.85}
               />
               {day.appointments > 0 && (
@@ -54,7 +55,8 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
                   y={y - 6}
                   textAnchor="middle"
                   fontSize="11"
-                  fill="var(--color-text-secondary)"
+                  fontWeight="600"
+                  fill="#F5F7F6"
                 >
                   {day.appointments}
                 </text>
@@ -64,7 +66,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
                 y={HEIGHT - 8}
                 textAnchor="middle"
                 fontSize="11"
-                fill="var(--color-text-secondary)"
+                fill="#C8D4CF"
               >
                 {day.label}
               </text>
@@ -81,7 +83,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
       </svg>
       {hovered !== null && (
         <div
-          className="pointer-events-none absolute rounded-lg border border-border bg-white px-2 py-1 text-xs text-text-primary shadow-md"
+          className="pointer-events-none absolute rounded-xl border border-[#255044] bg-[#17382D] px-3 py-1.5 text-xs font-semibold text-[#F5F7F6] shadow-[0_10px_30px_rgba(0,0,0,0.4)]"
           style={{
             left: `${((hovered * (barWidth + BAR_GAP) + barWidth / 2) / WIDTH) * 100}%`,
             top: 0,
@@ -94,3 +96,4 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
     </div>
   );
 }
+

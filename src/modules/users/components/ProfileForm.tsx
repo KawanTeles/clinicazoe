@@ -109,7 +109,7 @@ export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl }
       />
 
       {message && (
-        <p className={message.type === "success" ? "text-sm text-primary-dark" : "text-sm text-danger"}>
+        <p className={message.type === "success" ? "text-sm font-semibold text-[#5ED39D]" : "text-sm font-semibold text-[#FF8A8A]"}>
           {message.text}
         </p>
       )}
@@ -120,3 +120,4 @@ export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl }
     </form>
   );
 }
+

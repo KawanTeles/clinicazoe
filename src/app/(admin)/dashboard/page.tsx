@@ -16,11 +16,15 @@ export const metadata = {
   title: "Dashboard — ClinicaZoe",
 };
 
-function Kpi({ label, value }: { label: string; value: string }) {
+function Kpi({ label, value, subtext }: { label: string; value: string; subtext?: string }) {
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-5 shadow-sm">
-      <p className="text-sm font-medium text-text-secondary">{label}</p>
-      <p className="text-2xl font-semibold text-text-primary">{value}</p>
+    <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#255044] bg-[#102A22] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2E8B57]/50 hover:shadow-[0_15px_40px_rgba(11,61,46,0.3)]">
+      <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-[#0B3D2E] via-[#145A43] to-[#2E8B57] opacity-60 transition-opacity group-hover:opacity-100" />
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-[#C8D4CF]">{label}</p>
+        <p className="mt-2 text-3xl font-extrabold text-[#F5F7F6] tracking-tight">{value}</p>
+      </div>
+      {subtext && <p className="mt-2 text-xs text-[#7A9187]">{subtext}</p>}
     </div>
   );
 }
@@ -34,22 +38,24 @@ export default async function DashboardPage() {
   if (role === "paciente") {
     const data = await getPatientDashboard(session.user.id);
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-8">
         <div>
-          <h1 className="text-xl font-semibold text-text-primary">
+          <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">
             Olá, {session.profile.full_name.split(" ")[0]}
           </h1>
-          <p className="text-sm text-text-secondary">Sua visão geral na ClinicaZoe.</p>
+          <p className="mt-1 text-sm text-[#C8D4CF]">Sua visão geral na ClinicaZoe.</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Kpi label="Próximas consultas" value={String(data.upcoming)} />
-          <Kpi label="Consultas concluídas" value={String(data.completed)} />
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <Kpi label="Próximas consultas" value={String(data.upcoming)} subtext="Agendamentos confirmados ou pendentes" />
+          <Kpi label="Consultas concluídas" value={String(data.completed)} subtext="Histórico completo de atendimentos" />
         </div>
 
-        <Link href="/book">
-          <Button>Agendar consulta</Button>
-        </Link>
+        <div>
+          <Link href="/book">
+            <Button size="lg" className="shadow-lg">Agendar nova consulta</Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -60,39 +66,47 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold text-text-primary">Dashboard</h1>
-        <p className="text-sm text-text-secondary">
-          {role === "profissional" ? "Visão geral da sua agenda." : "Visão geral da clínica."}
-        </p>
+    <div className="flex flex-col gap-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Dashboard Executivo</h1>
+          <p className="mt-1 text-sm text-[#C8D4CF]">
+            {role === "profissional" ? "Visão geral da sua agenda e faturamento." : "Métricas e inteligência da clínica."}
+          </p>
+        </div>
+
+        <Link href="/appointments">
+          <Button variant="secondary" size="sm">
+            Ver todas consultas
+          </Button>
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi label="Consultas hoje" value={String(data.todayCount)} />
-        <Kpi label="Consultas esta semana" value={String(data.weekCount)} />
-        <Kpi label="Receita prevista" value={formatCurrency(data.receitaPrevista)} />
-        <Kpi label="Receita recebida" value={formatCurrency(data.receitaRecebida)} />
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <Kpi label="Consultas hoje" value={String(data.todayCount)} subtext="Agendadas para a data atual" />
+        <Kpi label="Consultas esta semana" value={String(data.weekCount)} subtext="Últimos 7 dias em atividade" />
+        <Kpi label="Receita prevista" value={formatCurrency(data.receitaPrevista)} subtext="Previsão de recebimento" />
+        <Kpi label="Receita recebida" value={formatCurrency(data.receitaRecebida)} subtext="Confirmados e baixados" />
         {data.activeProfessionals !== null && (
-          <Kpi label="Profissionais ativos" value={String(data.activeProfessionals)} />
+          <Kpi label="Profissionais ativos" value={String(data.activeProfessionals)} subtext="Corpo clínico disponível" />
         )}
-        <Kpi label="Cancelamentos" value={String(data.cancelledCount)} />
+        <Kpi label="Cancelamentos" value={String(data.cancelledCount)} subtext="Registros cancelados" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card className="overflow-hidden">
           <CardHeader>
-            <CardTitle>Consultas por dia (últimos 7 dias)</CardTitle>
+            <CardTitle>Consultas por Dia (Últimos 7 Dias)</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2">
             <AppointmentsBarChart data={weekly} />
           </CardContent>
         </Card>
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
-            <CardTitle>Receita por dia (últimos 7 dias)</CardTitle>
+            <CardTitle>Receita por Dia (Últimos 7 Dias)</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2">
             <RevenueBarChart data={weekly} />
           </CardContent>
         </Card>
@@ -100,3 +114,4 @@ export default async function DashboardPage() {
     </div>
   );
 }
+

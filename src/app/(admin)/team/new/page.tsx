@@ -21,8 +21,8 @@ export default async function NewTeamMemberPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold text-text-primary">Novo membro</h1>
-        <p className="text-sm text-text-secondary">
+        <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Novo membro</h1>
+        <p className="mt-1 text-sm text-[#C8D4CF]">
           Cadastre um administrador, recepcionista ou profissional.
         </p>
       </div>
@@ -38,3 +38,4 @@ export default async function NewTeamMemberPage() {
     </div>
   );
 }
+

@@ -77,11 +77,11 @@ export function ClinicSettingsForm({
             alt="Logo da clínica"
             width={64}
             height={64}
-            className="h-16 w-16 rounded-lg border border-border object-contain bg-white"
+            className="h-16 w-16 rounded-xl border border-[#255044] object-contain bg-[#17382D] p-2"
             unoptimized
           />
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-border text-xs text-text-secondary">
+          <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-dashed border-[#255044] bg-[#17382D] text-xs text-[#7A9187]">
             Sem logo
           </div>
         )}
@@ -102,7 +102,7 @@ export function ClinicSettingsForm({
             className="hidden"
             onChange={handleLogoChange}
           />
-          <p className="mt-1 text-xs text-text-secondary">PNG, JPG, WEBP ou SVG até 2MB.</p>
+          <p className="mt-1.5 text-xs text-[#7A9187]">PNG, JPG, WEBP ou SVG até 2MB.</p>
         </div>
       </div>
 
@@ -116,7 +116,7 @@ export function ClinicSettingsForm({
           value={whatsapp}
           onChange={(e) => setWhatsapp(e.target.value)}
         />
-        <p className="-mt-2 text-xs text-text-secondary">
+        <p className="-mt-2 text-xs text-[#7A9187]">
           Recebe os avisos de novo agendamento (link do WhatsApp).
         </p>
         <Input
@@ -127,7 +127,7 @@ export function ClinicSettingsForm({
         />
 
         {message && (
-          <p className={message.type === "success" ? "text-sm text-primary-dark" : "text-sm text-danger"}>
+          <p className={message.type === "success" ? "text-sm font-semibold text-[#5ED39D]" : "text-sm font-semibold text-[#FF8A8A]"}>
             {message.text}
           </p>
         )}
@@ -136,6 +136,7 @@ export function ClinicSettingsForm({
           {saving ? "Salvando..." : "Salvar"}
         </Button>
       </form>
+
     </div>
   );
 }

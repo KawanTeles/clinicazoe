@@ -26,7 +26,7 @@ export function Avatar({ src, name, size = 40, className }: AvatarProps) {
         width={size}
         height={size}
         style={style}
-        className={cn("rounded-full object-cover", className)}
+        className={cn("rounded-full object-cover ring-2 ring-[#255044]", className)}
       />
     );
   }
@@ -35,7 +35,7 @@ export function Avatar({ src, name, size = 40, className }: AvatarProps) {
     <div
       style={style}
       className={cn(
-        "flex items-center justify-center rounded-full bg-primary/10 text-primary-dark font-semibold",
+        "flex shrink-0 items-center justify-center rounded-full bg-[#2E8B57]/20 text-[#5ED39D] border border-[#2E8B57]/30 font-bold shadow-inner",
         className,
       )}
     >
@@ -43,3 +43,4 @@ export function Avatar({ src, name, size = 40, className }: AvatarProps) {
     </div>
   );
 }
+

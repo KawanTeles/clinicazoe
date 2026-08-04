@@ -31,29 +31,31 @@ export default async function FinancialPage({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold text-text-primary">Financeiro</h1>
-        <p className="text-sm text-text-secondary">
+        <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Financeiro</h1>
+        <p className="mt-1 text-sm text-[#C8D4CF]">
           Lançamentos gerados automaticamente na confirmação de cada consulta.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Card>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <Card className="relative overflow-hidden">
+          <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-[#D6B36A] to-[#E5C378]" />
           <CardHeader>
-            <CardTitle>Em aberto</CardTitle>
+            <CardTitle className="text-xs uppercase tracking-wider text-[#C8D4CF]">Em Aberto</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-semibold text-text-primary">
+            <p className="text-3xl font-extrabold text-[#F5F7F6]">
               {formatCurrency(summary.emAberto)}
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="relative overflow-hidden">
+          <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-[#0B3D2E] to-[#2E8B57]" />
           <CardHeader>
-            <CardTitle>Recebido</CardTitle>
+            <CardTitle className="text-xs uppercase tracking-wider text-[#C8D4CF]">Recebido</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-semibold text-text-primary">{formatCurrency(summary.pago)}</p>
+            <p className="text-3xl font-extrabold text-[#F5F7F6]">{formatCurrency(summary.pago)}</p>
           </CardContent>
         </Card>
       </div>
@@ -63,3 +65,4 @@ export default async function FinancialPage({
     </div>
   );
 }
+

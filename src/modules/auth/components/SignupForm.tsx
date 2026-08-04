@@ -87,16 +87,17 @@ export function SignupForm() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
       <Button type="submit" disabled={loading} className="w-full">
         {loading ? "Criando conta..." : "Criar conta"}
       </Button>
-      <p className="text-center text-sm text-text-secondary">
+      <p className="text-center text-sm text-[#C8D4CF]">
         Já tem conta?{" "}
-        <Link href="/login" className="text-accent hover:underline">
+        <Link href="/login" className="font-semibold text-[#5ED39D] hover:text-[#86E5B8] hover:underline">
           Entrar
         </Link>
       </p>
     </form>
   );
 }
+
