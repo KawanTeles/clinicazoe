@@ -3,6 +3,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { checkRateLimit } from "@/lib/rate-limit";
 import type { Role } from "@/lib/supabase/types";
 import { logAudit } from "./audit";
 
@@ -20,6 +21,11 @@ function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+interface ProfessionalInsuranceInput {
+  insurance_id: string;
+  value: number;
+}
+
 export interface CreateTeamMemberInput {
   full_name: string;
   email: string;
@@ -30,13 +36,22 @@ export interface CreateTeamMemberInput {
   license_number?: string;
   bio?: string;
   agenda_color?: string;
-  insurance_ids?: string[];
+  consultation_duration_minutes?: number;
+  price_particular_card?: number;
+  price_particular_pix?: number;
+  price_particular_cash?: number;
+  insurances?: ProfessionalInsuranceInput[];
 }
 
 export async function createTeamMember(
   input: CreateTeamMemberInput,
 ): Promise<{ error: string | null; id?: string }> {
   const session = await requireAdmin();
+
+  const rateLimit = checkRateLimit(`create-team:${session.user.id}`, 20, 60_000);
+  if (!rateLimit.allowed) {
+    return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente de novo.` };
+  }
 
   if (!input.full_name.trim()) return { error: "Informe o nome completo." };
   if (!validateEmail(input.email)) return { error: "E-mail inválido." };
@@ -73,13 +88,18 @@ export async function createTeamMember(
       license_number: input.license_number?.trim() || null,
       bio: input.bio?.trim() || null,
       agenda_color: input.agenda_color || "#2F8F83",
+      consultation_duration_minutes: input.consultation_duration_minutes || 30,
+      price_particular_card: input.price_particular_card ?? null,
+      price_particular_pix: input.price_particular_pix ?? null,
+      price_particular_cash: input.price_particular_cash ?? null,
     });
 
-    if (input.insurance_ids && input.insurance_ids.length > 0) {
+    if (input.insurances && input.insurances.length > 0) {
       await supabase.from("professional_insurances").insert(
-        input.insurance_ids.map((insuranceId) => ({
+        input.insurances.map((insurance) => ({
           professional_id: userId,
-          insurance_id: insuranceId,
+          insurance_id: insurance.insurance_id,
+          value: insurance.value,
         })),
       );
     }
@@ -107,7 +127,11 @@ export interface UpdateTeamMemberInput {
   license_number?: string;
   bio?: string;
   agenda_color?: string;
-  insurance_ids?: string[];
+  consultation_duration_minutes?: number;
+  price_particular_card?: number;
+  price_particular_pix?: number;
+  price_particular_cash?: number;
+  insurances?: ProfessionalInsuranceInput[];
 }
 
 export async function updateTeamMember(
@@ -149,14 +173,19 @@ export async function updateTeamMember(
       license_number: input.license_number?.trim() || null,
       bio: input.bio?.trim() || null,
       agenda_color: input.agenda_color || "#2F8F83",
+      consultation_duration_minutes: input.consultation_duration_minutes || 30,
+      price_particular_card: input.price_particular_card ?? null,
+      price_particular_pix: input.price_particular_pix ?? null,
+      price_particular_cash: input.price_particular_cash ?? null,
     });
 
     await supabase.from("professional_insurances").delete().eq("professional_id", input.id);
-    if (input.insurance_ids && input.insurance_ids.length > 0) {
+    if (input.insurances && input.insurances.length > 0) {
       await supabase.from("professional_insurances").insert(
-        input.insurance_ids.map((insuranceId) => ({
+        input.insurances.map((insurance) => ({
           professional_id: input.id,
-          insurance_id: insuranceId,
+          insurance_id: insurance.insurance_id,
+          value: insurance.value,
         })),
       );
     }

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
+import { Pagination } from "@/components/ui/Pagination";
 import { getCurrentUser } from "@/lib/auth";
 import { getAuditLogs } from "@/modules/audit/services/audit-queries";
 
@@ -12,18 +13,24 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeStyle: "medium",
 });
 
-export default async function AuditPage() {
+export default async function AuditPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const session = await getCurrentUser();
   if (!session || session.profile.role !== "admin") redirect("/dashboard");
 
-  const logs = await getAuditLogs();
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
+  const { items: logs, totalPages } = await getAuditLogs(page);
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-semibold text-text-primary">Auditoria</h1>
         <p className="text-sm text-text-secondary">
-          Últimas {logs.length} ações registradas no sistema, com autor, data e hora.
+          Ações registradas no sistema, com autor, data e hora.
         </p>
       </div>
 
@@ -80,6 +87,7 @@ export default async function AuditPage() {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} totalPages={totalPages} basePath="/audit" />
     </div>
   );
 }

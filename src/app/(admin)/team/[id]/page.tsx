@@ -26,7 +26,7 @@ export default async function EditTeamMemberPage({
   const result = await getTeamMember(id);
   if (!result) notFound();
 
-  const { profile, professional, insuranceIds, email } = result;
+  const { profile, professional, insurances: professionalInsurances, email } = result;
   const supabase = await createClient();
   const [avatarUrl, specialties, insurances] = await Promise.all([
     getAvatarSignedUrl(supabase, profile.avatar_path),
@@ -70,7 +70,16 @@ export default async function EditTeamMemberPage({
               license_number: professional?.license_number ?? "",
               bio: professional?.bio ?? "",
               agenda_color: professional?.agenda_color ?? "#2F8F83",
-              insurance_ids: insuranceIds,
+              consultation_duration_minutes: String(
+                professional?.consultation_duration_minutes ?? 30,
+              ),
+              price_particular_card: professional?.price_particular_card?.toString() ?? "",
+              price_particular_pix: professional?.price_particular_pix?.toString() ?? "",
+              price_particular_cash: professional?.price_particular_cash?.toString() ?? "",
+              insurances: professionalInsurances.map((i) => ({
+                insurance_id: i.insurance_id,
+                value: i.value.toString(),
+              })),
             }}
           />
         </CardContent>

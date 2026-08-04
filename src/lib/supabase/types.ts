@@ -1,5 +1,14 @@
 export type Role = "admin" | "recepcionista" | "profissional" | "paciente";
 export type Status = "active" | "inactive";
+export type PaymentMethod = "cartao" | "pix" | "dinheiro" | "convenio";
+export type AppointmentStatus =
+  | "pendente"
+  | "confirmada"
+  | "cancelada"
+  | "remarcada"
+  | "concluida"
+  | "faltou";
+export type FinancialStatus = "em_aberto" | "pago";
 
 export interface Database {
   public: {
@@ -72,6 +81,10 @@ export interface Database {
           bio: string | null;
           agenda_color: string;
           status: Status;
+          consultation_duration_minutes: number;
+          price_particular_card: number | null;
+          price_particular_pix: number | null;
+          price_particular_cash: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -82,6 +95,10 @@ export interface Database {
           bio?: string | null;
           agenda_color?: string;
           status?: Status;
+          consultation_duration_minutes?: number;
+          price_particular_card?: number | null;
+          price_particular_pix?: number | null;
+          price_particular_cash?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -92,6 +109,10 @@ export interface Database {
           bio?: string | null;
           agenda_color?: string;
           status?: Status;
+          consultation_duration_minutes?: number;
+          price_particular_card?: number | null;
+          price_particular_pix?: number | null;
+          price_particular_cash?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -189,6 +210,7 @@ export interface Database {
           start_time: string;
           end_time: string;
           status: Status;
+          capacity: number;
           created_at: string;
           updated_at: string;
         };
@@ -199,6 +221,7 @@ export interface Database {
           start_time: string;
           end_time: string;
           status?: Status;
+          capacity?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -209,6 +232,7 @@ export interface Database {
           start_time?: string;
           end_time?: string;
           status?: Status;
+          capacity?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -221,9 +245,9 @@ export interface Database {
         Relationships: [];
       };
       professional_insurances: {
-        Row: { professional_id: string; insurance_id: string };
-        Insert: { professional_id: string; insurance_id: string };
-        Update: { professional_id?: string; insurance_id?: string };
+        Row: { professional_id: string; insurance_id: string; value: number };
+        Insert: { professional_id: string; insurance_id: string; value?: number };
+        Update: { professional_id?: string; insurance_id?: string; value?: number };
         Relationships: [];
       };
       specialties: {
@@ -247,6 +271,168 @@ export interface Database {
           status?: Status;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      appointments: {
+        Row: {
+          id: string;
+          patient_id: string;
+          professional_id: string;
+          specialty_id: string | null;
+          insurance_id: string;
+          schedule_slot_id: string;
+          appointment_date: string;
+          start_time: string;
+          end_time: string;
+          payment_method: PaymentMethod;
+          value: number;
+          status: AppointmentStatus;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          patient_id: string;
+          professional_id: string;
+          specialty_id?: string | null;
+          insurance_id: string;
+          schedule_slot_id: string;
+          appointment_date: string;
+          start_time: string;
+          end_time: string;
+          payment_method: PaymentMethod;
+          value: number;
+          status?: AppointmentStatus;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          patient_id?: string;
+          professional_id?: string;
+          specialty_id?: string | null;
+          insurance_id?: string;
+          schedule_slot_id?: string;
+          appointment_date?: string;
+          start_time?: string;
+          end_time?: string;
+          payment_method?: PaymentMethod;
+          value?: number;
+          status?: AppointmentStatus;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      financial_entries: {
+        Row: {
+          id: string;
+          appointment_id: string;
+          patient_id: string;
+          professional_id: string;
+          insurance_id: string | null;
+          value: number;
+          payment_method: PaymentMethod;
+          due_date: string;
+          status: FinancialStatus;
+          paid_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          appointment_id: string;
+          patient_id: string;
+          professional_id: string;
+          insurance_id?: string | null;
+          value: number;
+          payment_method: PaymentMethod;
+          due_date: string;
+          status?: FinancialStatus;
+          paid_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          appointment_id?: string;
+          patient_id?: string;
+          professional_id?: string;
+          insurance_id?: string | null;
+          value?: number;
+          payment_method?: PaymentMethod;
+          due_date?: string;
+          status?: FinancialStatus;
+          paid_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      schedule_exceptions: {
+        Row: {
+          id: string;
+          professional_id: string;
+          start_date: string;
+          end_date: string;
+          reason: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          professional_id: string;
+          start_date: string;
+          end_date: string;
+          reason?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          professional_id?: string;
+          start_date?: string;
+          end_date?: string;
+          reason?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          type: string;
+          title: string;
+          message: string;
+          entity: string | null;
+          entity_id: string | null;
+          read_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          type: string;
+          title: string;
+          message: string;
+          entity?: string | null;
+          entity_id?: string | null;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          type?: string;
+          title?: string;
+          message?: string;
+          entity?: string | null;
+          entity_id?: string | null;
+          read_at?: string | null;
+          created_at?: string;
         };
         Relationships: [];
       };

@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getTeamMember } from "@/modules/team/services/team-queries";
 import {
   getActiveInsurances,
+  getScheduleExceptions,
   getScheduleForProfessional,
 } from "@/modules/schedule/services/schedule-queries";
 import { ScheduleManager } from "@/modules/schedule/components/ScheduleManager";
@@ -22,11 +23,12 @@ export default async function ProfessionalSchedulePage({
 
   const { id } = await params;
   const result = await getTeamMember(id);
-  if (!result || result.profile.role !== "profissional") notFound();
+  if (!result || result.profile.role !== "profissional") redirect("/team");
 
-  const [slots, insurances] = await Promise.all([
+  const [slots, insurances, exceptions] = await Promise.all([
     getScheduleForProfessional(id),
     getActiveInsurances(),
+    getScheduleExceptions(id),
   ]);
 
   return (
@@ -43,7 +45,7 @@ export default async function ProfessionalSchedulePage({
         </p>
       </div>
 
-      <ScheduleManager professionalId={id} slots={slots} insurances={insurances} />
+      <ScheduleManager professionalId={id} slots={slots} insurances={insurances} exceptions={exceptions} />
     </div>
   );
 }

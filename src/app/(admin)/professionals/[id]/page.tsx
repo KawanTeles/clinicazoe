@@ -88,7 +88,7 @@ export default async function ProfessionalDetailPage({
                       </td>
                       <td className="py-2 pr-4">
                         {slot.insuranceNames.length === 0 ? (
-                          <Badge tone="premium">Todos</Badge>
+                          <Badge tone="neutral">Todos</Badge>
                         ) : (
                           <div className="flex flex-wrap gap-1">
                             {slot.insuranceNames.map((name) => (

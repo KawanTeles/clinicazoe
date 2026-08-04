@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
@@ -9,16 +10,39 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/cn";
 import { ROLE_LABELS, type NavItem } from "@/lib/navigation";
 import { signOut } from "@/modules/auth/services/auth-client";
+import { NotificationBell } from "@/modules/notifications/components/NotificationBell";
+
+interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  read_at: string | null;
+  created_at: string;
+}
 
 interface AdminShellProps {
   items: NavItem[];
   fullName: string;
   role: string;
   avatarUrl: string | null;
+  notifications: NotificationItem[];
+  unreadCount: number;
+  clinicName: string;
+  logoUrl: string | null;
   children: React.ReactNode;
 }
 
-export function AdminShell({ items, fullName, role, avatarUrl, children }: AdminShellProps) {
+export function AdminShell({
+  items,
+  fullName,
+  role,
+  avatarUrl,
+  notifications,
+  unreadCount,
+  clinicName,
+  logoUrl,
+  children,
+}: AdminShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -45,8 +69,21 @@ export function AdminShell({ items, fullName, role, avatarUrl, children }: Admin
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex h-16 items-center px-6">
-          <span className="text-lg font-semibold text-primary-dark">ClinicaZoe</span>
+        <div className="flex h-16 items-center justify-between px-6">
+          <div className="flex min-w-0 items-center gap-2">
+            {logoUrl && (
+              <Image
+                src={logoUrl}
+                alt={clinicName}
+                width={28}
+                height={28}
+                unoptimized
+                className="h-7 w-7 rounded object-contain"
+              />
+            )}
+            <span className="truncate text-lg font-semibold text-primary-dark">{clinicName}</span>
+          </div>
+          <NotificationBell initialNotifications={notifications} initialUnreadCount={unreadCount} />
         </div>
 
         <nav className="flex-1 space-y-1 px-3">
@@ -96,7 +133,10 @@ export function AdminShell({ items, fullName, role, avatarUrl, children }: Admin
             <span className="sr-only">Abrir menu</span>
             ☰
           </button>
-          <span className="text-base font-semibold text-primary-dark">ClinicaZoe</span>
+          <span className="text-base font-semibold text-primary-dark">{clinicName}</span>
+          <div className="ml-auto">
+            <NotificationBell initialNotifications={notifications} initialUnreadCount={unreadCount} />
+          </div>
         </header>
 
         <main className="flex-1 overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8">{children}</main>

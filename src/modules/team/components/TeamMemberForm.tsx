@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { ROLE_LABELS } from "@/lib/navigation";
+import { PARTICULAR_INSURANCE_NAME } from "@/lib/constants";
 import type { Role } from "@/lib/supabase/types";
 import {
   createTeamMember,
@@ -16,13 +17,23 @@ import {
 
 const TEAM_ROLES: Role[] = ["profissional", "recepcionista", "admin"];
 
+interface InsuranceOption {
+  id: string;
+  name: string;
+}
+
+interface InsuranceSelection {
+  insurance_id: string;
+  value: string;
+}
+
 interface TeamMemberFormProps {
   mode: "create" | "edit";
   memberId?: string;
   isSelf?: boolean;
   avatarUrl?: string | null;
   specialties: { id: string; name: string }[];
-  insurances: { id: string; name: string }[];
+  insurances: InsuranceOption[];
   initial?: {
     full_name: string;
     email: string;
@@ -33,7 +44,11 @@ interface TeamMemberFormProps {
     license_number: string;
     bio: string;
     agenda_color: string;
-    insurance_ids: string[];
+    consultation_duration_minutes: string;
+    price_particular_card: string;
+    price_particular_pix: string;
+    price_particular_cash: string;
+    insurances: InsuranceSelection[];
   };
 }
 
@@ -47,7 +62,11 @@ const DEFAULTS = {
   license_number: "",
   bio: "",
   agenda_color: "#2F8F83",
-  insurance_ids: [] as string[],
+  consultation_duration_minutes: "30",
+  price_particular_card: "",
+  price_particular_pix: "",
+  price_particular_cash: "",
+  insurances: [] as InsuranceSelection[],
 };
 
 export function TeamMemberForm({
@@ -62,6 +81,7 @@ export function TeamMemberForm({
   const router = useRouter();
   const values = initial ?? DEFAULTS;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const convenios = insurances.filter((i) => i.name !== PARTICULAR_INSURANCE_NAME);
 
   const [fullName, setFullName] = useState(values.full_name);
   const [email, setEmail] = useState(values.email);
@@ -73,7 +93,13 @@ export function TeamMemberForm({
   const [licenseNumber, setLicenseNumber] = useState(values.license_number);
   const [bio, setBio] = useState(values.bio);
   const [agendaColor, setAgendaColor] = useState(values.agenda_color);
-  const [insuranceIds, setInsuranceIds] = useState<string[]>(values.insurance_ids);
+  const [duration, setDuration] = useState(values.consultation_duration_minutes);
+  const [priceCard, setPriceCard] = useState(values.price_particular_card);
+  const [pricePix, setPricePix] = useState(values.price_particular_pix);
+  const [priceCash, setPriceCash] = useState(values.price_particular_cash);
+  const [insuranceValues, setInsuranceValues] = useState<Record<string, string>>(
+    Object.fromEntries(values.insurances.map((i) => [i.insurance_id, i.value])),
+  );
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(avatarUrl ?? null);
@@ -91,15 +117,56 @@ export function TeamMemberForm({
   }
 
   function toggleInsurance(id: string) {
-    setInsuranceIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
+    setInsuranceValues((prev) => {
+      const next = { ...prev };
+      if (id in next) {
+        delete next[id];
+      } else {
+        next[id] = "";
+      }
+      return next;
+    });
+  }
+
+  function buildInsurancesPayload(): { insurance_id: string; value: number }[] {
+    return Object.entries(insuranceValues).map(([insurance_id, value]) => ({
+      insurance_id,
+      value: Number(value.replace(",", ".")) || 0,
+    }));
+  }
+
+  function parsePrice(value: string): number | undefined {
+    if (!value.trim()) return undefined;
+    const parsed = Number(value.replace(",", "."));
+    return Number.isFinite(parsed) ? parsed : undefined;
   }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+
+    const missingPrice = Object.entries(insuranceValues).find(
+      ([, value]) => !value.trim() || Number(value.replace(",", ".")) <= 0,
+    );
+    if (role === "profissional" && missingPrice) {
+      setError("Informe um valor maior que zero para cada convênio marcado.");
+      return;
+    }
+
     setSaving(true);
 
     let targetId = memberId;
+    const professionalFields = {
+      specialty_id: specialtyId || undefined,
+      license_number: licenseNumber,
+      bio,
+      agenda_color: agendaColor,
+      consultation_duration_minutes: Number(duration) || 30,
+      price_particular_card: parsePrice(priceCard),
+      price_particular_pix: parsePrice(pricePix),
+      price_particular_cash: parsePrice(priceCash),
+      insurances: buildInsurancesPayload(),
+    };
 
     if (mode === "create") {
       const result = await createTeamMember({
@@ -108,11 +175,7 @@ export function TeamMemberForm({
         password,
         phone,
         role,
-        specialty_id: specialtyId || undefined,
-        license_number: licenseNumber,
-        bio,
-        agenda_color: agendaColor,
-        insurance_ids: insuranceIds,
+        ...professionalFields,
       });
       if (result.error) {
         setSaving(false);
@@ -128,11 +191,7 @@ export function TeamMemberForm({
         role,
         status,
         password: password || undefined,
-        specialty_id: specialtyId || undefined,
-        license_number: licenseNumber,
-        bio,
-        agenda_color: agendaColor,
-        insurance_ids: insuranceIds,
+        ...professionalFields,
       });
       if (result.error) {
         setSaving(false);
@@ -290,24 +349,89 @@ export function TeamMemberForm({
               className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-text-primary focus:outline-2 focus:outline-offset-1 focus:outline-accent"
             />
           </div>
+
+          <Input
+            label="Duração da consulta (minutos)"
+            name="consultation_duration_minutes"
+            type="number"
+            min={5}
+            step={5}
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+          />
+
           <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium text-text-primary">Convênios aceitos</p>
-            <div className="flex flex-wrap gap-3">
-              {insurances.length === 0 && (
-                <span className="text-xs text-text-secondary">Nenhum convênio ativo cadastrado.</span>
-              )}
-              {insurances.map((insurance) => (
-                <label key={insurance.id} className="flex items-center gap-1.5 text-sm text-text-primary">
-                  <input
-                    type="checkbox"
-                    checked={insuranceIds.includes(insurance.id)}
-                    onChange={() => toggleInsurance(insurance.id)}
-                  />
-                  {insurance.name}
-                </label>
-              ))}
+            <p className="text-sm font-medium text-text-primary">
+              Valores particular (deixe em branco se não atender por esse meio)
+            </p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <Input
+                label="Cartão (R$)"
+                name="price_particular_card"
+                type="number"
+                min={0}
+                step="0.01"
+                value={priceCard}
+                onChange={(e) => setPriceCard(e.target.value)}
+              />
+              <Input
+                label="PIX (R$)"
+                name="price_particular_pix"
+                type="number"
+                min={0}
+                step="0.01"
+                value={pricePix}
+                onChange={(e) => setPricePix(e.target.value)}
+              />
+              <Input
+                label="Dinheiro (R$)"
+                name="price_particular_cash"
+                type="number"
+                min={0}
+                step="0.01"
+                value={priceCash}
+                onChange={(e) => setPriceCash(e.target.value)}
+              />
             </div>
           </div>
+
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-medium text-text-primary">Convênios aceitos e valores</p>
+            <div className="flex flex-col gap-2">
+              {convenios.length === 0 && (
+                <span className="text-xs text-text-secondary">Nenhum convênio ativo cadastrado.</span>
+              )}
+              {convenios.map((insurance) => {
+                const checked = insurance.id in insuranceValues;
+                return (
+                  <div key={insurance.id} className="flex items-center gap-3">
+                    <label className="flex w-40 items-center gap-1.5 text-sm text-text-primary">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleInsurance(insurance.id)}
+                      />
+                      {insurance.name}
+                    </label>
+                    {checked && (
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        placeholder="Valor (R$)"
+                        value={insuranceValues[insurance.id]}
+                        onChange={(e) =>
+                          setInsuranceValues((prev) => ({ ...prev, [insurance.id]: e.target.value }))
+                        }
+                        className="h-9 w-32 rounded-lg border border-border bg-white px-2 text-sm focus:outline-2 focus:outline-offset-1 focus:outline-accent"
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="flex items-center gap-3">
             <label className="text-sm font-medium text-text-primary">Cor da agenda</label>
             <input

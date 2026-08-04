@@ -5,6 +5,8 @@ import { getAvatarSignedUrl } from "@/lib/supabase/storage";
 import { getPermissions } from "@/lib/permissions";
 import { NAV_ITEMS } from "@/lib/navigation";
 import { AdminShell } from "@/components/layout/AdminShell";
+import { getNotifications, getUnreadCount } from "@/modules/notifications/services/notification-queries";
+import { getClinicLogoUrl, getClinicSettings } from "@/modules/settings/services/settings-queries";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getCurrentUser();
@@ -15,10 +17,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const { profile } = session;
   const supabase = await createClient();
-  const [avatarUrl, permissions] = await Promise.all([
+  const [avatarUrl, permissions, notifications, unreadCount, clinicSettings] = await Promise.all([
     getAvatarSignedUrl(supabase, profile.avatar_path),
     getPermissions(profile.role),
+    getNotifications(session.user.id),
+    getUnreadCount(session.user.id),
+    getClinicSettings(),
   ]);
+  const logoUrl = await getClinicLogoUrl(clinicSettings?.logo_path ?? null);
 
   const items = NAV_ITEMS.filter((item) => permissions.has(item.permission));
 
@@ -28,6 +34,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       fullName={profile.full_name || session.user.email || "Usuário"}
       role={profile.role}
       avatarUrl={avatarUrl}
+      notifications={notifications}
+      unreadCount={unreadCount}
+      clinicName={clinicSettings?.name || "ClinicaZoe"}
+      logoUrl={logoUrl}
     >
       {children}
     </AdminShell>

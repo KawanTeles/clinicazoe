@@ -2,6 +2,16 @@ import { createClient } from "@/lib/supabase/server";
 
 export { getActiveInsurances } from "@/modules/insurances/services/insurance-queries";
 
+export async function getScheduleExceptions(professionalId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("schedule_exceptions")
+    .select("*")
+    .eq("professional_id", professionalId)
+    .order("start_date", { ascending: false });
+  return data ?? [];
+}
+
 export async function getScheduleForProfessional(professionalId: string) {
   const supabase = await createClient();
 

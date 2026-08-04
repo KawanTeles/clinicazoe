@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -56,6 +57,12 @@ export function LoginForm() {
       <Button type="submit" disabled={loading} className="w-full">
         {loading ? "Entrando..." : "Entrar"}
       </Button>
+      <p className="text-center text-sm text-text-secondary">
+        Ainda não tem conta?{" "}
+        <Link href="/signup" className="text-accent hover:underline">
+          Criar conta de paciente
+        </Link>
+      </p>
     </form>
   );
 }

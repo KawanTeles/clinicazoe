@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { Pagination } from "@/components/ui/Pagination";
 import { getCurrentUser } from "@/lib/auth";
 import { ROLE_LABELS } from "@/lib/navigation";
 import { getTeamMembers } from "@/modules/team/services/team-queries";
@@ -11,16 +12,17 @@ export const metadata = {
 };
 
 const FILTER_ROLES = ["admin", "recepcionista", "profissional"] as const;
+const PAGE_SIZE = 20;
 
 export default async function TeamPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; role?: string }>;
+  searchParams: Promise<{ q?: string; role?: string; page?: string }>;
 }) {
   const session = await getCurrentUser();
   if (!session || session.profile.role !== "admin") redirect("/dashboard");
 
-  const { q, role } = await searchParams;
+  const { q, role, page: pageParam } = await searchParams;
   const members = await getTeamMembers();
 
   const filtered = members.filter((member) => {
@@ -29,6 +31,10 @@ export default async function TeamPage({
       !q || member.full_name.toLowerCase().includes(q.toLowerCase());
     return matchesRole && matchesQuery;
   });
+
+  const page = Math.max(1, Number(pageParam) || 1);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="flex flex-col gap-6">
@@ -69,7 +75,8 @@ export default async function TeamPage({
         </Button>
       </form>
 
-      <TeamTable members={filtered} />
+      <TeamTable members={pageItems} />
+      <Pagination page={page} totalPages={totalPages} basePath="/team" searchParams={{ q, role }} />
     </div>
   );
 }

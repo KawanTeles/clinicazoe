@@ -29,20 +29,20 @@ export async function getTeamMember(id: string) {
   if (!profile) return null;
 
   let professional = null;
-  let insuranceIds: string[] = [];
+  let insurances: { insurance_id: string; value: number }[] = [];
   if (profile.role === "profissional") {
     const { data } = await supabase.from("professionals").select("*").eq("id", id).single();
     professional = data;
 
     const { data: links } = await supabase
       .from("professional_insurances")
-      .select("insurance_id")
+      .select("insurance_id, value")
       .eq("professional_id", id);
-    insuranceIds = (links ?? []).map((link) => link.insurance_id);
+    insurances = links ?? [];
   }
 
   const admin = createAdminClient();
   const { data: authUser } = await admin.auth.admin.getUserById(id);
 
-  return { profile, professional, insuranceIds, email: authUser.user?.email ?? "" };
+  return { profile, professional, insurances, email: authUser.user?.email ?? "" };
 }
