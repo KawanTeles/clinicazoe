@@ -76,10 +76,10 @@ export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl }
             type="button"
             variant="secondary"
             size="sm"
-            disabled={uploading}
+            isLoading={uploading}
             onClick={() => fileInputRef.current?.click()}
           >
-            {uploading ? "Enviando..." : "Alterar foto"}
+            Alterar foto
           </Button>
           <input
             ref={fileInputRef}
@@ -114,8 +114,8 @@ export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl }
         </p>
       )}
 
-      <Button type="submit" disabled={saving} className="w-fit">
-        {saving ? "Salvando..." : "Salvar alterações"}
+      <Button type="submit" isLoading={saving} className="w-fit">
+        Salvar alterações
       </Button>
     </form>
   );

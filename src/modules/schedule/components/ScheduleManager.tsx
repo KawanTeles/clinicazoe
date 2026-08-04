@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
+import { useToast } from "@/components/ui/Toast";
 import { DAY_LABELS } from "@/modules/schedule/constants";
 import {
   createScheduleException,
@@ -50,6 +52,8 @@ export function ScheduleManager({
   exceptions: ScheduleException[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
+  const toast = useToast();
 
   const [dayOfWeek, setDayOfWeek] = useState("1");
   const [startTime, setStartTime] = useState("08:00");
@@ -97,6 +101,7 @@ export function ScheduleManager({
 
     setSelectedInsurances([]);
     setAllInsurances(true);
+    toast.success("Horário adicionado com sucesso.");
     router.refresh();
   }
 
@@ -105,25 +110,29 @@ export function ScheduleManager({
     const result = await setSlotStatus(slot.id, slot.status === "active" ? "inactive" : "active");
     setBusyId(null);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
     router.refresh();
   }
 
   async function handleDelete(slot: Slot) {
-    const confirmed = window.confirm(
-      `Excluir o horário de ${slot.start_time.slice(0, 5)} às ${slot.end_time.slice(0, 5)}?`,
-    );
+    const confirmed = await confirm({
+      title: "Excluir este horário?",
+      description: `${slot.start_time.slice(0, 5)} às ${slot.end_time.slice(0, 5)} — essa ação não pode ser desfeita.`,
+      confirmLabel: "Excluir",
+      tone: "danger",
+    });
     if (!confirmed) return;
 
     setBusyId(slot.id);
     const result = await deleteSlot(slot.id);
     setBusyId(null);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Horário excluído com sucesso.");
     router.refresh();
   }
 
@@ -153,6 +162,7 @@ export function ScheduleManager({
     setBlockStart("");
     setBlockEnd("");
     setBlockReason("");
+    toast.success("Bloqueio adicionado com sucesso.");
     router.refresh();
   }
 
@@ -161,9 +171,10 @@ export function ScheduleManager({
     const result = await deleteScheduleException(id);
     setBlockBusyId(null);
     if (result.error) {
-      setBlockError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Bloqueio removido com sucesso.");
     router.refresh();
   }
 
@@ -246,8 +257,8 @@ export function ScheduleManager({
 
         {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
 
-        <Button type="submit" disabled={saving} className="w-fit">
-          {saving ? "Adicionando..." : "Adicionar horário"}
+        <Button type="submit" isLoading={saving} className="w-fit">
+          Adicionar horário
         </Button>
       </form>
 
@@ -301,7 +312,7 @@ export function ScheduleManager({
                     <Button
                       size="sm"
                       variant="secondary"
-                      disabled={busyId === slot.id}
+                      isLoading={busyId === slot.id}
                       onClick={() => handleToggleStatus(slot)}
                     >
                       {slot.status === "active" ? "Desativar" : "Ativar"}
@@ -309,7 +320,7 @@ export function ScheduleManager({
                     <Button
                       size="sm"
                       variant="danger"
-                      disabled={busyId === slot.id}
+                      isLoading={busyId === slot.id}
                       onClick={() => handleDelete(slot)}
                     >
                       Excluir
@@ -367,8 +378,8 @@ export function ScheduleManager({
 
           {blockError && <p className="text-sm font-medium text-[#FF8A8A]">{blockError}</p>}
 
-          <Button type="submit" disabled={blockSaving} className="w-fit">
-            {blockSaving ? "Adicionando..." : "Bloquear período"}
+          <Button type="submit" isLoading={blockSaving} className="w-fit">
+            Bloquear período
           </Button>
         </form>
 
@@ -395,7 +406,7 @@ export function ScheduleManager({
                         <Button
                           size="sm"
                           variant="danger"
-                          disabled={blockBusyId === exception.id}
+                          isLoading={blockBusyId === exception.id}
                           onClick={() => handleDeleteBlock(exception.id)}
                         >
                           Remover

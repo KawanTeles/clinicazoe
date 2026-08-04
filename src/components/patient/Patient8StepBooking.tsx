@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -393,17 +394,7 @@ export function Patient8StepBooking({
               className="flex flex-col justify-between rounded-2xl border border-[#255044] bg-[#102A22] p-6 shadow-md"
             >
               <div className="flex items-center gap-4">
-                {prof.avatarUrl ? (
-                  <img
-                    src={prof.avatarUrl}
-                    alt={prof.fullName}
-                    className="h-16 w-16 rounded-2xl object-cover border border-[#255044]"
-                  />
-                ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#17382D] text-lg font-bold text-[#5ED39D] border border-[#255044]">
-                    {prof.fullName.slice(0, 2).toUpperCase()}
-                  </div>
-                )}
+                <Avatar src={prof.avatarUrl} name={prof.fullName} size={64} rounded="2xl" />
                 <div>
                   <h4 className="text-lg font-bold text-[#F5F7F6]">{prof.fullName}</h4>
                   <Badge tone="success" className="mt-1">{prof.specialtyName}</Badge>

@@ -3,6 +3,7 @@ import { getPublicWebsiteData } from "@/lib/public-queries";
 import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
+import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { formatCurrency } from "@/lib/whatsapp";
@@ -41,17 +42,7 @@ export default async function ProfissionaisPage() {
                 <div className="flex flex-col justify-between rounded-3xl border border-[#255044] bg-[#102A22] p-8 shadow-lg hover:border-[#2E8B57]/60 transition-all h-full">
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
-                      {prof.avatarUrl ? (
-                        <img
-                          src={prof.avatarUrl}
-                          alt={prof.fullName}
-                          className="h-20 w-20 rounded-2xl object-cover border-2 border-[#255044] shadow-md"
-                        />
-                      ) : (
-                        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[#17382D] text-2xl font-black text-[#5ED39D] border-2 border-[#255044]">
-                          {prof.fullName.slice(0, 2).toUpperCase()}
-                        </div>
-                      )}
+                      <Avatar src={prof.avatarUrl} name={prof.fullName} size={80} rounded="2xl" className="shadow-md" />
                       <div>
                         <h3 className="text-lg font-bold text-white">{prof.fullName}</h3>
                         <Badge tone="success" className="mt-1 text-xs">{prof.specialtyName}</Badge>

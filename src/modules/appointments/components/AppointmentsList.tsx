@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
+import { useToast } from "@/components/ui/Toast";
 import { formatCurrency } from "@/lib/whatsapp";
 import type { Role } from "@/lib/supabase/types";
 import type { AppointmentView } from "@/modules/appointments/services/appointment-queries";
@@ -42,34 +44,45 @@ export function AppointmentsList({
   appointments: AppointmentView[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
+  const toast = useToast();
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const isStaff = viewerRole === "admin" || viewerRole === "recepcionista";
   const isPatient = viewerRole === "paciente";
 
   async function handleCancel(id: string) {
-    if (!window.confirm("Cancelar esta consulta?")) return;
+    const confirmed = await confirm({
+      title: "Cancelar esta consulta?",
+      description: "O horário será liberado e o paciente poderá agendar novamente.",
+      confirmLabel: "Cancelar consulta",
+      tone: "danger",
+    });
+    if (!confirmed) return;
     setBusyId(id);
-    setError(null);
     const result = await cancelAppointment(id);
     setBusyId(null);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Consulta cancelada com sucesso.");
     if (result.whatsappLink) window.open(result.whatsappLink, "_blank");
     router.refresh();
   }
 
   async function handleReschedule(id: string) {
-    if (!window.confirm("Cancelar esta consulta e escolher um novo horário?")) return;
+    const confirmed = await confirm({
+      title: "Remarcar esta consulta?",
+      description: "A consulta atual será cancelada e você escolherá um novo horário.",
+      confirmLabel: "Continuar",
+    });
+    if (!confirmed) return;
     setBusyId(id);
-    setError(null);
     const result = await cancelAppointment(id, { rescheduled: true });
     setBusyId(null);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
     if (result.whatsappLink) window.open(result.whatsappLink, "_blank");
@@ -78,25 +91,25 @@ export function AppointmentsList({
 
   async function handleSendReminder(id: string) {
     setBusyId(id);
-    setError(null);
     const result = await sendReminder(id);
     setBusyId(null);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Lembrete enviado com sucesso.");
     if (result.whatsappLink) window.open(result.whatsappLink, "_blank");
   }
 
   async function handleConfirm(id: string) {
     setBusyId(id);
-    setError(null);
     const result = await confirmAppointment(id);
     setBusyId(null);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Consulta confirmada com sucesso.");
     if (result.whatsappLink) {
       window.open(result.whatsappLink, "_blank");
     }
@@ -104,15 +117,21 @@ export function AppointmentsList({
   }
 
   async function handleStaffCancel(id: string) {
-    if (!window.confirm("Cancelar esta consulta?")) return;
+    const confirmed = await confirm({
+      title: "Cancelar esta consulta?",
+      description: "O horário será liberado na agenda do profissional.",
+      confirmLabel: "Cancelar consulta",
+      tone: "danger",
+    });
+    if (!confirmed) return;
     setBusyId(id);
-    setError(null);
     const result = await updateAppointmentStatus(id, "cancelada");
     setBusyId(null);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Consulta cancelada com sucesso.");
     router.refresh();
   }
 
@@ -126,7 +145,6 @@ export function AppointmentsList({
 
   return (
     <div className="flex flex-col gap-4">
-      {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
       <div className="overflow-x-auto rounded-2xl border border-[#255044] bg-[#102A22] shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
         <table className="w-full min-w-[760px] text-left text-sm">
           <thead className="border-b border-[#255044] bg-[#17382D]/80 text-xs font-bold uppercase tracking-wider text-[#C8D4CF]">
@@ -161,7 +179,7 @@ export function AppointmentsList({
                       <>
                         <Button
                           size="sm"
-                          disabled={busyId === appt.id}
+                          isLoading={busyId === appt.id}
                           onClick={() => handleConfirm(appt.id)}
                         >
                           Confirmar
@@ -169,7 +187,7 @@ export function AppointmentsList({
                         <Button
                           size="sm"
                           variant="danger"
-                          disabled={busyId === appt.id}
+                          isLoading={busyId === appt.id}
                           onClick={() => handleStaffCancel(appt.id)}
                         >
                           Cancelar
@@ -181,7 +199,7 @@ export function AppointmentsList({
                         <Button
                           size="sm"
                           variant="secondary"
-                          disabled={busyId === appt.id}
+                          isLoading={busyId === appt.id}
                           onClick={() => handleSendReminder(appt.id)}
                         >
                           Lembrete
@@ -189,7 +207,7 @@ export function AppointmentsList({
                         <Button
                           size="sm"
                           variant="danger"
-                          disabled={busyId === appt.id}
+                          isLoading={busyId === appt.id}
                           onClick={() => handleStaffCancel(appt.id)}
                         >
                           Cancelar
@@ -201,7 +219,7 @@ export function AppointmentsList({
                         <Button
                           size="sm"
                           variant="secondary"
-                          disabled={busyId === appt.id}
+                          isLoading={busyId === appt.id}
                           onClick={() => handleReschedule(appt.id)}
                         >
                           Remarcar
@@ -209,7 +227,7 @@ export function AppointmentsList({
                         <Button
                           size="sm"
                           variant="danger"
-                          disabled={busyId === appt.id}
+                          isLoading={busyId === appt.id}
                           onClick={() => handleCancel(appt.id)}
                         >
                           Cancelar

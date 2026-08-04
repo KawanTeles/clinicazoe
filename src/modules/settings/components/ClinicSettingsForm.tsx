@@ -90,10 +90,10 @@ export function ClinicSettingsForm({
             type="button"
             variant="secondary"
             size="sm"
-            disabled={uploadingLogo}
+            isLoading={uploadingLogo}
             onClick={() => fileInputRef.current?.click()}
           >
-            {uploadingLogo ? "Enviando..." : "Alterar logo"}
+            Alterar logo
           </Button>
           <input
             ref={fileInputRef}
@@ -132,8 +132,8 @@ export function ClinicSettingsForm({
           </p>
         )}
 
-        <Button type="submit" disabled={saving} className="w-fit">
-          {saving ? "Salvando..." : "Salvar"}
+        <Button type="submit" isLoading={saving} className="w-fit">
+          Salvar
         </Button>
       </form>
 

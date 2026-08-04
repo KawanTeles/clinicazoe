@@ -94,10 +94,13 @@ export function AdminShell({
           </div>
           <button
             aria-label="Fechar menu"
-            className="rounded-lg p-1 text-[#C8D4CF] hover:bg-[#17382D] lg:hidden"
+            className="rounded-lg p-1.5 text-[#C8D4CF] transition-colors hover:bg-[#17382D] hover:text-[#F5F7F6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8B57] focus-visible:ring-offset-2 focus-visible:ring-offset-[#081C15] lg:hidden"
             onClick={() => setMobileOpen(false)}
           >
-            ✕
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
 
@@ -147,7 +150,7 @@ export function AdminShell({
           <div className="flex items-center gap-3">
             <button
               aria-label="Abrir menu"
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#255044] bg-[#102A22] text-[#F5F7F6] hover:bg-[#17382D] lg:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#255044] bg-[#102A22] text-[#F5F7F6] transition-colors hover:bg-[#17382D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8B57] focus-visible:ring-offset-2 focus-visible:ring-offset-[#081C15] lg:hidden"
               onClick={() => setMobileOpen(true)}
             >
               <span className="sr-only">Abrir menu</span>

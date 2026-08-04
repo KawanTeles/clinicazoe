@@ -64,7 +64,7 @@ export function NotificationBell({
         type="button"
         aria-label="Notificações"
         onClick={handleOpen}
-        className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-[#255044] bg-[#102A22] text-[#C8D4CF] transition-all hover:border-[#2E8B57]/50 hover:bg-[#17382D] hover:text-[#F5F7F6]"
+        className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-[#255044] bg-[#102A22] text-[#C8D4CF] transition-all hover:border-[#2E8B57]/50 hover:bg-[#17382D] hover:text-[#F5F7F6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8B57] focus-visible:ring-offset-2 focus-visible:ring-offset-[#081C15]"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

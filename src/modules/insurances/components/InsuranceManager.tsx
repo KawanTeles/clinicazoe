@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
+import { useToast } from "@/components/ui/Toast";
 import type { Database } from "@/lib/supabase/types";
 import {
   createInsurance,
@@ -16,6 +18,8 @@ type Insurance = Database["public"]["Tables"]["insurances"]["Row"];
 
 export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
   const router = useRouter();
+  const confirm = useConfirm();
+  const toast = useToast();
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +41,7 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
     }
 
     setNewName("");
+    toast.success("Convênio adicionado com sucesso.");
     router.refresh();
   }
 
@@ -48,7 +53,7 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
     });
     setBusyId(null);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
     router.refresh();
@@ -60,25 +65,31 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
     const result = await updateInsurance(id, { name: editingName });
     setBusyId(null);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
     setEditingId(null);
+    toast.success("Convênio atualizado com sucesso.");
     router.refresh();
   }
 
   async function handleDelete(insurance: Insurance) {
-    const confirmed = window.confirm(`Excluir o convênio "${insurance.name}"?`);
+    const confirmed = await confirm({
+      title: `Excluir "${insurance.name}"?`,
+      description: "Essa ação é permanente e não pode ser desfeita.",
+      confirmLabel: "Excluir",
+      tone: "danger",
+    });
     if (!confirmed) return;
 
     setBusyId(insurance.id);
-    setError(null);
     const result = await deleteInsurance(insurance.id);
     setBusyId(null);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Convênio excluído com sucesso.");
     router.refresh();
   }
 
@@ -94,8 +105,8 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
             onChange={(e) => setNewName(e.target.value)}
           />
         </div>
-        <Button type="submit" disabled={creating}>
-          {creating ? "Adicionando..." : "Adicionar"}
+        <Button type="submit" isLoading={creating}>
+          Adicionar
         </Button>
       </form>
 
@@ -124,7 +135,7 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
                       />
                       <Button
                         size="sm"
-                        disabled={busyId === insurance.id}
+                        isLoading={busyId === insurance.id}
                         onClick={() => handleSaveName(insurance.id)}
                       >
                         Salvar
@@ -159,7 +170,7 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
                     <Button
                       size="sm"
                       variant="secondary"
-                      disabled={busyId === insurance.id}
+                      isLoading={busyId === insurance.id}
                       onClick={() => handleToggleStatus(insurance)}
                     >
                       {insurance.status === "active" ? "Desativar" : "Ativar"}
@@ -167,7 +178,7 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
                     <Button
                       size="sm"
                       variant="danger"
-                      disabled={busyId === insurance.id}
+                      isLoading={busyId === insurance.id}
                       onClick={() => handleDelete(insurance)}
                     >
                       Excluir

@@ -4,6 +4,7 @@ import { getPublicWebsiteData } from "@/lib/public-queries";
 import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
+import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { formatCurrency } from "@/lib/whatsapp";
@@ -39,17 +40,7 @@ export default async function ProfissionalDetailPage({ params }: { params: Promi
 
             <div className="rounded-3xl border border-[#255044] bg-[#102A22] p-8 sm:p-12 shadow-[0_20px_60px_rgba(0,0,0,0.4)] space-y-8">
               <div className="flex flex-col sm:flex-row items-center gap-8 border-b border-[#255044]/60 pb-8">
-                {prof.avatarUrl ? (
-                  <img
-                    src={prof.avatarUrl}
-                    alt={prof.fullName}
-                    className="h-28 w-28 rounded-3xl object-cover border-4 border-[#255044] shadow-xl"
-                  />
-                ) : (
-                  <div className="flex h-28 w-28 items-center justify-center rounded-3xl bg-[#17382D] text-3xl font-black text-[#5ED39D] border-4 border-[#255044]">
-                    {prof.fullName.slice(0, 2).toUpperCase()}
-                  </div>
-                )}
+                <Avatar src={prof.avatarUrl} name={prof.fullName} size={112} rounded="3xl" className="shadow-xl" />
 
                 <div className="space-y-2 text-center sm:text-left">
                   <Badge tone="premium">{prof.specialtyName}</Badge>

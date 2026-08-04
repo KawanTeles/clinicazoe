@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
+import { useToast } from "@/components/ui/Toast";
 import type { Database } from "@/lib/supabase/types";
 import {
   createSpecialty,
@@ -16,6 +18,8 @@ type Specialty = Database["public"]["Tables"]["specialties"]["Row"];
 
 export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) {
   const router = useRouter();
+  const confirm = useConfirm();
+  const toast = useToast();
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +41,7 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
     }
 
     setNewName("");
+    toast.success("Especialidade adicionada com sucesso.");
     router.refresh();
   }
 
@@ -48,7 +53,7 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
     });
     setBusyId(null);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
     router.refresh();
@@ -60,25 +65,31 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
     const result = await updateSpecialty(id, { name: editingName });
     setBusyId(null);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
     setEditingId(null);
+    toast.success("Especialidade atualizada com sucesso.");
     router.refresh();
   }
 
   async function handleDelete(specialty: Specialty) {
-    const confirmed = window.confirm(`Excluir a especialidade "${specialty.name}"?`);
+    const confirmed = await confirm({
+      title: `Excluir "${specialty.name}"?`,
+      description: "Essa ação é permanente e não pode ser desfeita.",
+      confirmLabel: "Excluir",
+      tone: "danger",
+    });
     if (!confirmed) return;
 
     setBusyId(specialty.id);
-    setError(null);
     const result = await deleteSpecialty(specialty.id);
     setBusyId(null);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Especialidade excluída com sucesso.");
     router.refresh();
   }
 
@@ -94,8 +105,8 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
             onChange={(e) => setNewName(e.target.value)}
           />
         </div>
-        <Button type="submit" disabled={creating}>
-          {creating ? "Adicionando..." : "Adicionar"}
+        <Button type="submit" isLoading={creating}>
+          Adicionar
         </Button>
       </form>
 
@@ -124,7 +135,7 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
                       />
                       <Button
                         size="sm"
-                        disabled={busyId === specialty.id}
+                        isLoading={busyId === specialty.id}
                         onClick={() => handleSaveName(specialty.id)}
                       >
                         Salvar
@@ -159,7 +170,7 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
                     <Button
                       size="sm"
                       variant="secondary"
-                      disabled={busyId === specialty.id}
+                      isLoading={busyId === specialty.id}
                       onClick={() => handleToggleStatus(specialty)}
                     >
                       {specialty.status === "active" ? "Desativar" : "Ativar"}
@@ -167,7 +178,7 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
                     <Button
                       size="sm"
                       variant="danger"
-                      disabled={busyId === specialty.id}
+                      isLoading={busyId === specialty.id}
                       onClick={() => handleDelete(specialty)}
                     >
                       Excluir

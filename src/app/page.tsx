@@ -4,6 +4,7 @@ import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
 import { LocationSection } from "@/components/public/LocationSection";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
+import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 
@@ -271,17 +272,7 @@ export default async function HomePage() {
                 <div className="group flex flex-col justify-between rounded-2xl border border-[#255044] bg-[#102A22] p-6 shadow-lg hover:border-[#2E8B57]/60 transition-all">
                   <div>
                     <div className="flex items-center gap-4 mb-4">
-                      {prof.avatarUrl ? (
-                        <img
-                          src={prof.avatarUrl}
-                          alt={prof.fullName}
-                          className="h-16 w-16 rounded-2xl object-cover border border-[#255044]"
-                        />
-                      ) : (
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#17382D] text-lg font-extrabold text-[#5ED39D] border border-[#255044]">
-                          {prof.fullName.slice(0, 2).toUpperCase()}
-                        </div>
-                      )}
+                      <Avatar src={prof.avatarUrl} name={prof.fullName} size={64} rounded="2xl" />
                       <div>
                         <h3 className="text-base font-bold text-[#F5F7F6]">{prof.fullName}</h3>
                         <Badge tone="premium" className="mt-1 text-[11px]">{prof.specialtyName}</Badge>

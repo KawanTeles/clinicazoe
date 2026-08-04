@@ -5,8 +5,15 @@ interface AvatarProps {
   src?: string | null;
   name: string;
   size?: number;
+  rounded?: "full" | "2xl" | "3xl";
   className?: string;
 }
+
+const ROUNDED_CLASS: Record<NonNullable<AvatarProps["rounded"]>, string> = {
+  full: "rounded-full",
+  "2xl": "rounded-2xl",
+  "3xl": "rounded-3xl",
+};
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/);
@@ -15,8 +22,9 @@ function initials(name: string) {
   return (first + last).toUpperCase();
 }
 
-export function Avatar({ src, name, size = 40, className }: AvatarProps) {
+export function Avatar({ src, name, size = 40, rounded = "full", className }: AvatarProps) {
   const style = { width: size, height: size };
+  const shapeClass = ROUNDED_CLASS[rounded];
 
   if (src) {
     return (
@@ -26,7 +34,7 @@ export function Avatar({ src, name, size = 40, className }: AvatarProps) {
         width={size}
         height={size}
         style={style}
-        className={cn("rounded-full object-cover ring-2 ring-[#255044]", className)}
+        className={cn(shapeClass, "object-cover ring-2 ring-[#255044]", className)}
       />
     );
   }
@@ -35,7 +43,8 @@ export function Avatar({ src, name, size = 40, className }: AvatarProps) {
     <div
       style={style}
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-full bg-[#2E8B57]/20 text-[#5ED39D] border border-[#2E8B57]/30 font-bold shadow-inner",
+        "flex shrink-0 items-center justify-center bg-[#2E8B57]/20 text-[#5ED39D] border border-[#2E8B57]/30 font-bold shadow-inner",
+        shapeClass,
         className,
       )}
     >

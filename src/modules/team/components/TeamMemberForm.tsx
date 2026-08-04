@@ -448,10 +448,10 @@ export function TeamMemberForm({
       {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
 
       <div className="flex gap-3">
-        <Button type="submit" disabled={saving}>
-          {saving ? "Salvando..." : "Salvar"}
+        <Button type="submit" isLoading={saving}>
+          Salvar
         </Button>
-        <Button type="button" variant="secondary" onClick={() => router.push("/team")}>
+        <Button type="button" variant="secondary" disabled={saving} onClick={() => router.push("/team")}>
           Cancelar
         </Button>
       </div>

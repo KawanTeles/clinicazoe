@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { useToast } from "@/components/ui/Toast";
 import { formatCurrency } from "@/lib/whatsapp";
 import type { FinancialEntryView } from "@/modules/financial/services/financial-queries";
 import { markAsPaid } from "@/modules/financial/services/financial-actions";
@@ -12,18 +13,18 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 
 export function FinancialTable({ entries }: { entries: FinancialEntryView[] }) {
   const router = useRouter();
+  const toast = useToast();
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   async function handleMarkAsPaid(id: string) {
     setBusyId(id);
-    setError(null);
     const result = await markAsPaid(id);
     setBusyId(null);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Lançamento marcado como pago.");
     router.refresh();
   }
 
@@ -37,7 +38,6 @@ export function FinancialTable({ entries }: { entries: FinancialEntryView[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
       <div className="overflow-x-auto rounded-2xl border border-[#255044] bg-[#102A22] shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="border-b border-[#255044] bg-[#17382D]/80 text-xs font-bold uppercase tracking-wider text-[#C8D4CF]">
@@ -70,7 +70,7 @@ export function FinancialTable({ entries }: { entries: FinancialEntryView[] }) {
                   {entry.status === "em_aberto" && (
                     <Button
                       size="sm"
-                      disabled={busyId === entry.id}
+                      isLoading={busyId === entry.id}
                       onClick={() => handleMarkAsPaid(entry.id)}
                     >
                       Marcar como pago

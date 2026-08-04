@@ -58,8 +58,8 @@ export function LoginForm({ signupHref = "/cliente/signup" }: LoginFormProps) {
         onChange={(e) => setPassword(e.target.value)}
       />
       {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
-      <Button type="submit" disabled={loading} className="w-full font-bold">
-        {loading ? "Entrando..." : "Entrar"}
+      <Button type="submit" isLoading={loading} className="w-full font-bold">
+        Entrar
       </Button>
       {signupHref && (
         <p className="text-center text-xs text-[#C8D4CF] mt-2">

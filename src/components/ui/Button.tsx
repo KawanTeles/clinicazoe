@@ -7,6 +7,7 @@ type Size = "sm" | "md" | "lg";
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
+  isLoading?: boolean;
 }
 
 const variantClasses: Record<Variant, string> = {
@@ -27,10 +28,12 @@ const sizeClasses: Record<Size, string> = {
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "md", ...props }, ref) => {
+  ({ className, variant = "primary", size = "md", isLoading = false, disabled, children, ...props }, ref) => {
     return (
       <button
         ref={ref}
+        disabled={disabled || isLoading}
+        aria-busy={isLoading || undefined}
         className={cn(
           "inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 ease-in-out cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8B57] focus-visible:ring-offset-2 focus-visible:ring-offset-[#081C15] disabled:cursor-not-allowed disabled:active:scale-100",
           variantClasses[variant],
@@ -38,7 +41,24 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           className,
         )}
         {...props}
-      />
+      >
+        {isLoading && (
+          <svg
+            className="h-4 w-4 shrink-0 animate-spin"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path
+              className="opacity-90"
+              fill="currentColor"
+              d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z"
+            />
+          </svg>
+        )}
+        {children}
+      </button>
     );
   },
 );
