@@ -261,6 +261,7 @@ export async function confirmAppointment(
     clinicName: clinic?.name ?? "Clínica",
     clinicAddress: clinic?.address,
     value: appointment.value,
+    clinicPhone: clinic?.whatsapp_number,
   });
 
   const whatsappLink = buildWhatsAppLink(patient?.phone, message);
@@ -362,6 +363,7 @@ export async function sendReminder(
     startTime: appointment.start_time,
     clinicName: clinic?.name ?? "Clínica",
     clinicAddress: clinic?.address,
+    clinicPhone: clinic?.whatsapp_number,
   });
 
   const whatsappLink = buildWhatsAppLink(patient?.phone, message);
@@ -369,3 +371,153 @@ export async function sendReminder(
 
   return { error: null, whatsappLink };
 }
+
+export interface CreatePublicAppointmentInput {
+  professionalId: string;
+  specialtyId: string;
+  insuranceId: string;
+  scheduleSlotId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  paymentMethod: PaymentMethod;
+  patientName: string;
+  patientPhone: string;
+  patientEmail?: string;
+}
+
+export async function createPublicAppointment(
+  input: CreatePublicAppointmentInput,
+): Promise<{ error: string | null; whatsappLink?: string | null }> {
+  const rateLimit = checkRateLimit(`public_booking:${input.patientPhone}`, 5, 60_000);
+  if (!rateLimit.allowed) {
+    return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente novamente.` };
+  }
+
+  const session = await getCurrentUser();
+  const admin = createAdminClient();
+
+  let patientId = session?.user?.id;
+
+  if (!patientId) {
+    // Busca se existe perfil com este telefone ou nome
+    const { data: existingProfile } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("phone", input.patientPhone)
+      .maybeSingle();
+
+    if (existingProfile) {
+      patientId = existingProfile.id;
+    } else {
+      // Cria novo usuário temporário no Auth
+      const dummyEmail = input.patientEmail && input.patientEmail.includes("@")
+        ? input.patientEmail
+        : `paciente_${Date.now()}@clinicazoe.com.br`;
+
+      const { data: authUser, error: authError } = await admin.auth.admin.createUser({
+        email: dummyEmail,
+        email_confirm: true,
+        user_metadata: { full_name: input.patientName, role: "paciente" },
+      });
+
+      if (authError || !authUser.user) {
+        return { error: "Não foi possível cadastrar o paciente. Tente novamente." };
+      }
+
+      patientId = authUser.user.id;
+
+      await admin.from("profiles").upsert({
+        id: patientId,
+        full_name: input.patientName,
+        phone: input.patientPhone,
+        role: "paciente",
+        status: "active",
+      });
+    }
+  }
+
+  // Validação de preço
+  const pricingOptions = await getProfessionalPricing(input.professionalId, input.insuranceId);
+  const pricing = pricingOptions.find((o) => o.paymentMethod === input.paymentMethod);
+  if (!pricing) {
+    return { error: "Forma de pagamento indisponível." };
+  }
+
+  // Validação de horário
+  const availableTimes = await getAvailableTimes(input.professionalId, input.insuranceId, input.date);
+  const stillAvailable = availableTimes.some(
+    (slot) => slot.slotId === input.scheduleSlotId && slot.startTime === input.startTime,
+  );
+
+  if (!stillAvailable) {
+    return { error: "Este horário acabou de ser preenchido. Escolha outro." };
+  }
+
+  const { data: appointment, error } = await admin
+    .from("appointments")
+    .insert({
+      patient_id: patientId,
+      professional_id: input.professionalId,
+      specialty_id: input.specialtyId,
+      insurance_id: input.insuranceId,
+      schedule_slot_id: input.scheduleSlotId,
+      appointment_date: input.date,
+      start_time: input.startTime,
+      end_time: input.endTime,
+      payment_method: input.paymentMethod,
+      value: pricing.value,
+      status: "pendente",
+    })
+    .select("id")
+    .single();
+
+  if (error || !appointment) {
+    return { error: "Não foi possível agendar a consulta. Tente novamente." };
+  }
+
+  await logAudit({
+    actorId: patientId,
+    action: "appointment.public_created",
+    entity: "appointments",
+    entityId: appointment.id,
+    metadata: { professionalId: input.professionalId, date: input.date, startTime: input.startTime },
+  });
+
+  const [{ data: specialty }, { data: insurance }, { data: clinic }] = await Promise.all([
+    admin.from("specialties").select("name").eq("id", input.specialtyId).single(),
+    admin.from("insurances").select("name").eq("id", input.insuranceId).single(),
+    admin.from("clinic_settings").select("whatsapp_number").eq("id", 1).single(),
+  ]);
+
+  const { data: professionalProfile } = await admin
+    .from("profiles")
+    .select("full_name")
+    .eq("id", input.professionalId)
+    .single();
+
+  const message = buildBookingMessage({
+    patientName: input.patientName,
+    patientPhone: input.patientPhone,
+    specialtyName: specialty?.name ?? "",
+    professionalName: professionalProfile?.full_name ?? "",
+    insuranceName: insurance?.name ?? "",
+    appointmentDate: input.date,
+    startTime: input.startTime,
+    value: pricing.value,
+    paymentMethod: input.paymentMethod,
+  });
+
+  const whatsappLink = buildWhatsAppLink(clinic?.whatsapp_number, message);
+
+  await notifyStaff({
+    type: "appointment.pending",
+    title: "Novo agendamento via site oficial",
+    message: `${input.patientName} agendou via site com ${professionalProfile?.full_name ?? "profissional"} para ${input.date} às ${input.startTime.slice(0, 5)}.`,
+    entity: "appointments",
+    entityId: appointment.id,
+  });
+
+  return { error: null, whatsappLink };
+}
+

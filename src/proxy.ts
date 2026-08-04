@@ -1,7 +1,21 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/profile"];
+const STAFF_ROUTES = [
+  "/dashboard",
+  "/appointments",
+  "/financial",
+  "/team",
+  "/audit",
+  "/settings",
+  "/specialties",
+  "/insurances",
+  "/my-schedule",
+  "/my-patients",
+  "/book",
+];
+
+const PATIENT_PROTECTED_ROUTES = ["/cliente/agendar"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -30,15 +44,48 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
-  if (isProtected && !user) {
-    const redirectUrl = new URL("/login", request.url);
-    redirectUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(redirectUrl);
+  // Obter a role do usuário a partir dos dados do Supabase se autenticado
+  let role: string | null = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    role = profile?.role ?? null;
+  }
+
+  // 1. Proteger rotas da equipe (Admin, Recepção, Profissional)
+  const isStaffRoute = STAFF_ROUTES.some((route) => pathname.startsWith(route));
+  if (isStaffRoute) {
+    if (!user) {
+      const redirectUrl = new URL("/equipe", request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+    // Se o usuário logado for paciente, proibir acesso ao painel da equipe
+    if (role === "paciente") {
+      return NextResponse.redirect(new URL("/cliente", request.url));
+    }
+  }
+
+  // 2. Proteger área restrita do paciente
+  const isPatientRoute = PATIENT_PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
+  if (isPatientRoute && !user) {
+    return NextResponse.redirect(new URL("/cliente/login", request.url));
+  }
+
+  // 3. Redirecionamento amigável de login para rotas certas por papel
+  if (pathname === "/equipe" && user) {
+    if (["admin", "recepcionista", "profissional"].includes(role ?? "")) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
   }
 
   if (pathname === "/login" && user) {
+    if (role === "paciente") {
+      return NextResponse.redirect(new URL("/cliente", request.url));
+    }
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

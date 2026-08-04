@@ -53,3 +53,36 @@ export async function getPatientsForProfessional(
     })
     .sort((a, b) => b.lastAppointmentDate.localeCompare(a.lastAppointmentDate));
 }
+
+export async function getAppointmentsForPatient(patientId: string) {
+  const supabase = await createClient();
+
+  const { data: appointments } = await supabase
+    .from("appointments")
+    .select("id, appointment_date, start_time, end_time, status, value, payment_method, professional_id, specialty_id, insurance_id")
+    .eq("patient_id", patientId)
+    .order("appointment_date", { ascending: false });
+
+  if (!appointments || appointments.length === 0) return [];
+
+  const profIds = Array.from(new Set(appointments.map((a) => a.professional_id)));
+  const specIds = Array.from(new Set(appointments.map((a) => a.specialty_id).filter(Boolean))) as string[];
+  const insIds = Array.from(new Set(appointments.map((a) => a.insurance_id)));
+
+  const [{ data: profiles }, { data: specialties }, { data: insurances }] = await Promise.all([
+    profIds.length > 0 ? supabase.from("profiles").select("id, full_name").in("id", profIds) : { data: [] },
+    specIds.length > 0 ? supabase.from("specialties").select("id, name").in("id", specIds) : { data: [] },
+    insIds.length > 0 ? supabase.from("insurances").select("id, name").in("id", insIds) : { data: [] },
+  ]);
+
+  const profMap = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
+  const specMap = new Map((specialties ?? []).map((s) => [s.id, s.name]));
+  const insMap = new Map((insurances ?? []).map((i) => [i.id, i.name]));
+
+  return appointments.map((appt) => ({
+    ...appt,
+    professionalName: profMap.get(appt.professional_id) ?? "Profissional",
+    specialtyName: appt.specialty_id ? specMap.get(appt.specialty_id) ?? "Consulta" : "Consulta",
+    insuranceName: insMap.get(appt.insurance_id) ?? "Particular",
+  }));
+}

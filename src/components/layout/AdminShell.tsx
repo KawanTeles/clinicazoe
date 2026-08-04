@@ -49,7 +49,7 @@ export function AdminShell({
 
   async function handleSignOut() {
     await signOut();
-    router.push("/login");
+    router.push("/equipe");
     router.refresh();
   }
 
@@ -165,6 +165,17 @@ export function AdminShell({
           </div>
 
           <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#255044] bg-[#102A22] px-3 py-1.5 text-xs font-semibold text-[#5ED39D] hover:bg-[#17382D] hover:border-[#2E8B57] transition-all"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" x2="22" y1="12" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              <span>Ver Site</span>
+            </Link>
             <NotificationBell initialNotifications={notifications} initialUnreadCount={unreadCount} />
             <div className="hidden md:flex items-center gap-2 border-l border-[#255044] pl-4">
               <Avatar src={avatarUrl} name={fullName} size={32} />

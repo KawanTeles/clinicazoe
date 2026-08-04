@@ -30,6 +30,12 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
   convenio: "Convênio",
 };
 
+export function appendClinicFooter(message: string, clinicPhone?: string | null): string {
+  const phoneStr = clinicPhone ? clinicPhone.trim() : "(11) 99999-9999";
+  const footer = `\n\n------------------------------------\n\nEm caso de dúvidas, entre em contato com a Clínica Zoe.\n\n📞 Atendimento da Clínica Zoe:\n${phoneStr}\n\nSerá um prazer atender você!`;
+  return `${message}${footer}`;
+}
+
 export function buildBookingMessage(params: {
   patientName: string;
   patientPhone: string;
@@ -40,9 +46,10 @@ export function buildBookingMessage(params: {
   startTime: string;
   value: number;
   paymentMethod: string;
+  clinicPhone?: string | null;
 }) {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
-  return (
+  const baseMessage = (
     `Novo agendamento (Pendente)\n` +
     `Paciente: ${params.patientName}\n` +
     `Telefone: ${params.patientPhone}\n` +
@@ -53,6 +60,7 @@ export function buildBookingMessage(params: {
     `Valor: ${formatCurrency(params.value)}\n` +
     `Forma de pagamento: ${PAYMENT_METHOD_LABELS[params.paymentMethod] ?? params.paymentMethod}`
   );
+  return appendClinicFooter(baseMessage, params.clinicPhone);
 }
 
 export function buildCancellationMessage(params: {
@@ -61,15 +69,17 @@ export function buildCancellationMessage(params: {
   appointmentDate: string;
   startTime: string;
   rescheduled: boolean;
+  clinicPhone?: string | null;
 }) {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
-  return (
+  const baseMessage = (
     `${params.rescheduled ? "Remarcação" : "Cancelamento"} de consulta\n` +
     `Paciente: ${params.patientName}\n` +
     `Profissional: ${params.professionalName}\n` +
     `Data/Hora original: ${date} às ${params.startTime.slice(0, 5)}\n` +
     `Status: ${params.rescheduled ? "paciente vai reagendar" : "cancelada pelo paciente"}`
   );
+  return appendClinicFooter(baseMessage, params.clinicPhone);
 }
 
 export function buildReminderMessage(params: {
@@ -78,14 +88,16 @@ export function buildReminderMessage(params: {
   startTime: string;
   clinicName: string;
   clinicAddress?: string | null;
+  clinicPhone?: string | null;
 }) {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
-  return (
+  const baseMessage = (
     `Lembrete de consulta\n` +
     `Profissional: ${params.professionalName}\n` +
     `Data/Hora: ${date} às ${params.startTime.slice(0, 5)}\n` +
     `Local: ${params.clinicName}${params.clinicAddress ? " — " + params.clinicAddress : ""}`
   );
+  return appendClinicFooter(baseMessage, params.clinicPhone);
 }
 
 export function buildConfirmationMessage(params: {
@@ -95,13 +107,15 @@ export function buildConfirmationMessage(params: {
   clinicName: string;
   clinicAddress?: string | null;
   value: number;
+  clinicPhone?: string | null;
 }) {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
-  return (
-    `Consulta confirmada!\n` +
+  const baseMessage = (
+    `Olá, sua consulta foi aprovada.\n\n` +
     `Profissional: ${params.professionalName}\n` +
     `Data/Hora: ${date} às ${params.startTime.slice(0, 5)}\n` +
     `Local: ${params.clinicName}${params.clinicAddress ? " — " + params.clinicAddress : ""}\n` +
     `Valor: ${formatCurrency(params.value)}`
   );
+  return appendClinicFooter(baseMessage, params.clinicPhone);
 }

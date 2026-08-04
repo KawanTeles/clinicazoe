@@ -7,7 +7,11 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { signInWithPassword } from "@/modules/auth/services/auth-client";
 
-export function LoginForm() {
+interface LoginFormProps {
+  signupHref?: string | null;
+}
+
+export function LoginForm({ signupHref = "/cliente/signup" }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -54,15 +58,17 @@ export function LoginForm() {
         onChange={(e) => setPassword(e.target.value)}
       />
       {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
-      <Button type="submit" disabled={loading} className="w-full">
+      <Button type="submit" disabled={loading} className="w-full font-bold">
         {loading ? "Entrando..." : "Entrar"}
       </Button>
-      <p className="text-center text-sm text-[#C8D4CF]">
-        Ainda não tem conta?{" "}
-        <Link href="/signup" className="font-semibold text-[#5ED39D] hover:text-[#86E5B8] hover:underline">
-          Criar conta de paciente
-        </Link>
-      </p>
+      {signupHref && (
+        <p className="text-center text-xs text-[#C8D4CF] mt-2">
+          Primeiro acesso?{" "}
+          <Link href={signupHref} className="font-semibold text-[#5ED39D] hover:text-[#86E5B8] hover:underline">
+            Criar conta de paciente
+          </Link>
+        </p>
+      )}
     </form>
   );
 }

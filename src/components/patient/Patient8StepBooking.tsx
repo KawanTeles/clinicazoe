@@ -1,0 +1,615 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Badge } from "@/components/ui/Badge";
+import {
+  getBookableInsurances,
+  getBookableProfessionals,
+  getAvailableDates,
+  getAvailableTimes,
+  getProfessionalPricing,
+} from "@/modules/appointments/services/booking-queries";
+import { createAppointment } from "@/modules/appointments/services/booking-actions";
+import { formatCurrency, buildWhatsAppLink } from "@/lib/whatsapp";
+
+const CITIES = [
+  "São Paulo - SP",
+  "Rio de Janeiro - RJ",
+  "Belo Horizonte - MG",
+  "Curitiba - PR",
+  "Brasília - DF",
+  "Campinas - SP",
+];
+
+interface Specialty {
+  id: string;
+  name: string;
+}
+
+interface Professional {
+  id: string;
+  fullName: string;
+  specialtyName: string;
+  bio?: string | null;
+  avatarUrl?: string | null;
+}
+
+interface Patient8StepBookingProps {
+  specialties: Specialty[];
+  initialProfessionals: Professional[];
+  patientProfile?: {
+    fullName: string;
+    phone: string | null;
+    email?: string;
+  };
+  whatsappNumber?: string | null;
+}
+
+export function Patient8StepBooking({
+  specialties,
+  initialProfessionals,
+  patientProfile,
+  whatsappNumber,
+}: Patient8StepBookingProps) {
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8>(1);
+
+  // Selections
+  const [selectedCity, setSelectedCity] = useState<string>("São Paulo - SP");
+  const [selectedInsuranceId, setSelectedInsuranceId] = useState<string>("");
+  const [selectedInsuranceName, setSelectedInsuranceName] = useState<string>("");
+  const [selectedSpecialtyId, setSelectedSpecialtyId] = useState<string>("");
+  const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedSlot, setSelectedSlot] = useState<{ slotId: string; startTime: string; endTime: string } | null>(null);
+
+  // Form patient
+  const [patientName, setPatientName] = useState(patientProfile?.fullName || "");
+  const [patientPhone, setPatientPhone] = useState(patientProfile?.phone || "");
+  const [patientEmail, setPatientEmail] = useState(patientProfile?.email || "");
+  const [paymentMethod, setPaymentMethod] = useState<"pix" | "cartao" | "dinheiro" | "convenio">("pix");
+
+  // Dynamic lists
+  const [insurances, setInsurances] = useState<{ id: string; name: string }[]>([]);
+  const [professionals, setProfessionals] = useState<Professional[]>(initialProfessionals);
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
+  const [availableTimes, setAvailableTimes] = useState<{ slotId: string; startTime: string; endTime: string }[]>([]);
+  const [pricingOptions, setPricingOptions] = useState<{ paymentMethod: string; value: number }[]>([]);
+
+  // UI States
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successResult, setSuccessResult] = useState<{ whatsappLink?: string | null } | null>(null);
+
+  // STEP 1: Selecionar Cidade
+  function handleSelectCity(city: string) {
+    setSelectedCity(city);
+    // Se não tiver especialidade pré-selecionada, define a primeira
+    if (specialties.length > 0) {
+      handleLoadInsurancesForSpecialty(specialties[0].id);
+    }
+  }
+
+  async function handleLoadInsurancesForSpecialty(specId: string) {
+    setSelectedSpecialtyId(specId);
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const insList = await getBookableInsurances(specId);
+      setInsurances(insList);
+      if (insList.length > 0) {
+        setSelectedInsuranceId(insList[0].id);
+        setSelectedInsuranceName(insList[0].name);
+      }
+      setStep(2);
+    } catch {
+      setErrorMsg("Falha ao carregar convênios disponíveis.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // STEP 2: Selecionar Convênio
+  async function handleSelectInsurance(insId: string, insName: string) {
+    setSelectedInsuranceId(insId);
+    setSelectedInsuranceName(insName);
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const specId = selectedSpecialtyId || (specialties[0]?.id ?? "");
+      const profs = await getBookableProfessionals(specId, insId);
+      const specName = specialties.find((s) => s.id === specId)?.name ?? "Especialista";
+      const mapped: Professional[] = profs.map((p) => ({
+        id: p.id,
+        fullName: p.fullName,
+        specialtyName: specName,
+        bio: p.bio,
+        avatarUrl: p.avatarUrl,
+      }));
+      setProfessionals(mapped.length > 0 ? mapped : initialProfessionals);
+      setStep(3);
+    } catch {
+      setErrorMsg("Falha ao carregar profissionais.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // STEP 3: Selecionar Profissional
+  async function handleSelectProfessional(profId: string) {
+    setSelectedProfessionalId(profId);
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const dates = await getAvailableDates(profId);
+      setAvailableDates(dates);
+      const pricing = await getProfessionalPricing(profId, selectedInsuranceId);
+      setPricingOptions(pricing);
+      if (pricing.length > 0) {
+        setPaymentMethod(pricing[0].paymentMethod as any);
+      }
+      setStep(4);
+    } catch {
+      setErrorMsg("Falha ao carregar datas do profissional.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // STEP 4: Escolher Data
+  async function handleSelectDate(date: string) {
+    setSelectedDate(date);
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const times = await getAvailableTimes(selectedProfessionalId, selectedInsuranceId, date);
+      setAvailableTimes(times);
+      setStep(5);
+    } catch {
+      setErrorMsg("Falha ao carregar horários disponíveis.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // STEP 5: Escolher Horário
+  function handleSelectSlot(slot: { slotId: string; startTime: string; endTime: string }) {
+    setSelectedSlot(slot);
+    setStep(6);
+  }
+
+  // STEP 6: Confirmar dados pessoais
+  function handleConfirmPatientDetails(e: React.FormEvent) {
+    e.preventDefault();
+    if (!patientName.trim() || !patientPhone.trim()) {
+      setErrorMsg("Nome e WhatsApp são obrigatórios.");
+      return;
+    }
+    setErrorMsg(null);
+    setStep(7);
+  }
+
+  // STEP 7: Forma de Pagamento
+  function handleSelectPaymentMethod(pm: "pix" | "cartao" | "dinheiro" | "convenio") {
+    setPaymentMethod(pm);
+    setStep(8);
+  }
+
+  // STEP 8: Enviar solicitação
+  async function handleFinalSubmit() {
+    if (!selectedSlot) return;
+    setSubmitting(true);
+    setErrorMsg(null);
+
+    const res = await createAppointment({
+      professionalId: selectedProfessionalId,
+      specialtyId: selectedSpecialtyId || (specialties[0]?.id ?? ""),
+      insuranceId: selectedInsuranceId,
+      scheduleSlotId: selectedSlot.slotId,
+      date: selectedDate,
+      startTime: selectedSlot.startTime,
+      endTime: selectedSlot.endTime,
+      paymentMethod,
+    });
+
+    setSubmitting(false);
+
+    if (res.error) {
+      setErrorMsg(res.error);
+    } else {
+      const currentProf = professionals.find((p) => p.id === selectedProfessionalId);
+      const currentSpec = specialties.find((s) => s.id === selectedSpecialtyId);
+      const currentPricing = pricingOptions.find((p) => p.paymentMethod === paymentMethod);
+
+      // Formatar mensagem para WhatsApp da Clínica
+      const msg = `Nova solicitação de consulta:\n\nPaciente: ${patientName}\nWhatsApp: ${patientPhone}\nCidade: ${selectedCity}\nConvênio: ${selectedInsuranceName}\nProfissional: ${currentProf?.fullName}\nEspecialidade: ${currentSpec?.name}\nData: ${selectedDate.split("-").reverse().join("/")}\nHorário: ${selectedSlot.startTime.slice(0, 5)}\nValor: ${currentPricing ? formatCurrency(currentPricing.value) : "A combinar"}\nPagamento: ${paymentMethod.toUpperCase()}`;
+
+      const link = buildWhatsAppLink(whatsappNumber, msg);
+      setSuccessResult({ whatsappLink: link });
+    }
+  }
+
+  const currentProf = professionals.find((p) => p.id === selectedProfessionalId);
+  const currentSpec = specialties.find((s) => s.id === selectedSpecialtyId);
+  const currentPricing = pricingOptions.find((p) => p.paymentMethod === paymentMethod);
+
+  if (successResult) {
+    return (
+      <Card className="border-[#2E8B57]/50 bg-[#102A22] shadow-[0_20px_60px_rgba(11,61,46,0.35)] animate-fade-up">
+        <CardContent className="p-8 text-center sm:p-12 space-y-6">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[#2E8B57]/20 border border-[#2E8B57]/40 text-[#5ED39D] shadow-[0_0_30px_rgba(46,139,87,0.3)]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+
+          <Badge tone="premium" className="mb-2">Solicitação Enviada!</Badge>
+          <h2 className="text-3xl font-black text-[#F5F7F6] tracking-tight">Agendamento Solicitado com Sucesso</h2>
+          <p className="text-base text-[#C8D4CF] max-w-lg mx-auto leading-relaxed">
+            Olá <strong className="text-white">{patientName}</strong>! Sua solicitação de consulta para <strong className="text-[#5ED39D]">{selectedDate.split("-").reverse().join("/")}</strong> às <strong className="text-[#5ED39D]">{selectedSlot?.startTime.slice(0, 5)}</strong> foi registrada na clínica.
+          </p>
+
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+            {successResult.whatsappLink && (
+              <a
+                href={successResult.whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-4 text-sm font-bold text-white transition-all hover:bg-[#1EBE5A] shadow-[0_10px_30px_rgba(37,211,102,0.3)]"
+              >
+                <span>Enviar Notificação pelo WhatsApp</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+              </a>
+            )}
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={() => {
+                setSuccessResult(null);
+                setStep(1);
+              }}
+            >
+              Fazer novo agendamento
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* Progress Indicator */}
+      <div className="rounded-2xl border border-[#255044] bg-[#102A22] p-6 shadow-md">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#5ED39D]">
+              Etapa {step} de 8
+            </span>
+            <h3 className="text-lg font-extrabold text-[#F5F7F6]">
+              {step === 1 && "1. Selecionar Cidade"}
+              {step === 2 && "2. Selecionar Convênio"}
+              {step === 3 && "3. Selecionar Profissional"}
+              {step === 4 && "4. Escolher Data"}
+              {step === 5 && "5. Escolher Horário"}
+              {step === 6 && "6. Confirmar Dados Pessoais"}
+              {step === 7 && "7. Forma de Pagamento"}
+              {step === 8 && "8. Resumo Final & Envio"}
+            </h3>
+          </div>
+          {step > 1 && (
+            <button
+              onClick={() => setStep((step - 1) as any)}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#5ED39D] hover:text-[#86E5B8] transition-colors"
+            >
+              ← Voltar etapa anterior
+            </button>
+          )}
+        </div>
+
+        {/* 8 Indicator Bars */}
+        <div className="grid grid-cols-8 gap-1.5">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div
+              key={i}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                i <= step ? "bg-gradient-forest shadow-[0_0_10px_rgba(46,139,87,0.5)]" : "bg-[#17382D]"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {errorMsg && (
+        <div className="rounded-xl border border-[#DC4F4F]/40 bg-[#DC4F4F]/10 p-4 text-sm font-medium text-[#FF8A8A]">
+          {errorMsg}
+        </div>
+      )}
+
+      {/* ETAPA 1: SELEÇÃO DE CIDADE */}
+      {step === 1 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-up">
+          {CITIES.map((city) => (
+            <button
+              key={city}
+              onClick={() => handleSelectCity(city)}
+              disabled={loading}
+              className={`p-6 rounded-2xl border text-left transition-all ${
+                selectedCity === city
+                  ? "border-[#2E8B57] bg-[#17382D] text-white shadow-lg"
+                  : "border-[#255044] bg-[#102A22] text-[#C8D4CF] hover:border-[#2E8B57]/60"
+              }`}
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#17382D] text-[#5ED39D] mb-3 border border-[#255044]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </div>
+              <h4 className="text-base font-bold">{city}</h4>
+              <p className="text-xs text-[#7A9187] mt-1">Unidade Clínica Disponível</p>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ETAPA 2: SELEÇÃO DE CONVÊNIO */}
+      {step === 2 && (
+        <Card className="animate-fade-up">
+          <CardContent className="p-6 space-y-4">
+            <h4 className="text-sm font-semibold text-[#C8D4CF]">Selecione o plano de saúde ou atendimento particular:</h4>
+            {insurances.length === 0 ? (
+              <p className="text-sm text-[#7A9187] py-4 text-center">Nenhum convênio disponível para esta seleção.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {insurances.map((ins) => (
+                  <button
+                    key={ins.id}
+                    onClick={() => handleSelectInsurance(ins.id, ins.name)}
+                    disabled={loading}
+                    className="p-5 rounded-2xl border border-[#255044] bg-[#17382D]/70 text-left hover:border-[#2E8B57] hover:bg-[#17382D] transition-all"
+                  >
+                    <h5 className="text-base font-bold text-white">{ins.name}</h5>
+                    <p className="text-xs text-[#5ED39D] mt-1">Compatível com corpo médico</p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ETAPA 3: SELEÇÃO DE PROFISSIONAL */}
+      {step === 3 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-up">
+          {professionals.map((prof) => (
+            <div
+              key={prof.id}
+              className="flex flex-col justify-between rounded-2xl border border-[#255044] bg-[#102A22] p-6 shadow-md"
+            >
+              <div className="flex items-center gap-4">
+                {prof.avatarUrl ? (
+                  <img
+                    src={prof.avatarUrl}
+                    alt={prof.fullName}
+                    className="h-16 w-16 rounded-2xl object-cover border border-[#255044]"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#17382D] text-lg font-bold text-[#5ED39D] border border-[#255044]">
+                    {prof.fullName.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <h4 className="text-lg font-bold text-[#F5F7F6]">{prof.fullName}</h4>
+                  <Badge tone="success" className="mt-1">{prof.specialtyName}</Badge>
+                </div>
+              </div>
+              {prof.bio && <p className="mt-3 text-xs text-[#C8D4CF] line-clamp-2">{prof.bio}</p>}
+              <Button
+                className="mt-5 w-full font-bold"
+                onClick={() => handleSelectProfessional(prof.id)}
+                disabled={loading}
+              >
+                {loading ? "Carregando horários..." : "Selecionar Médico"}
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ETAPA 4: ESCOLHER DATA */}
+      {step === 4 && (
+        <Card className="animate-fade-up">
+          <CardContent className="p-6">
+            <h4 className="text-sm font-semibold text-[#C8D4CF] mb-4">
+              Datas disponíveis para {currentProf?.fullName}:
+            </h4>
+            {availableDates.length === 0 ? (
+              <p className="text-sm text-[#7A9187] py-6 text-center">
+                Nenhum dia disponível nos próximos 45 dias.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                {availableDates.map((dateStr) => {
+                  const [y, m, d] = dateStr.split("-");
+                  const dateObj = new Date(Number(y), Number(m) - 1, Number(d));
+                  const weekDay = dateObj.toLocaleDateString("pt-BR", { weekday: "short" });
+                  return (
+                    <button
+                      key={dateStr}
+                      onClick={() => handleSelectDate(dateStr)}
+                      disabled={loading}
+                      className="flex flex-col items-center justify-center p-3 rounded-xl border border-[#255044] bg-[#17382D]/60 hover:bg-[#1F6B52]/40 hover:border-[#2E8B57] transition-all"
+                    >
+                      <span className="text-xs font-semibold uppercase text-[#5ED39D]">{weekDay}</span>
+                      <span className="text-lg font-black text-[#F5F7F6]">{d}/{m}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ETAPA 5: ESCOLHER HORÁRIO */}
+      {step === 5 && (
+        <Card className="animate-fade-up">
+          <CardContent className="p-6">
+            <h4 className="text-sm font-semibold text-[#C8D4CF] mb-4">
+              Horários livres para {selectedDate.split("-").reverse().join("/")}:
+            </h4>
+            {availableTimes.length === 0 ? (
+              <p className="text-sm text-[#7A9187] py-6 text-center">
+                Sem horários disponíveis para esta data. Escolha outro dia.
+              </p>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-3">
+                {availableTimes.map((slot) => (
+                  <button
+                    key={`${slot.slotId}-${slot.startTime}`}
+                    onClick={() => handleSelectSlot(slot)}
+                    className="py-3 px-2 rounded-xl border border-[#255044] bg-[#17382D] text-sm font-bold text-[#F5F7F6] hover:bg-[#2E8B57]/20 hover:border-[#2E8B57] hover:text-[#5ED39D] transition-all"
+                  >
+                    {slot.startTime.slice(0, 5)}
+                  </button>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ETAPA 6: CONFIRMAR DADOS PESSOAIS */}
+      {step === 6 && (
+        <Card className="animate-fade-up">
+          <CardContent className="p-6">
+            <form onSubmit={handleConfirmPatientDetails} className="space-y-4">
+              <Input
+                label="Nome completo *"
+                placeholder="Ex: Maria Oliveira"
+                value={patientName}
+                onChange={(e) => setPatientName(e.target.value)}
+                required
+              />
+              <Input
+                label="WhatsApp com DDD *"
+                placeholder="(11) 99999-9999"
+                value={patientPhone}
+                onChange={(e) => setPatientPhone(e.target.value)}
+                required
+              />
+              <Input
+                label="E-mail *"
+                type="email"
+                placeholder="maria@email.com"
+                value={patientEmail}
+                onChange={(e) => setPatientEmail(e.target.value)}
+                required
+              />
+              <Button type="submit" size="lg" className="w-full mt-6 font-bold">
+                Avançar para Pagamento →
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ETAPA 7: FORMA DE PAGAMENTO */}
+      {step === 7 && (
+        <Card className="animate-fade-up">
+          <CardContent className="p-6 space-y-4">
+            <h4 className="text-sm font-semibold text-[#C8D4CF]">Selecione a forma de pagamento:</h4>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { id: "pix", label: "Pix", sub: "Confirmação rápida" },
+                { id: "cartao", label: "Cartão", sub: "Crédito ou Débito" },
+                { id: "dinheiro", label: "Dinheiro", sub: "Na recepção" },
+                { id: "convenio", label: "Convênio", sub: selectedInsuranceName },
+              ].map((pm) => (
+                <button
+                  key={pm.id}
+                  onClick={() => handleSelectPaymentMethod(pm.id as any)}
+                  className={`p-4 rounded-xl border text-left transition-all ${
+                    paymentMethod === pm.id
+                      ? "border-[#2E8B57] bg-[#2E8B57]/20 text-[#5ED39D]"
+                      : "border-[#255044] bg-[#17382D] text-[#C8D4CF]"
+                  }`}
+                >
+                  <div className="font-bold text-base text-white">{pm.label}</div>
+                  <div className="text-xs text-[#7A9187] mt-1">{pm.sub}</div>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ETAPA 8: RESUMO FINAL & ENVIO */}
+      {step === 8 && (
+        <Card className="border-[#2E8B57]/40 animate-fade-up">
+          <CardContent className="p-6 space-y-6">
+            <h4 className="text-base font-bold text-[#F5F7F6]">Resumo Completo da Solicitação</h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl bg-[#17382D]/70 p-5 border border-[#255044] text-xs">
+              <div>
+                <span className="text-[#7A9187]">Cidade:</span>
+                <p className="text-sm font-bold text-white mt-0.5">{selectedCity}</p>
+              </div>
+              <div>
+                <span className="text-[#7A9187]">Convênio:</span>
+                <p className="text-sm font-bold text-white mt-0.5">{selectedInsuranceName}</p>
+              </div>
+              <div>
+                <span className="text-[#7A9187]">Profissional:</span>
+                <p className="text-sm font-bold text-white mt-0.5">{currentProf?.fullName}</p>
+              </div>
+              <div>
+                <span className="text-[#7A9187]">Especialidade:</span>
+                <p className="text-sm font-bold text-white mt-0.5">{currentSpec?.name}</p>
+              </div>
+              <div>
+                <span className="text-[#7A9187]">Duração da sessão:</span>
+                <p className="text-sm font-bold text-white mt-0.5">45-60 min</p>
+              </div>
+              <div>
+                <span className="text-[#7A9187]">Data & Horário:</span>
+                <p className="text-sm font-bold text-[#5ED39D] mt-0.5">
+                  {selectedDate.split("-").reverse().join("/")} às {selectedSlot?.startTime.slice(0, 5)}
+                </p>
+              </div>
+              <div>
+                <span className="text-[#7A9187]">Paciente:</span>
+                <p className="text-sm font-bold text-white mt-0.5">{patientName} ({patientPhone})</p>
+              </div>
+              {currentPricing && (
+                <div>
+                  <span className="text-[#7A9187]">Valor estimado:</span>
+                  <p className="text-sm font-black text-[#5ED39D] mt-0.5">{formatCurrency(currentPricing.value)}</p>
+                </div>
+              )}
+              <div>
+                <span className="text-[#7A9187]">Pagamento:</span>
+                <p className="text-sm font-bold text-white mt-0.5 uppercase">{paymentMethod}</p>
+              </div>
+            </div>
+
+            <Button
+              size="lg"
+              className="w-full text-base font-bold py-4 shadow-[0_12px_40px_rgba(20,90,67,0.4)]"
+              onClick={handleFinalSubmit}
+              disabled={submitting}
+            >
+              {submitting ? "Processando e enviando solicitação..." : "Confirmar solicitação"}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
