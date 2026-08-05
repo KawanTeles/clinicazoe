@@ -185,6 +185,34 @@ export function AdminShell({
     (item, index, self) => index === self.findIndex((t) => t.href === item.href && t.label === item.label)
   );
 
+  // Group items into SaaS navigation categories
+  const CATEGORY_MAP: Record<string, string> = {
+    "/dashboard": "Visão Geral",
+    "/book": "Visão Geral",
+    "/requests": "Visão Geral",
+    "/appointments": "Atendimento & Agenda",
+    "/my-schedule": "Atendimento & Agenda",
+    "/my-patients": "Atendimento & Agenda",
+    "/patients": "Atendimento & Agenda",
+    "/professionals": "Gestão & Clínica",
+    "/team": "Gestão & Clínica",
+    "/specialties": "Gestão & Clínica",
+    "/insurances": "Gestão & Clínica",
+    "/financial": "Gestão & Clínica",
+    "/audit": "Sistema",
+    "/settings": "Sistema",
+    "/profile": "Sistema",
+  };
+
+  const groupedNav = uniqueItems.reduce<Record<string, NavItem[]>>((acc, item) => {
+    const category = CATEGORY_MAP[item.href] || "Outros";
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(item);
+    return acc;
+  }, {});
+
+  const CATEGORY_ORDER = ["Visão Geral", "Atendimento & Agenda", "Gestão & Clínica", "Sistema", "Outros"];
+
   return (
     <div className="flex min-h-screen w-full bg-background text-text-primary">
       {/* Mobile Backdrop */}
@@ -199,92 +227,115 @@ export function AdminShell({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-card/80 backdrop-blur-xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-border/80 bg-card/90 backdrop-blur-xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 h-screen sticky top-0",
           mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
         )}
       >
         {/* Sidebar Brand Header */}
-        <div className="flex h-16 shrink-0 items-center justify-between px-6 border-b border-border/80">
-          <Link href="/dashboard" className="flex min-w-0 items-center gap-3 group">
+        <div className="flex h-14 shrink-0 items-center justify-between px-4 border-b border-border/80">
+          <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5 group">
             {logoUrl ? (
               <Image
                 src={logoUrl}
                 alt={clinicName}
-                width={32}
-                height={32}
+                width={28}
+                height={28}
                 unoptimized
-                className="h-8 w-8 rounded-xl object-contain bg-card-elevated p-1 border border-border group-hover:scale-105 transition-transform"
+                className="h-7 w-7 rounded-lg object-contain bg-card-elevated p-0.5 border border-border group-hover:scale-105 transition-transform"
               />
             ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-forest text-xs font-black text-white shadow-md group-hover:scale-105 transition-transform">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-forest text-[11px] font-black text-white shadow-xs group-hover:scale-105 transition-transform">
                 CZ
               </div>
             )}
             <div className="flex flex-col min-w-0">
-              <span className="truncate text-base font-bold tracking-tight text-text-primary font-heading">
+              <span className="truncate text-xs font-bold tracking-tight text-text-primary font-heading">
                 {clinicName}
               </span>
-              <span className="text-[10px] font-semibold text-[var(--primary)] uppercase tracking-wider">
+              <span className="text-[9px] font-semibold text-primary dark:text-[var(--link)] uppercase tracking-wider">
                 SaaS Admin
               </span>
             </div>
           </Link>
           <button
             aria-label="Fechar menu"
-            className="rounded-lg p-1.5 text-text-secondary transition-colors hover:bg-card-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:hidden"
+            className="rounded-lg p-1 text-text-secondary transition-colors hover:bg-card-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:hidden"
             onClick={() => setMobileOpen(false)}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
 
-        {/* Sidebar Nav Items */}
-        <nav className="flex-1 space-y-1 px-3 py-3.5 overflow-y-auto">
-          {uniqueItems.map((item) => {
-            const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
+        {/* Sidebar Nav Items (Grouped with categories) */}
+        <nav className="flex-1 space-y-3 px-2.5 py-3 overflow-y-auto">
+          {CATEGORY_ORDER.map((categoryTitle) => {
+            const groupItems = groupedNav[categoryTitle];
+            if (!groupItems || groupItems.length === 0) return null;
+
             return (
-              <Link
-                key={`${item.href}-${item.label}`}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "group relative flex h-9.5 items-center gap-2.5 rounded-xl px-3 text-xs font-semibold transition-all duration-150",
-                  active
-                    ? "bg-primary/10 text-primary dark:text-[var(--link)] font-bold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:rounded-r-full before:bg-primary"
-                    : "text-text-secondary hover:bg-card-elevated/70 hover:text-text-primary font-medium"
-                )}
-              >
-                <span className={cn("relative transition-transform group-hover:scale-105", active ? "text-primary dark:text-[var(--link)]" : "text-text-muted group-hover:text-text-primary")}>
-                  {renderNavIcon(item.icon)}
-                  {item.href === "/requests" && pendingRequestsCount > 0 && (
-                    <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white shadow-[0_0_8px_var(--danger)]">
-                      {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
-                    </span>
-                  )}
-                </span>
-                <span className="truncate tracking-tight">{item.label}</span>
-              </Link>
+              <div key={categoryTitle} className="space-y-0.5">
+                <div className="px-2.5 pt-1.5 pb-1 text-[9.5px] font-extrabold uppercase tracking-wider text-text-muted/70 font-heading">
+                  {categoryTitle}
+                </div>
+                {groupItems.map((item) => {
+                  const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
+                  return (
+                    <Link
+                      key={`${item.href}-${item.label}`}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={cn(
+                        "group relative flex h-8.5 items-center gap-2.5 rounded-lg px-2.5 text-xs font-semibold transition-all duration-150",
+                        active
+                          ? "bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-300 font-bold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-r-full before:bg-emerald-600 dark:before:bg-emerald-400"
+                          : "text-text-secondary hover:bg-card-elevated/60 hover:text-text-primary font-medium"
+                      )}
+                    >
+                      <span className={cn("relative shrink-0 flex items-center justify-center w-4 h-4 transition-transform group-hover:scale-105", active ? "text-emerald-600 dark:text-emerald-400" : "text-text-muted group-hover:text-text-primary")}>
+                        {renderNavIcon(item.icon)}
+                        {item.href === "/requests" && pendingRequestsCount > 0 && (
+                          <span className="absolute -right-1.5 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold text-white shadow-[0_0_6px_var(--danger)]">
+                            {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
+                          </span>
+                        )}
+                      </span>
+                      <span className="truncate tracking-tight">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
             );
           })}
         </nav>
 
-        {/* Sidebar Footer User Info */}
-        <div className="border-t border-border/80 bg-card-elevated/40 p-3.5">
-          <div className="flex items-center gap-2.5">
-            <Avatar src={avatarUrl} name={fullName} size={34} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-text-primary">{fullName}</p>
-              <Badge tone="success" className="mt-0.5 text-[9px] py-0 px-1.5 font-bold">
-                {ROLE_LABELS[role] ?? role}
-              </Badge>
+        {/* Compact Integrated User Footer */}
+        <div className="mt-auto border-t border-border/80 bg-card-elevated/50 p-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Avatar src={avatarUrl} name={fullName} size={30} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-bold text-text-primary leading-tight">{fullName}</p>
+                <span className="text-[10px] font-semibold text-text-muted truncate block">
+                  {ROLE_LABELS[role] ?? role}
+                </span>
+              </div>
             </div>
+            <button
+              onClick={handleSignOut}
+              title="Sair da conta"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-card text-text-secondary hover:bg-danger/15 hover:text-danger hover:border-danger/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger"
+              aria-label="Sair da conta"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
           </div>
-          <Button variant="ghost" size="sm" className="mt-2.5 h-8 w-full justify-center text-xs font-semibold" onClick={handleSignOut}>
-            Sair da conta
-          </Button>
         </div>
       </aside>
 
