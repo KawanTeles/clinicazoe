@@ -25,21 +25,21 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
     <>
       {/* Floating island nav — detached from the viewport edge */}
       <header className="sticky top-4 z-50 px-4 sm:top-6 sm:px-6">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between rounded-full border border-white/10 bg-[#17382D]/85 px-3 pl-5 shadow-[0_15px_45px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-shadow duration-300 ease-[var(--ease-premium)] sm:px-4 sm:pl-6">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between rounded-full border border-border bg-[var(--bg-header)] px-3 pl-5 shadow-[0_15px_45px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-shadow duration-300 ease-[var(--ease-premium)] sm:px-4 sm:pl-6">
           {/* Brand Logo */}
           <Link href="/" className="group flex shrink-0 items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-forest text-xs font-extrabold text-white shadow-[0_0_16px_rgba(46,139,87,0.35)] transition-transform duration-300 ease-[var(--ease-premium)] group-hover:scale-105">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-forest text-xs font-extrabold text-white shadow-[0_0_16px_rgba(15,164,122,0.35)] transition-transform duration-300 ease-[var(--ease-premium)] group-hover:scale-105">
               CZ
             </div>
-            <span className="hidden text-base font-bold tracking-tight text-[#F5F7F6] transition-colors group-hover:text-[#5ED39D] sm:inline">
+            <span className="hidden text-base font-bold tracking-tight text-text-primary transition-colors group-hover:text-[var(--link-hover)] font-heading sm:inline">
               {clinicName}
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden items-center gap-6 text-sm font-medium text-[#C8D4CF] lg:flex">
+          <nav className="hidden items-center gap-6 text-sm font-semibold text-text-secondary lg:flex">
             {NAV_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className="transition-colors hover:text-[#5ED39D]">
+              <Link key={link.href} href={link.href} className="transition-colors hover:text-[var(--link-hover)]">
                 {link.label}
               </Link>
             ))}
@@ -53,18 +53,18 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
               </Button>
             </Link>
             <Link href="/cliente/login">
-              <Button size="sm" withArrow className="font-semibold">
+              <Button size="sm" withArrow className="font-bold">
                 Área do Cliente
               </Button>
             </Link>
           </div>
 
-          {/* Mobile Hamburger — morphs into an X */}
+          {/* Mobile Hamburger */}
           <button
             aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
             aria-expanded={mobileMenuOpen}
             onClick={() => setMobileMenuOpen((open) => !open)}
-            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#F5F7F6] transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8B57] lg:hidden"
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-text-primary transition-colors hover:bg-card-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:hidden"
           >
             <span className="relative block h-4 w-4">
               <span
@@ -90,10 +90,10 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
         </div>
       </header>
 
-      {/* Mobile Overlay Menu — kept mounted for smooth enter/exit, no scroll blur */}
+      {/* Mobile Overlay Menu */}
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-[#081C15]/98 transition-opacity duration-300 ease-[var(--ease-premium)] lg:hidden",
+          "fixed inset-0 z-40 bg-background/98 transition-opacity duration-300 ease-[var(--ease-premium)] lg:hidden",
           mobileMenuOpen ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       >
@@ -105,7 +105,7 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
               onClick={() => setMobileMenuOpen(false)}
               style={{ transitionDelay: mobileMenuOpen ? `${index * 60 + 100}ms` : "0ms" }}
               className={cn(
-                "text-2xl font-bold text-[#F5F7F6] transition-all duration-500 ease-[var(--ease-premium)] hover:text-[#5ED39D]",
+                "text-2xl font-bold text-text-primary font-heading transition-all duration-500 ease-[var(--ease-premium)] hover:text-[var(--link-hover)]",
                 mobileMenuOpen ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0",
               )}
             >

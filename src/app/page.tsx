@@ -18,13 +18,13 @@ export default async function HomePage() {
   const { clinic, specialties, professionals } = await getPublicWebsiteData();
 
   return (
-    <div className="min-h-screen bg-[#081C15] text-[#F5F7F6] flex flex-col font-sans selection:bg-[#2E8B57] selection:text-white">
+    <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
       <PublicHeader clinicName={clinic.name} />
 
       {/* HERO SECTION */}
       <section className="relative overflow-hidden pt-16 pb-24 lg:pt-24 lg:pb-36 bg-gradient-forest-subtle">
         {/* Ambient Glow */}
-        <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-[#2E8B57]/15 blur-[130px]" />
+        <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-primary/15 blur-[130px]" />
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -37,9 +37,9 @@ export default async function HomePage() {
               </ScrollReveal>
 
               <ScrollReveal animation="fade-up" delayMs={200}>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.12]">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-text-primary leading-[1.12] font-heading">
                   Cuidados de saúde com{" "}
-                  <span className="bg-gradient-to-r from-[#5ED39D] via-[#3BAF75] to-[#2E8B57] bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-[var(--link-hover)] via-[var(--primary)] to-[var(--primary-dark)] bg-clip-text text-transparent">
                     tecnologia, excelência
                   </span>{" "}
                   e acolhimento.
@@ -47,7 +47,7 @@ export default async function HomePage() {
               </ScrollReveal>
 
               <ScrollReveal animation="fade-up" delayMs={300}>
-                <p className="text-base sm:text-lg text-[#C8D4CF] leading-relaxed max-w-2xl">
+                <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-2xl">
                   Na Clínica Zoe, aliamos a mais avançada tecnologia médica a uma equipe de
                   especialistas de renome para oferecer diagnóstico preciso, tratamento eficaz e
                   atendimento verdadeiramente humanizado.
@@ -57,12 +57,12 @@ export default async function HomePage() {
               <ScrollReveal animation="fade-up" delayMs={400}>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
                   <Link href="/cliente/login">
-                    <Button size="lg" withArrow className="w-full sm:w-auto shadow-[0_12px_35px_rgba(20,90,67,0.4)] font-bold">
+                    <Button size="lg" withArrow className="w-full sm:w-auto shadow-button font-bold">
                       Agendar consulta
                     </Button>
                   </Link>
                   <Link href="/profissionais">
-                    <Button variant="secondary" size="lg" className="w-full sm:w-auto font-semibold">
+                    <Button variant="secondary" size="lg" className="w-full sm:w-auto font-bold">
                       Conhecer corpo médico
                     </Button>
                   </Link>
@@ -71,54 +71,54 @@ export default async function HomePage() {
 
               {/* Statistics */}
               <ScrollReveal animation="fade-up" delayMs={500}>
-                <div className="pt-10 border-t border-[#255044]/60 grid grid-cols-3 gap-6">
+                <div className="pt-10 border-t border-border/60 grid grid-cols-3 gap-6">
                   <div>
-                    <p className="text-2xl sm:text-3xl font-black text-[#5ED39D]">99.8%</p>
-                    <p className="text-xs text-[#7A9187] mt-1 font-medium">Satisfação dos pacientes</p>
+                    <p className="text-2xl sm:text-3xl font-black text-primary font-heading">99.8%</p>
+                    <p className="text-xs text-text-muted mt-1 font-medium">Satisfação dos pacientes</p>
                   </div>
                   <div>
-                    <p className="text-2xl sm:text-3xl font-black text-[#5ED39D]">+20k</p>
-                    <p className="text-xs text-[#7A9187] mt-1 font-medium">Atendimentos realizados</p>
+                    <p className="text-2xl sm:text-3xl font-black text-primary font-heading">+20k</p>
+                    <p className="text-xs text-text-muted mt-1 font-medium">Atendimentos realizados</p>
                   </div>
                   <div>
-                    <p className="text-2xl sm:text-3xl font-black text-[#5ED39D]">100%</p>
-                    <p className="text-xs text-[#7A9187] mt-1 font-medium">Especialistas certificados</p>
+                    <p className="text-2xl sm:text-3xl font-black text-primary font-heading">100%</p>
+                    <p className="text-xs text-text-muted mt-1 font-medium">Especialistas certificados</p>
                   </div>
                 </div>
               </ScrollReveal>
             </div>
 
-            {/* Right Column Visual Graphic — double-bezel nested architecture */}
+            {/* Right Column Visual Graphic */}
             <div className="lg:col-span-5 relative">
               <ScrollReveal animation="blur-reveal" delayMs={300}>
                 {/* Outer shell */}
-                <div className="relative mx-auto max-w-md rounded-[2rem] border border-white/10 bg-white/[0.03] p-2 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+                <div className="relative mx-auto max-w-md rounded-[2rem] border border-border bg-surface/50 p-2 shadow-card">
                   {/* Inner core */}
-                  <div className="rounded-[calc(2rem-0.5rem)] border border-[#255044]/70 bg-[#102A22] p-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
-                    <div className="flex items-center gap-4 border-b border-[#255044]/60 pb-6 mb-6">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#17382D] text-[#5ED39D] border border-[#255044] shadow-inner">
+                  <div className="rounded-[calc(2rem-0.5rem)] border border-border bg-card p-7 shadow-inner">
+                    <div className="flex items-center gap-4 border-b border-border/60 pb-6 mb-6">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-card-elevated text-primary border border-border shadow-inner">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
                         </svg>
                       </div>
                       <div>
-                        <span className="text-xs font-bold uppercase text-[#5ED39D]">Centro Médico Integrado</span>
-                        <h3 className="text-xl font-extrabold text-[#F5F7F6]">Padrão Internacional</h3>
+                        <span className="text-xs font-bold uppercase text-primary">Centro Médico Integrado</span>
+                        <h3 className="text-xl font-extrabold text-text-primary font-heading">Padrão Internacional</h3>
                       </div>
                     </div>
 
                     <div className="space-y-3">
-                      <div className="rounded-xl border border-[#255044]/50 bg-[#17382D]/60 p-4">
-                        <h4 className="text-sm font-bold text-white">Consultas Presenciais & Telemedicina</h4>
-                        <p className="text-xs text-[#C8D4CF] mt-1">Flexibilidade e comodidade com suporte completo.</p>
+                      <div className="rounded-xl border border-border/50 bg-card-elevated/60 p-4">
+                        <h4 className="text-sm font-bold text-text-primary">Consultas Presenciais & Telemedicina</h4>
+                        <p className="text-xs text-text-secondary mt-1">Flexibilidade e comodidade com suporte completo.</p>
                       </div>
-                      <div className="rounded-xl border border-[#255044]/50 bg-[#17382D]/60 p-4">
-                        <h4 className="text-sm font-bold text-white">Prontuário Digital Criptografado</h4>
-                        <p className="text-xs text-[#C8D4CF] mt-1">Segurança de dados e acesso instantâneo ao seu histórico.</p>
+                      <div className="rounded-xl border border-border/50 bg-card-elevated/60 p-4">
+                        <h4 className="text-sm font-bold text-text-primary">Prontuário Digital Criptografado</h4>
+                        <p className="text-xs text-text-secondary mt-1">Segurança de dados e acesso instantâneo ao seu histórico.</p>
                       </div>
-                      <div className="rounded-xl border border-[#255044]/50 bg-[#17382D]/60 p-4">
-                        <h4 className="text-sm font-bold text-white">Principais Convênios Aceitos</h4>
-                        <p className="text-xs text-[#C8D4CF] mt-1">Ampla cobertura e facilidades para plano e particular.</p>
+                      <div className="rounded-xl border border-border/50 bg-card-elevated/60 p-4">
+                        <h4 className="text-sm font-bold text-text-primary">Principais Convênios Aceitos</h4>
+                        <p className="text-xs text-text-secondary mt-1">Ampla cobertura e facilidades para plano e particular.</p>
                       </div>
                     </div>
 
@@ -136,37 +136,37 @@ export default async function HomePage() {
       </section>
 
       {/* SEÇÃO DIFERENCIAIS DA CLÍNICA */}
-      <section className="py-24 border-t border-[#255044]/60 bg-[#081C15]">
+      <section className="py-24 border-t border-border/60 bg-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
           <div className="text-center max-w-3xl mx-auto space-y-4">
             <ScrollReveal animation="fade-up">
               <Badge tone="success">Excelência Médica</Badge>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F5F7F6] mt-2">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-text-primary mt-2 font-heading">
                 Diferenciais que garantem sua tranquilidade
               </h2>
-              <p className="text-sm sm:text-base text-[#C8D4CF]">
+              <p className="text-sm sm:text-base text-text-secondary">
                 Compromisso com o cuidado contínuo, diagnósticos ágeis e ambiente acolhedor.
               </p>
             </ScrollReveal>
           </div>
 
-          {/* Asymmetric bento — lead card spans two rows, mobile collapses to a single column */}
+          {/* Bento grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <ScrollReveal animation="fade-up" delayMs={100} className="lg:col-span-7 lg:row-span-2">
-              <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-1.5 h-full">
-                <div className="rounded-[calc(1.75rem-0.375rem)] border border-[#255044] bg-[#102A22] p-8 lg:p-10 shadow-[0_10px_40px_rgba(0,0,0,0.25)] hover:border-[#2E8B57]/50 transition-all duration-300 ease-[var(--ease-premium)] h-full flex flex-col justify-between">
+              <div className="rounded-[1.75rem] border border-border bg-surface/30 p-1.5 h-full">
+                <div className="rounded-[calc(1.75rem-0.375rem)] border border-border bg-card p-8 lg:p-10 shadow-card hover:border-primary/50 transition-all duration-300 ease-[var(--ease-premium)] h-full flex flex-col justify-between">
                   <div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#17382D] text-[#5ED39D] border border-[#255044] mb-6">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card-elevated text-primary border border-border mb-6">
                       <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
                       </svg>
                     </div>
-                    <h3 className="text-2xl font-bold text-[#F5F7F6]">Atendimento Humanizado</h3>
-                    <p className="mt-3 text-sm text-[#C8D4CF] leading-relaxed max-w-md">
+                    <h3 className="text-2xl font-bold text-text-primary font-heading">Atendimento Humanizado</h3>
+                    <p className="mt-3 text-sm text-text-secondary leading-relaxed max-w-md">
                       Consultas individuais estendidas, sem correria, focadas no histórico biológico, estilo de vida e necessidades do paciente. Uma experiência de cuidado pensada em cada detalhe.
                     </p>
                   </div>
-                  <Link href="/clinica" className="mt-8 text-xs font-bold text-[#5ED39D] hover:underline inline-flex items-center gap-1">
+                  <Link href="/clinica" className="mt-8 text-xs font-bold text-primary hover:underline inline-flex items-center gap-1">
                     Saiba mais sobre a clínica →
                   </Link>
                 </div>
@@ -174,18 +174,18 @@ export default async function HomePage() {
             </ScrollReveal>
 
             <ScrollReveal animation="fade-up" delayMs={200} className="lg:col-span-5">
-              <div className="rounded-2xl border border-[#255044] bg-[#102A22] p-6 sm:p-7 shadow-[0_10px_40px_rgba(0,0,0,0.25)] hover:border-[#2E8B57]/50 transition-all duration-300 ease-[var(--ease-premium)] h-full flex items-center gap-5">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#17382D] text-[#5ED39D] border border-[#255044]">
+              <div className="rounded-2xl border border-border bg-card p-6 sm:p-7 shadow-card hover:border-primary/50 transition-all duration-300 ease-[var(--ease-premium)] h-full flex items-center gap-5">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-card-elevated text-primary border border-border">
                   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-[#F5F7F6]">Tecnologia Diagnóstica</h3>
-                  <p className="mt-1.5 text-xs text-[#C8D4CF] leading-relaxed">
+                  <h3 className="text-base font-bold text-text-primary font-heading">Tecnologia Diagnóstica</h3>
+                  <p className="mt-1.5 text-xs text-text-secondary leading-relaxed">
                     Equipamentos modernos e laboratórios de ponta para respostas rápidas.
                   </p>
-                  <Link href="/estrutura" className="mt-3 text-xs font-bold text-[#5ED39D] hover:underline inline-flex items-center gap-1">
+                  <Link href="/estrutura" className="mt-3 text-xs font-bold text-primary hover:underline inline-flex items-center gap-1">
                     Conhecer estrutura →
                   </Link>
                 </div>
@@ -193,18 +193,18 @@ export default async function HomePage() {
             </ScrollReveal>
 
             <ScrollReveal animation="fade-up" delayMs={300} className="lg:col-span-5">
-              <div className="rounded-2xl border border-[#255044] bg-[#102A22] p-6 sm:p-7 shadow-[0_10px_40px_rgba(0,0,0,0.25)] hover:border-[#2E8B57]/50 transition-all duration-300 ease-[var(--ease-premium)] h-full flex items-center gap-5">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#17382D] text-[#5ED39D] border border-[#255044]">
+              <div className="rounded-2xl border border-border bg-card p-6 sm:p-7 shadow-card hover:border-primary/50 transition-all duration-300 ease-[var(--ease-premium)] h-full flex items-center gap-5">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-card-elevated text-primary border border-border">
                   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-[#F5F7F6]">Corpo Clínico Qualificado</h3>
-                  <p className="mt-1.5 text-xs text-[#C8D4CF] leading-relaxed">
+                  <h3 className="text-base font-bold text-text-primary font-heading">Corpo Clínico Qualificado</h3>
+                  <p className="mt-1.5 text-xs text-text-secondary leading-relaxed">
                     Especialistas com atuação em hospitais renomados.
                   </p>
-                  <Link href="/profissionais" className="mt-3 text-xs font-bold text-[#5ED39D] hover:underline inline-flex items-center gap-1">
+                  <Link href="/profissionais" className="mt-3 text-xs font-bold text-primary hover:underline inline-flex items-center gap-1">
                     Ver corpo médico →
                   </Link>
                 </div>
@@ -215,12 +215,12 @@ export default async function HomePage() {
       </section>
 
       {/* SEÇÃO PREVIEW ESPECIALIDADES */}
-      <section className="py-24 border-t border-[#255044]/60 bg-[#102A22]/40">
+      <section className="py-24 border-t border-border/60 bg-surface/40">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
             <ScrollReveal animation="slide-left">
               <Badge tone="premium">Especialidades Médicas</Badge>
-              <h2 className="text-3xl font-extrabold text-[#F5F7F6] mt-2">
+              <h2 className="text-3xl font-extrabold text-text-primary mt-2 font-heading">
                 Atendimento integral para todas as idades
               </h2>
             </ScrollReveal>
@@ -236,19 +236,19 @@ export default async function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {specialties.slice(0, 4).map((spec, index) => (
               <ScrollReveal key={spec.id} animation="fade-up" delayMs={index * 100}>
-                <div className="group flex flex-col justify-between rounded-2xl border border-[#255044] bg-[#102A22] p-6 hover:border-[#2E8B57] hover:bg-[#17382D]/80 transition-all">
+                <div className="group flex flex-col justify-between rounded-2xl border border-border bg-card p-6 hover:border-primary hover:bg-card-elevated/80 transition-all">
                   <div>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#17382D] text-[#5ED39D] border border-[#255044] group-hover:scale-110 transition-transform mb-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-card-elevated text-primary border border-border group-hover:scale-110 transition-transform mb-4">
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
                       </svg>
                     </div>
-                    <h3 className="text-base font-bold text-[#F5F7F6] group-hover:text-[#5ED39D] transition-colors">
+                    <h3 className="text-base font-bold text-text-primary group-hover:text-primary transition-colors font-heading">
                       {spec.name}
                     </h3>
-                    <p className="mt-1 text-xs text-[#7A9187]">Atendimento presencial e online</p>
+                    <p className="mt-1 text-xs text-text-muted">Atendimento presencial e online</p>
                   </div>
-                  <Link href="/especialidades" className="mt-6 text-xs font-bold text-[#5ED39D] hover:underline inline-flex items-center gap-1">
+                  <Link href="/especialidades" className="mt-6 text-xs font-bold text-primary hover:underline inline-flex items-center gap-1">
                     Ver detalhes →
                   </Link>
                 </div>
@@ -259,15 +259,15 @@ export default async function HomePage() {
       </section>
 
       {/* SEÇÃO PREVIEW PROFISSIONAIS */}
-      <section className="py-24 border-t border-[#255044]/60 bg-[#081C15]">
+      <section className="py-24 border-t border-border/60 bg-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <ScrollReveal animation="fade-up">
               <Badge tone="success">Corpo Médico</Badge>
-              <h2 className="text-3xl font-extrabold text-[#F5F7F6]">
+              <h2 className="text-3xl font-extrabold text-text-primary font-heading">
                 Conheça nossos médicos
               </h2>
-              <p className="text-sm text-[#C8D4CF]">
+              <p className="text-sm text-text-secondary">
                 Profissionais qualificados prontos para acolher você e sua família.
               </p>
             </ScrollReveal>
@@ -276,20 +276,20 @@ export default async function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {professionals.slice(0, 3).map((prof, index) => (
               <ScrollReveal key={prof.id} animation="fade-up" delayMs={index * 150}>
-                <div className="group flex flex-col justify-between rounded-2xl border border-[#255044] bg-[#102A22] p-6 shadow-lg hover:border-[#2E8B57]/60 transition-all">
+                <div className="group flex flex-col justify-between rounded-2xl border border-border bg-card p-6 shadow-card hover:border-primary/60 transition-all">
                   <div>
                     <div className="flex items-center gap-4 mb-4">
                       <Avatar src={prof.avatarUrl} name={prof.fullName} size={64} rounded="2xl" />
                       <div>
-                        <h3 className="text-base font-bold text-[#F5F7F6]">{prof.fullName}</h3>
+                        <h3 className="text-base font-bold text-text-primary font-heading">{prof.fullName}</h3>
                         <Badge tone="premium" className="mt-1 text-[11px]">{prof.specialtyName}</Badge>
-                        <p className="text-[11px] text-[#7A9187] mt-1">{prof.licenseNumber}</p>
+                        <p className="text-[11px] text-text-muted mt-1">{prof.licenseNumber}</p>
                       </div>
                     </div>
-                    <p className="text-xs text-[#C8D4CF] leading-relaxed line-clamp-3">{prof.bio}</p>
+                    <p className="text-xs text-text-secondary leading-relaxed line-clamp-3">{prof.bio}</p>
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-[#255044]/60">
+                  <div className="mt-6 pt-4 border-t border-border/60">
                     <Link href={`/profissionais/${prof.id}`} className="block w-full">
                       <Button variant="secondary" size="sm" className="w-full">
                         Ver perfil do médico
@@ -312,19 +312,19 @@ export default async function HomePage() {
       </section>
 
       {/* CTA BANNER */}
-      <section className="py-20 border-t border-[#255044]/60 bg-gradient-forest-subtle relative overflow-hidden">
+      <section className="py-20 border-t border-border/60 bg-gradient-forest-subtle relative overflow-hidden">
         <div className="mx-auto max-w-5xl px-4 text-center space-y-6 relative z-10">
           <ScrollReveal animation="fade-up">
             <Badge tone="premium">Atendimento Prioritário</Badge>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-text-primary mt-2 font-heading">
               Pronto para agendar sua consulta?
             </h2>
-            <p className="text-sm sm:text-base text-[#C8D4CF] max-w-xl mx-auto">
+            <p className="text-sm sm:text-base text-text-secondary max-w-xl mx-auto">
               Acesse a área do cliente em poucos segundos para escolher o melhor dia e horário para o seu atendimento.
             </p>
             <div className="pt-6">
               <Link href="/cliente/login">
-                <Button size="lg" withArrow className="px-8 py-4 text-base font-bold shadow-[0_12px_40px_rgba(20,90,67,0.5)]">
+                <Button size="lg" withArrow className="px-8 py-4 text-base font-bold shadow-button">
                   Ir para a Área do Paciente
                 </Button>
               </Link>

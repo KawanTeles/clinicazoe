@@ -55,7 +55,7 @@ export function AdminShell({
   }
 
   return (
-    <div className="flex min-h-screen w-full bg-[#081C15]">
+    <div className="flex min-h-screen w-full bg-background text-text-primary">
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <button
@@ -68,12 +68,12 @@ export function AdminShell({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-[#255044] bg-[#081C15] transition-transform duration-300 ease-in-out lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-background transition-transform duration-300 ease-in-out lg:static lg:translate-x-0",
           mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full",
         )}
       >
         {/* Sidebar Brand Header */}
-        <div className="flex h-16 shrink-0 items-center justify-between px-6 border-b border-[#255044]/50 bg-[#081C15]">
+        <div className="flex h-16 shrink-0 items-center justify-between px-6 border-b border-border bg-background">
           <div className="flex min-w-0 items-center gap-3">
             {logoUrl ? (
               <Image
@@ -82,20 +82,20 @@ export function AdminShell({
                 width={32}
                 height={32}
                 unoptimized
-                className="h-8 w-8 rounded-xl object-contain bg-[#17382D] p-1 border border-[#255044]"
+                className="h-8 w-8 rounded-xl object-contain bg-card-elevated p-1 border border-border"
               />
             ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-forest text-xs font-bold text-white shadow-md">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-forest text-xs font-extrabold text-white shadow-md">
                 CZ
               </div>
             )}
-            <span className="truncate text-base font-bold tracking-tight text-[#F5F7F6]">
+            <span className="truncate text-base font-bold tracking-tight text-text-primary font-heading">
               {clinicName}
             </span>
           </div>
           <button
             aria-label="Fechar menu"
-            className="rounded-lg p-1.5 text-[#C8D4CF] transition-colors hover:bg-[#17382D] hover:text-[#F5F7F6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8B57] focus-visible:ring-offset-2 focus-visible:ring-offset-[#081C15] lg:hidden"
+            className="rounded-lg p-1.5 text-text-secondary transition-colors hover:bg-card-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background lg:hidden"
             onClick={() => setMobileOpen(false)}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -117,8 +117,8 @@ export function AdminShell({
                 className={cn(
                   "relative flex h-11 items-center rounded-xl px-3.5 text-sm font-medium transition-all duration-200",
                   active
-                    ? "bg-[#2E8B57]/15 text-[#5ED39D] font-semibold shadow-[0_0_15px_rgba(46,139,87,0.15)] before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-1 before:rounded-r-full before:bg-[#5ED39D] before:shadow-[0_0_8px_#5ED39D]"
-                    : "text-[#C8D4CF] hover:bg-[#17382D]/70 hover:text-[#F5F7F6]",
+                    ? "bg-[var(--badge-bg)] text-[var(--primary)] font-semibold shadow-[0_0_15px_rgba(15,164,122,0.15)] before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-1 before:rounded-r-full before:bg-[var(--primary)] before:shadow-[0_0_8px_var(--primary)]"
+                    : "text-text-secondary hover:bg-card-elevated/70 hover:text-text-primary",
                 )}
               >
                 {item.label}
@@ -128,11 +128,11 @@ export function AdminShell({
         </nav>
 
         {/* Sidebar Footer User Info */}
-        <div className="border-t border-[#255044] bg-[#102A22]/80 p-4">
+        <div className="border-t border-border bg-card/80 p-4">
           <div className="flex items-center gap-3">
             <Avatar src={avatarUrl} name={fullName} size={40} />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-[#F5F7F6]">{fullName}</p>
+              <p className="truncate text-sm font-semibold text-text-primary">{fullName}</p>
               <Badge tone="success" className="mt-1 text-[11px] py-0 px-2">
                 {ROLE_LABELS[role] ?? role}
               </Badge>
@@ -147,11 +147,11 @@ export function AdminShell({
       {/* Main Layout Area */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Fixed Glassmorphism Top Header */}
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-[#255044] bg-[#17382D]/80 px-4 sm:px-6 backdrop-blur-md transition-all">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-border bg-[var(--bg-header)] px-4 sm:px-6 backdrop-blur-md transition-all">
           <div className="flex items-center gap-3">
             <button
               aria-label="Abrir menu"
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#255044] bg-[#102A22] text-[#F5F7F6] transition-colors hover:bg-[#17382D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8B57] focus-visible:ring-offset-2 focus-visible:ring-offset-[#081C15] lg:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-text-primary transition-colors hover:bg-card-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background lg:hidden"
               onClick={() => setMobileOpen(true)}
             >
               <span className="sr-only">Abrir menu</span>
@@ -162,16 +162,16 @@ export function AdminShell({
               </svg>
             </button>
             <div className="hidden sm:flex flex-col">
-              <span className="text-xs font-medium text-[#7A9187]">Painel Administrativo</span>
-              <span className="text-sm font-bold text-[#F5F7F6]">{clinicName}</span>
+              <span className="text-xs font-medium text-text-muted">Painel Administrativo</span>
+              <span className="text-sm font-bold text-text-primary font-heading">{clinicName}</span>
             </div>
-            <span className="text-base font-semibold text-[#F5F7F6] sm:hidden">{clinicName}</span>
+            <span className="text-base font-semibold text-text-primary font-heading sm:hidden">{clinicName}</span>
           </div>
 
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[#255044] bg-[#102A22] px-3 py-1.5 text-xs font-semibold text-[#5ED39D] hover:bg-[#17382D] hover:border-[#2E8B57] transition-all"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-semibold text-[var(--link)] hover:bg-card-elevated hover:border-primary transition-all"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
@@ -181,9 +181,9 @@ export function AdminShell({
               <span>Ver Site</span>
             </Link>
             <NotificationBell initialNotifications={notifications} initialUnreadCount={unreadCount} />
-            <div className="hidden md:flex items-center gap-2 border-l border-[#255044] pl-4">
+            <div className="hidden md:flex items-center gap-2 border-l border-border pl-4">
               <Avatar src={avatarUrl} name={fullName} size={32} />
-              <span className="text-xs font-semibold text-[#F5F7F6] max-w-[120px] truncate">{fullName}</span>
+              <span className="text-xs font-semibold text-text-primary max-w-[120px] truncate">{fullName}</span>
             </div>
           </div>
         </header>
@@ -191,7 +191,7 @@ export function AdminShell({
         {/* Content Body */}
         <main className="flex flex-1 flex-col justify-between overflow-x-hidden p-4 sm:p-6 lg:p-8">
           <div>{children}</div>
-          <footer className="mt-8 border-t border-[#255044]/40 pt-2 pb-2">
+          <footer className="mt-8 border-t border-border/40 pt-2 pb-2">
             <DeveloperSignature />
           </footer>
         </main>

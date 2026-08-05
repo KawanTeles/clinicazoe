@@ -20,19 +20,19 @@ const arrowCircleSize: Record<Size, string> = {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-[#145A43] text-white hover:bg-[#1F6B52] active:bg-[#0B3D2E] shadow-[0_12px_35px_rgba(20,90,67,0.35)] disabled:opacity-50 disabled:shadow-none border border-[#2E8B57]/40",
+    "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] active:bg-[var(--primary-dark)] shadow-[var(--shadow-button)] hover:shadow-[0_12px_30px_rgba(15,164,122,0.35)] hover:-translate-y-0.5 disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 border border-[var(--primary)]/40",
   secondary:
-    "bg-[#17382D] text-[#F5F7F6] border border-[#255044] hover:bg-[#102A22] hover:border-[#2E8B57]/50 active:bg-[#081C15] disabled:opacity-50",
+    "bg-transparent text-[var(--link)] border-1.5 border-[var(--primary)] hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] hover:-translate-y-0.5 active:bg-[var(--primary-dark)] disabled:opacity-50 disabled:translate-y-0",
   ghost:
-    "bg-transparent text-[#C8D4CF] hover:bg-[#2E8B57]/15 hover:text-[#5ED39D] active:bg-[#2E8B57]/25 disabled:opacity-50",
+    "bg-transparent text-[var(--text-secondary)] hover:bg-[var(--primary)]/12 hover:text-[var(--primary)] active:bg-[var(--primary)]/20 disabled:opacity-50",
   danger:
-    "bg-[#DC4F4F]/15 text-[#FF8A8A] border border-[#DC4F4F]/30 hover:bg-[#DC4F4F]/25 active:bg-[#DC4F4F]/40 disabled:opacity-50",
+    "bg-[#EF4444]/15 text-[#EF4444] dark:text-[#F87171] border border-[#EF4444]/30 hover:bg-[#EF4444] hover:text-white hover:border-[#EF4444] active:bg-[#DC2626] disabled:opacity-50",
 };
 
 const sizeClasses: Record<Size, string> = {
-  sm: "h-9 px-3.5 text-xs font-medium rounded-lg",
-  md: "h-11 px-5 text-sm font-semibold rounded-xl",
-  lg: "h-12 px-6 text-base font-semibold rounded-xl",
+  sm: "h-9 px-3.5 text-xs font-semibold rounded-lg",
+  md: "h-11 px-5 text-sm font-bold rounded-xl",
+  lg: "h-12 px-6 text-base font-bold rounded-xl",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -46,7 +46,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || isLoading}
         aria-busy={isLoading || undefined}
         className={cn(
-          "group inline-flex items-center justify-center gap-2 font-medium transition-all duration-300 ease-[var(--ease-premium)] cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8B57] focus-visible:ring-offset-2 focus-visible:ring-offset-[#081C15] disabled:cursor-not-allowed disabled:active:scale-100",
+          "group inline-flex items-center justify-center gap-2 font-semibold transition-all duration-300 ease-[var(--ease-premium)] cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] disabled:cursor-not-allowed disabled:active:scale-100",
           withArrow && "pr-[0.3rem]",
           variantClasses[variant],
           sizeClasses[size],

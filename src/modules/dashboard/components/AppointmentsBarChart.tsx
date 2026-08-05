@@ -24,7 +24,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
           y1={HEIGHT - PADDING_BOTTOM}
           x2={WIDTH}
           y2={HEIGHT - PADDING_BOTTOM}
-          stroke="#255044"
+          stroke="#283548"
           strokeWidth={1}
         />
         {data.map((day, index) => {
@@ -46,7 +46,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
                 width={barWidth}
                 height={Math.max(barHeight, 2)}
                 rx={6}
-                fill={isHovered ? "#5ED39D" : "#2E8B57"}
+                fill={isHovered ? "#14C38E" : "#0FA47A"}
                 opacity={isHovered ? 1 : 0.85}
               />
               {day.appointments > 0 && (
@@ -56,7 +56,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
                   textAnchor="middle"
                   fontSize="11"
                   fontWeight="600"
-                  fill="#F5F7F6"
+                  fill="#F8FAFC"
                 >
                   {day.appointments}
                 </text>
@@ -66,7 +66,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
                 y={HEIGHT - 8}
                 textAnchor="middle"
                 fontSize="11"
-                fill="#C8D4CF"
+                fill="#A8B3C7"
               >
                 {day.label}
               </text>
@@ -83,7 +83,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
       </svg>
       {hovered !== null && (
         <div
-          className="pointer-events-none absolute rounded-xl border border-[#255044] bg-[#17382D] px-3 py-1.5 text-xs font-semibold text-[#F5F7F6] shadow-[0_10px_30px_rgba(0,0,0,0.4)]"
+          className="pointer-events-none absolute rounded-xl border border-border bg-card-elevated px-3 py-1.5 text-xs font-semibold text-text-primary shadow-[0_10px_30px_rgba(0,0,0,0.4)]"
           style={{
             left: `${((hovered * (barWidth + BAR_GAP) + barWidth / 2) / WIDTH) * 100}%`,
             top: 0,

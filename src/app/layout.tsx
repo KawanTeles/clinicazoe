@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Bricolage_Grotesque, Geist, Manrope } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ConfirmDialogProvider } from "@/components/ui/ConfirmDialog";
@@ -7,6 +7,18 @@ import { ConfirmDialogProvider } from "@/components/ui/ConfirmDialog";
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist-sans",
+  display: "swap",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-bricolage",
   display: "swap",
 });
 
@@ -47,14 +59,14 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`h-full antialiased scroll-smooth ${geist.variable}`}>
+    <html lang="pt-BR" className={`h-full antialiased scroll-smooth ${geist.variable} ${manrope.variable} ${bricolage.variable}`}>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-[#081C15] text-[#F5F7F6] font-sans">
+      <body className="min-h-full flex flex-col bg-background text-text-primary font-sans transition-colors duration-300">
         <ToastProvider>
           <ConfirmDialogProvider>{children}</ConfirmDialogProvider>
         </ToastProvider>
@@ -62,4 +74,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
 

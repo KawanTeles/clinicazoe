@@ -239,18 +239,18 @@ export function Patient8StepBooking({
 
   if (successResult) {
     return (
-      <Card className="border-[#2E8B57]/50 bg-[#102A22] shadow-[0_20px_60px_rgba(11,61,46,0.35)] animate-fade-up">
+      <Card className="border-primary/50 bg-card shadow-card animate-fade-up">
         <CardContent className="p-8 text-center sm:p-12 space-y-6">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[#2E8B57]/20 border border-[#2E8B57]/40 text-[#5ED39D] shadow-[0_0_30px_rgba(46,139,87,0.3)]">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[var(--badge-bg)] border border-primary/40 text-[var(--link)] shadow-[0_0_30px_rgba(15,164,122,0.3)]">
             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
 
           <Badge tone="premium" className="mb-2">Solicitação Enviada!</Badge>
-          <h2 className="text-3xl font-black text-[#F5F7F6] tracking-tight">Agendamento Solicitado com Sucesso</h2>
-          <p className="text-base text-[#C8D4CF] max-w-lg mx-auto leading-relaxed">
-            Olá <strong className="text-white">{patientName}</strong>! Sua solicitação de consulta para <strong className="text-[#5ED39D]">{selectedDate.split("-").reverse().join("/")}</strong> às <strong className="text-[#5ED39D]">{selectedSlot?.startTime.slice(0, 5)}</strong> foi registrada na clínica.
+          <h2 className="text-3xl font-black text-text-primary tracking-tight font-heading">Agendamento Solicitado com Sucesso</h2>
+          <p className="text-base text-text-secondary max-w-lg mx-auto leading-relaxed">
+            Olá <strong className="text-text-primary">{patientName}</strong>! Sua solicitação de consulta para <strong className="text-[var(--link)]">{selectedDate.split("-").reverse().join("/")}</strong> às <strong className="text-[var(--link)]">{selectedSlot?.startTime.slice(0, 5)}</strong> foi registrada na clínica.
           </p>
 
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -286,13 +286,13 @@ export function Patient8StepBooking({
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
       {/* Progress Indicator */}
-      <div className="rounded-2xl border border-[#255044] bg-[#102A22] p-6 shadow-md">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-[#5ED39D]">
+            <span className="text-xs font-bold uppercase tracking-wider text-[var(--link)]">
               Etapa {step} de 8
             </span>
-            <h3 className="text-lg font-extrabold text-[#F5F7F6]">
+            <h3 className="text-lg font-extrabold text-text-primary font-heading">
               {step === 1 && "1. Selecionar Cidade"}
               {step === 2 && "2. Selecionar Convênio"}
               {step === 3 && "3. Selecionar Profissional"}
@@ -306,7 +306,7 @@ export function Patient8StepBooking({
           {step > 1 && (
             <button
               onClick={() => setStep((step - 1) as any)}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[#5ED39D] hover:text-[#86E5B8] transition-colors"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--link)] hover:text-[var(--link-hover)] transition-colors"
             >
               ← Voltar etapa anterior
             </button>
@@ -319,7 +319,7 @@ export function Patient8StepBooking({
             <div
               key={i}
               className={`h-2 rounded-full transition-all duration-300 ${
-                i <= step ? "bg-gradient-forest shadow-[0_0_10px_rgba(46,139,87,0.5)]" : "bg-[#17382D]"
+                i <= step ? "bg-gradient-forest shadow-[0_0_10px_rgba(15,164,122,0.5)]" : "bg-card-elevated"
               }`}
             />
           ))}
@@ -327,7 +327,7 @@ export function Patient8StepBooking({
       </div>
 
       {errorMsg && (
-        <div className="rounded-xl border border-[#DC4F4F]/40 bg-[#DC4F4F]/10 p-4 text-sm font-medium text-[#FF8A8A]">
+        <div className="rounded-xl border border-danger/40 bg-danger/10 p-4 text-sm font-medium text-danger">
           {errorMsg}
         </div>
       )}
@@ -342,18 +342,18 @@ export function Patient8StepBooking({
               disabled={loading}
               className={`p-6 rounded-2xl border text-left transition-all ${
                 selectedCity === city
-                  ? "border-[#2E8B57] bg-[#17382D] text-white shadow-lg"
-                  : "border-[#255044] bg-[#102A22] text-[#C8D4CF] hover:border-[#2E8B57]/60"
+                  ? "border-primary bg-card-elevated text-text-primary shadow-lg"
+                  : "border-border bg-card text-text-secondary hover:border-primary/60"
               }`}
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#17382D] text-[#5ED39D] mb-3 border border-[#255044]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-card-elevated text-[var(--link)] mb-3 border border-border">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                   <circle cx="12" cy="10" r="3" />
                 </svg>
               </div>
-              <h4 className="text-base font-bold">{city}</h4>
-              <p className="text-xs text-[#7A9187] mt-1">Unidade Clínica Disponível</p>
+              <h4 className="text-base font-bold font-heading">{city}</h4>
+              <p className="text-xs text-text-muted mt-1">Unidade Clínica Disponível</p>
             </button>
           ))}
         </div>
@@ -363,9 +363,9 @@ export function Patient8StepBooking({
       {step === 2 && (
         <Card className="animate-fade-up">
           <CardContent className="p-6 space-y-4">
-            <h4 className="text-sm font-semibold text-[#C8D4CF]">Selecione o plano de saúde ou atendimento particular:</h4>
+            <h4 className="text-sm font-semibold text-text-secondary">Selecione o plano de saúde ou atendimento particular:</h4>
             {insurances.length === 0 ? (
-              <p className="text-sm text-[#7A9187] py-4 text-center">Nenhum convênio disponível para esta seleção.</p>
+              <p className="text-sm text-text-muted py-4 text-center">Nenhum convênio disponível para esta seleção.</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {insurances.map((ins) => (
@@ -373,10 +373,10 @@ export function Patient8StepBooking({
                     key={ins.id}
                     onClick={() => handleSelectInsurance(ins.id, ins.name)}
                     disabled={loading}
-                    className="p-5 rounded-2xl border border-[#255044] bg-[#17382D]/70 text-left hover:border-[#2E8B57] hover:bg-[#17382D] transition-all"
+                    className="p-5 rounded-2xl border border-border bg-card-elevated/70 text-left hover:border-primary hover:bg-card-elevated transition-all"
                   >
-                    <h5 className="text-base font-bold text-white">{ins.name}</h5>
-                    <p className="text-xs text-[#5ED39D] mt-1">Compatível com corpo médico</p>
+                    <h5 className="text-base font-bold text-text-primary font-heading">{ins.name}</h5>
+                    <p className="text-xs text-[var(--link)] mt-1">Compatível com corpo médico</p>
                   </button>
                 ))}
               </div>
@@ -391,16 +391,16 @@ export function Patient8StepBooking({
           {professionals.map((prof) => (
             <div
               key={prof.id}
-              className="flex flex-col justify-between rounded-2xl border border-[#255044] bg-[#102A22] p-6 shadow-md"
+              className="flex flex-col justify-between rounded-2xl border border-border bg-card p-6 shadow-card"
             >
               <div className="flex items-center gap-4">
                 <Avatar src={prof.avatarUrl} name={prof.fullName} size={64} rounded="2xl" />
                 <div>
-                  <h4 className="text-lg font-bold text-[#F5F7F6]">{prof.fullName}</h4>
+                  <h4 className="text-lg font-bold text-text-primary font-heading">{prof.fullName}</h4>
                   <Badge tone="success" className="mt-1">{prof.specialtyName}</Badge>
                 </div>
               </div>
-              {prof.bio && <p className="mt-3 text-xs text-[#C8D4CF] line-clamp-2">{prof.bio}</p>}
+              {prof.bio && <p className="mt-3 text-xs text-text-secondary line-clamp-2">{prof.bio}</p>}
               <Button
                 className="mt-5 w-full font-bold"
                 onClick={() => handleSelectProfessional(prof.id)}
@@ -417,11 +417,11 @@ export function Patient8StepBooking({
       {step === 4 && (
         <Card className="animate-fade-up">
           <CardContent className="p-6">
-            <h4 className="text-sm font-semibold text-[#C8D4CF] mb-4">
+            <h4 className="text-sm font-semibold text-text-secondary mb-4">
               Datas disponíveis para {currentProf?.fullName}:
             </h4>
             {availableDates.length === 0 ? (
-              <p className="text-sm text-[#7A9187] py-6 text-center">
+              <p className="text-sm text-text-muted py-6 text-center">
                 Nenhum dia disponível nos próximos 45 dias.
               </p>
             ) : (
@@ -435,10 +435,10 @@ export function Patient8StepBooking({
                       key={dateStr}
                       onClick={() => handleSelectDate(dateStr)}
                       disabled={loading}
-                      className="flex flex-col items-center justify-center p-3 rounded-xl border border-[#255044] bg-[#17382D]/60 hover:bg-[#1F6B52]/40 hover:border-[#2E8B57] transition-all"
+                      className="flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-card-elevated/60 hover:bg-surface hover:border-primary transition-all"
                     >
-                      <span className="text-xs font-semibold uppercase text-[#5ED39D]">{weekDay}</span>
-                      <span className="text-lg font-black text-[#F5F7F6]">{d}/{m}</span>
+                      <span className="text-xs font-semibold uppercase text-[var(--link)]">{weekDay}</span>
+                      <span className="text-lg font-black text-text-primary">{d}/{m}</span>
                     </button>
                   );
                 })}
@@ -452,11 +452,11 @@ export function Patient8StepBooking({
       {step === 5 && (
         <Card className="animate-fade-up">
           <CardContent className="p-6">
-            <h4 className="text-sm font-semibold text-[#C8D4CF] mb-4">
+            <h4 className="text-sm font-semibold text-text-secondary mb-4">
               Horários livres para {selectedDate.split("-").reverse().join("/")}:
             </h4>
             {availableTimes.length === 0 ? (
-              <p className="text-sm text-[#7A9187] py-6 text-center">
+              <p className="text-sm text-text-muted py-6 text-center">
                 Sem horários disponíveis para esta data. Escolha outro dia.
               </p>
             ) : (
@@ -465,7 +465,7 @@ export function Patient8StepBooking({
                   <button
                     key={`${slot.slotId}-${slot.startTime}`}
                     onClick={() => handleSelectSlot(slot)}
-                    className="py-3 px-2 rounded-xl border border-[#255044] bg-[#17382D] text-sm font-bold text-[#F5F7F6] hover:bg-[#2E8B57]/20 hover:border-[#2E8B57] hover:text-[#5ED39D] transition-all"
+                    className="py-3 px-2 rounded-xl border border-border bg-card-elevated text-sm font-bold text-text-primary hover:bg-[var(--badge-bg)] hover:border-primary hover:text-[var(--link)] transition-all"
                   >
                     {slot.startTime.slice(0, 5)}
                   </button>
@@ -515,7 +515,7 @@ export function Patient8StepBooking({
       {step === 7 && (
         <Card className="animate-fade-up">
           <CardContent className="p-6 space-y-4">
-            <h4 className="text-sm font-semibold text-[#C8D4CF]">Selecione a forma de pagamento:</h4>
+            <h4 className="text-sm font-semibold text-text-secondary">Selecione a forma de pagamento:</h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { id: "pix", label: "Pix", sub: "Confirmação rápida" },
@@ -528,12 +528,12 @@ export function Patient8StepBooking({
                   onClick={() => handleSelectPaymentMethod(pm.id as any)}
                   className={`p-4 rounded-xl border text-left transition-all ${
                     paymentMethod === pm.id
-                      ? "border-[#2E8B57] bg-[#2E8B57]/20 text-[#5ED39D]"
-                      : "border-[#255044] bg-[#17382D] text-[#C8D4CF]"
+                      ? "border-primary bg-[var(--badge-bg)] text-[var(--link)]"
+                      : "border-border bg-card-elevated text-text-secondary"
                   }`}
                 >
-                  <div className="font-bold text-base text-white">{pm.label}</div>
-                  <div className="text-xs text-[#7A9187] mt-1">{pm.sub}</div>
+                  <div className="font-bold text-base text-text-primary">{pm.label}</div>
+                  <div className="text-xs text-text-muted mt-1">{pm.sub}</div>
                 </button>
               ))}
             </div>
@@ -543,56 +543,56 @@ export function Patient8StepBooking({
 
       {/* ETAPA 8: RESUMO FINAL & ENVIO */}
       {step === 8 && (
-        <Card className="border-[#2E8B57]/40 animate-fade-up">
+        <Card className="border-primary/40 animate-fade-up">
           <CardContent className="p-6 space-y-6">
-            <h4 className="text-base font-bold text-[#F5F7F6]">Resumo Completo da Solicitação</h4>
+            <h4 className="text-base font-bold text-text-primary font-heading">Resumo Completo da Solicitação</h4>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl bg-[#17382D]/70 p-5 border border-[#255044] text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl bg-card-elevated/70 p-5 border border-border text-xs">
               <div>
-                <span className="text-[#7A9187]">Cidade:</span>
-                <p className="text-sm font-bold text-white mt-0.5">{selectedCity}</p>
+                <span className="text-text-muted">Cidade:</span>
+                <p className="text-sm font-bold text-text-primary mt-0.5">{selectedCity}</p>
               </div>
               <div>
-                <span className="text-[#7A9187]">Convênio:</span>
-                <p className="text-sm font-bold text-white mt-0.5">{selectedInsuranceName}</p>
+                <span className="text-text-muted">Convênio:</span>
+                <p className="text-sm font-bold text-text-primary mt-0.5">{selectedInsuranceName}</p>
               </div>
               <div>
-                <span className="text-[#7A9187]">Profissional:</span>
-                <p className="text-sm font-bold text-white mt-0.5">{currentProf?.fullName}</p>
+                <span className="text-text-muted">Profissional:</span>
+                <p className="text-sm font-bold text-text-primary mt-0.5">{currentProf?.fullName}</p>
               </div>
               <div>
-                <span className="text-[#7A9187]">Especialidade:</span>
-                <p className="text-sm font-bold text-white mt-0.5">{currentSpec?.name}</p>
+                <span className="text-text-muted">Especialidade:</span>
+                <p className="text-sm font-bold text-text-primary mt-0.5">{currentSpec?.name}</p>
               </div>
               <div>
-                <span className="text-[#7A9187]">Duração da sessão:</span>
-                <p className="text-sm font-bold text-white mt-0.5">45-60 min</p>
+                <span className="text-text-muted">Duração da sessão:</span>
+                <p className="text-sm font-bold text-text-primary mt-0.5">45-60 min</p>
               </div>
               <div>
-                <span className="text-[#7A9187]">Data & Horário:</span>
-                <p className="text-sm font-bold text-[#5ED39D] mt-0.5">
+                <span className="text-text-muted">Data & Horário:</span>
+                <p className="text-sm font-bold text-[var(--link)] mt-0.5">
                   {selectedDate.split("-").reverse().join("/")} às {selectedSlot?.startTime.slice(0, 5)}
                 </p>
               </div>
               <div>
-                <span className="text-[#7A9187]">Paciente:</span>
-                <p className="text-sm font-bold text-white mt-0.5">{patientName} ({patientPhone})</p>
+                <span className="text-text-muted">Paciente:</span>
+                <p className="text-sm font-bold text-text-primary mt-0.5">{patientName} ({patientPhone})</p>
               </div>
               {currentPricing && (
                 <div>
-                  <span className="text-[#7A9187]">Valor estimado:</span>
-                  <p className="text-sm font-black text-[#5ED39D] mt-0.5">{formatCurrency(currentPricing.value)}</p>
+                  <span className="text-text-muted">Valor estimado:</span>
+                  <p className="text-sm font-black text-[var(--link)] mt-0.5">{formatCurrency(currentPricing.value)}</p>
                 </div>
               )}
               <div>
-                <span className="text-[#7A9187]">Pagamento:</span>
-                <p className="text-sm font-bold text-white mt-0.5 uppercase">{paymentMethod}</p>
+                <span className="text-text-muted">Pagamento:</span>
+                <p className="text-sm font-bold text-text-primary mt-0.5 uppercase">{paymentMethod}</p>
               </div>
             </div>
 
             <Button
               size="lg"
-              className="w-full text-base font-bold py-4 shadow-[0_12px_40px_rgba(20,90,67,0.4)]"
+              className="w-full text-base font-bold py-4 shadow-button"
               onClick={handleFinalSubmit}
               disabled={submitting}
             >

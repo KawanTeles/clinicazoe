@@ -19,8 +19,8 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 const TONE_STYLES: Record<ToastTone, string> = {
-  success: "border-[#2E8B57]/40 bg-[#102A22] text-[#5ED39D]",
-  error: "border-[#DC4F4F]/40 bg-[#102A22] text-[#FF8A8A]",
+  success: "border-primary/40 bg-card-elevated text-primary-light",
+  error: "border-danger/40 bg-card-elevated text-danger",
 };
 
 const TONE_ICON: Record<ToastTone, React.ReactNode> = {
@@ -78,12 +78,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             )}
           >
             <span className="mt-0.5 shrink-0">{TONE_ICON[toast.tone]}</span>
-            <p className="flex-1 text-[#F5F7F6]">{toast.message}</p>
+            <p className="flex-1 text-text-primary">{toast.message}</p>
             <button
               type="button"
               aria-label="Fechar notificação"
               onClick={() => dismiss(toast.id)}
-              className="shrink-0 rounded-md p-0.5 text-[#7A9187] transition-colors hover:text-[#F5F7F6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8B57]"
+              className="shrink-0 rounded-md p-0.5 text-text-muted transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" />

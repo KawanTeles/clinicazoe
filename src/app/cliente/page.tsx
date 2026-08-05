@@ -33,15 +33,15 @@ export default async function ClientePublicPage() {
   const appointments = await getAppointmentsForPatient(session.user.id);
 
   return (
-    <div className="min-h-screen bg-[#081C15] text-[#F5F7F6] flex flex-col font-sans selection:bg-[#2E8B57] selection:text-white">
+    <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
       <PublicHeader clinicName={clinic.name} />
 
       <main className="flex-1 py-12 lg:py-16">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 space-y-10">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-[#255044]/60">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-border/60">
             <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-forest text-2xl font-black text-white shadow-md">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-forest text-2xl font-black text-white shadow-card font-heading">
                 {session.profile.full_name.slice(0, 2).toUpperCase()}
               </div>
               <div>
@@ -49,13 +49,13 @@ export default async function ClientePublicPage() {
                   <Badge tone="premium">Paciente</Badge>
                   <PatientSignOutButton />
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white">{session.profile.full_name}</h1>
-                <p className="text-xs text-[#5ED39D] mt-0.5">{session.profile.phone || "WhatsApp não informado"}</p>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary font-heading">{session.profile.full_name}</h1>
+                <p className="text-xs text-[var(--link)] mt-0.5">{session.profile.phone || "WhatsApp não informado"}</p>
               </div>
             </div>
 
             <Link href="/cliente/agendar">
-              <Button size="lg" className="font-bold shadow-[0_10px_30px_rgba(20,90,67,0.4)]">
+              <Button size="lg" className="font-bold shadow-button">
                 + Nova Consulta
               </Button>
             </Link>
@@ -63,15 +63,15 @@ export default async function ClientePublicPage() {
 
           {/* Quick Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="p-6 rounded-3xl bg-[#102A22] border border-[#255044] shadow-md">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#5ED39D]">Agendamentos Futuros</span>
-              <p className="text-4xl font-black text-white mt-2">{patientData.upcoming}</p>
-              <p className="text-xs text-[#7A9187] mt-1">Consultas pendentes de aprovação ou confirmadas</p>
+            <div className="p-6 rounded-3xl bg-card border border-border shadow-card">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[var(--link)]">Agendamentos Futuros</span>
+              <p className="text-4xl font-black text-text-primary mt-2 font-heading">{patientData.upcoming}</p>
+              <p className="text-xs text-text-muted mt-1">Consultas pendentes de aprovação ou confirmadas</p>
             </div>
-            <div className="p-6 rounded-3xl bg-[#102A22] border border-[#255044] shadow-md">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#5ED39D]">Consultas Concluídas</span>
-              <p className="text-4xl font-black text-white mt-2">{patientData.completed}</p>
-              <p className="text-xs text-[#7A9187] mt-1">Histórico completo de atendimentos na Zoe</p>
+            <div className="p-6 rounded-3xl bg-card border border-border shadow-card">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[var(--link)]">Consultas Concluídas</span>
+              <p className="text-4xl font-black text-text-primary mt-2 font-heading">{patientData.completed}</p>
+              <p className="text-xs text-text-muted mt-1">Histórico completo de atendimentos na Zoe</p>
             </div>
           </div>
 
@@ -79,13 +79,13 @@ export default async function ClientePublicPage() {
           <Card>
             <CardContent className="p-6 sm:p-8 space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-white">Minhas Consultas</h3>
-                <span className="text-xs text-[#7A9187]">{appointments.length} registros</span>
+                <h3 className="text-lg font-bold text-text-primary font-heading">Minhas Consultas</h3>
+                <span className="text-xs text-text-muted">{appointments.length} registros</span>
               </div>
 
               {appointments.length === 0 ? (
-                <div className="py-12 text-center space-y-4 rounded-2xl border border-dashed border-[#255044] bg-[#17382D]/40">
-                  <p className="text-sm text-[#C8D4CF]">Você ainda não possui consultas agendadas.</p>
+                <div className="py-12 text-center space-y-4 rounded-2xl border border-dashed border-border bg-card-elevated/40">
+                  <p className="text-sm text-text-secondary">Você ainda não possui consultas agendadas.</p>
                   <Link href="/cliente/agendar">
                     <Button size="sm">Fazer meu primeiro agendamento</Button>
                   </Link>
@@ -95,11 +95,11 @@ export default async function ClientePublicPage() {
                   {appointments.map((appt) => (
                     <div
                       key={appt.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-[#255044] bg-[#17382D]/70 hover:border-[#2E8B57]/60 transition-all"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-border bg-card-elevated/70 hover:border-primary/60 transition-all"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-white">{appt.professionalName}</span>
+                          <span className="text-sm font-bold text-text-primary">{appt.professionalName}</span>
                           <Badge
                             tone={
                               appt.status === "confirmada"
@@ -115,17 +115,17 @@ export default async function ClientePublicPage() {
                             {appt.status.toUpperCase()}
                           </Badge>
                         </div>
-                        <p className="text-xs text-[#5ED39D]">{appt.specialtyName} — {appt.insuranceName}</p>
-                        <p className="text-xs text-[#C8D4CF]">
-                          Data: <strong className="text-white">{appt.appointment_date.split("-").reverse().join("/")}</strong> às <strong className="text-white">{appt.start_time.slice(0, 5)}</strong>
+                        <p className="text-xs text-[var(--link)]">{appt.specialtyName} — {appt.insuranceName}</p>
+                        <p className="text-xs text-text-secondary">
+                          Data: <strong className="text-text-primary">{appt.appointment_date.split("-").reverse().join("/")}</strong> às <strong className="text-text-primary">{appt.start_time.slice(0, 5)}</strong>
                         </p>
                       </div>
 
                       <div className="text-right">
-                        <span className="text-sm font-extrabold text-white">
+                        <span className="text-sm font-extrabold text-text-primary">
                           R$ {appt.value.toFixed(2)}
                         </span>
-                        <p className="text-[11px] text-[#7A9187] uppercase">{appt.payment_method}</p>
+                        <p className="text-[11px] text-text-muted uppercase">{appt.payment_method}</p>
                       </div>
                     </div>
                   ))}

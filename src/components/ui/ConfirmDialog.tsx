@@ -52,13 +52,13 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
             role="alertdialog"
             aria-modal="true"
             aria-labelledby="confirm-dialog-title"
-            className="relative w-full max-w-sm rounded-2xl border border-[#255044] bg-[#102A22] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.5)] animate-fade-up"
+            className="relative w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-[0_20px_60px_rgba(0,0,0,0.5)] animate-fade-up"
           >
-            <h2 id="confirm-dialog-title" className="text-lg font-bold text-[#F5F7F6]">
+            <h2 id="confirm-dialog-title" className="text-lg font-bold text-text-primary">
               {pending.title}
             </h2>
             {pending.description && (
-              <p className="mt-2 text-sm leading-relaxed text-[#C8D4CF]">{pending.description}</p>
+              <p className="mt-2 text-sm leading-relaxed text-text-secondary">{pending.description}</p>
             )}
             <div className="mt-6 flex justify-end gap-3">
               <Button variant="secondary" size="sm" onClick={() => settle(false)}>

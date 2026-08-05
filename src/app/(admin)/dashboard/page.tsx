@@ -18,13 +18,13 @@ export const metadata = {
 
 function Kpi({ label, value, subtext }: { label: string; value: string; subtext?: string }) {
   return (
-    <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#255044] bg-[#102A22] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2E8B57]/50 hover:shadow-[0_15px_40px_rgba(11,61,46,0.3)]">
-      <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-[#0B3D2E] via-[#145A43] to-[#2E8B57] opacity-60 transition-opacity group-hover:opacity-100" />
+    <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-card-hover">
+      <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-primary-dark via-primary to-primary-light opacity-60 transition-opacity group-hover:opacity-100" />
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-[#C8D4CF]">{label}</p>
-        <p className="mt-2 text-3xl font-extrabold text-[#F5F7F6] tracking-tight">{value}</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">{label}</p>
+        <p className="mt-2 text-3xl font-extrabold text-text-primary tracking-tight font-heading">{value}</p>
       </div>
-      {subtext && <p className="mt-2 text-xs text-[#7A9187]">{subtext}</p>}
+      {subtext && <p className="mt-2 text-xs text-text-muted">{subtext}</p>}
     </div>
   );
 }
@@ -40,10 +40,10 @@ export default async function DashboardPage() {
     return (
       <div className="flex flex-col gap-8">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">
             Olá, {session.profile.full_name.split(" ")[0]}
           </h1>
-          <p className="mt-1 text-sm text-[#C8D4CF]">Sua visão geral na ClinicaZoe.</p>
+          <p className="mt-1 text-sm text-text-secondary">Sua visão geral na ClinicaZoe.</p>
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -53,7 +53,7 @@ export default async function DashboardPage() {
 
         <div>
           <Link href="/book">
-            <Button size="lg" className="shadow-lg">Agendar nova consulta</Button>
+            <Button size="lg" className="shadow-button font-bold">Agendar nova consulta</Button>
           </Link>
         </div>
       </div>
@@ -69,8 +69,8 @@ export default async function DashboardPage() {
     <div className="flex flex-col gap-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Dashboard Executivo</h1>
-          <p className="mt-1 text-sm text-[#C8D4CF]">
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">Dashboard Executivo</h1>
+          <p className="mt-1 text-sm text-text-secondary">
             {role === "profissional" ? "Visão geral da sua agenda e faturamento." : "Métricas e inteligência da clínica."}
           </p>
         </div>

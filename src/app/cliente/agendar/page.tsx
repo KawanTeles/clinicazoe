@@ -21,15 +21,15 @@ export default async function PatientAgendarPage() {
   const { clinic, specialties, professionals } = await getPublicWebsiteData();
 
   return (
-    <div className="min-h-screen bg-[#081C15] text-[#F5F7F6] flex flex-col font-sans selection:bg-[#2E8B57] selection:text-white">
+    <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
       <PublicHeader clinicName={clinic.name} />
 
       <main className="flex-1 py-12 lg:py-16">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <Badge tone="premium">Novo Agendamento</Badge>
-            <h1 className="text-3xl font-extrabold text-white">Solicitar Consulta Médica</h1>
-            <p className="text-xs sm:text-sm text-[#C8D4CF]">
+            <h1 className="text-3xl font-extrabold text-text-primary font-heading">Solicitar Consulta Médica</h1>
+            <p className="text-xs sm:text-sm text-text-secondary">
               Siga as 8 etapas para escolher a cidade, convênio, médico, data e horário ideal.
             </p>
           </div>
