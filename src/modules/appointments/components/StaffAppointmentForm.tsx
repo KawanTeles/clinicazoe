@@ -356,314 +356,303 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3.5 max-w-6xl mx-auto">
       {error && (
-        <div className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
+        <div className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-xs font-semibold text-danger">
           {error}
         </div>
       )}
 
-      {/* 2-Column Dashboard Workspace */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      {/* 2-Column High-Density Workspace */}
+      <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-12">
         {/* Left Column: Paciente, Cidade, Convênio & Profissional */}
-        <div className="flex flex-col gap-6 lg:col-span-6">
+        <div className="flex flex-col gap-3.5 lg:col-span-6">
           {/* Card 1: Dados do Paciente */}
-          <Card>
-            <CardHeader className="py-3 px-5">
-              <CardTitle className="text-sm font-bold text-text-primary uppercase tracking-wider">
-                1. Dados do Paciente
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 flex flex-col gap-3">
-              <PatientPickerField selectedName={patient?.fullName} onSelect={handleSelectPatient} />
-              {!showCreatePatient ? (
-                <button
-                  type="button"
-                  onClick={() => setShowCreatePatient(true)}
-                  className="w-fit text-xs font-bold text-[var(--primary)] hover:underline"
-                >
-                  + Cadastrar novo paciente
-                </button>
-              ) : (
-                <form onSubmit={handleCreatePatient} className="flex flex-col gap-3 rounded-xl border border-border bg-card-elevated/60 p-4">
-                  <span className="text-xs font-bold text-text-primary">Novo Paciente</span>
-                  <Input label="Nome Completo" value={newName} onChange={(e) => setNewName(e.target.value)} required />
-                  <div className="grid grid-cols-2 gap-3">
-                    <Input label="Telefone" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />
-                    <Input label="WhatsApp" value={newWhatsapp} onChange={(e) => setNewWhatsapp(e.target.value)} />
-                  </div>
-                  <Input label="Cidade" value={newCity} onChange={(e) => setNewCity(e.target.value)} />
-                  <div className="flex gap-2 pt-1">
-                    <Button type="submit" size="sm" isLoading={creatingPatient}>
-                      Salvar e Usar
-                    </Button>
-                    <Button type="button" size="sm" variant="ghost" onClick={() => setShowCreatePatient(false)}>
-                      Cancelar
-                    </Button>
-                  </div>
-                </form>
-              )}
-            </CardContent>
-          </Card>
+          <div className="rounded-xl border border-border/80 bg-card p-3.5 flex flex-col gap-2.5 shadow-xs">
+            <div className="flex items-center justify-between border-b border-border/60 pb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
+                1. Seleção do Paciente
+              </span>
+            </div>
+            <PatientPickerField selectedName={patient?.fullName} onSelect={handleSelectPatient} />
+            {!showCreatePatient ? (
+              <button
+                type="button"
+                onClick={() => setShowCreatePatient(true)}
+                className="w-fit text-xs font-bold text-[var(--primary)] hover:underline"
+              >
+                + Cadastrar novo paciente rapidamente
+              </button>
+            ) : (
+              <form onSubmit={handleCreatePatient} className="flex flex-col gap-2.5 rounded-lg border border-border bg-card-elevated/60 p-3">
+                <span className="text-xs font-bold text-text-primary">Novo Paciente Rápido</span>
+                <Input label="Nome Completo" value={newName} onChange={(e) => setNewName(e.target.value)} required />
+                <div className="grid grid-cols-2 gap-2">
+                  <Input label="Telefone" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />
+                  <Input label="WhatsApp" value={newWhatsapp} onChange={(e) => setNewWhatsapp(e.target.value)} />
+                </div>
+                <Input label="Cidade" value={newCity} onChange={(e) => setNewCity(e.target.value)} />
+                <div className="flex gap-2 pt-1">
+                  <Button type="submit" size="sm" isLoading={creatingPatient} className="h-8 text-xs">
+                    Salvar e Usar
+                  </Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setShowCreatePatient(false)} className="h-8 text-xs">
+                    Cancelar
+                  </Button>
+                </div>
+              </form>
+            )}
+          </div>
 
           {/* Card 2: Cidade & Convênio */}
-          <Card>
-            <CardHeader className="py-3 px-5">
-              <CardTitle className="text-sm font-bold text-text-primary uppercase tracking-wider">
+          <div className="rounded-xl border border-border/80 bg-card p-3.5 flex flex-col gap-3 shadow-xs">
+            <div className="flex items-center justify-between border-b border-border/60 pb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
                 2. Cidade & Convênio
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 flex flex-col gap-4">
-              <div>
-                <label className="mb-2 block text-xs font-semibold text-text-secondary">Cidade</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {CITIES.map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setCity(opt)}
-                      className={`rounded-xl border p-2.5 text-center text-xs font-semibold transition-all ${
-                        city === opt
-                          ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)] shadow-sm font-bold"
-                          : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
+              </span>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Cidade</label>
+              <div className="grid grid-cols-3 gap-2">
+                {CITIES.map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => setCity(opt)}
+                    className={`rounded-lg border py-1.5 px-2 text-center text-xs font-semibold transition-all ${
+                      city === opt
+                        ? "border-primary bg-primary/10 text-primary font-bold shadow-xs"
+                        : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
               </div>
+            </div>
 
-              <div>
-                <label className="mb-2 block text-xs font-semibold text-text-secondary">Convênio</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {insurances.map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => handleSelectInsurance(opt)}
-                      className={`rounded-xl border p-3 text-left text-xs font-semibold transition-all ${
-                        insurance?.id === opt.id
-                          ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)] shadow-sm font-bold"
-                          : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
-                      }`}
-                    >
-                      {opt.name}
-                    </button>
-                  ))}
-                </div>
+            <div>
+              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Convênio Aceito</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                {insurances.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => handleSelectInsurance(opt)}
+                    className={`rounded-lg border p-2 text-left text-xs font-semibold transition-all truncate ${
+                      insurance?.id === opt.id
+                        ? "border-primary bg-primary/10 text-primary font-bold shadow-xs"
+                        : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
+                    }`}
+                  >
+                    {opt.name}
+                  </button>
+                ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Card 3: Profissional */}
-          <Card>
-            <CardHeader className="py-3 px-5">
-              <CardTitle className="text-sm font-bold text-text-primary uppercase tracking-wider">
-                3. Profissional
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5">
-              {!insurance ? (
-                <p className="text-xs text-text-muted">Selecione primeiro um convênio acima.</p>
-              ) : loading ? (
-                <p className="text-xs text-text-muted animate-pulse">Buscando profissionais...</p>
-              ) : professionals.length === 0 ? (
-                <p className="text-xs text-danger">Nenhum profissional cadastrado para este convênio.</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {professionals.map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => handleSelectProfessional(opt)}
-                      className={`flex items-center gap-3 rounded-xl border p-3 text-left transition-all ${
-                        professional?.id === opt.id
-                          ? "border-primary bg-[var(--badge-bg)] ring-1 ring-primary shadow-sm"
-                          : "border-border bg-card-elevated/40 hover:border-primary/50"
-                      }`}
-                    >
-                      <Avatar src={opt.avatarUrl} name={opt.fullName} size={36} />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-bold text-text-primary">{opt.fullName}</p>
-                        <p className="truncate text-[11px] text-[var(--primary)] font-medium">{opt.specialtyName}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <div className="rounded-xl border border-border/80 bg-card p-3.5 flex flex-col gap-2.5 shadow-xs">
+            <div className="flex items-center justify-between border-b border-border/60 pb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
+                3. Profissional Responsável
+              </span>
+            </div>
+            {!insurance ? (
+              <p className="text-xs text-text-muted">Selecione primeiro um convênio acima.</p>
+            ) : loading ? (
+              <p className="text-xs text-text-muted animate-pulse">Buscando profissionais...</p>
+            ) : professionals.length === 0 ? (
+              <p className="text-xs text-danger">Nenhum profissional disponível para este convênio.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {professionals.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => handleSelectProfessional(opt)}
+                    className={`flex items-center gap-2.5 rounded-lg border p-2.5 text-left transition-all ${
+                      professional?.id === opt.id
+                        ? "border-primary bg-primary/10 ring-1 ring-primary/40 shadow-xs"
+                        : "border-border bg-card-elevated/40 hover:border-primary/50"
+                    }`}
+                  >
+                    <Avatar src={opt.avatarUrl} name={opt.fullName} size={32} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-bold text-text-primary">{opt.fullName}</p>
+                      <p className="truncate text-[10px] text-primary dark:text-[var(--link)] font-semibold">{opt.specialtyName}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Column: Calendário, Horários, Recorrência & Resumo */}
-        <div className="flex flex-col gap-6 lg:col-span-6">
+        <div className="flex flex-col gap-3.5 lg:col-span-6">
           {/* Card 4: Data & Horário */}
-          <Card>
-            <CardHeader className="py-3 px-5">
-              <CardTitle className="text-sm font-bold text-text-primary uppercase tracking-wider">
+          <div className="rounded-xl border border-border/80 bg-card p-3.5 flex flex-col gap-3 shadow-xs">
+            <div className="flex items-center justify-between border-b border-border/60 pb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
                 4. Data e Horário
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 flex flex-col gap-4">
-              {!professional ? (
-                <p className="text-xs text-text-muted">Selecione primeiro o profissional na coluna ao lado.</p>
-              ) : (
-                <>
-                  {duration && (
-                    <span className="inline-flex w-fit items-center gap-1.5 rounded-lg bg-card-elevated px-2.5 py-1 text-xs font-semibold text-text-secondary border border-border">
-                      ⏱ Duração da consulta: <strong className="text-text-primary">{duration} min</strong>
-                    </span>
-                  )}
+              </span>
+            </div>
+            {!professional ? (
+              <p className="text-xs text-text-muted">Selecione primeiro o profissional na coluna ao lado.</p>
+            ) : (
+              <>
+                {duration && (
+                  <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-card-elevated px-2 py-0.5 text-xs font-semibold text-text-secondary border border-border">
+                    ⏱ Duração da consulta: <strong className="text-text-primary">{duration} min</strong>
+                  </span>
+                )}
 
-                  {/* Dates */}
+                {/* Dates */}
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Datas Disponíveis</label>
+                  {dates.length === 0 ? (
+                    <p className="text-xs text-text-muted">Nenhum dia disponível para o profissional.</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
+                      {dates.map((iso) => (
+                        <button
+                          key={iso}
+                          type="button"
+                          onClick={() => handleSelectDate(iso)}
+                          className={`rounded-md border px-2.5 py-1 text-xs font-semibold transition-all ${
+                            date === iso
+                              ? "border-primary bg-primary text-white shadow-xs font-bold"
+                              : "border-border bg-card-elevated/40 text-text-primary hover:border-primary/50"
+                          }`}
+                        >
+                          {WEEKDAY_FORMATTER.format(new Date(`${iso}T00:00:00`))}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Times */}
+                {date && (
                   <div>
-                    <label className="mb-2 block text-xs font-semibold text-text-secondary">Datas Disponíveis</label>
-                    {dates.length === 0 ? (
-                      <p className="text-xs text-text-muted">Nenhum dia disponível informado para o profissional.</p>
+                    <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Horários Livres</label>
+                    {times.length === 0 ? (
+                      <p className="text-xs text-danger">Sem horários para este dia.</p>
                     ) : (
-                      <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
-                        {dates.map((iso) => (
+                      <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
+                        {times.map((opt) => (
                           <button
-                            key={iso}
+                            key={`${opt.slotId}-${opt.startTime}`}
                             type="button"
-                            onClick={() => handleSelectDate(iso)}
-                            className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all ${
-                              date === iso
-                                ? "border-primary bg-[var(--primary)] text-white shadow-sm font-bold"
+                            onClick={() => handleSelectTime(opt)}
+                            className={`rounded-md border px-2.5 py-1 text-xs font-semibold transition-all ${
+                              time?.startTime === opt.startTime
+                                ? "border-primary bg-primary text-white shadow-xs font-bold"
                                 : "border-border bg-card-elevated/40 text-text-primary hover:border-primary/50"
                             }`}
                           >
-                            {WEEKDAY_FORMATTER.format(new Date(`${iso}T00:00:00`))}
+                            {opt.startTime.slice(0, 5)}
                           </button>
                         ))}
                       </div>
                     )}
                   </div>
+                )}
+              </>
+            )}
+          </div>
 
-                  {/* Times */}
-                  {date && (
-                    <div>
-                      <label className="mb-2 block text-xs font-semibold text-text-secondary">Horários Livres</label>
-                      {times.length === 0 ? (
-                        <p className="text-xs text-danger">Sem horários para este dia.</p>
-                      ) : (
-                        <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
-                          {times.map((opt) => (
-                            <button
-                              key={`${opt.slotId}-${opt.startTime}`}
-                              type="button"
-                              onClick={() => handleSelectTime(opt)}
-                              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all ${
-                                time?.startTime === opt.startTime
-                                  ? "border-primary bg-[var(--primary)] text-white shadow-sm font-bold"
-                                  : "border-border bg-card-elevated/40 text-text-primary hover:border-primary/50"
-                              }`}
-                            >
-                              {opt.startTime.slice(0, 5)}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
+          {/* Card 5: Recorrência */}
+          <div className="rounded-xl border border-border/80 bg-card p-3.5 flex flex-col gap-2 shadow-xs">
+            <div className="flex items-center justify-between border-b border-border/60 pb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
+                5. Recorrência (opcional)
+              </span>
+            </div>
+            <label className="flex items-center gap-2 text-xs font-semibold text-text-primary cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isRecurring}
+                onChange={(e) => setIsRecurring(e.target.checked)}
+                className="h-3.5 w-3.5 rounded accent-primary"
+              />
+              Agendamento Recorrente (Semanal, Quinzenal ou Mensal)
+            </label>
 
-          {/* Card 5: Recorrência & Observações */}
-          <Card>
-            <CardHeader className="py-3 px-5">
-              <CardTitle className="text-sm font-bold text-text-primary uppercase tracking-wider">
-                5. Configuração de Recorrência
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 flex flex-col gap-3">
-              <label className="flex items-center gap-2 text-xs font-bold text-text-primary cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isRecurring}
-                  onChange={(e) => setIsRecurring(e.target.checked)}
-                  className="h-4 w-4 rounded accent-primary"
-                />
-                Agendamento Recorrente (Semanal, Quinzenal ou Mensal)
-              </label>
+            {isRecurring && (
+              <div className="pt-1">
+                <RecurrenceFields value={recurrence} onChange={setRecurrence} />
+              </div>
+            )}
+          </div>
 
-              {isRecurring && (
-                <div className="pt-2">
-                  <RecurrenceFields value={recurrence} onChange={setRecurrence} />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Card 6: Resumo ao Vivo & Confirmação */}
-          <Card className="border-primary/40 bg-gradient-to-br from-card to-card-elevated/30">
-            <CardHeader className="py-3 px-5">
-              <CardTitle className="text-sm font-bold text-text-primary uppercase tracking-wider">
+          {/* Card 6: Resumo & Confirmação */}
+          <div className="rounded-xl border border-primary/40 bg-card/90 p-3.5 flex flex-col gap-3 shadow-xs">
+            <div className="flex items-center justify-between border-b border-border/60 pb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
                 6. Resumo e Pagamento
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-3 text-xs border-b border-border/60 pb-3">
-                <div>
-                  <span className="text-text-muted block font-medium">Paciente:</span>
-                  <span className="font-bold text-text-primary">{patient?.fullName || "—"}</span>
-                </div>
-                <div>
-                  <span className="text-text-muted block font-medium">Profissional:</span>
-                  <span className="font-bold text-text-primary">{professional?.fullName || "—"}</span>
-                </div>
-                <div>
-                  <span className="text-text-muted block font-medium">Convênio:</span>
-                  <span className="font-bold text-text-primary">{insurance?.name || "—"}</span>
-                </div>
-                <div>
-                  <span className="text-text-muted block font-medium">Data/Hora:</span>
-                  <span className="font-bold text-[var(--primary)]">
-                    {date && time
-                      ? `${dateFormatter.format(new Date(`${date}T00:00:00`))} às ${time.startTime.slice(0, 5)}`
-                      : "—"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Payment Methods */}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs border-b border-border/50 pb-2.5">
               <div>
-                <label className="mb-2 block text-xs font-semibold text-text-secondary">Forma de Pagamento</label>
-                <div className="flex flex-wrap gap-2">
-                  {pricing.map((opt) => (
-                    <button
-                      key={opt.paymentMethod}
-                      type="button"
-                      onClick={() => setPaymentMethod(opt.paymentMethod)}
-                      className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-all ${
-                        paymentMethod === opt.paymentMethod
-                          ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)] font-bold shadow-sm"
-                          : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
-                      }`}
-                    >
-                      {PAYMENT_LABELS[opt.paymentMethod]} — {formatCurrency(opt.value)}
-                    </button>
-                  ))}
-                </div>
+                <span className="text-text-muted block font-medium">Paciente:</span>
+                <span className="font-bold text-text-primary truncate block">{patient?.fullName || "—"}</span>
               </div>
+              <div>
+                <span className="text-text-muted block font-medium">Profissional:</span>
+                <span className="font-bold text-text-primary truncate block">{professional?.fullName || "—"}</span>
+              </div>
+              <div>
+                <span className="text-text-muted block font-medium">Convênio:</span>
+                <span className="font-bold text-text-primary truncate block">{insurance?.name || "—"}</span>
+              </div>
+              <div>
+                <span className="text-text-muted block font-medium">Data / Hora:</span>
+                <span className="font-bold text-primary dark:text-[var(--link)]">
+                  {date && time
+                    ? `${dateFormatter.format(new Date(`${date}T00:00:00`))} às ${time.startTime.slice(0, 5)}`
+                    : "—"}
+                </span>
+              </div>
+            </div>
 
-              <div className="pt-2">
-                <Button
-                  className="w-full h-11 text-sm font-bold shadow-button"
-                  isLoading={saving}
-                  disabled={!patient || !professional || !insurance || !date || !time || !paymentMethod}
-                  onClick={handleConfirm}
-                >
-                  Confirmar Agendamento
-                </Button>
+            {/* Payment Methods */}
+            <div>
+              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Forma de Pagamento</label>
+              <div className="flex flex-wrap gap-1.5">
+                {pricing.map((opt) => (
+                  <button
+                    key={opt.paymentMethod}
+                    type="button"
+                    onClick={() => setPaymentMethod(opt.paymentMethod)}
+                    className={`rounded-md border px-2.5 py-1 text-xs font-semibold transition-all ${
+                      paymentMethod === opt.paymentMethod
+                        ? "border-primary bg-primary/10 text-primary font-bold shadow-xs"
+                        : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
+                    }`}
+                  >
+                    {PAYMENT_LABELS[opt.paymentMethod]} — {formatCurrency(opt.value)}
+                  </button>
+                ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            <div className="pt-1">
+              <Button
+                className="w-full h-10 text-xs font-bold shadow-button"
+                isLoading={saving}
+                disabled={!patient || !professional || !insurance || !date || !time || !paymentMethod}
+                onClick={handleConfirm}
+              >
+                Confirmar Agendamento
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+

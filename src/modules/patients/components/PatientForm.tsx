@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { createPatient, updatePatient, type PatientDetailsInput } from "@/modules/patients/services/patient-actions";
 
 interface Option {
@@ -18,6 +17,7 @@ interface PatientFormProps {
   patientId?: string;
   insurances: Option[];
   professionals: Option[];
+  onCancel?: () => void;
   initial?: {
     full_name: string;
     phone: string;
@@ -31,7 +31,7 @@ const DEFAULTS = {
   details: {} as PatientDetailsInput,
 };
 
-export function PatientForm({ mode, patientId, insurances, professionals, initial }: PatientFormProps) {
+export function PatientForm({ mode, patientId, insurances, professionals, onCancel, initial }: PatientFormProps) {
   const router = useRouter();
   const values = initial ?? DEFAULTS;
 
@@ -91,179 +91,164 @@ export function PatientForm({ mode, patientId, insurances, professionals, initia
       return;
     }
 
-    router.push("/patients");
-    router.refresh();
+    if (onCancel) {
+      onCancel();
+    } else {
+      router.push("/patients");
+      router.refresh();
+    }
   }
 
+  const handleCancelClick = () => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      router.push("/patients");
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
       {error && (
-        <div className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
+        <div className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-xs font-semibold text-danger">
           {error}
         </div>
       )}
 
-      {/* Grid Section 1: Dados Pessoais & Contato */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Card: Dados Pessoais */}
-        <Card>
-          <CardHeader className="py-3 px-5">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
-              Dados Pessoais
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-5 flex flex-col gap-4">
-            <Input
-              label="Nome Completo *"
-              name="full_name"
-              required
-              placeholder="Ex: Maria Silva Santos"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-            />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input
-                label="CPF"
-                name="cpf"
-                placeholder="000.000.000-00"
-                value={cpf}
-                onChange={(e) => setCpf(e.target.value)}
-              />
-              <Input
-                label="Data de Nascimento"
-                name="birth_date"
-                type="date"
-                value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
+      {/* GROUP 1: DADOS PESSOAIS & CONTATO */}
+      <div className="rounded-xl border border-border/80 bg-card p-3.5 flex flex-col gap-3 shadow-xs">
+        <div className="flex items-center justify-between border-b border-border/60 pb-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
+            1. Dados Pessoais & Contato
+          </span>
+          <span className="text-[10px] font-medium text-text-muted">Identificação e comunicação</span>
+        </div>
 
-        {/* Card: Contato & Endereço */}
-        <Card>
-          <CardHeader className="py-3 px-5">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
-              Contato & Endereço
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-5 flex flex-col gap-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input
-                label="Telefone"
-                name="phone"
-                type="tel"
-                placeholder="(00) 00000-0000"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-              <Input
-                label="WhatsApp"
-                name="whatsapp"
-                type="tel"
-                placeholder="(00) 00000-0000"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-              />
-            </div>
-            <Input
-              label="E-mail"
-              name="email"
-              type="email"
-              placeholder="paciente@exemplo.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input label="Endereço" name="address" placeholder="Rua / Av..." value={address} onChange={(e) => setAddress(e.target.value)} />
-              <Input label="Cidade" name="city" placeholder="Cidade" value={city} onChange={(e) => setCity(e.target.value)} />
-            </div>
-          </CardContent>
-        </Card>
+        {/* 3-Column Field Grid */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Input
+            label="Nome Completo *"
+            name="full_name"
+            required
+            placeholder="Ex: Maria Silva Santos"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+          />
+          <Input
+            label="CPF"
+            name="cpf"
+            placeholder="000.000.000-00"
+            value={cpf}
+            onChange={(e) => setCpf(e.target.value)}
+          />
+          <Input
+            label="Data de Nascimento"
+            name="birth_date"
+            type="date"
+            value={birthDate}
+            onChange={(e) => setBirthDate(e.target.value)}
+          />
+          <Input
+            label="Telefone Principal"
+            name="phone"
+            type="tel"
+            placeholder="(00) 00000-0000"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+          <Input
+            label="WhatsApp"
+            name="whatsapp"
+            type="tel"
+            placeholder="(00) 00000-0000"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value)}
+          />
+          <Input
+            label="E-mail"
+            name="email"
+            type="email"
+            placeholder="paciente@exemplo.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 border-t border-border/40 pt-2.5">
+          <Input label="Endereço" name="address" placeholder="Rua / Av..." value={address} onChange={(e) => setAddress(e.target.value)} />
+          <Input label="Cidade" name="city" placeholder="Cidade" value={city} onChange={(e) => setCity(e.target.value)} />
+        </div>
       </div>
 
-      {/* Grid Section 2: Convênio & Observações */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Card: Convênio e Preferência */}
-        <Card>
-          <CardHeader className="py-3 px-5">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
-              Convênio & Preferência
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-5 flex flex-col gap-4">
-            <Select label="Convênio Atrelado" name="insurance_id" value={insuranceId} onChange={(e) => setInsuranceId(e.target.value)}>
-              <option value="">Particular / Nenhum</option>
-              {insurances.map((i) => (
-                <option key={i.id} value={i.id}>
-                  {i.name}
-                </option>
-              ))}
-            </Select>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input
-                label="Nº da Carteirinha"
-                name="insurance_card_number"
-                placeholder="000000000"
-                value={cardNumber}
-                onChange={(e) => setCardNumber(e.target.value)}
-              />
-              <Input
-                label="Validade da Carteirinha"
-                name="insurance_card_valid_until"
-                type="date"
-                value={cardValidUntil}
-                onChange={(e) => setCardValidUntil(e.target.value)}
-              />
-            </div>
-            <Select
-              label="Profissional Preferencial"
-              name="preferred_professional_id"
-              value={professionalId}
-              onChange={(e) => setProfessionalId(e.target.value)}
-            >
-              <option value="">Sem preferência</option>
-              {professionals.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </Select>
-          </CardContent>
-        </Card>
+      {/* GROUP 2: CONVÊNIO & OBSERVAÇÕES */}
+      <div className="rounded-xl border border-border/80 bg-card p-3.5 flex flex-col gap-3 shadow-xs">
+        <div className="flex items-center justify-between border-b border-border/60 pb-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
+            2. Convênio & Observações Internas
+          </span>
+          <span className="text-[10px] font-medium text-text-muted">Plano de saúde e preferências</span>
+        </div>
 
-        {/* Card: Observações Adicionais */}
-        <Card>
-          <CardHeader className="py-3 px-5">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
-              Observações Médicas / Internas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-5 flex flex-col gap-4 justify-between">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-text-secondary" htmlFor="notes">
-                Notas do Paciente
-              </label>
-              <textarea
-                id="notes"
-                name="notes"
-                rows={5}
-                placeholder="Alergias, histórico clínico ou notas relevantes..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="w-full rounded-xl border border-border bg-card-elevated px-4 py-3 text-sm text-text-primary placeholder:text-text-muted transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {/* 3-Column Field Grid */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Select label="Convênio Atrelado" name="insurance_id" value={insuranceId} onChange={(e) => setInsuranceId(e.target.value)}>
+            <option value="">Particular / Nenhum</option>
+            {insurances.map((i) => (
+              <option key={i.id} value={i.id}>
+                {i.name}
+              </option>
+            ))}
+          </Select>
+          <Input
+            label="Nº da Carteirinha"
+            name="insurance_card_number"
+            placeholder="000000000"
+            value={cardNumber}
+            onChange={(e) => setCardNumber(e.target.value)}
+          />
+          <Input
+            label="Validade da Carteirinha"
+            name="insurance_card_valid_until"
+            type="date"
+            value={cardValidUntil}
+            onChange={(e) => setCardValidUntil(e.target.value)}
+          />
+          <Select
+            label="Profissional Preferencial"
+            name="preferred_professional_id"
+            value={professionalId}
+            onChange={(e) => setProfessionalId(e.target.value)}
+          >
+            <option value="">Sem preferência</option>
+            {professionals.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </Select>
+          <div className="sm:col-span-2 flex flex-col gap-1">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-text-secondary" htmlFor="notes">
+              Observações / Histórico Clínico
+            </label>
+            <textarea
+              id="notes"
+              name="notes"
+              rows={2}
+              placeholder="Alergias, observações relevantes..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full rounded-lg border border-border bg-card-elevated px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 resize-none"
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Action Footer */}
-      <div className="flex items-center justify-end gap-3 rounded-2xl border border-border bg-card p-4 shadow-card">
-        <Button type="button" variant="ghost" disabled={saving} onClick={() => router.push("/patients")}>
+      {/* Sticky Bottom Action Footer */}
+      <div className="sticky bottom-0 z-10 flex items-center justify-end gap-2.5 rounded-xl border border-border bg-card/95 backdrop-blur-md p-3 shadow-lg">
+        <Button type="button" variant="ghost" size="sm" disabled={saving} onClick={handleCancelClick}>
           Cancelar
         </Button>
-        <Button type="submit" isLoading={saving} className="px-6 font-bold shadow-button">
+        <Button type="submit" size="sm" isLoading={saving} className="px-5 font-bold shadow-button">
           {mode === "create" ? "Cadastrar Paciente" : "Salvar Alterações"}
         </Button>
       </div>

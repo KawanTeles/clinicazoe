@@ -69,74 +69,89 @@ export function ClinicSettingsForm({
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        {preview ? (
-          <Image
-            src={preview}
-            alt="Logo da clínica"
-            width={64}
-            height={64}
-            className="h-16 w-16 rounded-xl border border-[#255044] object-contain bg-[#17382D] p-2"
-            unoptimized
-          />
-        ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-dashed border-[#255044] bg-[#17382D] text-xs text-[#7A9187]">
-            Sem logo
-          </div>
-        )}
-        <div>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            isLoading={uploadingLogo}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            Alterar logo
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/svg+xml"
-            className="hidden"
-            onChange={handleLogoChange}
-          />
-          <p className="mt-1.5 text-xs text-[#7A9187]">PNG, JPG, WEBP ou SVG até 2MB.</p>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-4xl">
+      <div className="rounded-xl border border-border/80 bg-card p-4 flex flex-col gap-4 shadow-xs">
+        <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
+            Identidade & Marca da Clínica
+          </span>
+          <span className="text-[10px] font-medium text-text-muted">Logo e nome público</span>
         </div>
-      </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <Input label="Nome da clínica" name="name" required value={name} onChange={(e) => setName(e.target.value)} />
+        {/* Header Logo Upload */}
+        <div className="flex items-center gap-4 bg-card-elevated/40 p-3 rounded-lg border border-border/50">
+          {preview ? (
+            <Image
+              src={preview}
+              alt="Logo da clínica"
+              width={52}
+              height={52}
+              className="h-13 w-13 rounded-lg border border-border object-contain bg-card-elevated p-1.5"
+              unoptimized
+            />
+          ) : (
+            <div className="flex h-13 w-13 items-center justify-center rounded-lg border border-dashed border-border bg-card-elevated text-[11px] text-text-muted">
+              Sem logo
+            </div>
+          )}
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="h-7 text-xs px-3 font-semibold"
+                isLoading={uploadingLogo}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Alterar Logo
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                className="hidden"
+                onChange={handleLogoChange}
+              />
+            </div>
+            <span className="text-[11px] text-text-muted">PNG, JPG, WEBP ou SVG até 2MB</span>
+          </div>
+        </div>
+
+        {/* 2-Column Fields */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Input label="Nome da Clínica *" name="name" required value={name} onChange={(e) => setName(e.target.value)} />
+          <Input
+            label="WhatsApp de Contato *"
+            name="whatsapp_number"
+            type="tel"
+            placeholder="(00) 00000-0000"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value)}
+          />
+        </div>
+
         <Input
-          label="WhatsApp da clínica"
-          name="whatsapp_number"
-          type="tel"
-          placeholder="(00) 00000-0000"
-          value={whatsapp}
-          onChange={(e) => setWhatsapp(e.target.value)}
-        />
-        <p className="-mt-2 text-xs text-[#7A9187]">
-          Recebe os avisos de novo agendamento (link do WhatsApp).
-        </p>
-        <Input
-          label="Endereço"
+          label="Endereço da Clínica"
           name="address"
+          placeholder="Rua, Número, Bairro, Cidade - UF"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
         />
+      </div>
 
-        {message && (
-          <p className={message.type === "success" ? "text-sm font-semibold text-[#5ED39D]" : "text-sm font-semibold text-[#FF8A8A]"}>
-            {message.text}
-          </p>
-        )}
+      {message && (
+        <p className={message.type === "success" ? "text-xs font-semibold text-success" : "text-xs font-semibold text-danger"}>
+          {message.text}
+        </p>
+      )}
 
-        <Button type="submit" isLoading={saving} className="w-fit">
-          Salvar
+      {/* Sticky Bottom Bar */}
+      <div className="flex items-center justify-end gap-2.5 rounded-xl border border-border bg-card p-3 shadow-sm">
+        <Button type="submit" size="sm" isLoading={saving} className="px-5 font-bold shadow-button">
+          Salvar Configurações
         </Button>
-      </form>
-
-    </div>
+      </div>
+    </form>
   );
 }

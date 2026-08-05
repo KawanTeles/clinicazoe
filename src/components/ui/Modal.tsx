@@ -19,12 +19,12 @@ interface ModalProps {
 const sizeClasses: Record<ModalSize, string> = {
   sm: "max-w-md",
   md: "max-w-lg",
-  lg: "max-w-2xl",
-  xl: "max-w-4xl",
-  "2xl": "max-w-5xl",
-  "4xl": "max-w-6xl",
-  "6xl": "max-w-7xl",
-  full: "max-w-[95vw] h-[92vh]",
+  lg: "max-w-3xl",
+  xl: "max-w-5xl",
+  "2xl": "max-w-6xl",
+  "4xl": "max-w-7xl",
+  "6xl": "max-w-[90vw]",
+  full: "max-w-[96vw] h-[94vh]",
 };
 
 export function Modal({
@@ -32,7 +32,7 @@ export function Modal({
   onClose,
   title,
   subtitle,
-  size = "lg",
+  size = "xl",
   children,
   footer,
   className,
@@ -54,25 +54,25 @@ export function Modal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
       {/* Backdrop with blur & smooth fade */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-black/70 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
         onClick={onClose}
       />
 
       {/* Modal Container */}
       <div
         className={cn(
-          "relative flex w-full flex-col rounded-2xl border border-border bg-card shadow-2xl transition-all animate-in fade-in zoom-in-95 duration-200 overflow-hidden max-h-[90vh]",
+          "relative flex w-full flex-col rounded-2xl border border-border bg-card shadow-2xl transition-all animate-in fade-in zoom-in-95 duration-200 overflow-hidden max-h-[88vh]",
           sizeClasses[size],
           className
         )}
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-border bg-card-elevated/40 px-6 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-border/80 bg-card-elevated/50 px-5 py-3.5">
           <div>
-            <h2 className="text-lg font-bold text-text-primary tracking-tight font-heading">
+            <h2 className="text-base font-bold text-text-primary tracking-tight font-heading">
               {title}
             </h2>
             {subtitle && (
@@ -84,7 +84,7 @@ export function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl p-2 text-text-muted hover:bg-card-elevated hover:text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="rounded-lg p-1.5 text-text-muted hover:bg-card-elevated hover:text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             aria-label="Fechar modal"
           >
             <svg
@@ -105,13 +105,13 @@ export function Modal({
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-6 text-text-secondary">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 text-text-secondary">
           {children}
         </div>
 
         {/* Sticky Footer */}
         {footer && (
-          <div className="flex shrink-0 items-center justify-end gap-3 border-t border-border bg-card-elevated/50 px-6 py-4">
+          <div className="flex shrink-0 items-center justify-end gap-2.5 border-t border-border/80 bg-card-elevated/60 px-5 py-3">
             {footer}
           </div>
         )}

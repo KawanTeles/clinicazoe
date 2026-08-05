@@ -6,7 +6,6 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ROLE_LABELS } from "@/lib/navigation";
 import { PARTICULAR_INSURANCE_NAME } from "@/lib/constants";
 import type { Role } from "@/lib/supabase/types";
@@ -36,6 +35,7 @@ interface TeamMemberFormProps {
   avatarUrl?: string | null;
   specialties: { id: string; name: string }[];
   insurances: InsuranceOption[];
+  onCancel?: () => void;
   initial?: {
     full_name: string;
     email: string;
@@ -78,6 +78,7 @@ export function TeamMemberForm({
   avatarUrl,
   specialties,
   insurances,
+  onCancel,
   initial,
 }: TeamMemberFormProps) {
   const router = useRouter();
@@ -226,38 +227,52 @@ export function TeamMemberForm({
       setSaving(false);
     }
 
-    router.push("/team");
-    router.refresh();
+    if (onCancel) {
+      onCancel();
+    } else {
+      router.push("/team");
+      router.refresh();
+    }
   }
 
+  const handleCancelClick = () => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      router.push("/team");
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {error && (
-        <div className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
+        <div className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-xs font-semibold text-danger">
           {error}
         </div>
       )}
 
-      {/* Grid 1: Informações da Conta e Acesso */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Foto e Perfil (4 colunas no LG) */}
-        <Card className="lg:col-span-4 flex flex-col justify-between">
-          <CardHeader className="py-3 px-5">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
-              Foto de Perfil
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 flex flex-col items-center justify-center text-center gap-4">
-            <Avatar src={preview} name={fullName || "Novo membro"} size={96} />
-            <div className="flex flex-col items-center gap-1.5">
+      {/* GROUP 1: DADOS PESSOAIS */}
+      <div className="rounded-xl border border-border/80 bg-card p-3.5 sm:p-4 flex flex-col gap-3 shadow-xs">
+        <div className="flex items-center justify-between border-b border-border/60 pb-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
+            1. Dados Pessoais & Acesso
+          </span>
+          <span className="text-[10px] font-medium text-text-muted">Informações básicas do membro</span>
+        </div>
+
+        {/* Compact Avatar Header */}
+        <div className="flex items-center gap-3.5 bg-card-elevated/40 p-2.5 rounded-lg border border-border/50">
+          <Avatar src={preview} name={fullName || "Novo membro"} size={44} />
+          <div className="flex flex-col gap-1 min-w-0 flex-1">
+            <div className="flex items-center gap-2">
               <Button
                 type="button"
                 variant="secondary"
                 size="sm"
-                className="text-xs"
+                className="h-7 text-[11px] px-2.5 py-0 font-semibold"
                 onClick={() => fileInputRef.current?.click()}
               >
-                {mode === "create" ? "Escolher foto" : "Alterar foto"}
+                {mode === "create" ? "Selecionar Foto" : "Alterar Foto"}
               </Button>
               <input
                 ref={fileInputRef}
@@ -266,255 +281,220 @@ export function TeamMemberForm({
                 className="hidden"
                 onChange={handlePhotoChange}
               />
-              <span className="text-[11px] text-text-muted">Formatos JPG, PNG ou WEBP (até 3MB)</span>
+              <span className="text-[10px] text-text-muted hidden sm:inline">JPG, PNG ou WEBP</span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Dados da Conta (8 colunas no LG) */}
-        <Card className="lg:col-span-8">
-          <CardHeader className="py-3 px-5">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
-              Informações Pessoais & Acesso
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-5 flex flex-col gap-4">
-            <Input
-              label="Nome Completo *"
-              name="full_name"
-              required
-              placeholder="Ex: Dra. Ana Clara Silva"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-            />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input
-                label="E-mail *"
-                name="email"
-                type="email"
-                required
-                disabled={mode === "edit"}
-                placeholder="membro@clinicazoe.com.br"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <Input
-                label="Telefone"
-                name="phone"
-                type="tel"
-                placeholder="(00) 00000-0000"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
+        {/* 3-Column Field Grid */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Input
+            label="Nome Completo *"
+            name="full_name"
+            required
+            placeholder="Ex: Dra. Ana Clara Silva"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+          />
+          <Input
+            label="E-mail *"
+            name="email"
+            type="email"
+            required
+            disabled={mode === "edit"}
+            placeholder="membro@clinicazoe.com.br"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            label="Telefone / Celular"
+            name="phone"
+            type="tel"
+            placeholder="(00) 00000-0000"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+          <Select
+            label="Cargo / Função"
+            name="role"
+            value={role}
+            disabled={lockedBySelf}
+            onChange={(e) => setRole(e.target.value as Role)}
+          >
+            {TEAM_ROLES.map((r) => (
+              <option key={r} value={r}>
+                {ROLE_LABELS[r]}
+              </option>
+            ))}
+          </Select>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Select
-                label="Cargo / Função"
-                name="role"
-                value={role}
-                disabled={lockedBySelf}
-                onChange={(e) => setRole(e.target.value as Role)}
-              >
-                {TEAM_ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {ROLE_LABELS[r]}
-                  </option>
-                ))}
-              </Select>
+          {mode === "edit" ? (
+            <Select
+              label="Status no Sistema"
+              name="status"
+              value={status}
+              disabled={lockedBySelf}
+              onChange={(e) => setStatus(e.target.value as "active" | "inactive")}
+            >
+              <option value="active">Ativo</option>
+              <option value="inactive">Inativo</option>
+            </Select>
+          ) : null}
 
-              {mode === "edit" && (
-                <Select
-                  label="Status"
-                  name="status"
-                  value={status}
-                  disabled={lockedBySelf}
-                  onChange={(e) => setStatus(e.target.value as "active" | "inactive")}
-                >
-                  <option value="active">Ativo</option>
-                  <option value="inactive">Inativo</option>
-                </Select>
-              )}
-
-              <Input
-                label={mode === "create" ? "Senha *" : "Nova Senha"}
-                name="password"
-                type="password"
-                required={mode === "create"}
-                placeholder={mode === "edit" ? "Manter senha atual" : "••••••••"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-
-            {lockedBySelf && (
-              <span className="text-xs text-text-muted">Nota: Você não pode alterar seu próprio cargo ou status.</span>
-            )}
-          </CardContent>
-        </Card>
+          <Input
+            label={mode === "create" ? "Senha de Acesso *" : "Nova Senha (opcional)"}
+            name="password"
+            type="password"
+            required={mode === "create"}
+            placeholder={mode === "edit" ? "Manter senha atual" : "••••••••"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
       </div>
 
-      {/* Grid 2: Dados Profissionais se cargo == profissional */}
+      {/* GROUP 2: DADOS PROFISSIONAIS (When role === profissional) */}
       {role === "profissional" && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Card: Configuração de Atendimento */}
-          <Card>
-            <CardHeader className="py-3 px-5">
-              <CardTitle className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
-                Configurações da Agenda & Atendimento
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 flex flex-col gap-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Select
-                  label="Especialidade Principal"
-                  name="specialty_id"
-                  value={specialtyId}
-                  onChange={(e) => setSpecialtyId(e.target.value)}
-                >
-                  <option value="">Selecione...</option>
-                  {specialties.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </Select>
-                <Input
-                  label="Registro Profissional"
-                  name="license_number"
-                  placeholder="CRM, CRO, CREFITO..."
-                  value={licenseNumber}
-                  onChange={(e) => setLicenseNumber(e.target.value)}
-                />
-              </div>
+        <div className="rounded-xl border border-border/80 bg-card p-3.5 sm:p-4 flex flex-col gap-3 shadow-xs">
+          <div className="flex items-center justify-between border-b border-border/60 pb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
+              2. Dados Profissionais & Convênios
+            </span>
+            <span className="text-[10px] font-medium text-text-muted">Atendimento e tabela de valores</span>
+          </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {/* 4-Column Compact Grid */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Select
+              label="Especialidade"
+              name="specialty_id"
+              value={specialtyId}
+              onChange={(e) => setSpecialtyId(e.target.value)}
+            >
+              <option value="">Selecione...</option>
+              {specialties.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </Select>
+            <Input
+              label="Registro (CRM / CRO)"
+              name="license_number"
+              placeholder="CRM/SP 123456"
+              value={licenseNumber}
+              onChange={(e) => setLicenseNumber(e.target.value)}
+            />
+            <Input
+              label="Duração da Consulta (min)"
+              name="consultation_duration_minutes"
+              type="number"
+              min={5}
+              step={5}
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+            />
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Cor na Agenda</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={agendaColor}
+                  onChange={(e) => setAgendaColor(e.target.value)}
+                  className="h-9.5 w-14 cursor-pointer rounded-lg border border-border bg-card-elevated p-1"
+                />
+                <span className="text-xs font-mono font-semibold text-text-primary uppercase">{agendaColor}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Values & Convenios sub-grid */}
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-12 border-t border-border/40 pt-3">
+            {/* Particular Prices */}
+            <div className="lg:col-span-5 flex flex-col gap-2">
+              <span className="text-[11px] font-bold text-text-primary uppercase tracking-wider">
+                Valores Particulares (R$)
+              </span>
+              <div className="grid grid-cols-3 gap-2">
                 <Input
-                  label="Duração da Consulta (min)"
-                  name="consultation_duration_minutes"
+                  label="Cartão"
+                  name="price_particular_card"
                   type="number"
-                  min={5}
-                  step={5}
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
+                  min={0}
+                  step="0.01"
+                  placeholder="0,00"
+                  value={priceCard}
+                  onChange={(e) => setPriceCard(e.target.value)}
                 />
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-text-secondary">Cor na Agenda</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={agendaColor}
-                      onChange={(e) => setAgendaColor(e.target.value)}
-                      className="h-11 w-16 cursor-pointer rounded-xl border border-border bg-card-elevated p-1"
-                    />
-                    <span className="text-xs font-mono text-text-muted uppercase">{agendaColor}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-text-secondary" htmlFor="bio">
-                  Biografia / Apresentação Profissional
-                </label>
-                <textarea
-                  id="bio"
-                  name="bio"
-                  rows={3}
-                  placeholder="Breve resumo sobre especialização, experiência e atendimento..."
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-card-elevated px-4 py-3 text-sm text-text-primary placeholder:text-text-muted transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                <Input
+                  label="PIX"
+                  name="price_particular_pix"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  placeholder="0,00"
+                  value={pricePix}
+                  onChange={(e) => setPricePix(e.target.value)}
+                />
+                <Input
+                  label="Dinheiro"
+                  name="price_particular_cash"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  placeholder="0,00"
+                  value={priceCash}
+                  onChange={(e) => setPriceCash(e.target.value)}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Card: Tabela de Preços & Convênios */}
-          <Card>
-            <CardHeader className="py-3 px-5">
-              <CardTitle className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
-                Valores de Consulta & Convênios
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 flex flex-col gap-4">
-              <div>
-                <span className="mb-2 block text-xs font-bold text-text-primary">Consultas Particulares (R$)</span>
-                <div className="grid grid-cols-3 gap-3">
-                  <Input
-                    label="Cartão"
-                    name="price_particular_card"
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    placeholder="0.00"
-                    value={priceCard}
-                    onChange={(e) => setPriceCard(e.target.value)}
-                  />
-                  <Input
-                    label="PIX"
-                    name="price_particular_pix"
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    placeholder="0.00"
-                    value={pricePix}
-                    onChange={(e) => setPricePix(e.target.value)}
-                  />
-                  <Input
-                    label="Dinheiro"
-                    name="price_particular_cash"
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    placeholder="0.00"
-                    value={priceCash}
-                    onChange={(e) => setPriceCash(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <span className="mb-2 block text-xs font-bold text-text-primary">Convênios Aceitos</span>
-                <div className="flex flex-col gap-2.5 max-h-48 overflow-y-auto pr-1">
-                  {convenios.length === 0 && (
-                    <span className="text-xs text-text-muted">Nenhum convênio cadastrado.</span>
-                  )}
+            {/* Insurance List */}
+            <div className="lg:col-span-7 flex flex-col gap-2">
+              <span className="text-[11px] font-bold text-text-primary uppercase tracking-wider">
+                Convênios Aceitos
+              </span>
+              <div className="flex flex-col gap-2 max-h-36 overflow-y-auto pr-1">
+                {convenios.length === 0 && (
+                  <span className="text-xs text-text-muted">Nenhum convênio cadastrado.</span>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {convenios.map((insurance) => {
                     const checked = insurance.id in insuranceValues;
                     return (
-                      <div key={insurance.id} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card-elevated/40 p-2.5">
-                        <label className="flex items-center gap-2 text-xs font-bold text-text-primary cursor-pointer min-w-0">
+                      <div key={insurance.id} className="flex flex-col gap-1.5 rounded-lg border border-border bg-card-elevated/40 p-2">
+                        <label className="flex items-center gap-2 text-xs font-semibold text-text-primary cursor-pointer min-w-0">
                           <input
                             type="checkbox"
                             checked={checked}
                             onChange={() => toggleInsurance(insurance.id)}
-                            className="h-4 w-4 rounded border-border bg-card accent-primary"
+                            className="h-3.5 w-3.5 rounded border-border bg-card accent-primary"
                           />
                           <span className="truncate">{insurance.name}</span>
                         </label>
                         {checked && (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5 pl-5">
                             <input
                               type="number"
                               min={0}
                               step="0.01"
-                              placeholder="Valor (R$)"
+                              placeholder="R$ Valor"
                               value={insuranceValues[insurance.id]}
                               onChange={(e) =>
                                 setInsuranceValues((prev) => ({ ...prev, [insurance.id]: e.target.value }))
                               }
-                              className="h-8 w-24 rounded-lg border border-border bg-card px-2 text-xs text-text-primary"
+                              className="h-7 w-20 rounded-md border border-border bg-card px-2 text-xs text-text-primary"
                             />
                             <input
                               type="number"
                               min={5}
                               step={5}
-                              placeholder="Min."
+                              placeholder="Min"
                               value={insuranceDurations[insurance.id] ?? ""}
                               onChange={(e) =>
                                 setInsuranceDurations((prev) => ({ ...prev, [insurance.id]: e.target.value }))
                               }
-                              className="h-8 w-16 rounded-lg border border-border bg-card px-2 text-xs text-text-primary"
+                              className="h-7 w-14 rounded-md border border-border bg-card px-2 text-xs text-text-primary"
                             />
                           </div>
                         )}
@@ -523,17 +503,35 @@ export function TeamMemberForm({
                   })}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Footer Actions */}
-      <div className="flex items-center justify-end gap-3 rounded-2xl border border-border bg-card p-4 shadow-card">
-        <Button type="button" variant="ghost" disabled={saving} onClick={() => router.push("/team")}>
+      {/* GROUP 3: CONFIGURAÇÕES & BIOGRAFIA */}
+      <div className="rounded-xl border border-border/80 bg-card p-3.5 sm:p-4 flex flex-col gap-2.5 shadow-xs">
+        <div className="flex items-center justify-between border-b border-border/60 pb-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
+            3. Biografia / Apresentação (opcional)
+          </span>
+        </div>
+        <textarea
+          id="bio"
+          name="bio"
+          rows={2}
+          placeholder="Resumo de experiência, especializações e atendimento ao público..."
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          className="w-full rounded-lg border border-border bg-card-elevated px-3 py-2 text-xs text-text-primary placeholder:text-text-muted transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 resize-none"
+        />
+      </div>
+
+      {/* Sticky Bottom Action Footer */}
+      <div className="sticky bottom-0 z-10 flex items-center justify-end gap-2.5 rounded-xl border border-border bg-card/95 backdrop-blur-md p-3 shadow-lg">
+        <Button type="button" variant="ghost" size="sm" disabled={saving} onClick={handleCancelClick}>
           Cancelar
         </Button>
-        <Button type="submit" isLoading={saving} className="px-6 font-bold shadow-button">
+        <Button type="submit" size="sm" isLoading={saving} className="px-5 font-bold shadow-button">
           {mode === "create" ? "Criar Membro" : "Salvar Alterações"}
         </Button>
       </div>

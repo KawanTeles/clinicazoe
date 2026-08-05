@@ -46,19 +46,18 @@ export function FinancialTable({ entries }: { entries: FinancialEntryView[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3.5">
       {/* Search & Filter Header Bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center justify-between rounded-2xl border border-border bg-card p-4 shadow-card">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center justify-between rounded-xl border border-border/80 bg-card p-3 shadow-xs">
         <div className="w-full sm:w-80">
           <Input
-            placeholder="Pesquisar lançamento por paciente, médico ou convênio..."
+            placeholder="Pesquisar lançamento..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-10 text-xs"
           />
         </div>
 
-        <div className="flex flex-wrap gap-1.5 text-xs">
+        <div className="flex flex-wrap gap-1 text-xs">
           {[
             { id: "todos", label: "Todos" },
             { id: "em_aberto", label: "Em Aberto" },
@@ -68,9 +67,9 @@ export function FinancialTable({ entries }: { entries: FinancialEntryView[] }) {
               key={tab.id}
               type="button"
               onClick={() => setStatusFilter(tab.id)}
-              className={`rounded-xl px-3 py-1.5 font-semibold transition-all ${
+              className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
                 statusFilter === tab.id
-                  ? "bg-[var(--primary)] text-white shadow-sm"
+                  ? "bg-primary text-white shadow-xs font-bold"
                   : "bg-card-elevated/40 text-text-secondary hover:text-text-primary hover:bg-card-elevated"
               }`}
             >
@@ -81,45 +80,45 @@ export function FinancialTable({ entries }: { entries: FinancialEntryView[] }) {
       </div>
 
       {filteredEntries.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center text-sm font-medium text-text-secondary">
+        <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center text-xs font-medium text-text-secondary">
           Nenhum lançamento financeiro encontrado com estes filtros.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
-          <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
+        <div className="overflow-x-auto rounded-xl border border-border/80 bg-card shadow-xs">
+          <table className="w-full min-w-[700px] text-left text-xs">
+            <thead className="border-b border-border/80 bg-card-elevated/70 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
               <tr>
-                <th className="px-5 py-3.5 font-bold">Paciente</th>
-                <th className="px-5 py-3.5 font-bold">Profissional</th>
-                <th className="px-5 py-3.5 font-bold">Convênio</th>
-                <th className="px-5 py-3.5 font-bold">Vencimento</th>
-                <th className="px-5 py-3.5 font-bold">Valor</th>
-                <th className="px-5 py-3.5 font-bold">Status</th>
-                <th className="px-5 py-3.5 font-bold text-right">Ações</th>
+                <th className="px-4 py-2.5 font-bold">Paciente</th>
+                <th className="px-4 py-2.5 font-bold">Profissional</th>
+                <th className="px-4 py-2.5 font-bold">Convênio</th>
+                <th className="px-4 py-2.5 font-bold">Vencimento</th>
+                <th className="px-4 py-2.5 font-bold">Valor</th>
+                <th className="px-4 py-2.5 font-bold">Status</th>
+                <th className="px-4 py-2.5 font-bold text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40">
               {filteredEntries.map((entry) => (
                 <tr key={entry.id} className="transition-colors hover:bg-card-elevated/40">
-                  <td className="px-5 py-4 font-bold text-text-primary">{entry.patientName}</td>
-                  <td className="px-5 py-4 font-semibold text-text-primary">{entry.professionalName}</td>
-                  <td className="px-5 py-4 text-text-secondary">{entry.insuranceName}</td>
-                  <td className="px-5 py-4 text-text-secondary">
+                  <td className="px-4 py-3 font-bold text-text-primary">{entry.patientName}</td>
+                  <td className="px-4 py-3 font-semibold text-text-primary">{entry.professionalName}</td>
+                  <td className="px-4 py-3 text-text-secondary">{entry.insuranceName}</td>
+                  <td className="px-4 py-3 text-text-secondary">
                     {dateFormatter.format(new Date(`${entry.dueDate}T00:00:00`))}
                   </td>
-                  <td className="px-5 py-4 font-bold text-text-primary">{formatCurrency(entry.value)}</td>
-                  <td className="px-5 py-4">
+                  <td className="px-4 py-3 font-bold text-text-primary">{formatCurrency(entry.value)}</td>
+                  <td className="px-4 py-3">
                     <Badge tone={entry.status === "pago" ? "success" : "warning"} className="text-[10px]">
                       {entry.status === "pago" ? "Pago" : "Em aberto"}
                     </Badge>
                   </td>
-                  <td className="px-5 py-4 text-right">
+                  <td className="px-4 py-3 text-right">
                     {entry.status === "em_aberto" && (
                       <Button
                         size="sm"
                         isLoading={busyId === entry.id}
                         onClick={() => handleMarkAsPaid(entry.id)}
-                        className="h-8 text-xs px-3 font-semibold"
+                        className="h-7 text-[11px] px-2.5 font-semibold"
                       >
                         Marcar como pago
                       </Button>

@@ -233,7 +233,7 @@ export function AdminShell({
         </div>
 
         {/* Sidebar Nav Items */}
-        <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
+        <nav className="flex-1 space-y-1 px-3 py-3.5 overflow-y-auto">
           {uniqueItems.map((item) => {
             const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
             return (
@@ -242,33 +242,33 @@ export function AdminShell({
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "group relative flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-all duration-200",
+                  "group relative flex h-9.5 items-center gap-2.5 rounded-xl px-3 text-xs font-semibold transition-all duration-150",
                   active
-                    ? "bg-[var(--badge-bg)] text-[var(--primary)] shadow-[0_0_15px_rgba(15,164,122,0.15)] before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:rounded-r-full before:bg-[var(--primary)]"
-                    : "text-text-secondary hover:bg-card-elevated hover:text-text-primary"
+                    ? "bg-primary/10 text-primary dark:text-[var(--link)] font-bold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:rounded-r-full before:bg-primary"
+                    : "text-text-secondary hover:bg-card-elevated/70 hover:text-text-primary font-medium"
                 )}
               >
-                <span className={cn("transition-transform group-hover:scale-110", active ? "text-[var(--primary)]" : "text-text-muted group-hover:text-text-primary")}>
+                <span className={cn("transition-transform group-hover:scale-105", active ? "text-primary dark:text-[var(--link)]" : "text-text-muted group-hover:text-text-primary")}>
                   {renderNavIcon(item.icon)}
                 </span>
-                <span className="truncate">{item.label}</span>
+                <span className="truncate tracking-tight">{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
         {/* Sidebar Footer User Info */}
-        <div className="border-t border-border/80 bg-card-elevated/40 p-4">
-          <div className="flex items-center gap-3">
-            <Avatar src={avatarUrl} name={fullName} size={38} />
+        <div className="border-t border-border/80 bg-card-elevated/40 p-3.5">
+          <div className="flex items-center gap-2.5">
+            <Avatar src={avatarUrl} name={fullName} size={34} />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-text-primary">{fullName}</p>
-              <Badge tone="success" className="mt-0.5 text-[10px] py-0 px-2">
+              <p className="truncate text-xs font-bold text-text-primary">{fullName}</p>
+              <Badge tone="success" className="mt-0.5 text-[9px] py-0 px-1.5 font-bold">
                 {ROLE_LABELS[role] ?? role}
               </Badge>
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="mt-3 w-full justify-center text-xs font-semibold" onClick={handleSignOut}>
+          <Button variant="ghost" size="sm" className="mt-2.5 h-8 w-full justify-center text-xs font-semibold" onClick={handleSignOut}>
             Sair da conta
           </Button>
         </div>
@@ -277,14 +277,14 @@ export function AdminShell({
       {/* Main Layout Area */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Fixed Top Header */}
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-border/80 bg-background/80 px-4 sm:px-6 backdrop-blur-md transition-all">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b border-border/80 bg-background/80 px-4 sm:px-6 backdrop-blur-md transition-all">
           <div className="flex items-center gap-3">
             <button
               aria-label="Abrir menu"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card text-text-primary transition-colors hover:bg-card-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:hidden"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-text-primary transition-colors hover:bg-card-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:hidden"
               onClick={() => setMobileOpen(true)}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="4" x2="20" y1="12" y2="12" />
                 <line x1="4" x2="20" y1="6" y2="6" />
                 <line x1="4" x2="20" y1="18" y2="18" />
@@ -295,15 +295,15 @@ export function AdminShell({
               <span>/</span>
               <span className="font-bold text-text-primary">{clinicName}</span>
             </div>
-            <span className="text-base font-semibold text-text-primary font-heading sm:hidden">{clinicName}</span>
+            <span className="text-sm font-semibold text-text-primary font-heading sm:hidden">{clinicName}</span>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-card-elevated hover:border-primary/50 transition-all"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-card-elevated hover:border-primary/50 transition-all"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="2" x2="22" y1="12" y2="12" />
                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
@@ -312,15 +312,15 @@ export function AdminShell({
             </Link>
             <ThemeToggle />
             <NotificationBell initialNotifications={notifications} initialUnreadCount={unreadCount} />
-            <div className="hidden md:flex items-center gap-2.5 border-l border-border/80 pl-3">
-              <Avatar src={avatarUrl} name={fullName} size={30} />
+            <div className="hidden md:flex items-center gap-2 border-l border-border/80 pl-2.5">
+              <Avatar src={avatarUrl} name={fullName} size={28} />
               <span className="text-xs font-semibold text-text-primary max-w-[120px] truncate">{fullName}</span>
             </div>
           </div>
         </header>
 
         {/* Content Body */}
-        <main className="flex flex-1 flex-col justify-between overflow-x-hidden p-4 sm:p-6 lg:p-8">
+        <main className="flex flex-1 flex-col justify-between overflow-x-hidden p-3.5 sm:p-5 lg:p-6">
           <div>{children}</div>
           <footer className="mt-12 border-t border-border/40 pt-4 pb-2">
             <DeveloperSignature />

@@ -1,12 +1,11 @@
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { getCurrentUser } from "@/lib/auth";
 import { getActiveSpecialties } from "@/modules/specialties/services/specialty-queries";
 import { getActiveInsurances } from "@/modules/insurances/services/insurance-queries";
 import { TeamMemberForm } from "@/modules/team/components/TeamMemberForm";
 
 export const metadata = {
-  title: "Novo membro — ClinicaZoe",
+  title: "Novo Membro — ClinicaZoe",
 };
 
 export default async function NewTeamMemberPage() {
@@ -19,23 +18,15 @@ export default async function NewTeamMemberPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 max-w-5xl mx-auto">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Novo membro</h1>
-        <p className="mt-1 text-sm text-[#C8D4CF]">
-          Cadastre um administrador, recepcionista ou profissional.
+        <h1 className="text-xl font-bold tracking-tight text-text-primary font-heading">Novo Membro</h1>
+        <p className="mt-0.5 text-xs text-text-secondary">
+          Cadastre um administrador, recepcionista ou profissional da equipe.
         </p>
       </div>
 
-      <Card className="max-w-2xl">
-        <CardHeader>
-          <CardTitle>Dados do membro</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TeamMemberForm mode="create" specialties={specialties} insurances={insurances} />
-        </CardContent>
-      </Card>
+      <TeamMemberForm mode="create" specialties={specialties} insurances={insurances} />
     </div>
   );
 }
-

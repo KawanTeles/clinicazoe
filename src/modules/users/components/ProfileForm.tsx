@@ -68,56 +68,70 @@ export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <Avatar src={preview} name={fullName || "Usuário"} size={64} />
-        <div>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            isLoading={uploading}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            Alterar foto
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            className="hidden"
-            onChange={handleFileChange}
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-3xl">
+      <div className="rounded-xl border border-border/80 bg-card p-4 flex flex-col gap-4 shadow-xs">
+        <div className="flex items-center justify-between border-b border-border/60 pb-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
+            Meu Perfil de Usuário
+          </span>
+        </div>
+
+        <div className="flex items-center gap-4 bg-card-elevated/40 p-3 rounded-lg border border-border/50">
+          <Avatar src={preview} name={fullName || "Usuário"} size={52} />
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="h-7 text-xs px-3 font-semibold"
+                isLoading={uploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Alterar foto
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+            </div>
+            <span className="text-[11px] text-text-muted">PNG, JPG ou WEBP até 3MB</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Input
+            label="Nome completo *"
+            name="full_name"
+            required
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
           />
-          <p className="mt-1 text-xs text-text-secondary">PNG, JPG ou WEBP até 3MB.</p>
+          <Input
+            label="Telefone / Celular"
+            name="phone"
+            type="tel"
+            placeholder="(00) 00000-0000"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
         </div>
       </div>
 
-      <Input
-        label="Nome completo"
-        name="full_name"
-        required
-        value={fullName}
-        onChange={(e) => setFullName(e.target.value)}
-      />
-      <Input
-        label="Telefone"
-        name="phone"
-        type="tel"
-        placeholder="(00) 00000-0000"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-      />
-
       {message && (
-        <p className={message.type === "success" ? "text-sm font-semibold text-[#5ED39D]" : "text-sm font-semibold text-[#FF8A8A]"}>
+        <p className={message.type === "success" ? "text-xs font-semibold text-success" : "text-xs font-semibold text-danger"}>
           {message.text}
         </p>
       )}
 
-      <Button type="submit" isLoading={saving} className="w-fit">
-        Salvar alterações
-      </Button>
+      <div className="flex items-center justify-end gap-2.5 rounded-xl border border-border bg-card p-3 shadow-sm">
+        <Button type="submit" size="sm" isLoading={saving} className="px-5 font-bold shadow-button">
+          Salvar Alterações
+        </Button>
+      </div>
     </form>
   );
 }
-
