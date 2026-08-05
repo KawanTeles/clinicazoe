@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { getCurrentUser } from "@/lib/auth";
 import { getClinicLogoUrl, getClinicSettings } from "@/modules/settings/services/settings-queries";
 import { ClinicSettingsForm } from "@/modules/settings/components/ClinicSettingsForm";
+import { getHolidays } from "@/modules/holidays/services/holiday-queries";
+import { HolidayManager } from "@/modules/holidays/components/HolidayManager";
 
 export const metadata = {
   title: "Configurações — ClinicaZoe",
@@ -12,7 +14,7 @@ export default async function SettingsPage() {
   const session = await getCurrentUser();
   if (!session || session.profile.role !== "admin") redirect("/dashboard");
 
-  const settings = await getClinicSettings();
+  const [settings, holidays] = await Promise.all([getClinicSettings(), getHolidays()]);
   const logoUrl = await getClinicLogoUrl(settings?.logo_path ?? null);
 
   return (
@@ -35,6 +37,19 @@ export default async function SettingsPage() {
               address: settings?.address ?? "",
             }}
           />
+        </CardContent>
+      </Card>
+
+      <Card className="max-w-2xl">
+        <CardHeader>
+          <CardTitle>Feriados</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4 text-sm text-text-secondary">
+            Datas bloqueadas para todos os profissionais — usadas na checagem de conflito de
+            agendamentos avulsos e recorrentes.
+          </p>
+          <HolidayManager holidays={holidays} />
         </CardContent>
       </Card>
     </div>

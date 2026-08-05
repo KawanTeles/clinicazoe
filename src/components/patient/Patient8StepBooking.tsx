@@ -15,15 +15,7 @@ import {
 } from "@/modules/appointments/services/booking-queries";
 import { createAppointment } from "@/modules/appointments/services/booking-actions";
 import { formatCurrency, buildWhatsAppLink } from "@/lib/whatsapp";
-
-const CITIES = [
-  "São Paulo - SP",
-  "Rio de Janeiro - RJ",
-  "Belo Horizonte - MG",
-  "Curitiba - PR",
-  "Brasília - DF",
-  "Campinas - SP",
-];
+import { CITIES } from "@/lib/constants";
 
 interface Specialty {
   id: string;

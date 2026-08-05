@@ -117,13 +117,115 @@ export async function getBookableProfessionals(specialtyId: string, insuranceId:
   );
 }
 
-function isBlockedDate(date: string, exceptions: { start_date: string; end_date: string }[]) {
+/**
+ * Igual a getBookableProfessionals, mas sem filtrar por especialidade — usado
+ * no agendamento manual da recepção, onde a especialidade não é uma etapa
+ * própria: ela é carregada automaticamente a partir do profissional
+ * escolhido (cada profissional tem uma única especialidade).
+ */
+export async function getBookableProfessionalsByInsurance(insuranceId: string) {
+  const supabase = await createClient();
+  const particular = await getInsuranceByName(PARTICULAR_INSURANCE_NAME);
+  const isParticular = particular?.id === insuranceId;
+
+  const { data: professionals } = await supabase
+    .from("professionals")
+    .select("*")
+    .eq("status", "active");
+
+  if (!professionals || professionals.length === 0) return [];
+
+  let filtered = professionals;
+
+  if (isParticular) {
+    filtered = professionals.filter(
+      (p) => p.price_particular_card || p.price_particular_pix || p.price_particular_cash,
+    );
+  } else {
+    const { data: links } = await supabase
+      .from("professional_insurances")
+      .select("professional_id")
+      .eq("insurance_id", insuranceId)
+      .in(
+        "professional_id",
+        professionals.map((p) => p.id),
+      );
+    const allowedIds = new Set((links ?? []).map((l) => l.professional_id));
+    filtered = professionals.filter((p) => allowedIds.has(p.id));
+  }
+
+  if (filtered.length === 0) return [];
+
+  const profileIds = filtered.map((p) => p.id);
+  const specialtyIds = Array.from(
+    new Set(filtered.map((p) => p.specialty_id).filter((id): id is string => Boolean(id))),
+  );
+
+  const [{ data: profiles }, { data: specialties }] = await Promise.all([
+    supabase.from("profiles").select("*").in("id", profileIds),
+    specialtyIds.length > 0
+      ? supabase.from("specialties").select("id, name").in("id", specialtyIds)
+      : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+  ]);
+
+  const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
+  const specialtyNameById = new Map((specialties ?? []).map((s) => [s.id, s.name]));
+
+  return Promise.all(
+    filtered.map(async (professional) => {
+      const profile = profileById.get(professional.id);
+      return {
+        ...professional,
+        fullName: profile?.full_name ?? "Profissional",
+        specialtyName: professional.specialty_id
+          ? specialtyNameById.get(professional.specialty_id) ?? "Especialista"
+          : "Especialista",
+        avatarUrl: profile ? await getAvatarSignedUrl(supabase, profile.avatar_path) : null,
+      };
+    }),
+  );
+}
+
+function isBlockedDate(
+  date: string,
+  exceptions: { start_date: string; end_date: string }[],
+  holidays?: Set<string>,
+) {
+  if (holidays?.has(date)) return true;
   return exceptions.some((exception) => date >= exception.start_date && date <= exception.end_date);
+}
+
+async function getHolidaySet(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const { data } = await supabase.from("clinic_holidays").select("date");
+  return new Set((data ?? []).map((h) => h.date));
+}
+
+/** Duração efetiva de uma consulta: override por convênio+profissional se
+ * existir, senão a duração padrão do profissional. Nunca fixo no código. */
+export async function getEffectiveDuration(professionalId: string, insuranceId: string): Promise<number> {
+  const supabase = await createClient();
+
+  const { data: link } = await supabase
+    .from("professional_insurances")
+    .select("duration_minutes")
+    .eq("professional_id", professionalId)
+    .eq("insurance_id", insuranceId)
+    .maybeSingle();
+
+  if (link?.duration_minutes) return link.duration_minutes;
+
+  const { data: professional } = await supabase
+    .from("professionals")
+    .select("consultation_duration_minutes")
+    .eq("id", professionalId)
+    .single();
+
+  return professional?.consultation_duration_minutes ?? 30;
 }
 
 export async function getAvailableDates(professionalId: string, daysAhead = 45) {
   const supabase = await createClient();
-  const [{ data: slots }, { data: exceptions }] = await Promise.all([
+  const [{ data: slots }, { data: exceptions }, holidays] = await Promise.all([
     supabase
       .from("schedule_slots")
       .select("day_of_week")
@@ -133,6 +235,7 @@ export async function getAvailableDates(professionalId: string, daysAhead = 45) 
       .from("schedule_exceptions")
       .select("start_date, end_date")
       .eq("professional_id", professionalId),
+    getHolidaySet(supabase),
   ]);
 
   const validWeekdays = new Set((slots ?? []).map((s) => s.day_of_week));
@@ -144,7 +247,7 @@ export async function getAvailableDates(professionalId: string, daysAhead = 45) 
     const date = new Date(today);
     date.setDate(date.getDate() + i);
     const iso = date.toISOString().slice(0, 10);
-    if (validWeekdays.has(date.getDay()) && !isBlockedDate(iso, exceptions ?? [])) {
+    if (validWeekdays.has(date.getDay()) && !isBlockedDate(iso, exceptions ?? [], holidays)) {
       dates.push(iso);
     }
   }
@@ -158,18 +261,30 @@ export async function getAvailableTimes(
 ) {
   const supabase = await createClient();
 
-  const { data: professional } = await supabase
-    .from("professionals")
-    .select("consultation_duration_minutes")
-    .eq("id", professionalId)
-    .single();
+  const [{ data: professional }, { data: durationOverride }] = await Promise.all([
+    supabase
+      .from("professionals")
+      .select("consultation_duration_minutes")
+      .eq("id", professionalId)
+      .single(),
+    supabase
+      .from("professional_insurances")
+      .select("duration_minutes")
+      .eq("professional_id", professionalId)
+      .eq("insurance_id", insuranceId)
+      .maybeSingle(),
+  ]);
   if (!professional) return [];
+  const effectiveDuration = durationOverride?.duration_minutes ?? professional.consultation_duration_minutes;
 
-  const { data: exceptions } = await supabase
-    .from("schedule_exceptions")
-    .select("start_date, end_date")
-    .eq("professional_id", professionalId);
-  if (isBlockedDate(date, exceptions ?? [])) return [];
+  const [{ data: exceptions }, holidays] = await Promise.all([
+    supabase
+      .from("schedule_exceptions")
+      .select("start_date, end_date")
+      .eq("professional_id", professionalId),
+    getHolidaySet(supabase),
+  ]);
+  if (isBlockedDate(date, exceptions ?? [], holidays)) return [];
 
   const dayOfWeek = new Date(`${date}T00:00:00`).getDay();
 
@@ -221,7 +336,7 @@ export async function getAvailableTimes(
     const instances = generateSlotInstances(
       slot.start_time.slice(0, 5),
       slot.end_time.slice(0, 5),
-      professional.consultation_duration_minutes,
+      effectiveDuration,
     );
     const available = filterAvailableInstances(instances, slot.capacity, bookedCountByStartTime);
     for (const instance of available) {

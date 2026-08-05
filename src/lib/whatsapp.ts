@@ -100,6 +100,48 @@ export function buildReminderMessage(params: {
   return appendClinicFooter(baseMessage, params.clinicPhone);
 }
 
+export function buildRescheduleMessage(params: {
+  patientName: string;
+  professionalName: string;
+  newDate: string;
+  newStartTime: string;
+  clinicPhone?: string | null;
+}) {
+  const date = dateFormatter.format(new Date(`${params.newDate}T00:00:00`));
+  const baseMessage = (
+    `Olá, ${params.patientName}.\n\n` +
+    `Sua consulta foi reagendada.\n\n` +
+    `📅 Nova data: ${date}\n` +
+    `🕒 Novo horário: ${params.newStartTime.slice(0, 5)}\n` +
+    `👨‍⚕️ Profissional: ${params.professionalName}\n\n` +
+    `Caso tenha dúvidas, entre em contato com a Clínica Zoe.`
+  );
+  return appendClinicFooter(baseMessage, params.clinicPhone);
+}
+
+/** Enviada ao paciente quando a recepção/admin cria um agendamento manual
+ * pelo painel (fluxo "Novo Agendamento") — diferente de buildBookingMessage,
+ * que é dirigida à clínica quando é o próprio paciente quem agenda. */
+export function buildStaffBookingConfirmationMessage(params: {
+  patientName: string;
+  professionalName: string;
+  appointmentDate: string;
+  startTime: string;
+  clinicName: string;
+  clinicPhone?: string | null;
+}) {
+  const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
+  const baseMessage = (
+    `Olá, ${params.patientName}.\n\n` +
+    `Sua consulta foi agendada com sucesso.\n\n` +
+    `📅 Data: ${date}\n` +
+    `🕒 Horário: ${params.startTime.slice(0, 5)}\n` +
+    `👨‍⚕️ Profissional: ${params.professionalName}\n` +
+    `📍 ${params.clinicName}`
+  );
+  return appendClinicFooter(baseMessage, params.clinicPhone);
+}
+
 export function buildConfirmationMessage(params: {
   professionalName: string;
   appointmentDate: string;

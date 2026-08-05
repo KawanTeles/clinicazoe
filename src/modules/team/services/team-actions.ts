@@ -24,6 +24,7 @@ function validateEmail(email: string) {
 interface ProfessionalInsuranceInput {
   insurance_id: string;
   value: number;
+  duration_minutes?: number;
 }
 
 export interface CreateTeamMemberInput {
@@ -100,6 +101,7 @@ export async function createTeamMember(
           professional_id: userId,
           insurance_id: insurance.insurance_id,
           value: insurance.value,
+          duration_minutes: insurance.duration_minutes ?? null,
         })),
       );
     }
@@ -186,6 +188,7 @@ export async function updateTeamMember(
           professional_id: input.id,
           insurance_id: insurance.insurance_id,
           value: insurance.value,
+          duration_minutes: insurance.duration_minutes ?? null,
         })),
       );
     }

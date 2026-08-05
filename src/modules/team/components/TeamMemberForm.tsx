@@ -25,6 +25,7 @@ interface InsuranceOption {
 interface InsuranceSelection {
   insurance_id: string;
   value: string;
+  duration_minutes?: string;
 }
 
 interface TeamMemberFormProps {
@@ -100,6 +101,9 @@ export function TeamMemberForm({
   const [insuranceValues, setInsuranceValues] = useState<Record<string, string>>(
     Object.fromEntries(values.insurances.map((i) => [i.insurance_id, i.value])),
   );
+  const [insuranceDurations, setInsuranceDurations] = useState<Record<string, string>>(
+    Object.fromEntries(values.insurances.map((i) => [i.insurance_id, i.duration_minutes ?? ""])),
+  );
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(avatarUrl ?? null);
@@ -126,12 +130,20 @@ export function TeamMemberForm({
       }
       return next;
     });
+    setInsuranceDurations((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   }
 
-  function buildInsurancesPayload(): { insurance_id: string; value: number }[] {
+  function buildInsurancesPayload(): { insurance_id: string; value: number; duration_minutes?: number }[] {
     return Object.entries(insuranceValues).map(([insurance_id, value]) => ({
       insurance_id,
       value: Number(value.replace(",", ".")) || 0,
+      duration_minutes: insuranceDurations[insurance_id]
+        ? Number(insuranceDurations[insurance_id])
+        : undefined,
     }));
   }
 
@@ -415,17 +427,30 @@ export function TeamMemberForm({
                       {insurance.name}
                     </label>
                     {checked && (
-                      <input
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        placeholder="Valor (R$)"
-                        value={insuranceValues[insurance.id]}
-                        onChange={(e) =>
-                          setInsuranceValues((prev) => ({ ...prev, [insurance.id]: e.target.value }))
-                        }
-                        className="h-10 w-36 rounded-xl border border-[#255044] bg-[#17382D] px-3 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
-                      />
+                      <>
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          placeholder="Valor (R$)"
+                          value={insuranceValues[insurance.id]}
+                          onChange={(e) =>
+                            setInsuranceValues((prev) => ({ ...prev, [insurance.id]: e.target.value }))
+                          }
+                          className="h-10 w-36 rounded-xl border border-[#255044] bg-[#17382D] px-3 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
+                        />
+                        <input
+                          type="number"
+                          min={5}
+                          step={5}
+                          placeholder="Duração (min, opcional)"
+                          value={insuranceDurations[insurance.id] ?? ""}
+                          onChange={(e) =>
+                            setInsuranceDurations((prev) => ({ ...prev, [insurance.id]: e.target.value }))
+                          }
+                          className="h-10 w-44 rounded-xl border border-[#255044] bg-[#17382D] px-3 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
+                        />
+                      </>
                     )}
                   </div>
                 );

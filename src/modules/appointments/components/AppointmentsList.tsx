@@ -15,6 +15,7 @@ import {
   sendReminder,
   updateAppointmentStatus,
 } from "@/modules/appointments/services/booking-actions";
+import { RecurrenceScopeDialog } from "@/modules/appointments/components/RecurrenceScopeDialog";
 
 const STATUS_LABELS: Record<string, string> = {
   pendente: "Pendente",
@@ -36,20 +37,33 @@ const STATUS_TONE: Record<string, "neutral" | "success" | "warning" | "danger" |
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 
+interface ScopeDialogState {
+  mode: "edit" | "delete";
+  appointmentId: string;
+  date: string;
+  startTime: string;
+  professionalId: string;
+  insuranceId: string;
+}
+
 export function AppointmentsList({
   viewerRole,
+  viewerId,
   appointments,
 }: {
   viewerRole: Role;
+  viewerId: string;
   appointments: AppointmentView[];
 }) {
   const router = useRouter();
   const confirm = useConfirm();
   const toast = useToast();
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [scopeDialog, setScopeDialog] = useState<ScopeDialogState | null>(null);
 
   const isStaff = viewerRole === "admin" || viewerRole === "recepcionista";
   const isPatient = viewerRole === "paciente";
+  const isProfessional = viewerRole === "profissional";
 
   async function handleCancel(id: string) {
     const confirmed = await confirm({
@@ -99,6 +113,7 @@ export function AppointmentsList({
     }
     toast.success("Lembrete enviado com sucesso.");
     if (result.whatsappLink) window.open(result.whatsappLink, "_blank");
+    router.refresh();
   }
 
   async function handleConfirm(id: string) {
@@ -135,9 +150,16 @@ export function AppointmentsList({
     router.refresh();
   }
 
+  function handleScopeDialogDone(whatsappLink?: string | null) {
+    setScopeDialog(null);
+    toast.success(scopeDialog?.mode === "edit" ? "Consulta reagendada com sucesso." : "Consulta excluída com sucesso.");
+    if (whatsappLink) window.open(whatsappLink, "_blank");
+    router.refresh();
+  }
+
   if (appointments.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-[#255044] bg-[#102A22] p-12 text-center text-sm font-medium text-[#C8D4CF]">
+      <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center text-sm font-medium text-text-secondary">
         Nenhuma consulta encontrada.
       </div>
     );
@@ -145,9 +167,9 @@ export function AppointmentsList({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-x-auto rounded-2xl border border-[#255044] bg-[#102A22] shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
-        <table className="w-full min-w-[760px] text-left text-sm">
-          <thead className="border-b border-[#255044] bg-[#17382D]/80 text-xs font-bold uppercase tracking-wider text-[#C8D4CF]">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
+        <table className="w-full min-w-[820px] text-left text-sm">
+          <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
             <tr>
               {isStaff && <th className="px-5 py-4 font-bold">Paciente</th>}
               <th className="px-5 py-4 font-bold">Profissional</th>
@@ -155,93 +177,160 @@ export function AppointmentsList({
               <th className="px-5 py-4 font-bold">Data/Hora</th>
               <th className="px-5 py-4 font-bold">Valor</th>
               <th className="px-5 py-4 font-bold">Status</th>
+              {isStaff && <th className="px-5 py-4 font-bold">Lembrete</th>}
               <th className="px-5 py-4 font-bold text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#255044]/40">
-            {appointments.map((appt) => (
-              <tr key={appt.id} className="transition-colors hover:bg-[#17382D]/50">
-                {isStaff && <td className="px-5 py-4 font-semibold text-[#F5F7F6]">{appt.patientName}</td>}
-                <td className="px-5 py-4 font-semibold text-[#F5F7F6]">{appt.professionalName}</td>
-                <td className="px-5 py-4 text-[#C8D4CF]">{appt.insuranceName}</td>
-                <td className="px-5 py-4 text-[#C8D4CF]">
-                  {dateFormatter.format(new Date(`${appt.date}T00:00:00`))} <span className="font-semibold text-[#F5F7F6]">{appt.startTime.slice(0, 5)}</span>
-                </td>
-                <td className="px-5 py-4 font-medium text-[#C8D4CF]">{formatCurrency(appt.value)}</td>
-                <td className="px-5 py-4">
-                  <Badge tone={STATUS_TONE[appt.status] ?? "neutral"}>
-                    {STATUS_LABELS[appt.status] ?? appt.status}
-                  </Badge>
-                </td>
-                <td className="px-5 py-4">
-                  <div className="flex justify-end gap-2">
-                    {isStaff && appt.status === "pendente" && (
-                      <>
-                        <Button
-                          size="sm"
-                          isLoading={busyId === appt.id}
-                          onClick={() => handleConfirm(appt.id)}
-                        >
-                          Confirmar
-                        </Button>
+          <tbody className="divide-y divide-border/40">
+            {appointments.map((appt) => {
+              const isOwnProfessional = isProfessional && appt.professionalId === viewerId;
+              const canManageRecurrence = isStaff || isOwnProfessional;
+
+              return (
+                <tr key={appt.id} className="transition-colors hover:bg-surface/50">
+                  {isStaff && <td className="px-5 py-4 font-semibold text-text-primary">{appt.patientName}</td>}
+                  <td className="px-5 py-4 font-semibold text-text-primary">{appt.professionalName}</td>
+                  <td className="px-5 py-4 text-text-secondary">{appt.insuranceName}</td>
+                  <td className="px-5 py-4 text-text-secondary">
+                    {dateFormatter.format(new Date(`${appt.date}T00:00:00`))}{" "}
+                    <span className="font-semibold text-text-primary">{appt.startTime.slice(0, 5)}</span>
+                    {appt.seriesId && (
+                      <Badge tone="premium" className="ml-2">
+                        Recorrente
+                      </Badge>
+                    )}
+                  </td>
+                  <td className="px-5 py-4 font-medium text-text-secondary">{formatCurrency(appt.value)}</td>
+                  <td className="px-5 py-4">
+                    <Badge tone={STATUS_TONE[appt.status] ?? "neutral"}>{STATUS_LABELS[appt.status] ?? appt.status}</Badge>
+                  </td>
+                  {isStaff && (
+                    <td className="px-5 py-4">
+                      {appt.reminderSentAt ? (
+                        <Badge tone="success">Enviado</Badge>
+                      ) : (
+                        <Badge tone="neutral">—</Badge>
+                      )}
+                    </td>
+                  )}
+                  <td className="px-5 py-4">
+                    <div className="flex flex-wrap justify-end gap-2">
+                      {isStaff && appt.status === "pendente" && (
+                        <>
+                          <Button size="sm" isLoading={busyId === appt.id} onClick={() => handleConfirm(appt.id)}>
+                            Confirmar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            isLoading={busyId === appt.id}
+                            onClick={() => handleStaffCancel(appt.id)}
+                          >
+                            Cancelar
+                          </Button>
+                        </>
+                      )}
+                      {isStaff && appt.status === "confirmada" && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            isLoading={busyId === appt.id}
+                            onClick={() => handleSendReminder(appt.id)}
+                          >
+                            Lembrete
+                          </Button>
+                          {!appt.seriesId && (
+                            <Button
+                              size="sm"
+                              variant="danger"
+                              isLoading={busyId === appt.id}
+                              onClick={() => handleStaffCancel(appt.id)}
+                            >
+                              Cancelar
+                            </Button>
+                          )}
+                        </>
+                      )}
+                      {canManageRecurrence &&
+                        appt.seriesId &&
+                        (appt.status === "pendente" || appt.status === "confirmada") && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() =>
+                              setScopeDialog({
+                                mode: "edit",
+                                appointmentId: appt.id,
+                                date: appt.date,
+                                startTime: appt.startTime,
+                                professionalId: appt.professionalId,
+                                insuranceId: appt.insuranceId,
+                              })
+                            }
+                          >
+                            Editar
+                          </Button>
+                        )}
+                      {isStaff && appt.seriesId && (appt.status === "pendente" || appt.status === "confirmada") && (
                         <Button
                           size="sm"
                           variant="danger"
-                          isLoading={busyId === appt.id}
-                          onClick={() => handleStaffCancel(appt.id)}
+                          onClick={() =>
+                            setScopeDialog({
+                              mode: "delete",
+                              appointmentId: appt.id,
+                              date: appt.date,
+                              startTime: appt.startTime,
+                              professionalId: appt.professionalId,
+                              insuranceId: appt.insuranceId,
+                            })
+                          }
                         >
-                          Cancelar
+                          Excluir
                         </Button>
-                      </>
-                    )}
-                    {isStaff && appt.status === "confirmada" && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          isLoading={busyId === appt.id}
-                          onClick={() => handleSendReminder(appt.id)}
-                        >
-                          Lembrete
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="danger"
-                          isLoading={busyId === appt.id}
-                          onClick={() => handleStaffCancel(appt.id)}
-                        >
-                          Cancelar
-                        </Button>
-                      </>
-                    )}
-                    {isPatient && (appt.status === "pendente" || appt.status === "confirmada") && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          isLoading={busyId === appt.id}
-                          onClick={() => handleReschedule(appt.id)}
-                        >
-                          Remarcar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="danger"
-                          isLoading={busyId === appt.id}
-                          onClick={() => handleCancel(appt.id)}
-                        >
-                          Cancelar
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
+                      )}
+                      {isPatient && (appt.status === "pendente" || appt.status === "confirmada") && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            isLoading={busyId === appt.id}
+                            onClick={() => handleReschedule(appt.id)}
+                          >
+                            Remarcar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            isLoading={busyId === appt.id}
+                            onClick={() => handleCancel(appt.id)}
+                          >
+                            Cancelar
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
+
+      {scopeDialog && (
+        <RecurrenceScopeDialog
+          mode={scopeDialog.mode}
+          appointmentId={scopeDialog.appointmentId}
+          currentDate={scopeDialog.date}
+          currentStartTime={scopeDialog.startTime}
+          professionalId={scopeDialog.professionalId}
+          insuranceId={scopeDialog.insuranceId}
+          onClose={() => setScopeDialog(null)}
+          onDone={handleScopeDialogDone}
+        />
+      )}
     </div>
   );
 }
-

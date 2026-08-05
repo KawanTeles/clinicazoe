@@ -79,6 +79,7 @@ export default async function EditTeamMemberPage({
               insurances: professionalInsurances.map((i) => ({
                 insurance_id: i.insurance_id,
                 value: i.value.toString(),
+                duration_minutes: i.duration_minutes?.toString() ?? "",
               })),
             }}
           />

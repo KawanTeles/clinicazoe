@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 import { Pagination } from "@/components/ui/Pagination";
 import { getCurrentUser } from "@/lib/auth";
 import { getAppointmentsForViewer } from "@/modules/appointments/services/appointment-queries";
@@ -36,14 +38,23 @@ export default async function AppointmentsPage({
   );
   const copy = TITLES[session.profile.role] ?? TITLES.paciente;
 
+  const isStaff = session.profile.role === "admin" || session.profile.role === "recepcionista";
+
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">{copy.title}</h1>
-        <p className="mt-1 text-sm text-text-secondary">{copy.subtitle}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">{copy.title}</h1>
+          <p className="mt-1 text-sm text-text-secondary">{copy.subtitle}</p>
+        </div>
+        {isStaff && (
+          <Link href="/appointments/new">
+            <Button>Novo Agendamento</Button>
+          </Link>
+        )}
       </div>
 
-      <AppointmentsList viewerRole={session.profile.role} appointments={items} />
+      <AppointmentsList viewerRole={session.profile.role} viewerId={session.user.id} appointments={items} />
       <Pagination page={page} totalPages={totalPages} basePath="/appointments" />
     </div>
   );

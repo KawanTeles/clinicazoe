@@ -8,10 +8,12 @@ import {
   buildCancellationMessage,
   buildConfirmationMessage,
   buildReminderMessage,
+  buildStaffBookingConfirmationMessage,
   buildWhatsAppLink,
 } from "@/lib/whatsapp";
 import { logAudit } from "@/modules/team/services/audit";
 import { notify, notifyStaff } from "@/modules/notifications/services/notify";
+import { logPatientMessage } from "@/modules/patients/services/message-log";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getAvailableTimes, getProfessionalPricing } from "./booking-queries";
 import type { PaymentMethod } from "@/lib/supabase/types";
@@ -137,6 +139,8 @@ export async function createAppointment(
     entityId: appointment.id,
   });
 
+  await logPatientMessage({ patientId: session.user.id, appointmentId: appointment.id, type: "booking", sentBy: session.user.id });
+
   return { error: null, whatsappLink };
 }
 
@@ -201,6 +205,13 @@ export async function cancelAppointment(
   });
 
   const whatsappLink = buildWhatsAppLink(clinic?.whatsapp_number, message);
+
+  await logPatientMessage({
+    patientId: session.user.id,
+    appointmentId,
+    type: "cancellation",
+    sentBy: session.user.id,
+  });
 
   return { error: null, whatsappLink };
 }
@@ -285,6 +296,13 @@ export async function confirmAppointment(
     }),
   ]);
 
+  await logPatientMessage({
+    patientId: appointment.patient_id,
+    appointmentId,
+    type: "confirmation",
+    sentBy: session.user.id,
+  });
+
   return { error: null, whatsappLink };
 }
 
@@ -340,7 +358,7 @@ export async function updateAppointmentStatus(
 export async function sendReminder(
   appointmentId: string,
 ): Promise<{ error: string | null; whatsappLink?: string | null }> {
-  await requireStaff();
+  const session = await requireStaff();
   const supabase = await createClient();
 
   const { data: appointment } = await supabase
@@ -368,6 +386,110 @@ export async function sendReminder(
 
   const whatsappLink = buildWhatsAppLink(patient?.phone, message);
   if (!whatsappLink) return { error: "Paciente sem telefone cadastrado." };
+
+  await supabase.from("appointments").update({ reminder_sent_at: new Date().toISOString() }).eq("id", appointmentId);
+
+  await logPatientMessage({
+    patientId: appointment.patient_id,
+    appointmentId,
+    type: "reminder",
+    sentBy: session.user.id,
+  });
+
+  return { error: null, whatsappLink };
+}
+
+export interface CreateAppointmentForPatientInput {
+  patientId: string;
+  professionalId: string;
+  specialtyId: string;
+  insuranceId: string;
+  scheduleSlotId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  paymentMethod: PaymentMethod;
+}
+
+/** Agendamento avulso criado pela recepção/admin para um paciente já
+ * cadastrado (fluxo "agendamento mais rápido") — não cria conta nova, só usa
+ * o patientId selecionado. Não gera nem edita recorrência (isso é
+ * responsabilidade de createRecurringAppointments, em recurrence-actions). */
+export async function createAppointmentForPatient(
+  input: CreateAppointmentForPatientInput,
+): Promise<{ error: string | null; whatsappLink?: string | null }> {
+  const session = await requireStaff();
+
+  const rateLimit = checkRateLimit(`staff-booking:${session.user.id}`, 30, 60_000);
+  if (!rateLimit.allowed) {
+    return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente de novo.` };
+  }
+
+  const pricingOptions = await getProfessionalPricing(input.professionalId, input.insuranceId);
+  const pricing = pricingOptions.find((option) => option.paymentMethod === input.paymentMethod);
+  if (!pricing) {
+    return { error: "Forma de pagamento indisponível para este profissional/convênio." };
+  }
+
+  const availableTimes = await getAvailableTimes(input.professionalId, input.insuranceId, input.date);
+  const stillAvailable = availableTimes.some(
+    (slot) => slot.slotId === input.scheduleSlotId && slot.startTime === input.startTime,
+  );
+  if (!stillAvailable) {
+    return { error: "Esse horário não está mais disponível. Escolha outro." };
+  }
+
+  const admin = createAdminClient();
+  const { data: appointment, error } = await admin
+    .from("appointments")
+    .insert({
+      patient_id: input.patientId,
+      professional_id: input.professionalId,
+      specialty_id: input.specialtyId,
+      insurance_id: input.insuranceId,
+      schedule_slot_id: input.scheduleSlotId,
+      appointment_date: input.date,
+      start_time: input.startTime,
+      end_time: input.endTime,
+      payment_method: input.paymentMethod,
+      value: pricing.value,
+      status: "pendente",
+    })
+    .select("id")
+    .single();
+
+  if (error || !appointment) {
+    return { error: "Não foi possível criar o agendamento. Tente novamente." };
+  }
+
+  await logAudit({
+    actorId: session.user.id,
+    action: "appointment.created_by_staff",
+    entity: "appointments",
+    entityId: appointment.id,
+    metadata: { professionalId: input.professionalId, date: input.date, startTime: input.startTime },
+  });
+
+  const [{ data: patient }, { data: professionalProfile }, { data: clinic }] = await Promise.all([
+    admin.from("profiles").select("full_name, phone").eq("id", input.patientId).single(),
+    admin.from("profiles").select("full_name").eq("id", input.professionalId).single(),
+    admin.from("clinic_settings").select("name, whatsapp_number").eq("id", 1).single(),
+  ]);
+
+  // Dirigida ao paciente (não à clínica) — confirma o agendamento manual
+  // criado pela recepção/admin no painel.
+  const message = buildStaffBookingConfirmationMessage({
+    patientName: patient?.full_name ?? "",
+    professionalName: professionalProfile?.full_name ?? "",
+    appointmentDate: input.date,
+    startTime: input.startTime,
+    clinicName: clinic?.name ?? "Clínica Zoe",
+    clinicPhone: clinic?.whatsapp_number,
+  });
+
+  const whatsappLink = buildWhatsAppLink(patient?.phone, message);
+
+  await logPatientMessage({ patientId: input.patientId, appointmentId: appointment.id, type: "booking", sentBy: session.user.id });
 
   return { error: null, whatsappLink };
 }
@@ -517,6 +639,8 @@ export async function createPublicAppointment(
     entity: "appointments",
     entityId: appointment.id,
   });
+
+  await logPatientMessage({ patientId, appointmentId: appointment.id, type: "booking" });
 
   return { error: null, whatsappLink };
 }

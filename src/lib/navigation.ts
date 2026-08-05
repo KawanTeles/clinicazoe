@@ -13,6 +13,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Financeiro", href: "/financial", permission: "financial.manage" },
   { label: "Minha Agenda", href: "/my-schedule", permission: "schedule.manage.own" },
   { label: "Meus Pacientes", href: "/my-patients", permission: "patients.view.own" },
+  { label: "Pacientes", href: "/patients", permission: "patients.manage" },
   { label: "Profissionais", href: "/professionals", permission: "professionals.view" },
   { label: "Equipe", href: "/team", permission: "users.manage" },
   { label: "Especialidades", href: "/specialties", permission: "specialties.manage" },

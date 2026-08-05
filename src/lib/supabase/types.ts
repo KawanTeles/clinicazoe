@@ -9,6 +9,8 @@ export type AppointmentStatus =
   | "concluida"
   | "faltou";
 export type FinancialStatus = "em_aberto" | "pago";
+export type RecurrenceFrequency = "weekly" | "biweekly" | "monthly";
+export type SeriesStatus = "active" | "cancelled";
 
 export interface Database {
   public: {
@@ -245,9 +247,24 @@ export interface Database {
         Relationships: [];
       };
       professional_insurances: {
-        Row: { professional_id: string; insurance_id: string; value: number };
-        Insert: { professional_id: string; insurance_id: string; value?: number };
-        Update: { professional_id?: string; insurance_id?: string; value?: number };
+        Row: {
+          professional_id: string;
+          insurance_id: string;
+          value: number;
+          duration_minutes: number | null;
+        };
+        Insert: {
+          professional_id: string;
+          insurance_id: string;
+          value?: number;
+          duration_minutes?: number | null;
+        };
+        Update: {
+          professional_id?: string;
+          insurance_id?: string;
+          value?: number;
+          duration_minutes?: number | null;
+        };
         Relationships: [];
       };
       specialties: {
@@ -289,6 +306,8 @@ export interface Database {
           value: number;
           status: AppointmentStatus;
           notes: string | null;
+          series_id: string | null;
+          reminder_sent_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -306,6 +325,8 @@ export interface Database {
           value: number;
           status?: AppointmentStatus;
           notes?: string | null;
+          series_id?: string | null;
+          reminder_sent_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -323,6 +344,8 @@ export interface Database {
           value?: number;
           status?: AppointmentStatus;
           notes?: string | null;
+          series_id?: string | null;
+          reminder_sent_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -432,6 +455,168 @@ export interface Database {
           entity?: string | null;
           entity_id?: string | null;
           read_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      patient_details: {
+        Row: {
+          id: string;
+          cpf: string | null;
+          birth_date: string | null;
+          email: string | null;
+          whatsapp: string | null;
+          address: string | null;
+          city: string | null;
+          preferred_insurance_id: string | null;
+          insurance_card_number: string | null;
+          insurance_card_valid_until: string | null;
+          notes: string | null;
+          preferred_professional_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          cpf?: string | null;
+          birth_date?: string | null;
+          email?: string | null;
+          whatsapp?: string | null;
+          address?: string | null;
+          city?: string | null;
+          preferred_insurance_id?: string | null;
+          insurance_card_number?: string | null;
+          insurance_card_valid_until?: string | null;
+          notes?: string | null;
+          preferred_professional_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          cpf?: string | null;
+          birth_date?: string | null;
+          email?: string | null;
+          whatsapp?: string | null;
+          address?: string | null;
+          city?: string | null;
+          preferred_insurance_id?: string | null;
+          insurance_card_number?: string | null;
+          insurance_card_valid_until?: string | null;
+          notes?: string | null;
+          preferred_professional_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      appointment_series: {
+        Row: {
+          id: string;
+          patient_id: string;
+          professional_id: string;
+          specialty_id: string | null;
+          insurance_id: string;
+          payment_method: PaymentMethod;
+          day_of_week: number;
+          start_time: string;
+          end_time: string;
+          frequency: RecurrenceFrequency;
+          start_date: string;
+          end_date: string | null;
+          max_occurrences: number | null;
+          status: SeriesStatus;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          patient_id: string;
+          professional_id: string;
+          specialty_id?: string | null;
+          insurance_id: string;
+          payment_method: PaymentMethod;
+          day_of_week: number;
+          start_time: string;
+          end_time: string;
+          frequency: RecurrenceFrequency;
+          start_date: string;
+          end_date?: string | null;
+          max_occurrences?: number | null;
+          status?: SeriesStatus;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          patient_id?: string;
+          professional_id?: string;
+          specialty_id?: string | null;
+          insurance_id?: string;
+          payment_method?: PaymentMethod;
+          day_of_week?: number;
+          start_time?: string;
+          end_time?: string;
+          frequency?: RecurrenceFrequency;
+          start_date?: string;
+          end_date?: string | null;
+          max_occurrences?: number | null;
+          status?: SeriesStatus;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      patient_messages: {
+        Row: {
+          id: string;
+          patient_id: string;
+          appointment_id: string | null;
+          type: string;
+          sent_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          patient_id: string;
+          appointment_id?: string | null;
+          type: string;
+          sent_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          patient_id?: string;
+          appointment_id?: string | null;
+          type?: string;
+          sent_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      clinic_holidays: {
+        Row: {
+          id: string;
+          date: string;
+          description: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          date: string;
+          description?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          date?: string;
+          description?: string | null;
           created_at?: string;
         };
         Relationships: [];

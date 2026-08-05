@@ -11,6 +11,7 @@ export interface AppointmentView {
   professionalId: string;
   professionalName: string;
   specialtyName: string;
+  insuranceId: string;
   insuranceName: string;
   date: string;
   startTime: string;
@@ -18,6 +19,8 @@ export interface AppointmentView {
   value: number;
   paymentMethod: string;
   status: string;
+  seriesId: string | null;
+  reminderSentAt: string | null;
 }
 
 async function denormalize(
@@ -56,6 +59,7 @@ async function denormalize(
     professionalId: row.professional_id,
     professionalName: professionalById.get(row.professional_id)?.full_name ?? "Profissional",
     specialtyName: row.specialty_id ? specialtyById.get(row.specialty_id) ?? "" : "",
+    insuranceId: row.insurance_id,
     insuranceName: insuranceById.get(row.insurance_id) ?? "",
     date: row.appointment_date,
     startTime: row.start_time,
@@ -63,6 +67,8 @@ async function denormalize(
     value: row.value,
     paymentMethod: row.payment_method,
     status: row.status,
+    seriesId: row.series_id,
+    reminderSentAt: row.reminder_sent_at,
   }));
 }
 
