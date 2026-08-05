@@ -24,7 +24,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
           y1={HEIGHT - PADDING_BOTTOM}
           x2={WIDTH}
           y2={HEIGHT - PADDING_BOTTOM}
-          stroke="#283548"
+          stroke="var(--border)"
           strokeWidth={1}
         />
         {data.map((day, index) => {
@@ -46,7 +46,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
                 width={barWidth}
                 height={Math.max(barHeight, 2)}
                 rx={6}
-                fill={isHovered ? "#14C38E" : "#0FA47A"}
+                fill={isHovered ? "var(--primary-hover)" : "var(--accent)"}
                 opacity={isHovered ? 1 : 0.85}
               />
               {day.appointments > 0 && (
@@ -56,7 +56,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
                   textAnchor="middle"
                   fontSize="11"
                   fontWeight="600"
-                  fill="#F8FAFC"
+                  fill="var(--text-primary)"
                 >
                   {day.appointments}
                 </text>
@@ -66,7 +66,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
                 y={HEIGHT - 8}
                 textAnchor="middle"
                 fontSize="11"
-                fill="#A8B3C7"
+                fill="var(--text-secondary)"
               >
                 {day.label}
               </text>

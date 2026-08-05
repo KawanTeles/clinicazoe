@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils/cn";
 import { ROLE_LABELS, type NavItem } from "@/lib/navigation";
 import { signOut } from "@/modules/auth/services/auth-client";
 import { NotificationBell } from "@/modules/notifications/components/NotificationBell";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { DeveloperSignature } from "@/components/public/DeveloperSignature";
 
 interface NotificationItem {
@@ -180,6 +181,7 @@ export function AdminShell({
               </svg>
               <span>Ver Site</span>
             </Link>
+            <ThemeToggle />
             <NotificationBell initialNotifications={notifications} initialUnreadCount={unreadCount} />
             <div className="hidden md:flex items-center gap-2 border-l border-border pl-4">
               <Avatar src={avatarUrl} name={fullName} size={32} />

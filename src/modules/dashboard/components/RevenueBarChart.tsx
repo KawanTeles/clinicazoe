@@ -25,11 +25,11 @@ export function RevenueBarChart({ data }: { data: DailyStat[] }) {
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-5 text-xs font-medium text-text-secondary">
         <span className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#14C38E] shadow-[0_0_8px_#14C38E]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[var(--primary-light)] shadow-[0_0_8px_var(--primary-light)]" />
           Prevista
         </span>
         <span className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#0FA47A]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[var(--primary)]" />
           Recebida
         </span>
       </div>
@@ -46,7 +46,7 @@ export function RevenueBarChart({ data }: { data: DailyStat[] }) {
             y1={HEIGHT - PADDING_BOTTOM}
             x2={WIDTH}
             y2={HEIGHT - PADDING_BOTTOM}
-            stroke="#283548"
+            stroke="var(--border)"
             strokeWidth={1}
           />
           {data.map((day, index) => {
@@ -62,7 +62,7 @@ export function RevenueBarChart({ data }: { data: DailyStat[] }) {
                   width={barWidth}
                   height={Math.max(prevHeight, 2)}
                   rx={4}
-                  fill="#14C38E"
+                  fill="var(--primary-light)"
                   opacity={hovered?.index === index && hovered.series === "prevista" ? 1 : 0.85}
                   onMouseEnter={() => setHovered({ index, series: "prevista" })}
                   onMouseLeave={() => setHovered(null)}
@@ -73,7 +73,7 @@ export function RevenueBarChart({ data }: { data: DailyStat[] }) {
                   width={barWidth}
                   height={Math.max(recHeight, 2)}
                   rx={4}
-                  fill="#0FA47A"
+                  fill="var(--primary)"
                   opacity={hovered?.index === index && hovered.series === "recebida" ? 1 : 0.85}
                   onMouseEnter={() => setHovered({ index, series: "recebida" })}
                   onMouseLeave={() => setHovered(null)}
@@ -83,7 +83,7 @@ export function RevenueBarChart({ data }: { data: DailyStat[] }) {
                   y={HEIGHT - 8}
                   textAnchor="middle"
                   fontSize="11"
-                  fill="#A8B3C7"
+                  fill="var(--text-secondary)"
                 >
                   {day.label}
                 </text>

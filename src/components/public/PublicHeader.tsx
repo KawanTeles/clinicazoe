@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { cn } from "@/lib/utils/cn";
 
 interface PublicHeaderProps {
@@ -45,48 +46,54 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
             ))}
           </nav>
 
-          {/* Action Buttons */}
-          <div className="hidden items-center gap-2 lg:flex">
-            <Link href="/equipe">
-              <Button variant="ghost" size="sm" className="font-semibold">
-                Área da Equipe
-              </Button>
-            </Link>
-            <Link href="/cliente/login">
-              <Button size="sm" withArrow className="font-bold">
-                Área do Cliente
-              </Button>
-            </Link>
-          </div>
+          {/* Action Buttons & Theme Toggle */}
+          <div className="flex items-center gap-2">
+            <ThemeToggle className="hidden sm:flex" />
 
-          {/* Mobile Hamburger */}
-          <button
-            aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
-            aria-expanded={mobileMenuOpen}
-            onClick={() => setMobileMenuOpen((open) => !open)}
-            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-text-primary transition-colors hover:bg-card-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:hidden"
-          >
-            <span className="relative block h-4 w-4">
-              <span
-                className={cn(
-                  "absolute left-0 top-0 h-[1.5px] w-4 origin-center rounded-full bg-current transition-all duration-300 ease-[var(--ease-premium)]",
-                  mobileMenuOpen ? "top-[7px] rotate-45" : "top-0 rotate-0",
-                )}
-              />
-              <span
-                className={cn(
-                  "absolute left-0 top-[7px] h-[1.5px] w-4 rounded-full bg-current transition-all duration-200 ease-[var(--ease-premium)]",
-                  mobileMenuOpen ? "opacity-0" : "opacity-100",
-                )}
-              />
-              <span
-                className={cn(
-                  "absolute bottom-0 left-0 h-[1.5px] w-4 origin-center rounded-full bg-current transition-all duration-300 ease-[var(--ease-premium)]",
-                  mobileMenuOpen ? "bottom-[7px] -rotate-45" : "bottom-0 rotate-0",
-                )}
-              />
-            </span>
-          </button>
+            <div className="hidden items-center gap-2 lg:flex">
+              <Link href="/equipe">
+                <Button variant="ghost" size="sm" className="font-semibold">
+                  Área da Equipe
+                </Button>
+              </Link>
+              <Link href="/cliente/login">
+                <Button size="sm" withArrow className="font-bold">
+                  Área do Cliente
+                </Button>
+              </Link>
+            </div>
+
+            <ThemeToggle className="sm:hidden" />
+
+            {/* Mobile Hamburger */}
+            <button
+              aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+              aria-expanded={mobileMenuOpen}
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-text-primary transition-colors hover:bg-card-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:hidden"
+            >
+              <span className="relative block h-4 w-4">
+                <span
+                  className={cn(
+                    "absolute left-0 top-0 h-[1.5px] w-4 origin-center rounded-full bg-current transition-all duration-300 ease-[var(--ease-premium)]",
+                    mobileMenuOpen ? "top-[7px] rotate-45" : "top-0 rotate-0",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "absolute left-0 top-[7px] h-[1.5px] w-4 rounded-full bg-current transition-all duration-200 ease-[var(--ease-premium)]",
+                    mobileMenuOpen ? "opacity-0" : "opacity-100",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "absolute bottom-0 left-0 h-[1.5px] w-4 origin-center rounded-full bg-current transition-all duration-300 ease-[var(--ease-premium)]",
+                    mobileMenuOpen ? "bottom-[7px] -rotate-45" : "bottom-0 rotate-0",
+                  )}
+                />
+              </span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -121,6 +128,9 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
               transform: mobileMenuOpen ? "translateY(0)" : "translateY(2rem)",
             }}
           >
+            <div className="flex justify-center mb-2">
+              <ThemeToggle showLabel />
+            </div>
             <Link href="/cliente/login" onClick={() => setMobileMenuOpen(false)}>
               <Button size="lg" withArrow className="w-full font-bold">
                 Área do Cliente
