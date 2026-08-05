@@ -19,8 +19,8 @@ export default async function ProfilePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Meu Perfil</h1>
-        <p className="mt-1 text-sm text-[#C8D4CF]">Atualize seus dados pessoais e foto.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-text-primary">Meu Perfil</h1>
+        <p className="mt-1 text-sm text-text-secondary">Atualize seus dados pessoais e foto.</p>
       </div>
 
       <Card className="max-w-xl">

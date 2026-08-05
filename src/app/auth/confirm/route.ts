@@ -7,11 +7,20 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error && data.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+
+      if (profile?.role === "paciente") {
+        return NextResponse.redirect(`${origin}/cliente?confirmed=1`);
+      }
       return NextResponse.redirect(`${origin}/dashboard`);
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?confirm_error=1`);
+  return NextResponse.redirect(`${origin}/cliente/login?confirm_error=1`);
 }

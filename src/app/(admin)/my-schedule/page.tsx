@@ -24,8 +24,8 @@ export default async function MySchedulePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Minha Agenda</h1>
-        <p className="mt-1 text-sm text-[#C8D4CF]">
+        <h1 className="text-2xl font-bold tracking-tight text-text-primary">Minha Agenda</h1>
+        <p className="mt-1 text-sm text-text-secondary">
           Configure seus dias, horários, vagas e convênios aceitos por horário.
         </p>
       </div>

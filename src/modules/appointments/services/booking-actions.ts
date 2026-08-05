@@ -7,6 +7,7 @@ import {
   buildBookingMessage,
   buildCancellationMessage,
   buildConfirmationMessage,
+  buildRejectionMessage,
   buildReminderMessage,
   buildStaffBookingConfirmationMessage,
   buildWhatsAppLink,
@@ -87,6 +88,7 @@ export async function createAppointment(
       payment_method: input.paymentMethod,
       value: pricing.value,
       status: "pendente",
+      source: "paciente",
     })
     .select("id")
     .single();
@@ -306,6 +308,69 @@ export async function confirmAppointment(
   return { error: null, whatsappLink };
 }
 
+export async function rejectAppointmentRequest(
+  appointmentId: string,
+): Promise<{ error: string | null; whatsappLink?: string | null }> {
+  const session = await requireStaff();
+  const supabase = await createClient();
+
+  const { data: appointment } = await supabase
+    .from("appointments")
+    .select("*")
+    .eq("id", appointmentId)
+    .single();
+
+  if (!appointment) return { error: "Solicitação não encontrada." };
+
+  const { error: updateError } = await supabase
+    .from("appointments")
+    .update({ status: "recusada" })
+    .eq("id", appointmentId);
+
+  if (updateError) return { error: "Não foi possível recusar a solicitação." };
+
+  await logAudit({
+    actorId: session.user.id,
+    action: "appointment.rejected",
+    entity: "appointments",
+    entityId: appointmentId,
+  });
+
+  const [{ data: patient }, { data: professionalProfile }, { data: clinic }] = await Promise.all([
+    supabase.from("profiles").select("phone").eq("id", appointment.patient_id).single(),
+    supabase.from("profiles").select("full_name").eq("id", appointment.professional_id).single(),
+    supabase.from("clinic_settings").select("name, whatsapp_number").eq("id", 1).single(),
+  ]);
+
+  const message = buildRejectionMessage({
+    professionalName: professionalProfile?.full_name ?? "",
+    appointmentDate: appointment.appointment_date,
+    startTime: appointment.start_time,
+    clinicName: clinic?.name ?? "Clínica Zoe",
+    clinicPhone: clinic?.whatsapp_number,
+  });
+
+  const whatsappLink = buildWhatsAppLink(patient?.phone, message);
+
+  await notify({
+    userId: appointment.patient_id,
+    type: "appointment.rejected",
+    title: "Solicitação não aprovada",
+    message: `Sua solicitação de consulta com ${professionalProfile?.full_name ?? "o profissional"} em ${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)} não foi aprovada. Entre em contato com a clínica para mais informações.`,
+    entity: "appointments",
+    entityId: appointmentId,
+  });
+
+  await logPatientMessage({
+    patientId: appointment.patient_id,
+    appointmentId,
+    type: "rejection",
+    sentBy: session.user.id,
+  });
+
+  return { error: null, whatsappLink };
+}
+
 const STATUS_LABELS: Record<string, string> = {
   cancelada: "cancelada",
   remarcada: "remarcada",
@@ -454,6 +519,7 @@ export async function createAppointmentForPatient(
       payment_method: input.paymentMethod,
       value: pricing.value,
       status: "pendente",
+      source: "staff",
     })
     .select("id")
     .single();
@@ -590,6 +656,7 @@ export async function createPublicAppointment(
       payment_method: input.paymentMethod,
       value: pricing.value,
       status: "pendente",
+      source: "site_publico",
     })
     .select("id")
     .single();

@@ -15,7 +15,7 @@ export default async function PatientSignUpPage() {
   const { clinic } = await getPublicWebsiteData();
 
   return (
-    <div className="min-h-screen bg-[#081C15] text-[#F5F7F6] flex flex-col font-sans selection:bg-[#2E8B57] selection:text-white">
+    <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
       <PublicHeader clinicName={clinic.name} />
 
       <main className="flex-1 flex items-center justify-center py-16 px-4">
@@ -24,8 +24,8 @@ export default async function PatientSignUpPage() {
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-forest text-lg font-black text-white shadow-md mb-2">
               CZ
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Criar Conta de Paciente</h1>
-            <p className="text-xs sm:text-sm text-[#C8D4CF]">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary">Criar Conta de Paciente</h1>
+            <p className="text-xs sm:text-sm text-text-secondary">
               Informe seus dados para primeiro acesso ao sistema.
             </p>
           </div>
@@ -36,10 +36,10 @@ export default async function PatientSignUpPage() {
                 <SignupForm />
               </Suspense>
 
-              <div className="pt-4 border-t border-[#255044]/60 text-center">
-                <p className="text-xs text-[#C8D4CF]">
+              <div className="pt-4 border-t border-border/60 text-center">
+                <p className="text-xs text-text-secondary">
                   Já tem uma conta?{" "}
-                  <Link href="/cliente/login" className="font-bold text-[#5ED39D] hover:underline">
+                  <Link href="/cliente/login" className="font-bold text-[var(--link)] hover:underline">
                     Entrar com e-mail
                   </Link>
                 </p>

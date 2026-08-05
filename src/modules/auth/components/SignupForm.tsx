@@ -87,13 +87,13 @@ export function SignupForm() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
+      {error && <p className="text-sm font-medium text-danger">{error}</p>}
       <Button type="submit" isLoading={loading} className="w-full">
         Criar conta
       </Button>
-      <p className="text-center text-sm text-[#C8D4CF]">
+      <p className="text-center text-sm text-text-secondary">
         Já tem conta?{" "}
-        <Link href="/login" className="font-semibold text-[#5ED39D] hover:text-[#86E5B8] hover:underline">
+        <Link href="/login" className="font-semibold text-[var(--link)] hover:text-[var(--link-hover)] hover:underline">
           Entrar
         </Link>
       </p>

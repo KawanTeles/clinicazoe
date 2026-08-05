@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -13,10 +13,10 @@ import {
   getAvailableDates,
   getAvailableTimes,
   getProfessionalPricing,
+  getEffectiveDuration,
 } from "@/modules/appointments/services/booking-queries";
 import { createAppointment } from "@/modules/appointments/services/booking-actions";
 import { formatCurrency, buildWhatsAppLink } from "@/lib/whatsapp";
-import { CITIES } from "@/lib/constants";
 
 interface Specialty {
   id: string;
@@ -42,16 +42,22 @@ interface Patient8StepBookingProps {
   whatsappNumber?: string | null;
 }
 
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  pix: "Pix",
+  cartao: "Cartão",
+  dinheiro: "Dinheiro",
+  convenio: "Convênio",
+};
+
 export function Patient8StepBooking({
   specialties,
   initialProfessionals,
   patientProfile,
   whatsappNumber,
 }: Patient8StepBookingProps) {
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7>(1);
 
   // Selections
-  const [selectedCity, setSelectedCity] = useState<string>("São Paulo - SP");
   const [selectedInsuranceId, setSelectedInsuranceId] = useState<string>("");
   const [selectedInsuranceName, setSelectedInsuranceName] = useState<string>("");
   const [selectedSpecialtyId, setSelectedSpecialtyId] = useState<string>("");
@@ -71,6 +77,7 @@ export function Patient8StepBooking({
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [availableTimes, setAvailableTimes] = useState<{ slotId: string; startTime: string; endTime: string }[]>([]);
   const [pricingOptions, setPricingOptions] = useState<{ paymentMethod: string; value: number }[]>([]);
+  const [effectiveDuration, setEffectiveDuration] = useState<number | null>(null);
 
   // UI States
   const [loading, setLoading] = useState(false);
@@ -78,15 +85,7 @@ export function Patient8StepBooking({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successResult, setSuccessResult] = useState<{ whatsappLink?: string | null } | null>(null);
 
-  // STEP 1: Selecionar Cidade
-  function handleSelectCity(city: string) {
-    setSelectedCity(city);
-    if (specialties.length > 0) {
-      handleLoadInsurancesForSpecialty(specialties[0].id);
-    }
-  }
-
-  async function handleLoadInsurancesForSpecialty(specId: string) {
+  async function loadInsurancesForSpecialty(specId: string) {
     setSelectedSpecialtyId(specId);
     setLoading(true);
     setErrorMsg(null);
@@ -97,7 +96,6 @@ export function Patient8StepBooking({
         setSelectedInsuranceId(insList[0].id);
         setSelectedInsuranceName(insList[0].name);
       }
-      setStep(2);
     } catch {
       setErrorMsg("Falha ao carregar convênios disponíveis.");
     } finally {
@@ -105,7 +103,26 @@ export function Patient8StepBooking({
     }
   }
 
-  // STEP 2: Selecionar Convênio
+  // Carrega os convênios da primeira especialidade assim que o wizard abre —
+  // a clínica opera numa única unidade, então não há mais etapa de cidade
+  // antes disso.
+  useEffect(() => {
+    if (specialties.length > 0) {
+      void loadInsurancesForSpecialty(specialties[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Abre automaticamente o WhatsApp da clínica ao concluir a solicitação —
+  // o botão abaixo continua disponível como alternativa caso o navegador
+  // bloqueie o popup automático.
+  useEffect(() => {
+    if (successResult?.whatsappLink) {
+      window.open(successResult.whatsappLink, "_blank");
+    }
+  }, [successResult]);
+
+  // ETAPA 1: Selecionar Convênio
   async function handleSelectInsurance(insId: string, insName: string) {
     setSelectedInsuranceId(insId);
     setSelectedInsuranceName(insName);
@@ -123,7 +140,7 @@ export function Patient8StepBooking({
         avatarUrl: p.avatarUrl,
       }));
       setProfessionals(mapped.length > 0 ? mapped : initialProfessionals);
-      setStep(3);
+      setStep(2);
     } catch {
       setErrorMsg("Falha ao carregar profissionais.");
     } finally {
@@ -131,20 +148,24 @@ export function Patient8StepBooking({
     }
   }
 
-  // STEP 3: Selecionar Profissional
+  // ETAPA 2: Selecionar Profissional
   async function handleSelectProfessional(profId: string) {
     setSelectedProfessionalId(profId);
     setLoading(true);
     setErrorMsg(null);
     try {
-      const dates = await getAvailableDates(profId);
+      const [dates, pricing, duration] = await Promise.all([
+        getAvailableDates(profId),
+        getProfessionalPricing(profId, selectedInsuranceId),
+        getEffectiveDuration(profId, selectedInsuranceId),
+      ]);
       setAvailableDates(dates);
-      const pricing = await getProfessionalPricing(profId, selectedInsuranceId);
       setPricingOptions(pricing);
+      setEffectiveDuration(duration);
       if (pricing.length > 0) {
         setPaymentMethod(pricing[0].paymentMethod as any);
       }
-      setStep(4);
+      setStep(3);
     } catch {
       setErrorMsg("Falha ao carregar datas do profissional.");
     } finally {
@@ -152,7 +173,7 @@ export function Patient8StepBooking({
     }
   }
 
-  // STEP 4: Escolher Data
+  // ETAPA 3: Escolher Data
   async function handleSelectDate(date: string) {
     setSelectedDate(date);
     setLoading(true);
@@ -160,7 +181,7 @@ export function Patient8StepBooking({
     try {
       const times = await getAvailableTimes(selectedProfessionalId, selectedInsuranceId, date);
       setAvailableTimes(times);
-      setStep(5);
+      setStep(4);
     } catch {
       setErrorMsg("Falha ao carregar horários disponíveis.");
     } finally {
@@ -168,13 +189,13 @@ export function Patient8StepBooking({
     }
   }
 
-  // STEP 5: Escolher Horário
+  // ETAPA 4: Escolher Horário
   function handleSelectSlot(slot: { slotId: string; startTime: string; endTime: string }) {
     setSelectedSlot(slot);
-    setStep(6);
+    setStep(5);
   }
 
-  // STEP 6: Confirmar dados pessoais
+  // ETAPA 5: Confirmar dados pessoais
   function handleConfirmPatientDetails(e: React.FormEvent) {
     e.preventDefault();
     if (!patientName.trim() || !patientPhone.trim()) {
@@ -182,16 +203,16 @@ export function Patient8StepBooking({
       return;
     }
     setErrorMsg(null);
+    setStep(6);
+  }
+
+  // ETAPA 6: Forma de Pagamento
+  function handleSelectPaymentMethod(pm: "pix" | "cartao" | "dinheiro" | "convenio") {
+    setPaymentMethod(pm);
     setStep(7);
   }
 
-  // STEP 7: Forma de Pagamento
-  function handleSelectPaymentMethod(pm: "pix" | "cartao" | "dinheiro" | "convenio") {
-    setPaymentMethod(pm);
-    setStep(8);
-  }
-
-  // STEP 8: Enviar solicitação
+  // ETAPA 7: Enviar solicitação
   async function handleFinalSubmit() {
     if (!selectedSlot) return;
     setSubmitting(true);
@@ -217,7 +238,7 @@ export function Patient8StepBooking({
       const currentSpec = specialties.find((s) => s.id === selectedSpecialtyId);
       const currentPricing = pricingOptions.find((p) => p.paymentMethod === paymentMethod);
 
-      const msg = `Nova solicitação de consulta:\n\nPaciente: ${patientName}\nWhatsApp: ${patientPhone}\nCidade: ${selectedCity}\nConvênio: ${selectedInsuranceName}\nProfissional: ${currentProf?.fullName}\nEspecialidade: ${currentSpec?.name}\nData: ${selectedDate.split("-").reverse().join("/")}\nHorário: ${selectedSlot.startTime.slice(0, 5)}\nValor: ${currentPricing ? formatCurrency(currentPricing.value) : "A combinar"}\nPagamento: ${paymentMethod.toUpperCase()}`;
+      const msg = `Nova solicitação de consulta:\n\nPaciente: ${patientName}\nWhatsApp: ${patientPhone}\nConvênio: ${selectedInsuranceName}\nProfissional: ${currentProf?.fullName}\nEspecialidade: ${currentSpec?.name}\nData: ${selectedDate.split("-").reverse().join("/")}\nHorário: ${selectedSlot.startTime.slice(0, 5)}\nValor: ${currentPricing ? formatCurrency(currentPricing.value) : "A combinar"}\nPagamento: ${paymentMethod.toUpperCase()}`;
 
       const link = buildWhatsAppLink(whatsappNumber, msg);
       setSuccessResult({ whatsappLink: link });
@@ -239,9 +260,9 @@ export function Patient8StepBooking({
           </div>
 
           <Badge tone="premium" className="mb-2">Solicitação Enviada!</Badge>
-          <h2 className="text-3xl font-black text-text-primary tracking-tight font-heading">Agendamento Solicitado com Sucesso</h2>
+          <h2 className="text-3xl font-black text-text-primary tracking-tight font-heading">Sua solicitação foi enviada com sucesso</h2>
           <p className="text-base text-text-secondary max-w-lg mx-auto leading-relaxed">
-            Olá <strong className="text-text-primary">{patientName}</strong>! Sua solicitação de consulta para <strong className="text-[var(--primary)]">{selectedDate.split("-").reverse().join("/")}</strong> às <strong className="text-[var(--primary)]">{selectedSlot?.startTime.slice(0, 5)}</strong> foi registrada na clínica.
+            Nossa equipe analisará o pedido e retornará em breve. Olá <strong className="text-text-primary">{patientName}</strong>, sua solicitação para <strong className="text-[var(--primary)]">{selectedDate.split("-").reverse().join("/")}</strong> às <strong className="text-[var(--primary)]">{selectedSlot?.startTime.slice(0, 5)}</strong> foi registrada na clínica.
           </p>
 
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -252,7 +273,7 @@ export function Patient8StepBooking({
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-4 text-sm font-bold text-white transition-all hover:bg-[#1EBE5A] shadow-md"
               >
-                <span>Enviar Notificação pelo WhatsApp</span>
+                <span>Reabrir mensagem no WhatsApp</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                 </svg>
@@ -281,17 +302,16 @@ export function Patient8StepBooking({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
-              Etapa {step} de 8
+              Etapa {step} de 7
             </span>
             <h3 className="text-lg font-extrabold text-text-primary font-heading">
-              {step === 1 && "1. Selecionar Cidade"}
-              {step === 2 && "2. Selecionar Convênio"}
-              {step === 3 && "3. Selecionar Profissional"}
-              {step === 4 && "4. Escolher Data"}
-              {step === 5 && "5. Escolher Horário"}
-              {step === 6 && "6. Confirmar Dados Pessoais"}
-              {step === 7 && "7. Forma de Pagamento"}
-              {step === 8 && "8. Resumo Final & Envio"}
+              {step === 1 && "1. Selecionar Convênio"}
+              {step === 2 && "2. Selecionar Profissional"}
+              {step === 3 && "3. Escolher Data"}
+              {step === 4 && "4. Escolher Horário"}
+              {step === 5 && "5. Confirmar Dados Pessoais"}
+              {step === 6 && "6. Forma de Pagamento"}
+              {step === 7 && "7. Resumo Final & Envio"}
             </h3>
           </div>
           {step > 1 && (
@@ -304,9 +324,9 @@ export function Patient8StepBooking({
           )}
         </div>
 
-        {/* 8 Indicator Bars */}
-        <div className="grid grid-cols-8 gap-1.5">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+        {/* 7 Indicator Bars */}
+        <div className="grid grid-cols-7 gap-1.5">
+          {[1, 2, 3, 4, 5, 6, 7].map((i) => (
             <div
               key={i}
               className={`h-2 rounded-full transition-all duration-300 ${
@@ -323,35 +343,8 @@ export function Patient8StepBooking({
         </div>
       )}
 
-      {/* ETAPA 1: SELEÇÃO DE CIDADE */}
+      {/* ETAPA 1: SELEÇÃO DE CONVÊNIO */}
       {step === 1 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-up">
-          {CITIES.map((city) => (
-            <button
-              key={city}
-              onClick={() => handleSelectCity(city)}
-              disabled={loading}
-              className={`p-6 rounded-2xl border text-left transition-all ${
-                selectedCity === city
-                  ? "border-primary bg-card-elevated text-text-primary shadow-lg"
-                  : "border-border bg-card text-text-secondary hover:border-primary/60"
-              }`}
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-card-elevated text-[var(--primary)] mb-3 border border-border">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-              </div>
-              <h4 className="text-base font-bold font-heading">{city}</h4>
-              <p className="text-xs text-text-muted mt-1">Unidade Clínica Disponível</p>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* ETAPA 2: SELEÇÃO DE CONVÊNIO */}
-      {step === 2 && (
         <Card className="animate-fade-up">
           <CardContent className="p-6 space-y-4">
             <h4 className="text-sm font-semibold text-text-secondary">Selecione o plano de saúde ou atendimento particular:</h4>
@@ -381,8 +374,8 @@ export function Patient8StepBooking({
         </Card>
       )}
 
-      {/* ETAPA 3: SELEÇÃO DE PROFISSIONAL */}
-      {step === 3 && (
+      {/* ETAPA 2: SELEÇÃO DE PROFISSIONAL */}
+      {step === 2 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-up">
           {loading ? (
             <>
@@ -415,8 +408,8 @@ export function Patient8StepBooking({
         </div>
       )}
 
-      {/* ETAPA 4: ESCOLHER DATA */}
-      {step === 4 && (
+      {/* ETAPA 3: ESCOLHER DATA */}
+      {step === 3 && (
         <Card className="animate-fade-up">
           <CardContent className="p-6">
             <h4 className="text-sm font-semibold text-text-secondary mb-4">
@@ -451,8 +444,8 @@ export function Patient8StepBooking({
         </Card>
       )}
 
-      {/* ETAPA 5: ESCOLHER HORÁRIO */}
-      {step === 5 && (
+      {/* ETAPA 4: ESCOLHER HORÁRIO */}
+      {step === 4 && (
         <Card className="animate-fade-up">
           <CardContent className="p-6">
             <h4 className="text-sm font-semibold text-text-secondary mb-4">
@@ -481,8 +474,8 @@ export function Patient8StepBooking({
         </Card>
       )}
 
-      {/* ETAPA 6: CONFIRMAR DADOS PESSOAIS */}
-      {step === 6 && (
+      {/* ETAPA 5: CONFIRMAR DADOS PESSOAIS */}
+      {step === 5 && (
         <Card className="animate-fade-up">
           <CardContent className="p-6">
             <form onSubmit={handleConfirmPatientDetails} className="space-y-4">
@@ -516,47 +509,46 @@ export function Patient8StepBooking({
         </Card>
       )}
 
-      {/* ETAPA 7: FORMA DE PAGAMENTO */}
-      {step === 7 && (
+      {/* ETAPA 6: FORMA DE PAGAMENTO */}
+      {step === 6 && (
         <Card className="animate-fade-up">
           <CardContent className="p-6 space-y-4">
             <h4 className="text-sm font-semibold text-text-secondary">Selecione a forma de pagamento:</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { id: "pix", label: "Pix", sub: "Confirmação rápida" },
-                { id: "cartao", label: "Cartão", sub: "Crédito ou Débito" },
-                { id: "dinheiro", label: "Dinheiro", sub: "Na recepção" },
-                { id: "convenio", label: "Convênio", sub: selectedInsuranceName },
-              ].map((pm) => (
-                <button
-                  key={pm.id}
-                  onClick={() => handleSelectPaymentMethod(pm.id as any)}
-                  className={`p-4 rounded-xl border text-left transition-all ${
-                    paymentMethod === pm.id
-                      ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)]"
-                      : "border-border bg-card-elevated text-text-secondary"
-                  }`}
-                >
-                  <div className="font-bold text-base text-text-primary">{pm.label}</div>
-                  <div className="text-xs text-text-muted mt-1">{pm.sub}</div>
-                </button>
-              ))}
-            </div>
+            {pricingOptions.length === 0 ? (
+              <p className="text-sm text-text-muted py-4 text-center">
+                Nenhuma forma de pagamento configurada para este profissional/convênio. Entre em contato com a clínica.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {pricingOptions.map((opt) => (
+                  <button
+                    key={opt.paymentMethod}
+                    onClick={() => handleSelectPaymentMethod(opt.paymentMethod as any)}
+                    className={`p-4 rounded-xl border text-left transition-all ${
+                      paymentMethod === opt.paymentMethod
+                        ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)]"
+                        : "border-border bg-card-elevated text-text-secondary"
+                    }`}
+                  >
+                    <div className="font-bold text-base text-text-primary">
+                      {PAYMENT_METHOD_LABELS[opt.paymentMethod] ?? opt.paymentMethod}
+                    </div>
+                    <div className="text-xs text-[var(--primary)] font-semibold mt-1">{formatCurrency(opt.value)}</div>
+                  </button>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
 
-      {/* ETAPA 8: RESUMO FINAL & ENVIO */}
-      {step === 8 && (
+      {/* ETAPA 7: RESUMO FINAL & ENVIO */}
+      {step === 7 && (
         <Card className="border-primary/40 animate-fade-up">
           <CardContent className="p-6 space-y-6">
             <h4 className="text-base font-bold text-text-primary font-heading">Resumo Completo da Solicitação</h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl bg-card-elevated/70 p-5 border border-border text-xs">
-              <div>
-                <span className="text-text-muted">Cidade:</span>
-                <p className="text-sm font-bold text-text-primary mt-0.5">{selectedCity}</p>
-              </div>
               <div>
                 <span className="text-text-muted">Convênio:</span>
                 <p className="text-sm font-bold text-text-primary mt-0.5">{selectedInsuranceName}</p>
@@ -571,7 +563,9 @@ export function Patient8StepBooking({
               </div>
               <div>
                 <span className="text-text-muted">Duração da sessão:</span>
-                <p className="text-sm font-bold text-text-primary mt-0.5">45-60 min</p>
+                <p className="text-sm font-bold text-text-primary mt-0.5">
+                  {effectiveDuration ? `${effectiveDuration} min` : "—"}
+                </p>
               </div>
               <div>
                 <span className="text-text-muted">Data & Horário:</span>
@@ -585,13 +579,15 @@ export function Patient8StepBooking({
               </div>
               {currentPricing && (
                 <div>
-                  <span className="text-text-muted">Valor estimado:</span>
+                  <span className="text-text-muted">Valor da consulta:</span>
                   <p className="text-sm font-black text-[var(--primary)] mt-0.5">{formatCurrency(currentPricing.value)}</p>
                 </div>
               )}
               <div>
                 <span className="text-text-muted">Pagamento:</span>
-                <p className="text-sm font-bold text-text-primary mt-0.5 uppercase">{paymentMethod}</p>
+                <p className="text-sm font-bold text-text-primary mt-0.5">
+                  {PAYMENT_METHOD_LABELS[paymentMethod] ?? paymentMethod}
+                </p>
               </div>
             </div>
 
@@ -599,9 +595,9 @@ export function Patient8StepBooking({
               size="lg"
               className="w-full text-base font-bold py-4 shadow-button"
               onClick={handleFinalSubmit}
-              disabled={submitting}
+              isLoading={submitting}
             >
-              {submitting ? "Processando e enviando solicitação..." : "Confirmar solicitação"}
+              Confirmar solicitação
             </Button>
           </CardContent>
         </Card>

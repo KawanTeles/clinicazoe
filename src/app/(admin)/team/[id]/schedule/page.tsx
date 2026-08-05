@@ -34,13 +34,13 @@ export default async function ProfessionalSchedulePage({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <Link href={`/team/${id}`} className="inline-flex items-center text-sm font-semibold text-[#5ED39D] hover:text-[#86E5B8] transition-colors">
+        <Link href={`/team/${id}`} className="inline-flex items-center text-sm font-semibold text-[var(--link)] hover:text-[var(--link-hover)] transition-colors">
           ← Voltar para {result.profile.full_name}
         </Link>
-        <h1 className="mt-2 text-2xl font-bold tracking-tight text-[#F5F7F6]">
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-text-primary">
           Agenda de {result.profile.full_name}
         </h1>
-        <p className="mt-1 text-sm text-[#C8D4CF]">
+        <p className="mt-1 text-sm text-text-secondary">
           Horários recorrentes por dia da semana e convênios aceitos em cada um.
         </p>
       </div>

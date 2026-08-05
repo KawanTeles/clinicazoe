@@ -57,14 +57,14 @@ export function LoginForm({ signupHref = "/cliente/signup" }: LoginFormProps) {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
+      {error && <p className="text-sm font-medium text-danger">{error}</p>}
       <Button type="submit" isLoading={loading} className="w-full font-bold">
         Entrar
       </Button>
       {signupHref && (
-        <p className="text-center text-xs text-[#C8D4CF] mt-2">
+        <p className="text-center text-xs text-text-secondary mt-2">
           Primeiro acesso?{" "}
-          <Link href={signupHref} className="font-semibold text-[#5ED39D] hover:text-[#86E5B8] hover:underline">
+          <Link href={signupHref} className="font-semibold text-[var(--link)] hover:text-[var(--link-hover)] hover:underline">
             Criar conta de paciente
           </Link>
         </p>

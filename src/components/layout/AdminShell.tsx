@@ -29,6 +29,7 @@ interface AdminShellProps {
   avatarUrl: string | null;
   notifications: NotificationItem[];
   unreadCount: number;
+  pendingRequestsCount?: number;
   clinicName: string;
   logoUrl: string | null;
   children: React.ReactNode;
@@ -63,6 +64,13 @@ function renderNavIcon(icon?: string) {
           <line x1="16" y1="2" x2="16" y2="6" />
           <line x1="8" y1="2" x2="8" y2="6" />
           <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+      );
+    case "bell":
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
       );
     case "dollar-sign":
@@ -157,6 +165,7 @@ export function AdminShell({
   avatarUrl,
   notifications,
   unreadCount,
+  pendingRequestsCount = 0,
   clinicName,
   logoUrl,
   children,
@@ -248,8 +257,13 @@ export function AdminShell({
                     : "text-text-secondary hover:bg-card-elevated/70 hover:text-text-primary font-medium"
                 )}
               >
-                <span className={cn("transition-transform group-hover:scale-105", active ? "text-primary dark:text-[var(--link)]" : "text-text-muted group-hover:text-text-primary")}>
+                <span className={cn("relative transition-transform group-hover:scale-105", active ? "text-primary dark:text-[var(--link)]" : "text-text-muted group-hover:text-text-primary")}>
                   {renderNavIcon(item.icon)}
+                  {item.href === "/requests" && pendingRequestsCount > 0 && (
+                    <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white shadow-[0_0_8px_var(--danger)]">
+                      {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
+                    </span>
+                  )}
                 </span>
                 <span className="truncate tracking-tight">{item.label}</span>
               </Link>

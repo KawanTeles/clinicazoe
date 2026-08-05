@@ -25,6 +25,7 @@ const STATUS_LABELS: Record<string, string> = {
   remarcada: "Remarcada",
   concluida: "Concluída",
   faltou: "Faltou",
+  recusada: "Recusada",
 };
 
 const STATUS_TONE: Record<string, "neutral" | "success" | "warning" | "danger" | "premium"> = {
@@ -34,6 +35,7 @@ const STATUS_TONE: Record<string, "neutral" | "success" | "warning" | "danger" |
   remarcada: "neutral",
   concluida: "success",
   faltou: "danger",
+  recusada: "danger",
 };
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });

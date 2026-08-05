@@ -1,17 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Database, Role } from "@/lib/supabase/types";
+import type { Database } from "@/lib/supabase/types";
 
 type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
 
-export interface AppointmentView {
+/** Origens que representam uma solicitação feita pelo próprio paciente,
+ * ainda pendente de aprovação da equipe (agendamento criado pela recepção
+ * já nasce fora desse fluxo — ver `source: 'staff'` em booking-actions.ts). */
+const REQUEST_SOURCES = ["paciente", "site_publico"] as const;
+
+export interface RequestView {
   id: string;
-  patientId: string;
   patientName: string;
   patientPhone: string | null;
-  professionalId: string;
   professionalName: string;
   specialtyName: string;
-  insuranceId: string;
   insuranceName: string;
   date: string;
   startTime: string;
@@ -19,14 +21,13 @@ export interface AppointmentView {
   value: number;
   paymentMethod: string;
   status: string;
-  seriesId: string | null;
-  reminderSentAt: string | null;
+  requestedAt: string;
 }
 
 async function denormalize(
   supabase: Awaited<ReturnType<typeof createClient>>,
   rows: AppointmentRow[],
-) {
+): Promise<RequestView[]> {
   if (rows.length === 0) return [];
 
   const patientIds = Array.from(new Set(rows.map((r) => r.patient_id)));
@@ -51,15 +52,12 @@ async function denormalize(
   const specialtyById = new Map((specialties ?? []).map((s) => [s.id, s.name]));
   const insuranceById = new Map((insurances ?? []).map((i) => [i.id, i.name]));
 
-  return rows.map((row): AppointmentView => ({
+  return rows.map((row): RequestView => ({
     id: row.id,
-    patientId: row.patient_id,
     patientName: patientById.get(row.patient_id)?.full_name ?? "Paciente",
     patientPhone: patientById.get(row.patient_id)?.phone ?? null,
-    professionalId: row.professional_id,
     professionalName: professionalById.get(row.professional_id)?.full_name ?? "Profissional",
     specialtyName: row.specialty_id ? specialtyById.get(row.specialty_id) ?? "" : "",
-    insuranceId: row.insurance_id,
     insuranceName: insuranceById.get(row.insurance_id) ?? "",
     date: row.appointment_date,
     startTime: row.start_time,
@@ -67,42 +65,31 @@ async function denormalize(
     value: row.value,
     paymentMethod: row.payment_method,
     status: row.status,
-    seriesId: row.series_id,
-    reminderSentAt: row.reminder_sent_at,
+    requestedAt: row.created_at,
   }));
 }
 
-const PAGE_SIZE = 20;
-
-export async function getAppointmentsForViewer(
-  role: Role,
-  userId: string,
-  page = 1,
-): Promise<{ items: AppointmentView[]; totalPages: number }> {
+export async function getPendingRequests(): Promise<RequestView[]> {
   const supabase = await createClient();
 
-  let query = supabase
+  const { data } = await supabase
     .from("appointments")
-    .select("*", { count: "exact" })
-    .order("appointment_date", { ascending: false });
+    .select("*")
+    .eq("status", "pendente")
+    .in("source", REQUEST_SOURCES)
+    .order("created_at", { ascending: false });
 
-  if (role === "paciente") {
-    query = query.eq("patient_id", userId);
-  } else if (role === "profissional") {
-    query = query.eq("professional_id", userId);
-  } else {
-    // admin / recepcionista: vê tudo, exceto solicitações de cliente ainda
-    // pendentes de aprovação — essas ficam só no módulo Solicitações até
-    // serem aprovadas/recusadas. Agendamento manual da recepção
-    // (source='staff') continua aparecendo normalmente aqui, como sempre.
-    query = query.or("status.neq.pendente,source.eq.staff");
-  }
+  return denormalize(supabase, data ?? []);
+}
 
-  const from = (page - 1) * PAGE_SIZE;
-  const { data, count } = await query.range(from, from + PAGE_SIZE - 1);
+export async function getPendingRequestsCount(): Promise<number> {
+  const supabase = await createClient();
 
-  const items = await denormalize(supabase, data ?? []);
-  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
+  const { count } = await supabase
+    .from("appointments")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pendente")
+    .in("source", REQUEST_SOURCES);
 
-  return { items, totalPages };
+  return count ?? 0;
 }

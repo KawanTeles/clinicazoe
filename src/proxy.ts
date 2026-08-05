@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const STAFF_ROUTES = [
   "/dashboard",
+  "/requests",
   "/appointments",
   "/financial",
   "/team",

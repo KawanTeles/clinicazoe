@@ -38,8 +38,8 @@ export default async function EditTeamMemberPage({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Editar membro</h1>
-          <p className="mt-1 text-sm text-[#C8D4CF]">{profile.full_name}</p>
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">Editar membro</h1>
+          <p className="mt-1 text-sm text-text-secondary">{profile.full_name}</p>
         </div>
         {profile.role === "profissional" && (
           <Link href={`/team/${profile.id}/schedule`}>

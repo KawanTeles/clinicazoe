@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { formatCurrency } from "@/lib/whatsapp";
-import { CITIES } from "@/lib/constants";
 import type { PaymentMethod } from "@/lib/supabase/types";
 import { PatientPickerField } from "@/modules/patients/components/PatientPickerField";
 import { createPatient, type PatientSearchResult } from "@/modules/patients/services/patient-actions";
@@ -82,10 +81,7 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
   const [newCity, setNewCity] = useState("");
   const [creatingPatient, setCreatingPatient] = useState(false);
 
-  // Etapa 2: cidade
-  const [city, setCity] = useState<string | null>(null);
-
-  // Etapa 3: convênio
+  // Etapa 2: convênio
   const [insurance, setInsurance] = useState<Option | null>(null);
 
   // Etapa 4: profissional
@@ -295,7 +291,6 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
   function handleReset() {
     setSuccessResult(null);
     setPatient(null);
-    setCity(null);
     setInsurance(null);
     setProfessional(null);
     setDates([]);
@@ -404,33 +399,13 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
             )}
           </div>
 
-          {/* Card 2: Cidade & Convênio */}
+          {/* Card 2: Convênio */}
           <div className="rounded-xl border border-border/80 bg-card p-3.5 flex flex-col gap-3 shadow-xs">
             <div className="flex items-center justify-between border-b border-border/60 pb-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
-                2. Cidade & Convênio
+                2. Convênio
               </span>
             </div>
-            <div>
-              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Cidade</label>
-              <div className="grid grid-cols-3 gap-2">
-                {CITIES.map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setCity(opt)}
-                    className={`rounded-lg border py-1.5 px-2 text-center text-xs font-semibold transition-all ${
-                      city === opt
-                        ? "border-primary bg-primary/10 text-primary font-bold shadow-xs"
-                        : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             <div>
               <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Convênio Aceito</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">

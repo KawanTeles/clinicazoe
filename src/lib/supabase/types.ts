@@ -7,7 +7,9 @@ export type AppointmentStatus =
   | "cancelada"
   | "remarcada"
   | "concluida"
-  | "faltou";
+  | "faltou"
+  | "recusada";
+export type AppointmentSource = "paciente" | "site_publico" | "staff";
 export type FinancialStatus = "em_aberto" | "pago";
 export type RecurrenceFrequency = "weekly" | "biweekly" | "monthly";
 export type SeriesStatus = "active" | "cancelled";
@@ -305,6 +307,7 @@ export interface Database {
           payment_method: PaymentMethod;
           value: number;
           status: AppointmentStatus;
+          source: AppointmentSource;
           notes: string | null;
           series_id: string | null;
           reminder_sent_at: string | null;
@@ -324,6 +327,7 @@ export interface Database {
           payment_method: PaymentMethod;
           value: number;
           status?: AppointmentStatus;
+          source?: AppointmentSource;
           notes?: string | null;
           series_id?: string | null;
           reminder_sent_at?: string | null;
@@ -343,6 +347,7 @@ export interface Database {
           payment_method?: PaymentMethod;
           value?: number;
           status?: AppointmentStatus;
+          source?: AppointmentSource;
           notes?: string | null;
           series_id?: string | null;
           reminder_sent_at?: string | null;

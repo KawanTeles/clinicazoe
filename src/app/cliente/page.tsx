@@ -16,7 +16,12 @@ export const metadata = {
   description: "Acompanhe seus agendamentos, histórico médico e consultas na Clínica Zoe.",
 };
 
-export default async function ClientePublicPage() {
+export default async function ClientePublicPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ confirmed?: string }>;
+}) {
+  const { confirmed } = await searchParams;
   const session = await getCurrentUser();
 
   if (!session) {
@@ -38,6 +43,20 @@ export default async function ClientePublicPage() {
 
       <main className="flex-1 py-12 lg:py-16">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 space-y-10">
+          {confirmed === "1" && (
+            <div className="flex items-center gap-3 rounded-2xl border border-primary/40 bg-[var(--badge-bg)] px-5 py-4 shadow-card animate-fade-up">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-[var(--primary)]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-text-primary">Conta confirmada com sucesso!</p>
+                <p className="text-xs text-text-secondary">Bem-vindo(a) à Área do Cliente da Clínica Zoe.</p>
+              </div>
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-border/60">
             <div className="flex items-center gap-4">
@@ -106,7 +125,7 @@ export default async function ClientePublicPage() {
                                 ? "success"
                                 : appt.status === "pendente"
                                 ? "warning"
-                                : appt.status === "cancelada"
+                                : appt.status === "cancelada" || appt.status === "recusada"
                                 ? "danger"
                                 : "neutral"
                             }

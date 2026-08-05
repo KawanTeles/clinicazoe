@@ -22,7 +22,7 @@ export function PatientSignOutButton() {
       size="sm"
       onClick={handleSignOut}
       disabled={loading}
-      className="text-xs font-semibold text-[#FF8A8A] hover:bg-[#DC4F4F]/15 hover:text-[#FF8A8A]"
+      className="text-xs font-semibold text-danger hover:bg-danger/15 hover:text-danger"
     >
       {loading ? "Saindo..." : "Sair da conta"}
     </Button>

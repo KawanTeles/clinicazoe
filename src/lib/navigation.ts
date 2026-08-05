@@ -8,6 +8,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", permission: "dashboard.view", icon: "dashboard" },
   { label: "Agendar Consulta", href: "/book", permission: "appointments.book", icon: "calendar-plus" },
+  { label: "Solicitações", href: "/requests", permission: "requests.manage", icon: "bell" },
   { label: "Minhas Consultas", href: "/appointments", permission: "appointments.view.own", icon: "calendar" },
   { label: "Consultas", href: "/appointments", permission: "appointments.manage", icon: "calendar" },
   { label: "Financeiro", href: "/financial", permission: "financial.view.own", icon: "dollar-sign" },

@@ -16,8 +16,8 @@ export default async function SpecialtiesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Especialidades</h1>
-        <p className="mt-1 text-sm text-[#C8D4CF]">
+        <h1 className="text-2xl font-bold tracking-tight text-text-primary">Especialidades</h1>
+        <p className="mt-1 text-sm text-text-secondary">
           Especialidades disponíveis para os profissionais da clínica.
         </p>
       </div>

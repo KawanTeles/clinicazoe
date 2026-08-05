@@ -66,7 +66,7 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#6EE7B7] via-[#2E8B57] to-[#0B3D2E] text-xs font-black text-white shadow-[0_0_18px_rgba(110,231,183,0.35)] border border-[rgba(110,231,183,0.3)] transition-transform duration-300 ease-[var(--ease-premium)] group-hover:scale-105">
               CZ
             </div>
-            <span className="hidden text-base font-extrabold tracking-tight text-white transition-colors group-hover:text-[#6EE7B7] font-heading sm:inline">
+            <span className="hidden text-base font-extrabold tracking-tight text-text-primary transition-colors group-hover:text-[var(--link)] font-heading sm:inline">
               {clinicName}
             </span>
           </Link>
@@ -86,8 +86,8 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
                   className={cn(
                     "relative px-4 py-2 rounded-full font-bold transition-all duration-300 ease-[var(--ease-premium)]",
                     isActive
-                      ? "bg-primary/25 text-white border border-[rgba(110,231,183,0.3)] shadow-[0_0_15px_rgba(110,231,183,0.15)]"
-                      : "text-text-secondary hover:text-white hover:bg-white/5",
+                      ? "bg-primary/25 text-text-primary border border-[rgba(110,231,183,0.3)] shadow-[0_0_15px_rgba(110,231,183,0.15)]"
+                      : "text-text-secondary hover:text-text-primary hover:bg-white/5",
                   )}
                 >
                   {link.label}
@@ -104,7 +104,7 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
               <Link href="/equipe">
                 <button
                   type="button"
-                  className="rounded-full border border-[rgba(110,231,183,0.2)] bg-transparent px-4 py-2 text-xs font-bold text-text-secondary hover:bg-primary/15 hover:text-white hover:border-[rgba(110,231,183,0.4)] transition-all duration-300"
+                  className="rounded-full border border-[rgba(110,231,183,0.2)] bg-transparent px-4 py-2 text-xs font-bold text-text-secondary hover:bg-primary/15 hover:text-text-primary hover:border-[rgba(110,231,183,0.4)] transition-all duration-300"
                 >
                   Área da Equipe
                 </button>
@@ -142,7 +142,7 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
               aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
               aria-expanded={mobileMenuOpen}
               onClick={() => setMobileMenuOpen((open) => !open)}
-              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(110,231,183,0.2)] bg-card-elevated/80 text-white transition-all duration-300 hover:border-[#6EE7B7] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:hidden"
+              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(110,231,183,0.2)] bg-card-elevated/80 text-text-primary transition-all duration-300 hover:border-[var(--link)] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:hidden"
             >
               <span className="relative block h-4 w-4">
                 <span
@@ -185,7 +185,7 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
         {/* Sliding Panel */}
         <div
           className={cn(
-            "absolute top-0 right-0 h-full w-full max-w-sm border-l border-[rgba(110,231,183,0.18)] bg-[#06120E]/95 backdrop-blur-[24px] p-6 shadow-2xl flex flex-col justify-between transition-transform duration-300 ease-[var(--ease-premium)]",
+            "absolute top-0 right-0 h-full w-full max-w-sm border-l border-[rgba(110,231,183,0.18)] bg-card/95 backdrop-blur-[24px] p-6 shadow-2xl flex flex-col justify-between transition-transform duration-300 ease-[var(--ease-premium)]",
             mobileMenuOpen ? "translate-x-0" : "translate-x-full",
           )}
         >
@@ -196,7 +196,7 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#6EE7B7] via-[#2E8B57] to-[#0B3D2E] text-xs font-black text-white border border-[rgba(110,231,183,0.3)] shadow-[0_0_15px_rgba(110,231,183,0.3)]">
                   CZ
                 </div>
-                <span className="text-base font-extrabold text-white font-heading">{clinicName}</span>
+                <span className="text-base font-extrabold text-text-primary font-heading">{clinicName}</span>
               </Link>
 
               {/* Close Button */}
@@ -204,7 +204,7 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
                 aria-label="Fechar menu"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(110,231,183,0.2)] bg-card-elevated text-white hover:rotate-90 hover:border-[#6EE7B7] transition-all duration-300"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(110,231,183,0.2)] bg-card-elevated text-text-primary hover:rotate-90 hover:border-[var(--link)] transition-all duration-300"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
@@ -233,13 +233,13 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
                       "flex items-center justify-between rounded-xl px-4 py-3 text-base font-semibold transition-all duration-300 ease-[var(--ease-premium)]",
                       mobileMenuOpen ? "translate-x-0 opacity-100" : "translate-x-6 opacity-0",
                       isActive
-                        ? "bg-primary/25 text-white font-bold border-l-4 border-[#6EE7B7] shadow-sm"
-                        : "text-text-secondary hover:bg-card-elevated/70 hover:text-white",
+                        ? "bg-primary/25 text-text-primary font-bold border-l-4 border-[var(--link)] shadow-sm"
+                        : "text-text-secondary hover:bg-card-elevated/70 hover:text-text-primary",
                     )}
                   >
                     <span>{link.label}</span>
                     {isActive && (
-                      <span className="h-2 w-2 rounded-full bg-[#6EE7B7] shadow-[0_0_8px_#6EE7B7]" />
+                      <span className="h-2 w-2 rounded-full bg-[var(--link)] shadow-[0_0_8px_var(--link)]" />
                     )}
                   </Link>
                 );
@@ -288,7 +288,7 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
             <Link href="/equipe" onClick={() => setMobileMenuOpen(false)} className="w-full">
               <button
                 type="button"
-                className="w-full rounded-xl border border-[rgba(110,231,183,0.2)] bg-card-elevated/60 py-3 text-xs font-bold text-text-secondary hover:text-white hover:bg-card-elevated transition-all duration-300 text-center"
+                className="w-full rounded-xl border border-[rgba(110,231,183,0.2)] bg-card-elevated/60 py-3 text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-card-elevated transition-all duration-300 text-center"
               >
                 Área da Equipe
               </button>

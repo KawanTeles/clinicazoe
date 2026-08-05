@@ -13,6 +13,7 @@ import {
   getAvailableDates,
   getAvailableTimes,
   getProfessionalPricing,
+  getEffectiveDuration,
 } from "@/modules/appointments/services/booking-queries";
 import { createPublicAppointment } from "@/modules/appointments/services/booking-actions";
 import { formatCurrency } from "@/lib/whatsapp";
@@ -60,6 +61,7 @@ export function PublicBookingFlow({
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [availableTimes, setAvailableTimes] = useState<{ slotId: string; startTime: string; endTime: string }[]>([]);
   const [pricingOptions, setPricingOptions] = useState<{ paymentMethod: string; value: number }[]>([]);
+  const [effectiveDuration, setEffectiveDuration] = useState<number | null>(null);
 
   // UI States
   const [loading, setLoading] = useState(false);
@@ -80,6 +82,15 @@ export function PublicBookingFlow({
       }
     }
   }, [defaultProfessionalId]);
+
+  // Abre automaticamente o WhatsApp da clínica ao concluir a solicitação —
+  // o botão abaixo continua disponível como alternativa caso o navegador
+  // bloqueie o popup automático.
+  useEffect(() => {
+    if (successResult?.whatsappLink) {
+      window.open(successResult.whatsappLink, "_blank");
+    }
+  }, [successResult]);
 
   async function handleSelectSpecialty(specialtyId: string, preSelectProfId?: string) {
     setSelectedSpecialtyId(specialtyId);
@@ -121,8 +132,13 @@ export function PublicBookingFlow({
     try {
       const dates = await getAvailableDates(profId);
       setAvailableDates(dates);
-      const pricing = await getProfessionalPricing(profId, selectedInsuranceId || (insurances[0]?.id ?? ""));
+      const insId = selectedInsuranceId || (insurances[0]?.id ?? "");
+      const [pricing, duration] = await Promise.all([
+        getProfessionalPricing(profId, insId),
+        getEffectiveDuration(profId, insId),
+      ]);
       setPricingOptions(pricing);
+      setEffectiveDuration(duration);
       if (pricing.length > 0) {
         setPaymentMethod(pricing[0].paymentMethod as any);
       }
@@ -210,10 +226,10 @@ export function PublicBookingFlow({
             </svg>
           </div>
 
-          <Badge tone="premium" className="mb-3">Agendamento Realizado!</Badge>
-          <h2 className="text-3xl font-extrabold text-text-primary tracking-tight font-heading">Consulta Solicitada com Sucesso</h2>
+          <Badge tone="premium" className="mb-3">Solicitação Enviada!</Badge>
+          <h2 className="text-3xl font-extrabold text-text-primary tracking-tight font-heading">Sua solicitação foi enviada com sucesso</h2>
           <p className="mt-3 text-base text-text-secondary max-w-lg mx-auto">
-            Obrigado, <strong className="text-text-primary">{patientName}</strong>! Sua solicitação para <strong className="text-text-primary">{selectedDate.split("-").reverse().join("/")}</strong> às <strong className="text-[var(--primary)]">{selectedSlot?.startTime.slice(0, 5)}</strong> foi registrada no sistema.
+            Nossa equipe analisará o pedido e retornará em breve. Obrigado, <strong className="text-text-primary">{patientName}</strong>! Sua solicitação para <strong className="text-text-primary">{selectedDate.split("-").reverse().join("/")}</strong> às <strong className="text-[var(--primary)]">{selectedSlot?.startTime.slice(0, 5)}</strong> foi registrada no sistema.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -224,7 +240,7 @@ export function PublicBookingFlow({
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-[#1EBE5A] shadow-md"
               >
-                <span>Confirmar no WhatsApp</span>
+                <span>Reabrir mensagem no WhatsApp</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                 </svg>
@@ -499,12 +515,16 @@ export function PublicBookingFlow({
                 </p>
               </div>
               <div>
+                <span className="text-xs text-text-muted">Duração da sessão</span>
+                <p className="text-sm font-bold text-text-primary">{effectiveDuration ? `${effectiveDuration} min` : "—"}</p>
+              </div>
+              <div>
                 <span className="text-xs text-text-muted">Paciente</span>
                 <p className="text-sm font-bold text-text-primary">{patientName} ({patientPhone})</p>
               </div>
               {currentPricing && (
                 <div>
-                  <span className="text-xs text-text-muted">Valor estimado</span>
+                  <span className="text-xs text-text-muted">Valor da consulta</span>
                   <p className="text-sm font-extrabold text-text-primary">{formatCurrency(currentPricing.value)}</p>
                 </div>
               )}
@@ -514,9 +534,9 @@ export function PublicBookingFlow({
               size="lg"
               className="w-full text-base font-bold"
               onClick={handleFinalSubmit}
-              disabled={submitting}
+              isLoading={submitting}
             >
-              {submitting ? "Processando Agendamento..." : "Confirmar Agendamento"}
+              Confirmar Agendamento
             </Button>
           </CardContent>
         </Card>

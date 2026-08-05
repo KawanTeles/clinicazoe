@@ -142,6 +142,25 @@ export function buildStaffBookingConfirmationMessage(params: {
   return appendClinicFooter(baseMessage, params.clinicPhone);
 }
 
+/** Enviada ao paciente quando a equipe recusa uma solicitação de agendamento
+ * feita pela Área do Cliente ou pelo site público. */
+export function buildRejectionMessage(params: {
+  professionalName: string;
+  appointmentDate: string;
+  startTime: string;
+  clinicName: string;
+  clinicPhone?: string | null;
+}) {
+  const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
+  const baseMessage = (
+    `Olá, sua solicitação de consulta não foi aprovada.\n\n` +
+    `Profissional: ${params.professionalName}\n` +
+    `Data/Hora solicitada: ${date} às ${params.startTime.slice(0, 5)}\n\n` +
+    `Por favor, entre em contato com a ${params.clinicName} para mais informações.`
+  );
+  return appendClinicFooter(baseMessage, params.clinicPhone);
+}
+
 export function buildConfirmationMessage(params: {
   professionalName: string;
   appointmentDate: string;

@@ -11,7 +11,12 @@ export const metadata = {
   description: "Entre na sua conta para agendar e gerenciar suas consultas.",
 };
 
-export default async function PatientLoginPage() {
+export default async function PatientLoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ confirm_error?: string }>;
+}) {
+  const { confirm_error } = await searchParams;
   const { clinic } = await getPublicWebsiteData();
 
   return (
@@ -20,6 +25,12 @@ export default async function PatientLoginPage() {
 
       <main className="flex-1 flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md space-y-6">
+          {confirm_error === "1" && (
+            <div className="rounded-2xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-text-primary">
+              Não foi possível confirmar sua conta automaticamente. Faça login para continuar.
+            </div>
+          )}
+
           <div className="text-center space-y-2">
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-forest text-lg font-black text-white shadow-card font-heading mb-2">
               CZ

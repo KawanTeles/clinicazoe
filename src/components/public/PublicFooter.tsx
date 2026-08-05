@@ -18,7 +18,7 @@ export function PublicFooter({ clinicName, address, whatsappNumber }: PublicFoot
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-forest text-sm font-black text-white shadow-md">
                 CZ
               </div>
-              <span className="text-xl font-bold text-white font-heading">{clinicName}</span>
+              <span className="text-xl font-bold text-text-primary font-heading">{clinicName}</span>
             </div>
             <p className="text-xs text-text-secondary leading-relaxed">
               Excelência em saúde integrada com inovação tecnológica, infraestrutura de alto padrão e cuidado humanizado.
@@ -27,25 +27,25 @@ export function PublicFooter({ clinicName, address, whatsappNumber }: PublicFoot
 
           {/* Navigation Links */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#6EE7B7] font-heading mb-4">Navegação</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--link)] font-heading mb-4">Navegação</h4>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/" className="hover:text-white transition-colors">
+                <Link href="/" className="hover:text-text-primary transition-colors">
                   Início
                 </Link>
               </li>
               <li>
-                <Link href="/clinica" className="hover:text-white transition-colors">
+                <Link href="/clinica" className="hover:text-text-primary transition-colors">
                   A Clínica
                 </Link>
               </li>
               <li>
-                <Link href="/especialidades" className="hover:text-white transition-colors">
+                <Link href="/especialidades" className="hover:text-text-primary transition-colors">
                   Especialidades
                 </Link>
               </li>
               <li>
-                <Link href="/profissionais" className="hover:text-white transition-colors">
+                <Link href="/profissionais" className="hover:text-text-primary transition-colors">
                   Profissionais
                 </Link>
               </li>
@@ -54,25 +54,25 @@ export function PublicFooter({ clinicName, address, whatsappNumber }: PublicFoot
 
           {/* Information */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#6EE7B7] font-heading mb-4">Serviços & Convênios</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--link)] font-heading mb-4">Serviços & Convênios</h4>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/convenios" className="hover:text-white transition-colors">
+                <Link href="/convenios" className="hover:text-text-primary transition-colors">
                   Convênios Atendidos
                 </Link>
               </li>
               <li>
-                <Link href="/estrutura" className="hover:text-white transition-colors">
+                <Link href="/estrutura" className="hover:text-text-primary transition-colors">
                   Estrutura & Tecnologia
                 </Link>
               </li>
               <li>
-                <Link href="/contato" className="hover:text-white transition-colors">
+                <Link href="/contato" className="hover:text-text-primary transition-colors">
                   Contato & Localização
                 </Link>
               </li>
               <li>
-                <Link href="/cliente/login" className="hover:text-white transition-colors">
+                <Link href="/cliente/login" className="hover:text-text-primary transition-colors">
                   Área do Paciente
                 </Link>
               </li>
@@ -81,7 +81,7 @@ export function PublicFooter({ clinicName, address, whatsappNumber }: PublicFoot
 
           {/* Contact */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#6EE7B7] font-heading mb-4">Atendimento</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--link)] font-heading mb-4">Atendimento</h4>
             <p className="text-xs text-text-secondary leading-relaxed mb-3">
               {address || "Av. Paulista, 1000 - Bela Vista, São Paulo - SP"}
             </p>
@@ -90,7 +90,7 @@ export function PublicFooter({ clinicName, address, whatsappNumber }: PublicFoot
                 href={`https://wa.me/${whatsappNumber}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-[#6EE7B7] hover:text-white transition-colors"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--link)] hover:text-text-primary transition-colors"
               >
                 <span>Central de Atendimento</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">

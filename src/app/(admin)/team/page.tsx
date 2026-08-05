@@ -40,8 +40,8 @@ export default async function TeamPage({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Equipe</h1>
-          <p className="mt-1 text-sm text-[#C8D4CF]">
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">Equipe</h1>
+          <p className="mt-1 text-sm text-text-secondary">
             Administradores, recepcionistas e profissionais da clínica.
           </p>
         </div>
@@ -56,12 +56,12 @@ export default async function TeamPage({
           name="q"
           defaultValue={q ?? ""}
           placeholder="Buscar por nome..."
-          className="h-11 w-full max-w-xs rounded-xl border border-[#255044] bg-[#17382D] px-4 text-sm text-[#F5F7F6] placeholder:text-[#7A9187] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
+          className="h-11 w-full max-w-xs rounded-xl border border-border bg-card-elevated px-4 text-sm text-text-primary placeholder:text-text-muted transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
         />
         <select
           name="role"
           defaultValue={role ?? ""}
-          className="h-11 rounded-xl border border-[#255044] bg-[#17382D] px-4 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30 [&>option]:bg-[#17382D] [&>option]:text-[#F5F7F6]"
+          className="h-11 rounded-xl border border-border bg-card-elevated px-4 text-sm text-text-primary transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 [&>option]:bg-card-elevated [&>option]:text-text-primary"
         >
           <option value="">Todos os cargos</option>
           {FILTER_ROLES.map((r) => (

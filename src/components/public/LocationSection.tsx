@@ -18,7 +18,7 @@ export function LocationSection({ clinicName, address, whatsappNumber }: Locatio
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <ScrollReveal animation="fade-up">
             <Badge tone="premium" className="border border-[rgba(110,231,183,0.3)] shadow-[0_0_15px_rgba(46,139,87,0.2)]">Facilidade de Acesso</Badge>
-            <h2 className="text-3xl sm:text-4xl font-black text-white mt-2 tracking-tight font-heading">
+            <h2 className="text-3xl sm:text-4xl font-black text-text-primary mt-2 tracking-tight font-heading">
               Como Chegar à Clínica Zoe
             </h2>
             <p className="text-sm sm:text-base text-text-secondary font-normal">
@@ -32,33 +32,33 @@ export function LocationSection({ clinicName, address, whatsappNumber }: Locatio
           <div className="lg:col-span-5 flex flex-col justify-between rounded-3xl border border-[rgba(110,231,183,0.18)] bg-card p-8 shadow-card space-y-6 hover:border-[rgba(110,231,183,0.35)] transition-all duration-300">
             <div className="space-y-6">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#6EE7B7]">Endereço Completo</span>
-                <p className="text-base font-bold text-white mt-1 leading-relaxed">{fullAddress}</p>
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--link)]">Endereço Completo</span>
+                <p className="text-base font-bold text-text-primary mt-1 leading-relaxed">{fullAddress}</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border/70 text-xs">
                 <div>
                   <span className="text-text-muted font-semibold">Telefone:</span>
-                  <p className="text-sm font-bold text-white mt-0.5">(11) 3200-0000</p>
+                  <p className="text-sm font-bold text-text-primary mt-0.5">(11) 3200-0000</p>
                 </div>
                 <div>
                   <span className="text-text-muted font-semibold">WhatsApp:</span>
-                  <p className="text-sm font-bold text-[#6EE7B7] mt-0.5">
+                  <p className="text-sm font-bold text-[var(--link)] mt-0.5">
                     {whatsappNumber ? `+${whatsappNumber}` : "(11) 99999-9999"}
                   </p>
                 </div>
                 <div className="sm:col-span-2">
                   <span className="text-text-muted font-semibold">E-mail:</span>
-                  <p className="text-sm font-bold text-white mt-0.5">contato@clinicazoe.com.br</p>
+                  <p className="text-sm font-bold text-text-primary mt-0.5">contato@clinicazoe.com.br</p>
                 </div>
               </div>
 
               <div className="pt-4 border-t border-border/70 space-y-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#6EE7B7]">Horário de Funcionamento</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--link)]">Horário de Funcionamento</span>
                 <div className="text-xs text-text-secondary space-y-1">
-                  <p><strong className="text-white">Segunda a Sexta-feira:</strong> 07:00 às 20:00</p>
-                  <p><strong className="text-white">Sábados:</strong> 08:00 às 14:00</p>
-                  <p><strong className="text-white">Domingos e Feriados:</strong> Fechado</p>
+                  <p><strong className="text-text-primary">Segunda a Sexta-feira:</strong> 07:00 às 20:00</p>
+                  <p><strong className="text-text-primary">Sábados:</strong> 08:00 às 14:00</p>
+                  <p><strong className="text-text-primary">Domingos e Feriados:</strong> Fechado</p>
                 </div>
               </div>
             </div>
