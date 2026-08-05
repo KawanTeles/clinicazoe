@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent } from "@/components/ui/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { formatCurrency } from "@/lib/whatsapp";
 import { CITIES } from "@/lib/constants";
@@ -26,6 +26,7 @@ import {
 } from "@/modules/appointments/services/recurrence-actions";
 import { RecurrenceFields, type RecurrenceValue } from "@/modules/appointments/components/RecurrenceFields";
 import { ConflictsReview } from "@/modules/appointments/components/ConflictsReview";
+import { Avatar } from "@/components/ui/Avatar";
 
 interface Option {
   id: string;
@@ -69,21 +70,8 @@ const DEFAULT_RECURRENCE: RecurrenceValue = {
   notes: "",
 };
 
-const STEP_LABELS = [
-  "Paciente",
-  "Cidade",
-  "Convênio",
-  "Profissional",
-  "Data",
-  "Horário",
-  "Pagamento",
-  "Recorrência",
-  "Resumo",
-];
-
 export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
   const router = useRouter();
-  const [step, setStep] = useState(1);
 
   // Etapa 1: paciente
   const [patient, setPatient] = useState<PatientSearchResult | null>(null);
@@ -125,15 +113,9 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
   const [error, setError] = useState<string | null>(null);
   const [successResult, setSuccessResult] = useState<{ whatsappLink?: string | null; count: number } | null>(null);
 
-  function goTo(next: number) {
-    setError(null);
-    setStep(next);
-  }
-
   function handleSelectPatient(selected: PatientSearchResult) {
     setPatient(selected);
     setShowCreatePatient(false);
-    goTo(2);
   }
 
   async function handleCreatePatient(e: React.FormEvent) {
@@ -164,17 +146,15 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
       preferredProfessionalId: null,
     });
     setShowCreatePatient(false);
-    goTo(2);
-  }
-
-  function handleSelectCity(selected: string) {
-    setCity(selected);
-    goTo(3);
   }
 
   async function handleSelectInsurance(option: Option) {
     setInsurance(option);
     setProfessional(null);
+    setDates([]);
+    setDate(null);
+    setTimes([]);
+    setTime(null);
     setLoading(true);
     setError(null);
     const data = await getBookableProfessionalsByInsurance(option.id);
@@ -185,15 +165,17 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
         specialtyName: p.specialtyName,
         specialty_id: p.specialty_id,
         avatarUrl: p.avatarUrl,
-      })),
+      }))
     );
     setLoading(false);
     if (data.length === 0) setError("Nenhum profissional disponível para este convênio.");
-    goTo(4);
   }
 
   async function handleSelectProfessional(option: ProfessionalOption) {
     setProfessional(option);
+    setDate(null);
+    setTimes([]);
+    setTime(null);
     setLoading(true);
     setError(null);
     const [availableDates, effectiveDuration] = await Promise.all([
@@ -204,7 +186,6 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
     setDuration(effectiveDuration);
     setLoading(false);
     if (availableDates.length === 0) setError("Esse profissional não tem horários disponíveis no momento.");
-    goTo(5);
   }
 
   async function handleSelectDate(selected: string) {
@@ -217,7 +198,6 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
     setTimes(data);
     setLoading(false);
     if (data.length === 0) setError("Sem horários livres nesse dia. Escolha outra data.");
-    goTo(6);
   }
 
   async function handleSelectTime(option: TimeOption) {
@@ -228,24 +208,13 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
     setPricing(options);
     setPaymentMethod(options[0]?.paymentMethod ?? null);
     setLoading(false);
-    goTo(7);
-  }
-
-  function handleSelectPayment(method: PaymentMethod) {
-    setPaymentMethod(method);
-    goTo(8);
-  }
-
-  function handleContinueFromRecurrence() {
-    if (isRecurring && !recurrence.startDate) {
-      setError("Informe a data de início da recorrência.");
-      return;
-    }
-    goTo(9);
   }
 
   async function handleConfirm() {
-    if (!patient || !professional || !insurance || !date || !time || !paymentMethod) return;
+    if (!patient || !professional || !insurance || !date || !time || !paymentMethod) {
+      setError("Preencha todos os campos obrigatórios antes de confirmar.");
+      return;
+    }
 
     setSaving(true);
     setError(null);
@@ -325,12 +294,13 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
 
   function handleReset() {
     setSuccessResult(null);
-    setStep(1);
     setPatient(null);
     setCity(null);
     setInsurance(null);
     setProfessional(null);
+    setDates([]);
     setDate(null);
+    setTimes([]);
     setTime(null);
     setPaymentMethod(null);
     setIsRecurring(false);
@@ -340,21 +310,21 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
 
   if (successResult) {
     return (
-      <Card className="border-primary/50 bg-card shadow-card animate-fade-up">
+      <Card className="border-primary/50 bg-card shadow-2xl animate-fade-up max-w-2xl mx-auto">
         <CardContent className="flex flex-col items-center gap-5 p-8 text-center sm:p-12">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[var(--badge-bg)] border border-primary/40 text-[var(--link)] shadow-[0_0_30px_rgba(15,164,122,0.3)]">
+          <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-[var(--badge-bg)] border border-primary/40 text-[var(--primary)] shadow-[0_0_30px_rgba(15,164,122,0.3)]">
             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
-          <Badge tone="premium">Agendamento realizado!</Badge>
+          <Badge tone="premium">Agendamento Realizado!</Badge>
           <h2 className="text-2xl font-black text-text-primary tracking-tight font-heading">
             {successResult.count > 1 ? `${successResult.count} consultas criadas` : "Consulta criada com sucesso"}
           </h2>
           <p className="max-w-lg text-sm text-text-secondary">
             Paciente: <strong className="text-text-primary">{patient?.fullName}</strong>
           </p>
-          <div className="flex flex-col items-center gap-3 pt-2 sm:flex-row">
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
             {successResult.whatsappLink && (
               <a href={successResult.whatsappLink} target="_blank" rel="noreferrer">
                 <Button type="button">Enviar confirmação por WhatsApp</Button>
@@ -363,8 +333,8 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
             <Button type="button" variant="secondary" onClick={handleReset}>
               Novo agendamento
             </Button>
-            <Button type="button" variant="secondary" onClick={() => router.push("/appointments")}>
-              Ver consultas
+            <Button type="button" variant="ghost" onClick={() => router.push("/appointments")}>
+              Ver lista de consultas
             </Button>
           </div>
         </CardContent>
@@ -387,261 +357,313 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
-        <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-[var(--link)]">
-              Etapa {step} de 9
-            </span>
-            <h3 className="text-lg font-extrabold text-text-primary font-heading">
-              {step}. {STEP_LABELS[step - 1]}
-            </h3>
-          </div>
-          {step > 1 && (
-            <button
-              type="button"
-              onClick={() => goTo(step - 1)}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--link)] hover:underline"
-            >
-              ← Voltar etapa anterior
-            </button>
-          )}
+      {error && (
+        <div className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
+          {error}
         </div>
-        <div className="grid grid-cols-9 gap-1.5">
-          {STEP_LABELS.map((_, i) => (
-            <div
-              key={i}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                i < step ? "bg-gradient-forest shadow-[0_0_10px_rgba(15,164,122,0.5)]" : "bg-card-elevated"
-              }`}
-            />
-          ))}
-        </div>
-      </div>
+      )}
 
-      {error && <p className="text-sm font-medium text-danger">{error}</p>}
+      {/* 2-Column Dashboard Workspace */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        {/* Left Column: Paciente, Cidade, Convênio & Profissional */}
+        <div className="flex flex-col gap-6 lg:col-span-6">
+          {/* Card 1: Dados do Paciente */}
+          <Card>
+            <CardHeader className="py-3 px-5">
+              <CardTitle className="text-sm font-bold text-text-primary uppercase tracking-wider">
+                1. Dados do Paciente
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 flex flex-col gap-3">
+              <PatientPickerField selectedName={patient?.fullName} onSelect={handleSelectPatient} />
+              {!showCreatePatient ? (
+                <button
+                  type="button"
+                  onClick={() => setShowCreatePatient(true)}
+                  className="w-fit text-xs font-bold text-[var(--primary)] hover:underline"
+                >
+                  + Cadastrar novo paciente
+                </button>
+              ) : (
+                <form onSubmit={handleCreatePatient} className="flex flex-col gap-3 rounded-xl border border-border bg-card-elevated/60 p-4">
+                  <span className="text-xs font-bold text-text-primary">Novo Paciente</span>
+                  <Input label="Nome Completo" value={newName} onChange={(e) => setNewName(e.target.value)} required />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input label="Telefone" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />
+                    <Input label="WhatsApp" value={newWhatsapp} onChange={(e) => setNewWhatsapp(e.target.value)} />
+                  </div>
+                  <Input label="Cidade" value={newCity} onChange={(e) => setNewCity(e.target.value)} />
+                  <div className="flex gap-2 pt-1">
+                    <Button type="submit" size="sm" isLoading={creatingPatient}>
+                      Salvar e Usar
+                    </Button>
+                    <Button type="button" size="sm" variant="ghost" onClick={() => setShowCreatePatient(false)}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </CardContent>
+          </Card>
 
-      {step === 1 && (
-        <Card>
-          <CardContent className="flex flex-col gap-4 py-6">
-            <PatientPickerField selectedName={patient?.fullName} onSelect={handleSelectPatient} />
-            {!showCreatePatient ? (
-              <button
-                type="button"
-                onClick={() => setShowCreatePatient(true)}
-                className="w-fit text-sm font-semibold text-[var(--link)] hover:underline"
-              >
-                + Cadastrar novo paciente
-              </button>
-            ) : (
-              <form onSubmit={handleCreatePatient} className="flex flex-col gap-4 rounded-2xl border border-border bg-card-elevated/60 p-5">
-                <p className="text-sm font-bold text-text-primary">Cadastrar novo paciente</p>
-                <Input label="Nome completo" value={newName} onChange={(e) => setNewName(e.target.value)} required />
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <Input label="Telefone" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />
-                  <Input label="WhatsApp" value={newWhatsapp} onChange={(e) => setNewWhatsapp(e.target.value)} />
+          {/* Card 2: Cidade & Convênio */}
+          <Card>
+            <CardHeader className="py-3 px-5">
+              <CardTitle className="text-sm font-bold text-text-primary uppercase tracking-wider">
+                2. Cidade & Convênio
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 flex flex-col gap-4">
+              <div>
+                <label className="mb-2 block text-xs font-semibold text-text-secondary">Cidade</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {CITIES.map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setCity(opt)}
+                      className={`rounded-xl border p-2.5 text-center text-xs font-semibold transition-all ${
+                        city === opt
+                          ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)] shadow-sm font-bold"
+                          : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
                 </div>
-                <Input label="Cidade" value={newCity} onChange={(e) => setNewCity(e.target.value)} />
-                <div className="flex gap-3">
-                  <Button type="submit" size="sm" isLoading={creatingPatient}>
-                    Cadastrar e continuar
-                  </Button>
-                  <Button type="button" size="sm" variant="secondary" onClick={() => setShowCreatePatient(false)}>
-                    Cancelar
-                  </Button>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-semibold text-text-secondary">Convênio</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {insurances.map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleSelectInsurance(opt)}
+                      className={`rounded-xl border p-3 text-left text-xs font-semibold transition-all ${
+                        insurance?.id === opt.id
+                          ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)] shadow-sm font-bold"
+                          : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
+                      }`}
+                    >
+                      {opt.name}
+                    </button>
+                  ))}
                 </div>
-              </form>
-            )}
-          </CardContent>
-        </Card>
-      )}
+              </div>
+            </CardContent>
+          </Card>
 
-      {step === 2 && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {CITIES.map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => handleSelectCity(option)}
-              className={
-                city === option
-                  ? "rounded-2xl border-2 border-primary bg-card-elevated p-5 text-left text-base font-bold text-text-primary shadow-card"
-                  : "rounded-2xl border border-border bg-card p-5 text-left text-base font-semibold text-text-primary transition-all hover:border-primary/60 hover:bg-card-elevated/80"
-              }
-            >
-              {option}
-            </button>
-          ))}
+          {/* Card 3: Profissional */}
+          <Card>
+            <CardHeader className="py-3 px-5">
+              <CardTitle className="text-sm font-bold text-text-primary uppercase tracking-wider">
+                3. Profissional
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5">
+              {!insurance ? (
+                <p className="text-xs text-text-muted">Selecione primeiro um convênio acima.</p>
+              ) : loading ? (
+                <p className="text-xs text-text-muted animate-pulse">Buscando profissionais...</p>
+              ) : professionals.length === 0 ? (
+                <p className="text-xs text-danger">Nenhum profissional cadastrado para este convênio.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {professionals.map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleSelectProfessional(opt)}
+                      className={`flex items-center gap-3 rounded-xl border p-3 text-left transition-all ${
+                        professional?.id === opt.id
+                          ? "border-primary bg-[var(--badge-bg)] ring-1 ring-primary shadow-sm"
+                          : "border-border bg-card-elevated/40 hover:border-primary/50"
+                      }`}
+                    >
+                      <Avatar src={opt.avatarUrl} name={opt.fullName} size={36} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-bold text-text-primary">{opt.fullName}</p>
+                        <p className="truncate text-[11px] text-[var(--primary)] font-medium">{opt.specialtyName}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
-      )}
 
-      {step === 3 && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {loading && <p className="text-sm text-text-secondary">Carregando...</p>}
-          {!loading &&
-            insurances.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => handleSelectInsurance(option)}
-                className="rounded-2xl border border-border bg-card p-5 text-left text-base font-semibold text-text-primary shadow-card transition-all hover:border-primary/60 hover:bg-card-elevated/80"
-              >
-                {option.name}
-              </button>
-            ))}
-        </div>
-      )}
+        {/* Right Column: Calendário, Horários, Recorrência & Resumo */}
+        <div className="flex flex-col gap-6 lg:col-span-6">
+          {/* Card 4: Data & Horário */}
+          <Card>
+            <CardHeader className="py-3 px-5">
+              <CardTitle className="text-sm font-bold text-text-primary uppercase tracking-wider">
+                4. Data e Horário
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 flex flex-col gap-4">
+              {!professional ? (
+                <p className="text-xs text-text-muted">Selecione primeiro o profissional na coluna ao lado.</p>
+              ) : (
+                <>
+                  {duration && (
+                    <span className="inline-flex w-fit items-center gap-1.5 rounded-lg bg-card-elevated px-2.5 py-1 text-xs font-semibold text-text-secondary border border-border">
+                      ⏱ Duração da consulta: <strong className="text-text-primary">{duration} min</strong>
+                    </span>
+                  )}
 
-      {step === 4 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {loading && <p className="text-sm text-text-secondary">Carregando...</p>}
-          {!loading &&
-            professionals.map((option) => (
-              <div key={option.id} className="flex flex-col justify-between rounded-2xl border border-border bg-card p-5 shadow-card">
+                  {/* Dates */}
+                  <div>
+                    <label className="mb-2 block text-xs font-semibold text-text-secondary">Datas Disponíveis</label>
+                    {dates.length === 0 ? (
+                      <p className="text-xs text-text-muted">Nenhum dia disponível informado para o profissional.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
+                        {dates.map((iso) => (
+                          <button
+                            key={iso}
+                            type="button"
+                            onClick={() => handleSelectDate(iso)}
+                            className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all ${
+                              date === iso
+                                ? "border-primary bg-[var(--primary)] text-white shadow-sm font-bold"
+                                : "border-border bg-card-elevated/40 text-text-primary hover:border-primary/50"
+                            }`}
+                          >
+                            {WEEKDAY_FORMATTER.format(new Date(`${iso}T00:00:00`))}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Times */}
+                  {date && (
+                    <div>
+                      <label className="mb-2 block text-xs font-semibold text-text-secondary">Horários Livres</label>
+                      {times.length === 0 ? (
+                        <p className="text-xs text-danger">Sem horários para este dia.</p>
+                      ) : (
+                        <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
+                          {times.map((opt) => (
+                            <button
+                              key={`${opt.slotId}-${opt.startTime}`}
+                              type="button"
+                              onClick={() => handleSelectTime(opt)}
+                              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all ${
+                                time?.startTime === opt.startTime
+                                  ? "border-primary bg-[var(--primary)] text-white shadow-sm font-bold"
+                                  : "border-border bg-card-elevated/40 text-text-primary hover:border-primary/50"
+                              }`}
+                            >
+                              {opt.startTime.slice(0, 5)}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Card 5: Recorrência & Observações */}
+          <Card>
+            <CardHeader className="py-3 px-5">
+              <CardTitle className="text-sm font-bold text-text-primary uppercase tracking-wider">
+                5. Configuração de Recorrência
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 flex flex-col gap-3">
+              <label className="flex items-center gap-2 text-xs font-bold text-text-primary cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isRecurring}
+                  onChange={(e) => setIsRecurring(e.target.checked)}
+                  className="h-4 w-4 rounded accent-primary"
+                />
+                Agendamento Recorrente (Semanal, Quinzenal ou Mensal)
+              </label>
+
+              {isRecurring && (
+                <div className="pt-2">
+                  <RecurrenceFields value={recurrence} onChange={setRecurrence} />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Card 6: Resumo ao Vivo & Confirmação */}
+          <Card className="border-primary/40 bg-gradient-to-br from-card to-card-elevated/30">
+            <CardHeader className="py-3 px-5">
+              <CardTitle className="text-sm font-bold text-text-primary uppercase tracking-wider">
+                6. Resumo e Pagamento
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-3 text-xs border-b border-border/60 pb-3">
                 <div>
-                  <p className="text-base font-bold text-text-primary">{option.fullName}</p>
-                  <Badge tone="success" className="mt-1">{option.specialtyName}</Badge>
+                  <span className="text-text-muted block font-medium">Paciente:</span>
+                  <span className="font-bold text-text-primary">{patient?.fullName || "—"}</span>
                 </div>
-                <Button className="mt-4 w-full" onClick={() => handleSelectProfessional(option)}>
-                  Selecionar profissional
+                <div>
+                  <span className="text-text-muted block font-medium">Profissional:</span>
+                  <span className="font-bold text-text-primary">{professional?.fullName || "—"}</span>
+                </div>
+                <div>
+                  <span className="text-text-muted block font-medium">Convênio:</span>
+                  <span className="font-bold text-text-primary">{insurance?.name || "—"}</span>
+                </div>
+                <div>
+                  <span className="text-text-muted block font-medium">Data/Hora:</span>
+                  <span className="font-bold text-[var(--primary)]">
+                    {date && time
+                      ? `${dateFormatter.format(new Date(`${date}T00:00:00`))} às ${time.startTime.slice(0, 5)}`
+                      : "—"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Payment Methods */}
+              <div>
+                <label className="mb-2 block text-xs font-semibold text-text-secondary">Forma de Pagamento</label>
+                <div className="flex flex-wrap gap-2">
+                  {pricing.map((opt) => (
+                    <button
+                      key={opt.paymentMethod}
+                      type="button"
+                      onClick={() => setPaymentMethod(opt.paymentMethod)}
+                      className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-all ${
+                        paymentMethod === opt.paymentMethod
+                          ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)] font-bold shadow-sm"
+                          : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
+                      }`}
+                    >
+                      {PAYMENT_LABELS[opt.paymentMethod]} — {formatCurrency(opt.value)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  className="w-full h-11 text-sm font-bold shadow-button"
+                  isLoading={saving}
+                  disabled={!patient || !professional || !insurance || !date || !time || !paymentMethod}
+                  onClick={handleConfirm}
+                >
+                  Confirmar Agendamento
                 </Button>
               </div>
-            ))}
+            </CardContent>
+          </Card>
         </div>
-      )}
-
-      {step === 5 && (
-        <div className="flex flex-col gap-4">
-          {professional && duration && (
-            <div className="rounded-xl border border-border bg-card-elevated/60 p-4 text-sm text-text-secondary">
-              <span className="font-semibold text-text-primary">{professional.fullName}</span> —{" "}
-              {professional.specialtyName} · Duração: {duration} min
-            </div>
-          )}
-          {loading && <p className="text-sm text-text-secondary">Carregando...</p>}
-          <div className="flex flex-wrap gap-3">
-            {!loading &&
-              dates.map((iso) => (
-                <button
-                  key={iso}
-                  type="button"
-                  onClick={() => handleSelectDate(iso)}
-                  className={
-                    date === iso
-                      ? "rounded-xl border-2 border-primary bg-primary/10 px-4 py-3 text-sm font-bold text-primary"
-                      : "rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-text-primary hover:border-primary/50"
-                  }
-                >
-                  {WEEKDAY_FORMATTER.format(new Date(`${iso}T00:00:00`))}
-                </button>
-              ))}
-          </div>
-        </div>
-      )}
-
-      {step === 6 && (
-        <div className="flex flex-wrap gap-3">
-          {loading && <p className="text-sm text-text-secondary">Carregando...</p>}
-          {!loading &&
-            times.map((option) => (
-              <button
-                key={`${option.slotId}-${option.startTime}`}
-                type="button"
-                onClick={() => handleSelectTime(option)}
-                className={
-                  time?.startTime === option.startTime
-                    ? "rounded-xl border-2 border-primary bg-primary/10 px-4 py-3 text-sm font-bold text-primary"
-                    : "rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-text-primary hover:border-primary/50"
-                }
-              >
-                {option.startTime.slice(0, 5)}
-              </button>
-            ))}
-        </div>
-      )}
-
-      {step === 7 && (
-        <div className="flex flex-wrap gap-3">
-          {pricing.length === 0 && (
-            <p className="text-sm font-medium text-danger">Sem valor configurado para este profissional/convênio.</p>
-          )}
-          {pricing.map((option) => (
-            <button
-              key={option.paymentMethod}
-              type="button"
-              onClick={() => handleSelectPayment(option.paymentMethod)}
-              className={
-                paymentMethod === option.paymentMethod
-                  ? "rounded-xl border-2 border-primary bg-primary/10 px-4 py-3 text-sm font-bold text-primary"
-                  : "rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium text-text-primary hover:border-primary/50"
-              }
-            >
-              {PAYMENT_LABELS[option.paymentMethod]} — {formatCurrency(option.value)}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {step === 8 && (
-        <div className="flex flex-col gap-4">
-          <label className="flex w-fit cursor-pointer items-center gap-2 text-sm font-semibold text-text-primary">
-            <input
-              type="checkbox"
-              checked={isRecurring}
-              onChange={(e) => setIsRecurring(e.target.checked)}
-              className="h-4 w-4 accent-primary"
-            />
-            Consulta recorrente
-          </label>
-          {isRecurring && <RecurrenceFields value={recurrence} onChange={setRecurrence} />}
-          <Button className="w-fit" onClick={handleContinueFromRecurrence}>
-            Continuar
-          </Button>
-        </div>
-      )}
-
-      {step === 9 && patient && city && insurance && professional && date && time && paymentMethod && (
-        <Card>
-          <CardContent className="flex flex-col gap-6 py-6">
-            <div className="grid grid-cols-1 gap-4 rounded-xl border border-border bg-card-elevated/50 p-5 text-sm sm:grid-cols-2">
-              <SummaryField label="Paciente" value={patient.fullName} />
-              <SummaryField label="Cidade" value={city} />
-              <SummaryField label="Convênio" value={insurance.name} />
-              <SummaryField label="Profissional" value={professional.fullName} />
-              <SummaryField label="Especialidade" value={professional.specialtyName} />
-              <SummaryField label="Duração" value={duration ? `${duration} min` : "—"} />
-              <SummaryField
-                label="Data/Horário"
-                value={`${dateFormatter.format(new Date(`${date}T00:00:00`))} às ${time.startTime.slice(0, 5)}`}
-              />
-              <SummaryField label="Forma de pagamento" value={PAYMENT_LABELS[paymentMethod]} />
-              <SummaryField
-                label="Valor"
-                value={formatCurrency(pricing.find((p) => p.paymentMethod === paymentMethod)?.value ?? 0)}
-              />
-              {isRecurring && (
-                <SummaryField
-                  label="Recorrência"
-                  value={`${recurrence.frequency === "weekly" ? "Semanal" : recurrence.frequency === "biweekly" ? "Quinzenal" : "Mensal"}, a partir de ${recurrence.startDate ? dateFormatter.format(new Date(`${recurrence.startDate}T00:00:00`)) : "—"}`}
-                />
-              )}
-            </div>
-
-            <Button isLoading={saving} onClick={handleConfirm}>
-              Confirmar agendamento
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-}
-
-function SummaryField({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">{label}</p>
-      <p className="mt-1 font-semibold text-text-primary">{value}</p>
+      </div>
     </div>
   );
 }

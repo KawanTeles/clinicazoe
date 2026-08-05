@@ -20,39 +20,45 @@ export default async function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#F5F7F6]">Configurações</h1>
-        <p className="mt-1 text-sm text-[#C8D4CF]">Dados gerais da clínica.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">Configurações da Clínica</h1>
+        <p className="mt-1 text-sm text-text-secondary">
+          Gerencie dados da empresa, identidade e calendários de exceção / feriados.
+        </p>
       </div>
 
-      <Card className="max-w-xl">
-        <CardHeader>
-          <CardTitle>Dados da clínica</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ClinicSettingsForm
-            logoUrl={logoUrl}
-            initial={{
-              name: settings?.name ?? "",
-              whatsapp_number: settings?.whatsapp_number ?? "",
-              address: settings?.address ?? "",
-            }}
-          />
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="py-3.5 px-5">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
+              Dados Principais & Logotipo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-5">
+            <ClinicSettingsForm
+              logoUrl={logoUrl}
+              initial={{
+                name: settings?.name ?? "",
+                whatsapp_number: settings?.whatsapp_number ?? "",
+                address: settings?.address ?? "",
+              }}
+            />
+          </CardContent>
+        </Card>
 
-      <Card className="max-w-2xl">
-        <CardHeader>
-          <CardTitle>Feriados</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="mb-4 text-sm text-text-secondary">
-            Datas bloqueadas para todos os profissionais — usadas na checagem de conflito de
-            agendamentos avulsos e recorrentes.
-          </p>
-          <HolidayManager holidays={holidays} />
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader className="py-3.5 px-5">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
+              Calendário de Feriados & Bloqueios
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-5 flex flex-col gap-4">
+            <p className="text-xs text-text-secondary">
+              Feriados bloqueiam automaticamente agendamentos normais e recorrentes para todos os profissionais.
+            </p>
+            <HolidayManager holidays={holidays} />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
-

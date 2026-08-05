@@ -29,6 +29,7 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
 
   async function handleCreate(event: FormEvent) {
     event.preventDefault();
+    if (!newName.trim()) return;
     setError(null);
     setCreating(true);
 
@@ -95,35 +96,36 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <form onSubmit={handleCreate} className="flex flex-wrap items-end gap-3">
-        <div className="w-full max-w-xs">
+      <form onSubmit={handleCreate} className="flex flex-wrap items-end gap-3 rounded-2xl border border-border bg-card p-4 shadow-card">
+        <div className="w-full max-w-sm">
           <Input
-            label="Novo convênio"
+            label="Novo Convênio"
             name="new_insurance"
-            placeholder="Ex: Unimed, Postal Saúde..."
+            placeholder="Ex: Unimed, Bradesco Saúde, Cassi..."
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
+            className="h-10 text-xs"
           />
         </div>
-        <Button type="submit" isLoading={creating}>
-          Adicionar
+        <Button type="submit" isLoading={creating} className="h-10 text-xs font-bold px-5">
+          + Adicionar Convênio
         </Button>
       </form>
 
-      {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
+      {error && <p className="text-xs font-semibold text-danger">{error}</p>}
 
-      <div className="overflow-x-auto rounded-2xl border border-[#255044] bg-[#102A22] shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
-        <table className="w-full min-w-[480px] text-left text-sm">
-          <thead className="border-b border-[#255044] bg-[#17382D]/80 text-xs font-bold uppercase tracking-wider text-[#C8D4CF]">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
+        <table className="w-full min-w-[540px] text-left text-sm">
+          <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
             <tr>
-              <th className="px-5 py-4 font-bold">Nome</th>
-              <th className="px-5 py-4 font-bold">Status</th>
-              <th className="px-5 py-4 font-bold text-right">Ações</th>
+              <th className="px-5 py-3.5 font-bold">Nome do Convênio</th>
+              <th className="px-5 py-3.5 font-bold">Status</th>
+              <th className="px-5 py-3.5 font-bold text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#255044]/40">
+          <tbody className="divide-y divide-border/40">
             {insurances.map((insurance) => (
-              <tr key={insurance.id} className="transition-colors hover:bg-[#17382D]/50">
+              <tr key={insurance.id} className="transition-colors hover:bg-card-elevated/40">
                 <td className="px-5 py-4">
                   {editingId === insurance.id ? (
                     <div className="flex items-center gap-2">
@@ -131,34 +133,36 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
                         autoFocus
                         value={editingName}
                         onChange={(e) => setEditingName(e.target.value)}
-                        className="h-10 rounded-xl border border-[#255044] bg-[#17382D] px-3 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
+                        className="h-9 rounded-xl border border-border bg-card-elevated px-3 text-xs text-text-primary focus:border-primary focus:outline-none"
                       />
                       <Button
                         size="sm"
                         isLoading={busyId === insurance.id}
                         onClick={() => handleSaveName(insurance.id)}
+                        className="h-8 text-xs px-3"
                       >
                         Salvar
                       </Button>
-                      <Button size="sm" variant="secondary" onClick={() => setEditingId(null)}>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingId(null)} className="h-8 text-xs px-3">
                         Cancelar
                       </Button>
                     </div>
                   ) : (
-                    <span className="font-semibold text-[#F5F7F6]">{insurance.name}</span>
+                    <span className="font-bold text-text-primary">{insurance.name}</span>
                   )}
                 </td>
                 <td className="px-5 py-4">
-                  <Badge tone={insurance.status === "active" ? "success" : "neutral"}>
+                  <Badge tone={insurance.status === "active" ? "success" : "neutral"} className="text-[10px]">
                     {insurance.status === "active" ? "Ativo" : "Inativo"}
                   </Badge>
                 </td>
                 <td className="px-5 py-4">
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-1.5">
                     {editingId !== insurance.id && (
                       <Button
                         size="sm"
                         variant="secondary"
+                        className="h-8 text-xs px-3"
                         onClick={() => {
                           setEditingId(insurance.id);
                           setEditingName(insurance.name);
@@ -170,6 +174,7 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
                     <Button
                       size="sm"
                       variant="secondary"
+                      className="h-8 text-xs px-3"
                       isLoading={busyId === insurance.id}
                       onClick={() => handleToggleStatus(insurance)}
                     >
@@ -178,6 +183,7 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
                     <Button
                       size="sm"
                       variant="danger"
+                      className="h-8 text-xs px-3"
                       isLoading={busyId === insurance.id}
                       onClick={() => handleDelete(insurance)}
                     >
@@ -193,4 +199,3 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
     </div>
   );
 }
-

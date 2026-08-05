@@ -25,6 +25,7 @@ export function HolidayManager({ holidays }: { holidays: Holiday[] }) {
 
   async function handleCreate(event: FormEvent) {
     event.preventDefault();
+    if (!date) return;
     setError(null);
     setCreating(true);
 
@@ -63,44 +64,49 @@ export function HolidayManager({ holidays }: { holidays: Holiday[] }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <form onSubmit={handleCreate} className="flex flex-wrap items-end gap-3">
-        <Input label="Data" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-        <div className="w-full max-w-xs">
+      <form onSubmit={handleCreate} className="flex flex-wrap items-end gap-3 rounded-2xl border border-border bg-card p-4 shadow-card">
+        <div>
+          <Input label="Data *" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-10 text-xs" />
+        </div>
+        <div className="w-full max-w-sm">
           <Input
             label="Descrição (opcional)"
-            placeholder="Ex: Natal, Feriado municipal..."
+            placeholder="Ex: Natal, Confraternização, Feriado Local..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            className="h-10 text-xs"
           />
         </div>
-        <Button type="submit" isLoading={creating}>
-          Adicionar
+        <Button type="submit" isLoading={creating} className="h-10 text-xs font-bold px-5">
+          + Adicionar Feriado
         </Button>
       </form>
 
-      {error && <p className="text-sm font-medium text-danger">{error}</p>}
+      {error && <p className="text-xs font-semibold text-danger">{error}</p>}
 
       {holidays.length === 0 ? (
-        <p className="text-sm text-text-secondary">Nenhum feriado cadastrado.</p>
+        <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center text-xs font-semibold text-text-secondary">
+          Nenhum feriado cadastrado.
+        </div>
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
           <table className="w-full min-w-[420px] text-left text-sm">
             <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
               <tr>
-                <th className="px-5 py-4 font-bold">Data</th>
-                <th className="px-5 py-4 font-bold">Descrição</th>
-                <th className="px-5 py-4 font-bold text-right">Ações</th>
+                <th className="px-5 py-3.5 font-bold">Data</th>
+                <th className="px-5 py-3.5 font-bold">Descrição</th>
+                <th className="px-5 py-3.5 font-bold text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40">
               {holidays.map((holiday) => (
-                <tr key={holiday.id} className="hover:bg-surface/50">
-                  <td className="px-5 py-4 font-semibold text-text-primary">
+                <tr key={holiday.id} className="transition-colors hover:bg-card-elevated/40">
+                  <td className="px-5 py-4 font-bold text-text-primary">
                     {dateFormatter.format(new Date(`${holiday.date}T00:00:00`))}
                   </td>
                   <td className="px-5 py-4 text-text-secondary">{holiday.description || "—"}</td>
                   <td className="px-5 py-4 text-right">
-                    <Button size="sm" variant="danger" isLoading={busyId === holiday.id} onClick={() => handleDelete(holiday)}>
+                    <Button size="sm" variant="danger" className="h-8 text-xs px-3" isLoading={busyId === holiday.id} onClick={() => handleDelete(holiday)}>
                       Excluir
                     </Button>
                   </td>

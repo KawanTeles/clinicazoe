@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency } from "@/lib/whatsapp";
@@ -60,10 +61,26 @@ export function AppointmentsList({
   const toast = useToast();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [scopeDialog, setScopeDialog] = useState<ScopeDialogState | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
 
   const isStaff = viewerRole === "admin" || viewerRole === "recepcionista";
   const isPatient = viewerRole === "paciente";
   const isProfessional = viewerRole === "profissional";
+
+  const filteredAppointments = useMemo(() => {
+    return appointments.filter((item) => {
+      const matchesSearch =
+        search === "" ||
+        item.patientName.toLowerCase().includes(search.toLowerCase()) ||
+        item.professionalName.toLowerCase().includes(search.toLowerCase()) ||
+        item.insuranceName.toLowerCase().includes(search.toLowerCase());
+
+      const matchesStatus = statusFilter === "todos" || item.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [appointments, search, statusFilter]);
 
   async function handleCancel(id: string) {
     const confirmed = await confirm({
@@ -157,90 +174,101 @@ export function AppointmentsList({
     router.refresh();
   }
 
-  if (appointments.length === 0) {
-    return (
-      <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center text-sm font-medium text-text-secondary">
-        Nenhuma consulta encontrada.
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
-        <table className="w-full min-w-[820px] text-left text-sm">
-          <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
-            <tr>
-              {isStaff && <th className="px-5 py-4 font-bold">Paciente</th>}
-              <th className="px-5 py-4 font-bold">Profissional</th>
-              <th className="px-5 py-4 font-bold">Convênio</th>
-              <th className="px-5 py-4 font-bold">Data/Hora</th>
-              <th className="px-5 py-4 font-bold">Valor</th>
-              <th className="px-5 py-4 font-bold">Status</th>
-              {isStaff && <th className="px-5 py-4 font-bold">Lembrete</th>}
-              <th className="px-5 py-4 font-bold text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/40">
-            {appointments.map((appt) => {
-              const isOwnProfessional = isProfessional && appt.professionalId === viewerId;
-              const canManageRecurrence = isStaff || isOwnProfessional;
+      {/* Control Bar: Search & Status Filters */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-border bg-card p-4 shadow-card">
+        <div className="w-full sm:w-72">
+          <Input
+            placeholder="Pesquisar por paciente, médico ou convênio..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-10 text-xs"
+          />
+        </div>
 
-              return (
-                <tr key={appt.id} className="transition-colors hover:bg-surface/50">
-                  {isStaff && <td className="px-5 py-4 font-semibold text-text-primary">{appt.patientName}</td>}
-                  <td className="px-5 py-4 font-semibold text-text-primary">{appt.professionalName}</td>
-                  <td className="px-5 py-4 text-text-secondary">{appt.insuranceName}</td>
-                  <td className="px-5 py-4 text-text-secondary">
-                    {dateFormatter.format(new Date(`${appt.date}T00:00:00`))}{" "}
-                    <span className="font-semibold text-text-primary">{appt.startTime.slice(0, 5)}</span>
-                    {appt.seriesId && (
-                      <Badge tone="premium" className="ml-2">
-                        Recorrente
-                      </Badge>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 font-medium text-text-secondary">{formatCurrency(appt.value)}</td>
-                  <td className="px-5 py-4">
-                    <Badge tone={STATUS_TONE[appt.status] ?? "neutral"}>{STATUS_LABELS[appt.status] ?? appt.status}</Badge>
-                  </td>
-                  {isStaff && (
-                    <td className="px-5 py-4">
-                      {appt.reminderSentAt ? (
-                        <Badge tone="success">Enviado</Badge>
-                      ) : (
-                        <Badge tone="neutral">—</Badge>
+        <div className="flex flex-wrap gap-1.5 text-xs">
+          {[
+            { id: "todos", label: "Todas" },
+            { id: "pendente", label: "Pendentes" },
+            { id: "confirmada", label: "Confirmadas" },
+            { id: "concluida", label: "Concluídas" },
+            { id: "cancelada", label: "Canceladas" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setStatusFilter(tab.id)}
+              className={`rounded-xl px-3 py-1.5 font-semibold transition-all ${
+                statusFilter === tab.id
+                  ? "bg-[var(--primary)] text-white shadow-sm"
+                  : "bg-card-elevated/40 text-text-secondary hover:text-text-primary hover:bg-card-elevated"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {filteredAppointments.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center text-sm font-medium text-text-secondary">
+          Nenhuma consulta encontrada com esses filtros.
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
+          <table className="w-full min-w-[820px] text-left text-sm">
+            <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              <tr>
+                {isStaff && <th className="px-5 py-3.5 font-bold">Paciente</th>}
+                <th className="px-5 py-3.5 font-bold">Profissional</th>
+                <th className="px-5 py-3.5 font-bold">Convênio</th>
+                <th className="px-5 py-3.5 font-bold">Data/Hora</th>
+                <th className="px-5 py-3.5 font-bold">Valor</th>
+                <th className="px-5 py-3.5 font-bold">Status</th>
+                {isStaff && <th className="px-5 py-3.5 font-bold">Lembrete</th>}
+                <th className="px-5 py-3.5 font-bold text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/40">
+              {filteredAppointments.map((appt) => {
+                const isOwnProfessional = isProfessional && appt.professionalId === viewerId;
+                const canManageRecurrence = isStaff || isOwnProfessional;
+
+                return (
+                  <tr key={appt.id} className="transition-colors hover:bg-card-elevated/40">
+                    {isStaff && <td className="px-5 py-4 font-bold text-text-primary">{appt.patientName}</td>}
+                    <td className="px-5 py-4 font-semibold text-text-primary">{appt.professionalName}</td>
+                    <td className="px-5 py-4 text-text-secondary">{appt.insuranceName}</td>
+                    <td className="px-5 py-4 text-text-secondary">
+                      {dateFormatter.format(new Date(`${appt.date}T00:00:00`))}{" "}
+                      <span className="font-semibold text-text-primary">{appt.startTime.slice(0, 5)}</span>
+                      {appt.seriesId && (
+                        <Badge tone="premium" className="ml-2 text-[10px]">
+                          Recorrente
+                        </Badge>
                       )}
                     </td>
-                  )}
-                  <td className="px-5 py-4">
-                    <div className="flex flex-wrap justify-end gap-2">
-                      {isStaff && appt.status === "pendente" && (
-                        <>
-                          <Button size="sm" isLoading={busyId === appt.id} onClick={() => handleConfirm(appt.id)}>
-                            Confirmar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="danger"
-                            isLoading={busyId === appt.id}
-                            onClick={() => handleStaffCancel(appt.id)}
-                          >
-                            Cancelar
-                          </Button>
-                        </>
-                      )}
-                      {isStaff && appt.status === "confirmada" && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            isLoading={busyId === appt.id}
-                            onClick={() => handleSendReminder(appt.id)}
-                          >
-                            Lembrete
-                          </Button>
-                          {!appt.seriesId && (
+                    <td className="px-5 py-4 font-medium text-text-secondary">{formatCurrency(appt.value)}</td>
+                    <td className="px-5 py-4">
+                      <Badge tone={STATUS_TONE[appt.status] ?? "neutral"}>{STATUS_LABELS[appt.status] ?? appt.status}</Badge>
+                    </td>
+                    {isStaff && (
+                      <td className="px-5 py-4">
+                        {appt.reminderSentAt ? (
+                          <Badge tone="success" className="text-[10px]">Enviado</Badge>
+                        ) : (
+                          <Badge tone="neutral" className="text-[10px]">—</Badge>
+                        )}
+                      </td>
+                    )}
+                    <td className="px-5 py-4">
+                      <div className="flex flex-wrap justify-end gap-1.5">
+                        {isStaff && appt.status === "pendente" && (
+                          <>
+                            <Button size="sm" isLoading={busyId === appt.id} onClick={() => handleConfirm(appt.id)}>
+                              Confirmar
+                            </Button>
                             <Button
                               size="sm"
                               variant="danger"
@@ -249,18 +277,57 @@ export function AppointmentsList({
                             >
                               Cancelar
                             </Button>
+                          </>
+                        )}
+                        {isStaff && appt.status === "confirmada" && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              isLoading={busyId === appt.id}
+                              onClick={() => handleSendReminder(appt.id)}
+                            >
+                              Lembrete
+                            </Button>
+                            {!appt.seriesId && (
+                              <Button
+                                size="sm"
+                                variant="danger"
+                                isLoading={busyId === appt.id}
+                                onClick={() => handleStaffCancel(appt.id)}
+                              >
+                                Cancelar
+                              </Button>
+                            )}
+                          </>
+                        )}
+                        {canManageRecurrence &&
+                          appt.seriesId &&
+                          (appt.status === "pendente" || appt.status === "confirmada") && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() =>
+                                setScopeDialog({
+                                  mode: "edit",
+                                  appointmentId: appt.id,
+                                  date: appt.date,
+                                  startTime: appt.startTime,
+                                  professionalId: appt.professionalId,
+                                  insuranceId: appt.insuranceId,
+                                })
+                              }
+                            >
+                              Editar
+                            </Button>
                           )}
-                        </>
-                      )}
-                      {canManageRecurrence &&
-                        appt.seriesId &&
-                        (appt.status === "pendente" || appt.status === "confirmada") && (
+                        {isStaff && appt.seriesId && (appt.status === "pendente" || appt.status === "confirmada") && (
                           <Button
                             size="sm"
-                            variant="secondary"
+                            variant="danger"
                             onClick={() =>
                               setScopeDialog({
-                                mode: "edit",
+                                mode: "delete",
                                 appointmentId: appt.id,
                                 date: appt.date,
                                 startTime: appt.startTime,
@@ -269,55 +336,38 @@ export function AppointmentsList({
                               })
                             }
                           >
-                            Editar
+                            Excluir
                           </Button>
                         )}
-                      {isStaff && appt.seriesId && (appt.status === "pendente" || appt.status === "confirmada") && (
-                        <Button
-                          size="sm"
-                          variant="danger"
-                          onClick={() =>
-                            setScopeDialog({
-                              mode: "delete",
-                              appointmentId: appt.id,
-                              date: appt.date,
-                              startTime: appt.startTime,
-                              professionalId: appt.professionalId,
-                              insuranceId: appt.insuranceId,
-                            })
-                          }
-                        >
-                          Excluir
-                        </Button>
-                      )}
-                      {isPatient && (appt.status === "pendente" || appt.status === "confirmada") && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            isLoading={busyId === appt.id}
-                            onClick={() => handleReschedule(appt.id)}
-                          >
-                            Remarcar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="danger"
-                            isLoading={busyId === appt.id}
-                            onClick={() => handleCancel(appt.id)}
-                          >
-                            Cancelar
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                        {isPatient && (appt.status === "pendente" || appt.status === "confirmada") && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              isLoading={busyId === appt.id}
+                              onClick={() => handleReschedule(appt.id)}
+                            >
+                              Remarcar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="danger"
+                              isLoading={busyId === appt.id}
+                              onClick={() => handleCancel(appt.id)}
+                            >
+                              Cancelar
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {scopeDialog && (
         <RecurrenceScopeDialog
