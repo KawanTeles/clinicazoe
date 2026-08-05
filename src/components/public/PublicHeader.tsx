@@ -3,109 +3,126 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils/cn";
 
 interface PublicHeaderProps {
   clinicName: string;
 }
 
+const NAV_LINKS = [
+  { href: "/", label: "Início" },
+  { href: "/clinica", label: "A Clínica" },
+  { href: "/especialidades", label: "Especialidades" },
+  { href: "/profissionais", label: "Profissionais" },
+  { href: "/convenios", label: "Convênios" },
+  { href: "/contato", label: "Contato" },
+];
+
 export function PublicHeader({ clinicName }: PublicHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#255044]/60 bg-[#17382D]/85 backdrop-blur-xl transition-all">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-forest text-sm font-extrabold text-white shadow-[0_0_20px_rgba(46,139,87,0.3)] group-hover:scale-105 transition-transform">
-            CZ
-          </div>
-          <span className="text-xl font-black tracking-tight text-[#F5F7F6] group-hover:text-[#5ED39D] transition-colors">
-            {clinicName}
-          </span>
-        </Link>
+    <>
+      {/* Floating island nav — detached from the viewport edge */}
+      <header className="sticky top-4 z-50 px-4 sm:top-6 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between rounded-full border border-white/10 bg-[#17382D]/85 px-3 pl-5 shadow-[0_15px_45px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-shadow duration-300 ease-[var(--ease-premium)] sm:px-4 sm:pl-6">
+          {/* Brand Logo */}
+          <Link href="/" className="group flex shrink-0 items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-forest text-xs font-extrabold text-white shadow-[0_0_16px_rgba(46,139,87,0.35)] transition-transform duration-300 ease-[var(--ease-premium)] group-hover:scale-105">
+              CZ
+            </div>
+            <span className="hidden text-base font-bold tracking-tight text-[#F5F7F6] transition-colors group-hover:text-[#5ED39D] sm:inline">
+              {clinicName}
+            </span>
+          </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-[#C8D4CF]">
-          <Link href="/" className="hover:text-[#5ED39D] transition-colors">
-            Início
-          </Link>
-          <Link href="/clinica" className="hover:text-[#5ED39D] transition-colors">
-            A Clínica
-          </Link>
-          <Link href="/especialidades" className="hover:text-[#5ED39D] transition-colors">
-            Especialidades
-          </Link>
-          <Link href="/profissionais" className="hover:text-[#5ED39D] transition-colors">
-            Profissionais
-          </Link>
-          <Link href="/convenios" className="hover:text-[#5ED39D] transition-colors">
-            Convênios
-          </Link>
-          <Link href="/contato" className="hover:text-[#5ED39D] transition-colors">
-            Contato
-          </Link>
-        </nav>
-
-        {/* Action Buttons */}
-        <div className="hidden lg:flex items-center gap-3">
-          <Link href="/cliente/login">
-            <Button size="sm" className="shadow-[0_8px_25px_rgba(20,90,67,0.3)] font-semibold">
-              Área do Cliente
-            </Button>
-          </Link>
-          <Link href="/equipe">
-            <Button variant="secondary" size="sm" className="font-semibold">
-              Área da Equipe
-            </Button>
-          </Link>
-        </div>
-
-        {/* Mobile Hamburger Button */}
-        <button
-          aria-label="Menu principal"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="lg:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-[#255044] bg-[#102A22] text-[#F5F7F6] transition-colors hover:bg-[#17382D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8B57] focus-visible:ring-offset-2 focus-visible:ring-offset-[#081C15]"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            {mobileMenuOpen ? (
-              <line x1="18" y1="6" x2="6" y2="18" />
-            ) : (
-              <>
-                <line x1="4" x2="20" y1="12" y2="12" />
-                <line x1="4" x2="20" y1="6" y2="6" />
-                <line x1="4" x2="20" y1="18" y2="18" />
-              </>
-            )}
-          </svg>
-        </button>
-      </div>
-
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-[#255044] bg-[#081C15] px-6 py-6 space-y-4 animate-fade-up">
-          <nav className="flex flex-col gap-3.5 text-base font-semibold text-[#C8D4CF]">
-            <Link href="/" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#5ED39D]">
-              Início
-            </Link>
-            <Link href="/clinica" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#5ED39D]">
-              A Clínica
-            </Link>
-            <Link href="/especialidades" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#5ED39D]">
-              Especialidades
-            </Link>
-            <Link href="/profissionais" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#5ED39D]">
-              Profissionais
-            </Link>
-            <Link href="/convenios" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#5ED39D]">
-              Convênios
-            </Link>
-            <Link href="/contato" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#5ED39D]">
-              Contato
-            </Link>
+          {/* Desktop Navigation */}
+          <nav className="hidden items-center gap-6 text-sm font-medium text-[#C8D4CF] lg:flex">
+            {NAV_LINKS.map((link) => (
+              <Link key={link.href} href={link.href} className="transition-colors hover:text-[#5ED39D]">
+                {link.label}
+              </Link>
+            ))}
           </nav>
-          <div className="flex flex-col gap-3 pt-4 border-t border-[#255044]">
+
+          {/* Action Buttons */}
+          <div className="hidden items-center gap-2 lg:flex">
+            <Link href="/equipe">
+              <Button variant="ghost" size="sm" className="font-semibold">
+                Área da Equipe
+              </Button>
+            </Link>
+            <Link href="/cliente/login">
+              <Button size="sm" withArrow className="font-semibold">
+                Área do Cliente
+              </Button>
+            </Link>
+          </div>
+
+          {/* Mobile Hamburger — morphs into an X */}
+          <button
+            aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#F5F7F6] transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E8B57] lg:hidden"
+          >
+            <span className="relative block h-4 w-4">
+              <span
+                className={cn(
+                  "absolute left-0 top-0 h-[1.5px] w-4 origin-center rounded-full bg-current transition-all duration-300 ease-[var(--ease-premium)]",
+                  mobileMenuOpen ? "top-[7px] rotate-45" : "top-0 rotate-0",
+                )}
+              />
+              <span
+                className={cn(
+                  "absolute left-0 top-[7px] h-[1.5px] w-4 rounded-full bg-current transition-all duration-200 ease-[var(--ease-premium)]",
+                  mobileMenuOpen ? "opacity-0" : "opacity-100",
+                )}
+              />
+              <span
+                className={cn(
+                  "absolute bottom-0 left-0 h-[1.5px] w-4 origin-center rounded-full bg-current transition-all duration-300 ease-[var(--ease-premium)]",
+                  mobileMenuOpen ? "bottom-[7px] -rotate-45" : "bottom-0 rotate-0",
+                )}
+              />
+            </span>
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile Overlay Menu — kept mounted for smooth enter/exit, no scroll blur */}
+      <div
+        className={cn(
+          "fixed inset-0 z-40 bg-[#081C15]/98 transition-opacity duration-300 ease-[var(--ease-premium)] lg:hidden",
+          mobileMenuOpen ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+      >
+        <nav className="flex h-full flex-col items-center justify-center gap-2 px-6">
+          {NAV_LINKS.map((link, index) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ transitionDelay: mobileMenuOpen ? `${index * 60 + 100}ms` : "0ms" }}
+              className={cn(
+                "text-2xl font-bold text-[#F5F7F6] transition-all duration-500 ease-[var(--ease-premium)] hover:text-[#5ED39D]",
+                mobileMenuOpen ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0",
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
+
+          <div
+            className="mt-8 flex w-full max-w-xs flex-col gap-3 transition-all duration-500 ease-[var(--ease-premium)]"
+            style={{
+              transitionDelay: mobileMenuOpen ? `${NAV_LINKS.length * 60 + 150}ms` : "0ms",
+              opacity: mobileMenuOpen ? 1 : 0,
+              transform: mobileMenuOpen ? "translateY(0)" : "translateY(2rem)",
+            }}
+          >
             <Link href="/cliente/login" onClick={() => setMobileMenuOpen(false)}>
-              <Button size="lg" className="w-full font-bold">
+              <Button size="lg" withArrow className="w-full font-bold">
                 Área do Cliente
               </Button>
             </Link>
@@ -115,8 +132,8 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
               </Button>
             </Link>
           </div>
-        </div>
-      )}
-    </header>
+        </nav>
+      </div>
+    </>
   );
 }

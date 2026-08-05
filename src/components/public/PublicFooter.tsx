@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DeveloperSignature } from "@/components/public/DeveloperSignature";
 
 interface PublicFooterProps {
   clinicName: string;
@@ -8,7 +9,7 @@ interface PublicFooterProps {
 
 export function PublicFooter({ clinicName, address, whatsappNumber }: PublicFooterProps) {
   return (
-    <footer className="border-t border-[#255044] bg-[#081C15] py-16 text-[#C8D4CF]">
+    <footer className="border-t border-[#255044] bg-[#081C15] pt-14 pb-6 text-[#C8D4CF]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand Info */}
@@ -92,7 +93,7 @@ export function PublicFooter({ clinicName, address, whatsappNumber }: PublicFoot
                 className="inline-flex items-center gap-2 text-sm font-semibold text-[#5ED39D] hover:text-[#86E5B8]"
               >
                 <span>Central de Atendimento</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                   <polyline points="15 3 21 3 21 9" />
                   <line x1="10" y1="14" x2="21" y2="3" />
@@ -102,11 +103,17 @@ export function PublicFooter({ clinicName, address, whatsappNumber }: PublicFoot
           </div>
         </div>
 
-        <div className="mt-12 border-t border-[#255044]/50 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-[#7A9187]">
+        <div className="mt-12 border-t border-[#255044]/50 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-[#7A9187] gap-3">
           <p>© {new Date().getFullYear()} {clinicName}. Todos os direitos reservados.</p>
-          <p className="mt-2 sm:mt-0">Plataforma desenvolvida para alta performance e segurança.</p>
+          <p className="mt-1 sm:mt-0">Plataforma desenvolvida para alta performance e segurança.</p>
+        </div>
+
+        {/* Developer Signature Section */}
+        <div className="mt-4 border-t border-[#255044]/30 pt-2">
+          <DeveloperSignature />
         </div>
       </div>
     </footer>
   );
 }
+
