@@ -196,6 +196,7 @@ export function AdminShell({
     "/patients": "Atendimento & Agenda",
     "/professionals": "Gestão & Clínica",
     "/team": "Gestão & Clínica",
+    "/users": "Gestão & Clínica",
     "/specialties": "Gestão & Clínica",
     "/insurances": "Gestão & Clínica",
     "/financial": "Gestão & Clínica",
@@ -214,7 +215,7 @@ export function AdminShell({
   const CATEGORY_ORDER = ["Visão Geral", "Atendimento & Agenda", "Gestão & Clínica", "Sistema", "Outros"];
 
   return (
-    <div className="flex min-h-screen w-full bg-background text-text-primary">
+    <div className="flex h-screen w-full overflow-hidden bg-background text-text-primary">
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <button
@@ -227,7 +228,7 @@ export function AdminShell({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-border/80 bg-card/90 backdrop-blur-xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 h-screen sticky top-0",
+          "fixed inset-y-0 left-0 z-50 flex w-60 h-screen flex-col shrink-0 border-r border-border/80 bg-card/95 backdrop-blur-xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0",
           mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
         )}
       >
@@ -270,7 +271,7 @@ export function AdminShell({
         </div>
 
         {/* Sidebar Nav Items (Grouped with categories) */}
-        <nav className="flex-1 space-y-3 px-2.5 py-3 overflow-y-auto">
+        <nav className="flex-1 min-h-0 space-y-3 pl-2.5 pr-1.5 py-3 overflow-y-auto sidebar-scrollbar">
           {CATEGORY_ORDER.map((categoryTitle) => {
             const groupItems = groupedNav[categoryTitle];
             if (!groupItems || groupItems.length === 0) return null;
@@ -312,7 +313,7 @@ export function AdminShell({
         </nav>
 
         {/* Compact Integrated User Footer */}
-        <div className="mt-auto border-t border-border/80 bg-card-elevated/50 p-2.5">
+        <div className="shrink-0 border-t border-border/80 bg-card-elevated/50 p-2.5">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <Avatar src={avatarUrl} name={fullName} size={30} />
@@ -340,7 +341,7 @@ export function AdminShell({
       </aside>
 
       {/* Main Layout Area */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col h-screen overflow-hidden">
         {/* Fixed Top Header */}
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b border-border/80 bg-background/80 px-4 sm:px-6 backdrop-blur-md transition-all">
           <div className="flex items-center gap-3">
@@ -371,7 +372,7 @@ export function AdminShell({
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="2" x2="22" y1="12" y2="12" />
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z" />
               </svg>
               <span>Ver Site</span>
             </Link>
@@ -385,7 +386,7 @@ export function AdminShell({
         </header>
 
         {/* Content Body */}
-        <main className="flex flex-1 flex-col justify-between overflow-x-hidden p-3.5 sm:p-5 lg:p-6">
+        <main className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-5 lg:p-6 flex flex-col justify-between">
           <div>{children}</div>
           <footer className="mt-12 border-t border-border/40 pt-4 pb-2">
             <DeveloperSignature />

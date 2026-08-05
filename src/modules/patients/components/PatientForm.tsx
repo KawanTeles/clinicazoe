@@ -244,13 +244,22 @@ export function PatientForm({ mode, patientId, insurances, professionals, onCanc
       </div>
 
       {/* Sticky Bottom Action Footer */}
-      <div className="sticky bottom-0 z-10 flex items-center justify-end gap-2.5 rounded-xl border border-border bg-card/95 backdrop-blur-md p-3 shadow-lg">
-        <Button type="button" variant="ghost" size="sm" disabled={saving} onClick={handleCancelClick}>
-          Cancelar
-        </Button>
-        <Button type="submit" size="sm" isLoading={saving} className="px-5 font-bold shadow-button">
-          {mode === "create" ? "Cadastrar Paciente" : "Salvar Alterações"}
-        </Button>
+      <div className="sticky bottom-0 z-20 mt-3 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-border/80 bg-card/95 backdrop-blur-md p-3.5 sm:px-5 shadow-lg">
+        <div className="flex items-center gap-2 text-xs font-medium text-text-muted">
+          <svg className="w-4 h-4 text-emerald-500 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="m9 12 2 2 4-4" />
+          </svg>
+          <span>Campos marcados com (<strong className="text-danger">*</strong>) são de preenchimento obrigatório</span>
+        </div>
+        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+          <Button type="button" variant="ghost" size="sm" disabled={saving} onClick={handleCancelClick} className="font-semibold text-text-secondary hover:text-text-primary">
+            Cancelar
+          </Button>
+          <Button type="submit" size="sm" isLoading={saving} className="px-6 font-bold shadow-button bg-primary hover:bg-primary-hover text-white">
+            {mode === "create" ? "Cadastrar Paciente" : "Salvar Alterações"}
+          </Button>
+        </div>
       </div>
     </form>
   );

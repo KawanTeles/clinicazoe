@@ -18,6 +18,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Pacientes", href: "/patients", permission: "patients.manage", icon: "users" },
   { label: "Profissionais", href: "/professionals", permission: "professionals.view", icon: "user-check" },
   { label: "Equipe", href: "/team", permission: "users.manage", icon: "shield" },
+  { label: "Usuários", href: "/users", permission: "users.manage", icon: "users" },
   { label: "Especialidades", href: "/specialties", permission: "specialties.manage", icon: "stethoscope" },
   { label: "Convênios", href: "/insurances", permission: "insurances.manage", icon: "building" },
   { label: "Auditoria", href: "/audit", permission: "audit.view", icon: "activity" },

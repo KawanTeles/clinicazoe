@@ -7,6 +7,7 @@ const STAFF_ROUTES = [
   "/appointments",
   "/financial",
   "/team",
+  "/users",
   "/audit",
   "/settings",
   "/specialties",
