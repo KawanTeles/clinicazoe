@@ -75,7 +75,7 @@ export function ScheduleManager({
 
   function toggleInsurance(id: string) {
     setSelectedInsurances((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   }
 
@@ -180,8 +180,11 @@ export function ScheduleManager({
 
   return (
     <div className="flex flex-col gap-6">
-      <form onSubmit={handleCreate} className="flex flex-col gap-5 rounded-2xl border border-[#255044] bg-[#102A22] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
-        <p className="text-base font-bold text-[#F5F7F6]">Novo horário de atendimento</p>
+      {/* Form: Add Shift */}
+      <form onSubmit={handleCreate} className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-6 shadow-card">
+        <span className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
+          Novo Horário de Atendimento
+        </span>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Select label="Dia da semana" value={dayOfWeek} onChange={(e) => setDayOfWeek(e.target.value)}>
@@ -193,60 +196,60 @@ export function ScheduleManager({
           </Select>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#C8D4CF]">Início</label>
+            <label className="text-sm font-semibold text-text-secondary">Início</label>
             <input
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="h-11 rounded-xl border border-[#255044] bg-[#17382D] px-4 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
+              className="h-11 rounded-xl border border-border bg-card-elevated px-4 text-sm text-text-primary transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#C8D4CF]">Fim</label>
+            <label className="text-sm font-semibold text-text-secondary">Fim</label>
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="h-11 rounded-xl border border-[#255044] bg-[#17382D] px-4 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
+              className="h-11 rounded-xl border border-border bg-card-elevated px-4 text-sm text-text-primary transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#C8D4CF]">Vagas simultâneas</label>
+            <label className="text-sm font-semibold text-text-secondary">Vagas simultâneas</label>
             <input
               type="number"
               min={1}
               value={capacity}
               onChange={(e) => setCapacity(e.target.value)}
-              className="h-11 rounded-xl border border-[#255044] bg-[#17382D] px-4 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
+              className="h-11 rounded-xl border border-border bg-card-elevated px-4 text-sm text-text-primary transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="flex items-center gap-2 text-sm font-medium text-[#F5F7F6] cursor-pointer">
+          <label className="flex items-center gap-2 text-xs font-bold text-text-primary cursor-pointer">
             <input
               type="checkbox"
               checked={allInsurances}
               onChange={(e) => setAllInsurances(e.target.checked)}
-              className="h-4 w-4 rounded border-[#255044] bg-[#17382D] accent-[#2E8B57]"
+              className="h-4 w-4 rounded accent-primary"
             />
-            Aceita todos os convênios
+            Aceita todos os convênios neste horário
           </label>
 
           {!allInsurances && (
-            <div className="flex flex-wrap gap-3 rounded-xl border border-[#255044] bg-[#17382D]/60 p-4">
+            <div className="flex flex-wrap gap-3 rounded-xl border border-border bg-card-elevated/40 p-4">
               {insurances.length === 0 && (
-                <span className="text-xs text-[#7A9187]">Nenhum convênio ativo cadastrado.</span>
+                <span className="text-xs text-text-muted">Nenhum convênio ativo cadastrado.</span>
               )}
               {insurances.map((insurance) => (
-                <label key={insurance.id} className="flex items-center gap-2 text-sm text-[#C8D4CF] cursor-pointer hover:text-[#F5F7F6]">
+                <label key={insurance.id} className="flex items-center gap-2 text-xs font-semibold text-text-secondary cursor-pointer hover:text-text-primary">
                   <input
                     type="checkbox"
                     checked={selectedInsurances.includes(insurance.id)}
                     onChange={() => toggleInsurance(insurance.id)}
-                    className="h-4 w-4 rounded border-[#255044] bg-[#17382D] accent-[#2E8B57]"
+                    className="h-4 w-4 rounded accent-primary"
                   />
                   {insurance.name}
                 </label>
@@ -255,63 +258,65 @@ export function ScheduleManager({
           )}
         </div>
 
-        {error && <p className="text-sm font-medium text-[#FF8A8A]">{error}</p>}
+        {error && <p className="text-xs font-semibold text-danger">{error}</p>}
 
-        <Button type="submit" isLoading={saving} className="w-fit">
-          Adicionar horário
+        <Button type="submit" isLoading={saving} className="w-fit h-10 px-5 text-xs font-bold shadow-button">
+          + Adicionar Horário
         </Button>
       </form>
 
-      <div className="overflow-x-auto rounded-2xl border border-[#255044] bg-[#102A22] shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
+      {/* Slots Table */}
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
         <table className="w-full min-w-[560px] text-left text-sm">
-          <thead className="border-b border-[#255044] bg-[#17382D]/80 text-xs font-bold uppercase tracking-wider text-[#C8D4CF]">
+          <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
             <tr>
-              <th className="px-5 py-4 font-bold">Dia</th>
-              <th className="px-5 py-4 font-bold">Horário</th>
-              <th className="px-5 py-4 font-bold">Convênios</th>
-              <th className="px-5 py-4 font-bold">Vagas</th>
-              <th className="px-5 py-4 font-bold">Status</th>
-              <th className="px-5 py-4 font-bold text-right">Ações</th>
+              <th className="px-5 py-3.5 font-bold">Dia</th>
+              <th className="px-5 py-3.5 font-bold">Horário</th>
+              <th className="px-5 py-3.5 font-bold">Convênios</th>
+              <th className="px-5 py-3.5 font-bold">Vagas</th>
+              <th className="px-5 py-3.5 font-bold">Status</th>
+              <th className="px-5 py-3.5 font-bold text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#255044]/40">
+          <tbody className="divide-y divide-border/40">
             {slots.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-5 py-6 text-center text-[#7A9187]">
+                <td colSpan={6} className="px-5 py-6 text-center text-text-muted text-xs">
                   Nenhum horário cadastrado.
                 </td>
               </tr>
             )}
             {slots.map((slot) => (
-              <tr key={slot.id} className="transition-colors hover:bg-[#17382D]/50">
-                <td className="px-5 py-4 font-semibold text-[#F5F7F6]">{DAY_LABELS[slot.day_of_week]}</td>
-                <td className="px-5 py-4 font-semibold text-[#F5F7F6]">
+              <tr key={slot.id} className="transition-colors hover:bg-card-elevated/40">
+                <td className="px-5 py-4 font-bold text-text-primary">{DAY_LABELS[slot.day_of_week]}</td>
+                <td className="px-5 py-4 font-semibold text-text-primary">
                   {slot.start_time.slice(0, 5)} – {slot.end_time.slice(0, 5)}
                 </td>
                 <td className="px-5 py-4">
                   {slot.insuranceNames.length === 0 ? (
-                    <Badge tone="neutral">Todos</Badge>
+                    <Badge tone="neutral" className="text-[10px]">Todos</Badge>
                   ) : (
                     <div className="flex flex-wrap gap-1">
                       {slot.insuranceNames.map((name) => (
-                        <Badge key={name} tone="neutral">
+                        <Badge key={name} tone="neutral" className="text-[10px]">
                           {name}
                         </Badge>
                       ))}
                     </div>
                   )}
                 </td>
-                <td className="px-5 py-4 font-semibold text-[#F5F7F6]">{slot.capacity}</td>
+                <td className="px-5 py-4 font-bold text-text-primary">{slot.capacity}</td>
                 <td className="px-5 py-4">
-                  <Badge tone={slot.status === "active" ? "success" : "neutral"}>
+                  <Badge tone={slot.status === "active" ? "success" : "neutral"} className="text-[10px]">
                     {slot.status === "active" ? "Ativo" : "Inativo"}
                   </Badge>
                 </td>
-                <td className="px-5 py-4">
-                  <div className="flex justify-end gap-2">
+                <td className="px-5 py-4 text-right">
+                  <div className="flex justify-end gap-1.5">
                     <Button
                       size="sm"
                       variant="secondary"
+                      className="h-8 text-xs px-3"
                       isLoading={busyId === slot.id}
                       onClick={() => handleToggleStatus(slot)}
                     >
@@ -320,6 +325,7 @@ export function ScheduleManager({
                     <Button
                       size="sm"
                       variant="danger"
+                      className="h-8 text-xs px-3"
                       isLoading={busyId === slot.id}
                       onClick={() => handleDelete(slot)}
                     >
@@ -333,85 +339,87 @@ export function ScheduleManager({
         </table>
       </div>
 
+      {/* Block Exception Section */}
       <div className="flex flex-col gap-4">
         <div>
-          <p className="text-base font-bold text-[#F5F7F6]">Bloqueios e férias</p>
-          <p className="text-xs text-[#C8D4CF]">
-            Período em que você fica indisponível — desabilita os horários em datas específicas.
+          <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary font-heading">
+            Bloqueios e Férias
+          </h3>
+          <p className="text-xs text-text-secondary mt-0.5">
+            Desative temporariamente o atendimento em datas específicas.
           </p>
         </div>
 
         <form
           onSubmit={handleCreateBlock}
-          className="flex flex-col gap-4 rounded-2xl border border-[#255044] bg-[#102A22] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.25)]"
+          className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-card"
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[#C8D4CF]">De</label>
+              <label className="text-sm font-semibold text-text-secondary">De</label>
               <input
                 type="date"
                 value={blockStart}
                 onChange={(e) => setBlockStart(e.target.value)}
-                className="h-11 rounded-xl border border-[#255044] bg-[#17382D] px-4 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
+                className="h-11 rounded-xl border border-border bg-card-elevated px-4 text-sm text-text-primary transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[#C8D4CF]">Até</label>
+              <label className="text-sm font-semibold text-text-secondary">Até</label>
               <input
                 type="date"
                 value={blockEnd}
                 onChange={(e) => setBlockEnd(e.target.value)}
-                className="h-11 rounded-xl border border-[#255044] bg-[#17382D] px-4 text-sm text-[#F5F7F6] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
+                className="h-11 rounded-xl border border-border bg-card-elevated px-4 text-sm text-text-primary transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[#C8D4CF]">Motivo (opcional)</label>
+              <label className="text-sm font-semibold text-text-secondary">Motivo (opcional)</label>
               <input
                 type="text"
                 placeholder="Férias, congresso..."
                 value={blockReason}
                 onChange={(e) => setBlockReason(e.target.value)}
-                className="h-11 rounded-xl border border-[#255044] bg-[#17382D] px-4 text-sm text-[#F5F7F6] placeholder:text-[#7A9187] transition-all focus:border-[#2E8B57] focus:outline-none focus:ring-2 focus:ring-[#2E8B57]/30"
+                className="h-11 rounded-xl border border-border bg-card-elevated px-4 text-sm text-text-primary placeholder:text-text-muted transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
             </div>
           </div>
 
-          {blockError && <p className="text-sm font-medium text-[#FF8A8A]">{blockError}</p>}
+          {blockError && <p className="text-xs font-semibold text-danger">{blockError}</p>}
 
-          <Button type="submit" isLoading={blockSaving} className="w-fit">
-            Bloquear período
+          <Button type="submit" isLoading={blockSaving} className="w-fit h-10 px-5 text-xs font-bold shadow-button">
+            Bloquear Período
           </Button>
         </form>
 
         {exceptions.length > 0 && (
-          <div className="overflow-x-auto rounded-2xl border border-[#255044] bg-[#102A22] shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
             <table className="w-full min-w-[420px] text-left text-sm">
-              <thead className="border-b border-[#255044] bg-[#17382D]/80 text-xs font-bold uppercase tracking-wider text-[#C8D4CF]">
+              <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
                 <tr>
-                  <th className="px-5 py-4 font-bold">Período</th>
-                  <th className="px-5 py-4 font-bold">Motivo</th>
-                  <th className="px-5 py-4 font-bold text-right">Ações</th>
+                  <th className="px-5 py-3.5 font-bold">Período</th>
+                  <th className="px-5 py-3.5 font-bold">Motivo</th>
+                  <th className="px-5 py-3.5 font-bold text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#255044]/40">
+              <tbody className="divide-y divide-border/40">
                 {exceptions.map((exception) => (
-                  <tr key={exception.id} className="transition-colors hover:bg-[#17382D]/50">
-                    <td className="px-5 py-4 font-semibold text-[#F5F7F6]">
+                  <tr key={exception.id} className="transition-colors hover:bg-card-elevated/40">
+                    <td className="px-5 py-4 font-bold text-text-primary">
                       {dateFormatter.format(new Date(`${exception.start_date}T00:00:00`))} –{" "}
                       {dateFormatter.format(new Date(`${exception.end_date}T00:00:00`))}
                     </td>
-                    <td className="px-5 py-4 text-[#C8D4CF]">{exception.reason || "—"}</td>
-                    <td className="px-5 py-4">
-                      <div className="flex justify-end">
-                        <Button
-                          size="sm"
-                          variant="danger"
-                          isLoading={blockBusyId === exception.id}
-                          onClick={() => handleDeleteBlock(exception.id)}
-                        >
-                          Remover
-                        </Button>
-                      </div>
+                    <td className="px-5 py-4 text-text-secondary">{exception.reason || "—"}</td>
+                    <td className="px-5 py-4 text-right">
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        className="h-8 text-xs px-3"
+                        isLoading={blockBusyId === exception.id}
+                        onClick={() => handleDeleteBlock(exception.id)}
+                      >
+                        Remover
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -423,4 +431,3 @@ export function ScheduleManager({
     </div>
   );
 }
-

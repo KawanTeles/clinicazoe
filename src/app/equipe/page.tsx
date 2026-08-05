@@ -20,31 +20,31 @@ export default async function EquipePublicPage() {
   const isStaffSession = session && ["admin", "recepcionista", "profissional"].includes(session.profile.role);
 
   return (
-    <div className="min-h-screen bg-[#081C15] text-[#F5F7F6] flex flex-col font-sans selection:bg-[#2E8B57] selection:text-white">
+    <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans">
       <PublicHeader clinicName={clinic.name} />
 
       <main className="flex-1 flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md">
           {isStaffSession ? (
-            <Card className="border-[#2E8B57]/50 shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
+            <Card className="border-primary/50 shadow-2xl">
               <CardContent className="p-8 text-center space-y-6">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#17382D] text-2xl font-bold text-[#5ED39D] border border-[#255044]">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--badge-bg)] text-2xl font-extrabold text-[var(--primary)] border border-primary/30">
                   {session.profile.full_name.slice(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">{session.profile.full_name}</h2>
-                  <p className="text-xs text-[#7A9187] mt-1 capitalize">Sessão da Equipe Ativa ({session.profile.role})</p>
+                  <h2 className="text-xl font-bold text-text-primary font-heading">{session.profile.full_name}</h2>
+                  <p className="text-xs text-text-secondary mt-1 capitalize">Sessão da Equipe Ativa ({session.profile.role})</p>
                 </div>
 
                 <Link href="/dashboard" className="block w-full">
-                  <Button size="lg" className="w-full font-bold">
+                  <Button size="lg" className="w-full font-bold shadow-button">
                     Acessar Painel Principal →
                   </Button>
                 </Link>
               </CardContent>
             </Card>
           ) : (
-            <Card className="shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+            <Card className="shadow-2xl border-border">
               <CardContent className="p-6 sm:p-8">
                 <Suspense>
                   <LoginForm signupHref={null} />

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
+import { Skeleton } from "@/components/ui/Skeleton";
 import {
   getBookableInsurances,
   getBookableProfessionals,
@@ -141,7 +142,7 @@ export function PublicBookingFlow({
       const times = await getAvailableTimes(
         selectedProfessionalId,
         selectedInsuranceId || (insurances[0]?.id ?? ""),
-        date,
+        date
       );
       setAvailableTimes(times);
       setStep(4);
@@ -203,7 +204,7 @@ export function PublicBookingFlow({
     return (
       <Card className="border-primary/50 bg-card shadow-card animate-fade-up">
         <CardContent className="p-8 text-center sm:p-12">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-[var(--badge-bg)] border border-primary/40 text-[var(--link)] shadow-[0_0_30px_rgba(15,164,122,0.3)]">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-[var(--badge-bg)] border border-primary/40 text-[var(--primary)] shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12" />
             </svg>
@@ -212,7 +213,7 @@ export function PublicBookingFlow({
           <Badge tone="premium" className="mb-3">Agendamento Realizado!</Badge>
           <h2 className="text-3xl font-extrabold text-text-primary tracking-tight font-heading">Consulta Solicitada com Sucesso</h2>
           <p className="mt-3 text-base text-text-secondary max-w-lg mx-auto">
-            Obrigado, <strong className="text-text-primary">{patientName}</strong>! Sua solicitação para <strong className="text-text-primary">{selectedDate.split("-").reverse().join("/")}</strong> às <strong className="text-[var(--link)]">{selectedSlot?.startTime.slice(0, 5)}</strong> foi registrada no sistema.
+            Obrigado, <strong className="text-text-primary">{patientName}</strong>! Sua solicitação para <strong className="text-text-primary">{selectedDate.split("-").reverse().join("/")}</strong> às <strong className="text-[var(--primary)]">{selectedSlot?.startTime.slice(0, 5)}</strong> foi registrada no sistema.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -221,7 +222,7 @@ export function PublicBookingFlow({
                 href={successResult.whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-[#1EBE5A] shadow-[0_10px_30px_rgba(37,211,102,0.3)]"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-[#1EBE5A] shadow-md"
               >
                 <span>Confirmar no WhatsApp</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -251,7 +252,7 @@ export function PublicBookingFlow({
       <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--link)]">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--primary)]">
               Passo {step} de 6
             </span>
             <h3 className="text-lg font-bold text-text-primary font-heading">
@@ -266,7 +267,7 @@ export function PublicBookingFlow({
           {step > 1 && (
             <button
               onClick={() => setStep((step - 1) as any)}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--link)] hover:text-[var(--link-hover)] transition-colors"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--primary)] hover:underline transition-colors"
             >
               ← Voltar passo anterior
             </button>
@@ -302,13 +303,13 @@ export function PublicBookingFlow({
               disabled={loading}
               className="group flex flex-col items-start justify-between rounded-2xl border border-border bg-card p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-primary hover:bg-card-elevated/80 hover:shadow-card-hover"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card-elevated text-[var(--link)] border border-border group-hover:scale-110 transition-transform">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card-elevated text-[var(--primary)] border border-border group-hover:scale-110 transition-transform">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
                 </svg>
               </div>
               <div className="mt-4">
-                <h4 className="text-base font-bold text-text-primary group-hover:text-[var(--link)] transition-colors font-heading">
+                <h4 className="text-base font-bold text-text-primary group-hover:text-[var(--primary)] transition-colors font-heading">
                   {spec.name}
                 </h4>
                 <p className="mt-1 text-xs text-text-secondary">Atendimento médico especializado</p>
@@ -321,28 +322,34 @@ export function PublicBookingFlow({
       {/* STEP 2: PROFISSIONAL */}
       {step === 2 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-up">
-          {professionals.map((prof) => (
-            <div
-              key={prof.id}
-              className="flex flex-col justify-between rounded-2xl border border-border bg-card p-6 shadow-card"
-            >
-              <div className="flex items-center gap-4">
-                <Avatar src={prof.avatarUrl} name={prof.fullName} size={64} rounded="2xl" />
-                <div>
-                  <h4 className="text-lg font-bold text-text-primary font-heading">{prof.fullName}</h4>
-                  <Badge tone="success" className="mt-1">{prof.specialtyName}</Badge>
-                </div>
-              </div>
-              {prof.bio && <p className="mt-3 text-xs text-text-secondary line-clamp-2">{prof.bio}</p>}
-              <Button
-                className="mt-5 w-full font-bold"
-                onClick={() => handleSelectProfessional(prof.id)}
-                disabled={loading}
+          {loading ? (
+            <>
+              <Skeleton className="h-44 rounded-2xl" />
+              <Skeleton className="h-44 rounded-2xl" />
+            </>
+          ) : (
+            professionals.map((prof) => (
+              <div
+                key={prof.id}
+                className="flex flex-col justify-between rounded-2xl border border-border bg-card p-6 shadow-card"
               >
-                {loading ? "Carregando..." : "Selecionar Profissional"}
-              </Button>
-            </div>
-          ))}
+                <div className="flex items-center gap-4">
+                  <Avatar src={prof.avatarUrl} name={prof.fullName} size={64} rounded="2xl" />
+                  <div>
+                    <h4 className="text-lg font-bold text-text-primary font-heading">{prof.fullName}</h4>
+                    <Badge tone="success" className="mt-1">{prof.specialtyName}</Badge>
+                  </div>
+                </div>
+                {prof.bio && <p className="mt-3 text-xs text-text-secondary line-clamp-2">{prof.bio}</p>}
+                <Button
+                  className="mt-5 w-full font-bold"
+                  onClick={() => handleSelectProfessional(prof.id)}
+                >
+                  Selecionar Profissional
+                </Button>
+              </div>
+            ))
+          )}
         </div>
       )}
 
@@ -353,7 +360,9 @@ export function PublicBookingFlow({
             <h4 className="text-sm font-semibold text-text-secondary mb-4">
               Selecione uma data disponível nos próximos 45 dias:
             </h4>
-            {availableDates.length === 0 ? (
+            {loading ? (
+              <Skeleton className="h-16 w-full rounded-2xl" />
+            ) : availableDates.length === 0 ? (
               <p className="text-sm text-text-muted py-6 text-center">
                 Nenhum dia disponível nos próximos dias. Tente outro profissional.
               </p>
@@ -367,10 +376,9 @@ export function PublicBookingFlow({
                     <button
                       key={dateStr}
                       onClick={() => handleSelectDate(dateStr)}
-                      disabled={loading}
                       className="flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-card-elevated/60 hover:bg-surface hover:border-primary transition-all"
                     >
-                      <span className="text-xs font-semibold uppercase text-[var(--link)]">{weekDay}</span>
+                      <span className="text-xs font-semibold uppercase text-[var(--primary)]">{weekDay}</span>
                       <span className="text-lg font-extrabold text-text-primary">{d}/{m}</span>
                     </button>
                   );
@@ -388,7 +396,9 @@ export function PublicBookingFlow({
             <h4 className="text-sm font-semibold text-text-secondary mb-4">
               Horários disponíveis para {selectedDate.split("-").reverse().join("/")}:
             </h4>
-            {availableTimes.length === 0 ? (
+            {loading ? (
+              <Skeleton className="h-14 w-full rounded-2xl" />
+            ) : availableTimes.length === 0 ? (
               <p className="text-sm text-text-muted py-6 text-center">
                 Sem horários livres nesta data. Escolha outra data.
               </p>
@@ -398,7 +408,7 @@ export function PublicBookingFlow({
                   <button
                     key={`${slot.slotId}-${slot.startTime}`}
                     onClick={() => handleSelectSlot(slot)}
-                    className="py-3 px-2 rounded-xl border border-border bg-card-elevated text-sm font-bold text-text-primary hover:bg-[var(--badge-bg)] hover:border-primary hover:text-[var(--link)] transition-all"
+                    className="py-3 px-2 rounded-xl border border-border bg-card-elevated text-sm font-bold text-text-primary hover:bg-[var(--badge-bg)] hover:border-primary hover:text-[var(--primary)] transition-all"
                   >
                     {slot.startTime.slice(0, 5)}
                   </button>
@@ -447,7 +457,7 @@ export function PublicBookingFlow({
                         onClick={() => setPaymentMethod(opt.paymentMethod as any)}
                         className={`p-3 rounded-xl border text-xs font-semibold text-left transition-all ${
                           paymentMethod === opt.paymentMethod
-                            ? "border-primary bg-[var(--badge-bg)] text-[var(--link)]"
+                            ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)]"
                             : "border-border bg-card-elevated text-text-secondary"
                         }`}
                       >
@@ -484,7 +494,7 @@ export function PublicBookingFlow({
               </div>
               <div>
                 <span className="text-xs text-text-muted">Data & Horário</span>
-                <p className="text-sm font-bold text-[var(--link)]">
+                <p className="text-sm font-bold text-[var(--primary)]">
                   {selectedDate.split("-").reverse().join("/")} às {selectedSlot?.startTime.slice(0, 5)}
                 </p>
               </div>

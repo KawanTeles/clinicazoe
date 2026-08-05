@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
+import { Skeleton } from "@/components/ui/Skeleton";
 import {
   getBookableInsurances,
   getBookableProfessionals,
@@ -80,7 +81,6 @@ export function Patient8StepBooking({
   // STEP 1: Selecionar Cidade
   function handleSelectCity(city: string) {
     setSelectedCity(city);
-    // Se não tiver especialidade pré-selecionada, define a primeira
     if (specialties.length > 0) {
       handleLoadInsurancesForSpecialty(specialties[0].id);
     }
@@ -217,7 +217,6 @@ export function Patient8StepBooking({
       const currentSpec = specialties.find((s) => s.id === selectedSpecialtyId);
       const currentPricing = pricingOptions.find((p) => p.paymentMethod === paymentMethod);
 
-      // Formatar mensagem para WhatsApp da Clínica
       const msg = `Nova solicitação de consulta:\n\nPaciente: ${patientName}\nWhatsApp: ${patientPhone}\nCidade: ${selectedCity}\nConvênio: ${selectedInsuranceName}\nProfissional: ${currentProf?.fullName}\nEspecialidade: ${currentSpec?.name}\nData: ${selectedDate.split("-").reverse().join("/")}\nHorário: ${selectedSlot.startTime.slice(0, 5)}\nValor: ${currentPricing ? formatCurrency(currentPricing.value) : "A combinar"}\nPagamento: ${paymentMethod.toUpperCase()}`;
 
       const link = buildWhatsAppLink(whatsappNumber, msg);
@@ -233,7 +232,7 @@ export function Patient8StepBooking({
     return (
       <Card className="border-primary/50 bg-card shadow-card animate-fade-up">
         <CardContent className="p-8 text-center sm:p-12 space-y-6">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[var(--badge-bg)] border border-primary/40 text-[var(--link)] shadow-[0_0_30px_rgba(15,164,122,0.3)]">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[var(--badge-bg)] border border-primary/40 text-[var(--primary)] shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12" />
             </svg>
@@ -242,7 +241,7 @@ export function Patient8StepBooking({
           <Badge tone="premium" className="mb-2">Solicitação Enviada!</Badge>
           <h2 className="text-3xl font-black text-text-primary tracking-tight font-heading">Agendamento Solicitado com Sucesso</h2>
           <p className="text-base text-text-secondary max-w-lg mx-auto leading-relaxed">
-            Olá <strong className="text-text-primary">{patientName}</strong>! Sua solicitação de consulta para <strong className="text-[var(--link)]">{selectedDate.split("-").reverse().join("/")}</strong> às <strong className="text-[var(--link)]">{selectedSlot?.startTime.slice(0, 5)}</strong> foi registrada na clínica.
+            Olá <strong className="text-text-primary">{patientName}</strong>! Sua solicitação de consulta para <strong className="text-[var(--primary)]">{selectedDate.split("-").reverse().join("/")}</strong> às <strong className="text-[var(--primary)]">{selectedSlot?.startTime.slice(0, 5)}</strong> foi registrada na clínica.
           </p>
 
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -251,7 +250,7 @@ export function Patient8StepBooking({
                 href={successResult.whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-4 text-sm font-bold text-white transition-all hover:bg-[#1EBE5A] shadow-[0_10px_30px_rgba(37,211,102,0.3)]"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-4 text-sm font-bold text-white transition-all hover:bg-[#1EBE5A] shadow-md"
               >
                 <span>Enviar Notificação pelo WhatsApp</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -281,7 +280,7 @@ export function Patient8StepBooking({
       <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-[var(--link)]">
+            <span className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
               Etapa {step} de 8
             </span>
             <h3 className="text-lg font-extrabold text-text-primary font-heading">
@@ -298,7 +297,7 @@ export function Patient8StepBooking({
           {step > 1 && (
             <button
               onClick={() => setStep((step - 1) as any)}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--link)] hover:text-[var(--link-hover)] transition-colors"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--primary)] hover:underline transition-colors"
             >
               ← Voltar etapa anterior
             </button>
@@ -338,7 +337,7 @@ export function Patient8StepBooking({
                   : "border-border bg-card text-text-secondary hover:border-primary/60"
               }`}
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-card-elevated text-[var(--link)] mb-3 border border-border">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-card-elevated text-[var(--primary)] mb-3 border border-border">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                   <circle cx="12" cy="10" r="3" />
@@ -356,7 +355,13 @@ export function Patient8StepBooking({
         <Card className="animate-fade-up">
           <CardContent className="p-6 space-y-4">
             <h4 className="text-sm font-semibold text-text-secondary">Selecione o plano de saúde ou atendimento particular:</h4>
-            {insurances.length === 0 ? (
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <Skeleton className="h-20 rounded-2xl" />
+                <Skeleton className="h-20 rounded-2xl" />
+                <Skeleton className="h-20 rounded-2xl" />
+              </div>
+            ) : insurances.length === 0 ? (
               <p className="text-sm text-text-muted py-4 text-center">Nenhum convênio disponível para esta seleção.</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -364,11 +369,10 @@ export function Patient8StepBooking({
                   <button
                     key={ins.id}
                     onClick={() => handleSelectInsurance(ins.id, ins.name)}
-                    disabled={loading}
                     className="p-5 rounded-2xl border border-border bg-card-elevated/70 text-left hover:border-primary hover:bg-card-elevated transition-all"
                   >
                     <h5 className="text-base font-bold text-text-primary font-heading">{ins.name}</h5>
-                    <p className="text-xs text-[var(--link)] mt-1">Compatível com corpo médico</p>
+                    <p className="text-xs text-[var(--primary)] mt-1">Compatível com corpo médico</p>
                   </button>
                 ))}
               </div>
@@ -380,28 +384,34 @@ export function Patient8StepBooking({
       {/* ETAPA 3: SELEÇÃO DE PROFISSIONAL */}
       {step === 3 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-up">
-          {professionals.map((prof) => (
-            <div
-              key={prof.id}
-              className="flex flex-col justify-between rounded-2xl border border-border bg-card p-6 shadow-card"
-            >
-              <div className="flex items-center gap-4">
-                <Avatar src={prof.avatarUrl} name={prof.fullName} size={64} rounded="2xl" />
-                <div>
-                  <h4 className="text-lg font-bold text-text-primary font-heading">{prof.fullName}</h4>
-                  <Badge tone="success" className="mt-1">{prof.specialtyName}</Badge>
-                </div>
-              </div>
-              {prof.bio && <p className="mt-3 text-xs text-text-secondary line-clamp-2">{prof.bio}</p>}
-              <Button
-                className="mt-5 w-full font-bold"
-                onClick={() => handleSelectProfessional(prof.id)}
-                disabled={loading}
+          {loading ? (
+            <>
+              <Skeleton className="h-44 rounded-2xl" />
+              <Skeleton className="h-44 rounded-2xl" />
+            </>
+          ) : (
+            professionals.map((prof) => (
+              <div
+                key={prof.id}
+                className="flex flex-col justify-between rounded-2xl border border-border bg-card p-6 shadow-card"
               >
-                {loading ? "Carregando horários..." : "Selecionar Médico"}
-              </Button>
-            </div>
-          ))}
+                <div className="flex items-center gap-4">
+                  <Avatar src={prof.avatarUrl} name={prof.fullName} size={64} rounded="2xl" />
+                  <div>
+                    <h4 className="text-lg font-bold text-text-primary font-heading">{prof.fullName}</h4>
+                    <Badge tone="success" className="mt-1">{prof.specialtyName}</Badge>
+                  </div>
+                </div>
+                {prof.bio && <p className="mt-3 text-xs text-text-secondary line-clamp-2">{prof.bio}</p>}
+                <Button
+                  className="mt-5 w-full font-bold"
+                  onClick={() => handleSelectProfessional(prof.id)}
+                >
+                  Selecionar Médico
+                </Button>
+              </div>
+            ))
+          )}
         </div>
       )}
 
@@ -412,7 +422,9 @@ export function Patient8StepBooking({
             <h4 className="text-sm font-semibold text-text-secondary mb-4">
               Datas disponíveis para {currentProf?.fullName}:
             </h4>
-            {availableDates.length === 0 ? (
+            {loading ? (
+              <Skeleton className="h-16 w-full rounded-2xl" />
+            ) : availableDates.length === 0 ? (
               <p className="text-sm text-text-muted py-6 text-center">
                 Nenhum dia disponível nos próximos 45 dias.
               </p>
@@ -426,10 +438,9 @@ export function Patient8StepBooking({
                     <button
                       key={dateStr}
                       onClick={() => handleSelectDate(dateStr)}
-                      disabled={loading}
                       className="flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-card-elevated/60 hover:bg-surface hover:border-primary transition-all"
                     >
-                      <span className="text-xs font-semibold uppercase text-[var(--link)]">{weekDay}</span>
+                      <span className="text-xs font-semibold uppercase text-[var(--primary)]">{weekDay}</span>
                       <span className="text-lg font-black text-text-primary">{d}/{m}</span>
                     </button>
                   );
@@ -447,7 +458,9 @@ export function Patient8StepBooking({
             <h4 className="text-sm font-semibold text-text-secondary mb-4">
               Horários livres para {selectedDate.split("-").reverse().join("/")}:
             </h4>
-            {availableTimes.length === 0 ? (
+            {loading ? (
+              <Skeleton className="h-14 w-full rounded-2xl" />
+            ) : availableTimes.length === 0 ? (
               <p className="text-sm text-text-muted py-6 text-center">
                 Sem horários disponíveis para esta data. Escolha outro dia.
               </p>
@@ -457,7 +470,7 @@ export function Patient8StepBooking({
                   <button
                     key={`${slot.slotId}-${slot.startTime}`}
                     onClick={() => handleSelectSlot(slot)}
-                    className="py-3 px-2 rounded-xl border border-border bg-card-elevated text-sm font-bold text-text-primary hover:bg-[var(--badge-bg)] hover:border-primary hover:text-[var(--link)] transition-all"
+                    className="py-3 px-2 rounded-xl border border-border bg-card-elevated text-sm font-bold text-text-primary hover:bg-[var(--badge-bg)] hover:border-primary hover:text-[var(--primary)] transition-all"
                   >
                     {slot.startTime.slice(0, 5)}
                   </button>
@@ -520,7 +533,7 @@ export function Patient8StepBooking({
                   onClick={() => handleSelectPaymentMethod(pm.id as any)}
                   className={`p-4 rounded-xl border text-left transition-all ${
                     paymentMethod === pm.id
-                      ? "border-primary bg-[var(--badge-bg)] text-[var(--link)]"
+                      ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)]"
                       : "border-border bg-card-elevated text-text-secondary"
                   }`}
                 >
@@ -562,7 +575,7 @@ export function Patient8StepBooking({
               </div>
               <div>
                 <span className="text-text-muted">Data & Horário:</span>
-                <p className="text-sm font-bold text-[var(--link)] mt-0.5">
+                <p className="text-sm font-bold text-[var(--primary)] mt-0.5">
                   {selectedDate.split("-").reverse().join("/")} às {selectedSlot?.startTime.slice(0, 5)}
                 </p>
               </div>
@@ -573,7 +586,7 @@ export function Patient8StepBooking({
               {currentPricing && (
                 <div>
                   <span className="text-text-muted">Valor estimado:</span>
-                  <p className="text-sm font-black text-[var(--link)] mt-0.5">{formatCurrency(currentPricing.value)}</p>
+                  <p className="text-sm font-black text-[var(--primary)] mt-0.5">{formatCurrency(currentPricing.value)}</p>
                 </div>
               )}
               <div>
