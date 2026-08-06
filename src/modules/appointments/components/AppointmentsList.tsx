@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -306,6 +307,13 @@ export function AppointmentsList({
                     )}
                     <td className="px-5 py-4">
                       <div className="flex flex-wrap justify-end gap-1.5">
+                        {(isStaff || isProfessional) && (
+                          <Link href={`/appointments/${appt.id}`}>
+                            <Button size="sm" variant="outline">
+                              Detalhes
+                            </Button>
+                          </Link>
+                        )}
                         {isStaff && appt.status === "pendente" && (
                           <>
                             <Button size="sm" isLoading={busyId === appt.id} onClick={() => handleConfirm(appt.id)}>

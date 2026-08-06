@@ -5,6 +5,7 @@ import { getActiveProfessionals } from "@/modules/professionals/services/profess
 import { getPatientDetail, getPatientMessages } from "@/modules/patients/services/patient-queries";
 import { getAppointmentsForPatient } from "@/modules/appointments/services/patient-queries";
 import { listSeriesForPatient } from "@/modules/appointments/services/recurrence-queries";
+import { getEvolutionsForPatient } from "@/modules/evolutions/services/evolution-queries";
 import { PatientDetailTabs } from "@/modules/patients/components/PatientDetailTabs";
 import { todayLocalIso } from "@/lib/date";
 
@@ -17,14 +18,16 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
   if (!session || !["admin", "recepcionista"].includes(session.profile.role)) redirect("/dashboard");
 
   const { id } = await params;
+  const isAdmin = session.profile.role === "admin";
 
-  const [patient, appointments, messages, insurances, professionals, series] = await Promise.all([
+  const [patient, appointments, messages, insurances, professionals, series, evolutions] = await Promise.all([
     getPatientDetail(id),
     getAppointmentsForPatient(id),
     getPatientMessages(id),
     getInsurances(),
     getActiveProfessionals(),
     listSeriesForPatient(id),
+    isAdmin ? getEvolutionsForPatient(id) : Promise.resolve([]),
   ]);
 
   if (!patient) notFound();
@@ -58,7 +61,9 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
       series={series}
       messages={messages}
       canManage
-      canChangeStatus={session.profile.role === "admin"}
+      canChangeStatus={isAdmin}
+      canViewClinical={isAdmin}
+      evolutions={evolutions}
     />
   );
 }

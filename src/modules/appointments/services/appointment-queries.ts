@@ -110,3 +110,14 @@ export async function getAppointmentsForViewer(
 
   return { items, totalPages };
 }
+
+/** Consulta única para a tela de detalhes (/appointments/[id]). A RLS de
+ * `appointments` já restringe o retorno: paciente só a própria, profissional
+ * só as suas, admin/recepção veem qualquer uma. */
+export async function getAppointmentById(id: string): Promise<AppointmentView | null> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("appointments").select("*").eq("id", id).maybeSingle();
+  if (!data) return null;
+  const [item] = await denormalize(supabase, [data]);
+  return item ?? null;
+}

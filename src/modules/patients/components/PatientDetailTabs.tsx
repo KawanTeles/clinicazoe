@@ -9,6 +9,8 @@ import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency } from "@/lib/whatsapp";
 import { setPatientStatus } from "@/modules/patients/services/patient-actions";
+import { EvolutionTimeline } from "@/modules/evolutions/components/EvolutionTimeline";
+import type { EvolutionView } from "@/modules/evolutions/services/evolution-queries";
 
 interface AppointmentRow {
   id: string;
@@ -63,10 +65,14 @@ interface PatientDetailTabsProps {
   messages: MessageRow[];
   canManage: boolean;
   canChangeStatus: boolean;
+  /** Só true para admin — recepcionista nunca recebe a aba de prontuário. */
+  canViewClinical?: boolean;
+  evolutions?: EvolutionView[];
 }
 
-const TABS = ["Dados", "Próximas consultas", "Histórico", "Recorrências", "Mensagens"] as const;
-type Tab = (typeof TABS)[number];
+const BASE_TABS = ["Dados", "Próximas consultas", "Histórico", "Recorrências", "Mensagens"] as const;
+const CLINICAL_TAB = "Histórico Clínico";
+type Tab = (typeof BASE_TABS)[number] | typeof CLINICAL_TAB;
 
 const STATUS_LABELS: Record<string, string> = {
   pendente: "Pendente",
@@ -95,12 +101,15 @@ export function PatientDetailTabs({
   messages,
   canManage,
   canChangeStatus,
+  canViewClinical = false,
+  evolutions = [],
 }: PatientDetailTabsProps) {
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
   const [tab, setTab] = useState<Tab>("Dados");
   const [togglingStatus, setTogglingStatus] = useState(false);
+  const visibleTabs: Tab[] = canViewClinical ? [...BASE_TABS, CLINICAL_TAB] : [...BASE_TABS];
 
   async function handleReactivate() {
     setTogglingStatus(true);
@@ -167,7 +176,7 @@ export function PatientDetailTabs({
       </div>
 
       <div className="flex flex-wrap gap-2 border-b border-border pb-2">
-        {TABS.map((item) => (
+        {visibleTabs.map((item) => (
           <button
             key={item}
             type="button"
@@ -213,6 +222,7 @@ export function PatientDetailTabs({
 
       {tab === "Próximas consultas" && <AppointmentsTable rows={upcoming} empty="Nenhuma consulta futura." />}
       {tab === "Histórico" && <AppointmentsTable rows={history} empty="Nenhuma consulta anterior." />}
+      {tab === CLINICAL_TAB && <EvolutionTimeline evolutions={evolutions} />}
 
       {tab === "Recorrências" && (
         <div className="flex flex-col gap-3">

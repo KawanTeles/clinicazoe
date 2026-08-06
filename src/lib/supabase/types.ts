@@ -708,6 +708,63 @@ export interface Database {
         };
         Relationships: [];
       };
+      patient_evolutions: {
+        Row: {
+          id: string;
+          appointment_id: string;
+          patient_id: string;
+          professional_id: string;
+          specialty_id: string | null;
+          session_summary: string | null;
+          clinical_evolution: string;
+          objectives: string | null;
+          interventions: string | null;
+          patient_response: string | null;
+          home_guidance: string | null;
+          observations: string | null;
+          created_by: string;
+          updated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          appointment_id: string;
+          patient_id: string;
+          professional_id: string;
+          specialty_id?: string | null;
+          session_summary?: string | null;
+          clinical_evolution: string;
+          objectives?: string | null;
+          interventions?: string | null;
+          patient_response?: string | null;
+          home_guidance?: string | null;
+          observations?: string | null;
+          created_by: string;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          appointment_id?: string;
+          patient_id?: string;
+          professional_id?: string;
+          specialty_id?: string | null;
+          session_summary?: string | null;
+          clinical_evolution?: string;
+          objectives?: string | null;
+          interventions?: string | null;
+          patient_response?: string | null;
+          home_guidance?: string | null;
+          observations?: string | null;
+          created_by?: string;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       clinic_holidays: {
         Row: {
           id: string;

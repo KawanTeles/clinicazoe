@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { getPatientsForProfessional } from "@/modules/appointments/services/patient-queries";
 
@@ -39,7 +40,11 @@ export default async function MyPatientsPage() {
             <tbody className="divide-y divide-border/40">
               {patients.map((patient) => (
                 <tr key={patient.patientId} className="transition-colors hover:bg-surface/50">
-                  <td className="px-5 py-4 font-semibold text-text-primary">{patient.fullName}</td>
+                  <td className="px-5 py-4 font-semibold text-text-primary">
+                    <Link href={`/my-patients/${patient.patientId}`} className="hover:text-primary hover:underline">
+                      {patient.fullName}
+                    </Link>
+                  </td>
                   <td className="px-5 py-4 text-text-secondary">{patient.phone || "—"}</td>
                   <td className="px-5 py-4 text-text-secondary">
                     {dateFormatter.format(new Date(`${patient.lastAppointmentDate}T00:00:00`))}
