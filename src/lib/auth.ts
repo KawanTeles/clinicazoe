@@ -19,3 +19,12 @@ export async function getCurrentUser() {
 
   return { user, profile };
 }
+
+/** Garante que o usuário atual é admin, lançando erro caso contrário — usado por server actions restritas a admin. */
+export async function requireAdmin() {
+  const session = await getCurrentUser();
+  if (!session || session.profile.role !== "admin") {
+    throw new Error("Acesso negado.");
+  }
+  return session;
+}

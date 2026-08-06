@@ -12,31 +12,33 @@ import { Button } from "@/components/ui/Button";
 import { buildWhatsAppLink, formatWhatsAppDisplay } from "@/lib/whatsapp";
 import { CTA_PRIMARY, CTA_WHATSAPP } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
+import { WEEKDAY_LABELS } from "@/modules/settings/utils/form-state";
 
 export const metadata = {
-  title: "Contato e Localização — Clínica Zoe",
+  title: "Contato e Localização",
   description: "Fale com nossa central de atendimento, confira nosso endereço e horários de funcionamento.",
   alternates: { canonical: `${SITE_URL}/contato` },
   openGraph: {
-    title: "Contato e Localização — Clínica Zoe",
+    title: "Contato e Localização",
     description: "Fale com nossa central de atendimento, confira nosso endereço e horários de funcionamento.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Contato e Localização — Clínica Zoe",
+    title: "Contato e Localização",
     description: "Fale com nossa central de atendimento, confira nosso endereço e horários de funcionamento.",
   },
 };
 
 export default async function ContatoPage() {
   const { clinic } = await getPublicWebsiteData();
-  const whatsappLink = buildWhatsAppLink(clinic.whatsapp_number, "Olá! Vim pelo site da Clínica Zoe.");
+  const whatsappLink = buildWhatsAppLink(clinic.whatsapp_number, `Olá! Vim pelo site da ${clinic.name}.`);
   const whatsappDisplay = formatWhatsAppDisplay(clinic.whatsapp_number);
+  const sortedHours = [...(clinic.business_hours ?? [])].sort((a, b) => a.day - b.day);
 
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
-      <PublicHeader clinicName={clinic.name} />
+      <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
       <main className="flex-1 py-16 lg:py-24">
         <PageEntrance className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
@@ -53,18 +55,19 @@ export default async function ContatoPage() {
             {/* Info Cards */}
             <ScrollReveal animation="slide-left">
               <div className="space-y-6">
-                <AnimatedCard delayMs={100} className="rounded-3xl p-8 space-y-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-bold text-text-primary font-heading">Endereço</h3>
-                  <p className="text-sm text-text-secondary leading-relaxed">
-                    {clinic.address || "Av. Paulista, 1000 - Bela Vista, São Paulo - SP, CEP 01310-100"}
-                  </p>
-                </AnimatedCard>
+                {clinic.address && (
+                  <AnimatedCard delayMs={100} className="rounded-3xl p-8 space-y-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-bold text-text-primary font-heading">Endereço</h3>
+                    <p className="text-sm text-text-secondary leading-relaxed">{clinic.address}</p>
+                    {clinic.email && <p className="text-sm text-text-secondary leading-relaxed">{clinic.email}</p>}
+                  </AnimatedCard>
+                )}
 
                 <AnimatedCard delayMs={200} className="rounded-3xl p-8 space-y-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
@@ -77,9 +80,16 @@ export default async function ContatoPage() {
                   </div>
                   <h3 className="text-lg font-bold text-text-primary font-heading">Horário de Atendimento</h3>
                   <div className="space-y-1 text-xs text-text-secondary">
-                    <p><strong className="text-text-primary">Segunda a Sexta:</strong> 07:00 às 20:00</p>
-                    <p><strong className="text-text-primary">Sábados:</strong> 08:00 às 14:00</p>
-                    <p><strong className="text-text-primary">Domingos e Feriados:</strong> Fechado</p>
+                    {sortedHours.map((entry) => (
+                      <p key={entry.day}>
+                        <strong className="text-text-primary">{WEEKDAY_LABELS[entry.day]}:</strong>{" "}
+                        {entry.is_open ? `${entry.open_time} às ${entry.close_time}` : "Fechado"}
+                      </p>
+                    ))}
+                    <p>
+                      <strong className="text-text-primary">Feriados:</strong>{" "}
+                      {clinic.holiday_open ? `${clinic.holiday_open_time} às ${clinic.holiday_close_time}` : "Fechado"}
+                    </p>
                   </div>
                 </AnimatedCard>
 
@@ -126,9 +136,36 @@ export default async function ContatoPage() {
         </PageEntrance>
       </main>
 
-      <LocationSection clinicName={clinic.name} address={clinic.address} whatsappNumber={clinic.whatsapp_number} />
+      <LocationSection
+        clinicName={clinic.name}
+        address={clinic.address}
+        whatsappNumber={clinic.whatsapp_number}
+        email={clinic.email}
+        businessHours={clinic.business_hours}
+        holidayOpen={clinic.holiday_open}
+        holidayOpenTime={clinic.holiday_open_time}
+        holidayCloseTime={clinic.holiday_close_time}
+        mapsUrl={clinic.maps_url}
+        latitude={clinic.latitude}
+        longitude={clinic.longitude}
+      />
 
-      <PublicFooter clinicName={clinic.name} address={clinic.address} whatsappNumber={clinic.whatsapp_number} />
+      <PublicFooter
+        clinicName={clinic.name}
+        logoUrl={clinic.logo_url}
+        address={clinic.address}
+        whatsappNumber={clinic.whatsapp_number}
+        email={clinic.email}
+        phonePrimary={clinic.phone_primary}
+        phoneSecondary={clinic.phone_secondary}
+        emergencyPhone={clinic.emergency_phone}
+        socialMedia={{
+          instagram: clinic.instagram_url,
+          facebook: clinic.facebook_url,
+          linkedin: clinic.linkedin_url,
+          youtube: clinic.youtube_url,
+        }}
+      />
     </div>
   );
 }

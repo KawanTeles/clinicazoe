@@ -14,6 +14,14 @@ export type FinancialStatus = "em_aberto" | "pago";
 export type RecurrenceFrequency = "weekly" | "biweekly" | "monthly";
 export type SeriesStatus = "active" | "cancelled";
 
+/** day: convenção de Date.prototype.getDay() (0 = domingo ... 6 = sábado). */
+export interface BusinessHourEntry {
+  day: number;
+  is_open: boolean;
+  open_time: string;
+  close_time: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -126,8 +134,33 @@ export interface Database {
         Row: {
           id: number;
           name: string;
+          legal_name: string | null;
+          email: string | null;
+          website_url: string | null;
+          instagram_url: string | null;
+          facebook_url: string | null;
+          linkedin_url: string | null;
+          youtube_url: string | null;
           whatsapp_number: string | null;
+          phone_primary: string | null;
+          phone_secondary: string | null;
+          emergency_phone: string | null;
           address: string | null;
+          address_zip: string | null;
+          address_street: string | null;
+          address_number: string | null;
+          address_complement: string | null;
+          address_neighborhood: string | null;
+          address_city: string | null;
+          address_state: string | null;
+          address_country: string;
+          maps_url: string | null;
+          latitude: number | null;
+          longitude: number | null;
+          business_hours: BusinessHourEntry[];
+          holiday_open: boolean;
+          holiday_open_time: string | null;
+          holiday_close_time: string | null;
           logo_path: string | null;
           created_at: string;
           updated_at: string;
@@ -135,8 +168,33 @@ export interface Database {
         Insert: {
           id?: number;
           name?: string;
+          legal_name?: string | null;
+          email?: string | null;
+          website_url?: string | null;
+          instagram_url?: string | null;
+          facebook_url?: string | null;
+          linkedin_url?: string | null;
+          youtube_url?: string | null;
           whatsapp_number?: string | null;
+          phone_primary?: string | null;
+          phone_secondary?: string | null;
+          emergency_phone?: string | null;
           address?: string | null;
+          address_zip?: string | null;
+          address_street?: string | null;
+          address_number?: string | null;
+          address_complement?: string | null;
+          address_neighborhood?: string | null;
+          address_city?: string | null;
+          address_state?: string | null;
+          address_country?: string;
+          maps_url?: string | null;
+          latitude?: number | null;
+          longitude?: number | null;
+          business_hours?: BusinessHourEntry[];
+          holiday_open?: boolean;
+          holiday_open_time?: string | null;
+          holiday_close_time?: string | null;
           logo_path?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -144,8 +202,33 @@ export interface Database {
         Update: {
           id?: number;
           name?: string;
+          legal_name?: string | null;
+          email?: string | null;
+          website_url?: string | null;
+          instagram_url?: string | null;
+          facebook_url?: string | null;
+          linkedin_url?: string | null;
+          youtube_url?: string | null;
           whatsapp_number?: string | null;
+          phone_primary?: string | null;
+          phone_secondary?: string | null;
+          emergency_phone?: string | null;
           address?: string | null;
+          address_zip?: string | null;
+          address_street?: string | null;
+          address_number?: string | null;
+          address_complement?: string | null;
+          address_neighborhood?: string | null;
+          address_city?: string | null;
+          address_state?: string | null;
+          address_country?: string;
+          maps_url?: string | null;
+          latitude?: number | null;
+          longitude?: number | null;
+          business_hours?: BusinessHourEntry[];
+          holiday_open?: boolean;
+          holiday_open_time?: string | null;
+          holiday_close_time?: string | null;
           logo_path?: string | null;
           created_at?: string;
           updated_at?: string;

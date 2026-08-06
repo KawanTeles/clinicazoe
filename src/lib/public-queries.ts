@@ -1,5 +1,13 @@
+import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarSignedUrl } from "@/lib/supabase/storage";
+import { DEFAULT_BUSINESS_HOURS } from "@/modules/settings/utils/form-state";
+
+function resolveLogoUrl(admin: ReturnType<typeof createAdminClient>, logoPath: string | null | undefined) {
+  if (!logoPath) return null;
+  const { data } = admin.storage.from("clinic-assets").getPublicUrl(logoPath);
+  return data.publicUrl;
+}
 
 export async function getPublicWebsiteData() {
   const admin = createAdminClient();
@@ -40,9 +48,65 @@ export async function getPublicWebsiteData() {
   );
 
   return {
-    clinic: clinic ?? { name: "Clínica Zoe", address: "Av. Paulista, 1000 - São Paulo, SP", whatsapp_number: "5511999999999" },
+    clinic: clinic
+      ? { ...clinic, logo_url: resolveLogoUrl(admin, clinic.logo_path) }
+      : {
+          id: 1,
+          name: "",
+          legal_name: null,
+          email: null,
+          website_url: null,
+          instagram_url: null,
+          facebook_url: null,
+          linkedin_url: null,
+          youtube_url: null,
+          whatsapp_number: null,
+          phone_primary: null,
+          phone_secondary: null,
+          emergency_phone: null,
+          address: null,
+          address_zip: null,
+          address_street: null,
+          address_number: null,
+          address_complement: null,
+          address_neighborhood: null,
+          address_city: null,
+          address_state: null,
+          address_country: "Brasil",
+          maps_url: null,
+          latitude: null,
+          longitude: null,
+          business_hours: DEFAULT_BUSINESS_HOURS,
+          holiday_open: false,
+          holiday_open_time: null,
+          holiday_close_time: null,
+          logo_path: null,
+          logo_url: null,
+          created_at: "",
+          updated_at: "",
+        },
     specialties: specialties ?? [],
     professionals: fullProfessionals,
     insurances: insurances ?? [],
   };
 }
+
+/**
+ * Versão enxuta de getPublicWebsiteData() para uso no layout raiz (metadata
+ * e JSON-LD), que roda em toda página do site. Envolvida em cache() do React
+ * para dedupe entre generateMetadata() e o corpo do RootLayout na mesma
+ * requisição.
+ */
+export const getSiteMetadataForLayout = cache(async () => {
+  const admin = createAdminClient();
+
+  const [{ data: clinic }, { data: specialties }] = await Promise.all([
+    admin.from("clinic_settings").select("*").eq("id", 1).single(),
+    admin.from("specialties").select("name").eq("status", "active").order("name"),
+  ]);
+
+  return {
+    clinic: clinic ? { ...clinic, logo_url: resolveLogoUrl(admin, clinic.logo_path) } : null,
+    specialtyNames: (specialties ?? []).map((s) => s.name),
+  };
+});

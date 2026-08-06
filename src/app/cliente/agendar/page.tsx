@@ -22,7 +22,7 @@ export default async function PatientAgendarPage() {
 
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
-      <PublicHeader clinicName={clinic.name} />
+      <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
       <main className="flex-1 py-12 lg:py-16">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 space-y-8">
@@ -47,7 +47,22 @@ export default async function PatientAgendarPage() {
         </div>
       </main>
 
-      <PublicFooter clinicName={clinic.name} address={clinic.address} whatsappNumber={clinic.whatsapp_number} />
+      <PublicFooter
+        clinicName={clinic.name}
+        logoUrl={clinic.logo_url}
+        address={clinic.address}
+        whatsappNumber={clinic.whatsapp_number}
+        email={clinic.email}
+        phonePrimary={clinic.phone_primary}
+        phoneSecondary={clinic.phone_secondary}
+        emergencyPhone={clinic.emergency_phone}
+        socialMedia={{
+          instagram: clinic.instagram_url,
+          facebook: clinic.facebook_url,
+          linkedin: clinic.linkedin_url,
+          youtube: clinic.youtube_url,
+        }}
+      />
     </div>
   );
 }

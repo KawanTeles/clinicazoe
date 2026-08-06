@@ -31,7 +31,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
-      <PublicHeader clinicName={clinic.name} />
+      <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
       {/* HERO SECTION */}
       <section className="relative overflow-hidden pt-16 pb-24 lg:pt-24 lg:pb-36 bg-gradient-forest-subtle">
@@ -399,9 +399,32 @@ export default async function HomePage() {
         clinicName={clinic.name}
         address={clinic.address}
         whatsappNumber={clinic.whatsapp_number}
+        email={clinic.email}
+        businessHours={clinic.business_hours}
+        holidayOpen={clinic.holiday_open}
+        holidayOpenTime={clinic.holiday_open_time}
+        holidayCloseTime={clinic.holiday_close_time}
+        mapsUrl={clinic.maps_url}
+        latitude={clinic.latitude}
+        longitude={clinic.longitude}
       />
 
-      <PublicFooter clinicName={clinic.name} address={clinic.address} whatsappNumber={clinic.whatsapp_number} />
+      <PublicFooter
+        clinicName={clinic.name}
+        logoUrl={clinic.logo_url}
+        address={clinic.address}
+        whatsappNumber={clinic.whatsapp_number}
+        email={clinic.email}
+        phonePrimary={clinic.phone_primary}
+        phoneSecondary={clinic.phone_secondary}
+        emergencyPhone={clinic.emergency_phone}
+        socialMedia={{
+          instagram: clinic.instagram_url,
+          facebook: clinic.facebook_url,
+          linkedin: clinic.linkedin_url,
+          youtube: clinic.youtube_url,
+        }}
+      />
     </div>
   );
 }

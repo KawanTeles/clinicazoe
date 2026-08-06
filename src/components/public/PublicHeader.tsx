@@ -11,6 +11,7 @@ import { CTA_CLIENT_AREA, CTA_TEAM_AREA } from "@/lib/cta-labels";
 
 interface PublicHeaderProps {
   clinicName: string;
+  logoUrl?: string | null;
 }
 
 const NAV_LINKS = [
@@ -22,7 +23,7 @@ const NAV_LINKS = [
   { href: "/contato", label: "Contato" },
 ];
 
-export function PublicHeader({ clinicName }: PublicHeaderProps) {
+export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
@@ -78,11 +79,12 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
           {/* Brand Logo */}
           <Link href="/" className="group flex shrink-0 items-center gap-3">
             <Image
-              src="/brand-logo.png"
+              src={logoUrl || "/brand-logo.png"}
               alt={clinicName}
               width={48}
               height={48}
               priority
+              unoptimized
               className="h-[38px] w-[38px] sm:h-[44px] sm:w-[44px] rounded-full object-cover shadow-[0_0_15px_rgba(20,184,166,0.3)] border border-[rgba(20,184,166,0.35)] transition-transform duration-200 group-hover:scale-105"
             />
             <span className="hidden text-base font-extrabold tracking-tight text-text-primary transition-colors group-hover:text-[var(--link)] font-heading sm:inline">
@@ -232,10 +234,11 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
                 <div className="flex items-center justify-between pb-6 border-b border-border/70">
                   <Link href="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3">
                     <Image
-                      src="/brand-logo.png"
+                      src={logoUrl || "/brand-logo.png"}
                       alt={clinicName}
                       width={38}
                       height={38}
+                      unoptimized
                       className="h-9 w-9 rounded-full object-cover border border-border shadow-xs"
                     />
                     <span className="text-base font-extrabold text-text-primary font-heading">{clinicName}</span>

@@ -1,16 +1,8 @@
 "use server";
 
-import { getCurrentUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/modules/team/services/audit";
-
-async function requireAdmin() {
-  const session = await getCurrentUser();
-  if (!session || session.profile.role !== "admin") {
-    throw new Error("Acesso negado.");
-  }
-  return session;
-}
 
 export async function createHoliday(input: { date: string; description?: string }): Promise<{
   error: string | null;

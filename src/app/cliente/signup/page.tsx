@@ -19,7 +19,7 @@ export default async function PatientSignUpPage() {
 
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
-      <PublicHeader clinicName={clinic.name} />
+      <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
       <main className="flex-1 flex items-center justify-center py-16 px-4">
         <PageEntrance className="w-full max-w-md space-y-6">
@@ -61,7 +61,22 @@ export default async function PatientSignUpPage() {
         </PageEntrance>
       </main>
 
-      <PublicFooter clinicName={clinic.name} address={clinic.address} whatsappNumber={clinic.whatsapp_number} />
+      <PublicFooter
+        clinicName={clinic.name}
+        logoUrl={clinic.logo_url}
+        address={clinic.address}
+        whatsappNumber={clinic.whatsapp_number}
+        email={clinic.email}
+        phonePrimary={clinic.phone_primary}
+        phoneSecondary={clinic.phone_secondary}
+        emergencyPhone={clinic.emergency_phone}
+        socialMedia={{
+          instagram: clinic.instagram_url,
+          facebook: clinic.facebook_url,
+          linkedin: clinic.linkedin_url,
+          youtube: clinic.youtube_url,
+        }}
+      />
     </div>
   );
 }
