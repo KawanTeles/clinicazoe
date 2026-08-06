@@ -74,15 +74,15 @@ export function ClinicSettingsPanel({ initial, logoUrl, readOnly }: ClinicSettin
           </div>
         </div>
 
-        {/* Live Site Preview sticky sidebar */}
-        <div className="xl:sticky xl:top-20 xl:self-start">
+        {/* Live Site Preview sticky sidebar with viewport max-height & smooth internal scroll */}
+        <div className="xl:sticky xl:top-20 xl:self-start xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto custom-scrollbar rounded-2xl">
           <SitePreview data={data} logoUrl={logoUrl} />
         </div>
       </div>
 
-      {/* Global save button action bar docked right after the configuration cards */}
+      {/* Global save button action bar docked cleanly right after the configuration cards */}
       {!readOnly && (
-        <div className="sticky bottom-4 z-20 flex flex-col gap-3 rounded-2xl border border-border/80 bg-card/90 p-4 shadow-xl backdrop-blur-md sm:flex-row sm:items-center sm:justify-between transition-all">
+        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-card sm:flex-row sm:items-center sm:justify-between transition-all mt-1">
           <div className="min-w-0">
             {message ? (
               <p className={message.type === "success" ? "text-xs font-bold text-success animate-fade-in" : "text-xs font-bold text-danger animate-fade-in"}>
