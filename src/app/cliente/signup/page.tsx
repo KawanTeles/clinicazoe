@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
 import { CardContent } from "@/components/ui/Card";
@@ -23,10 +24,15 @@ export default async function PatientSignUpPage() {
       <main className="flex-1 flex items-center justify-center py-16 px-4">
         <PageEntrance className="w-full max-w-md space-y-6">
           <PageEntranceItem>
-            <div className="text-center space-y-2">
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-forest text-lg font-black text-white shadow-md mb-2 font-heading">
-                CZ
-              </div>
+            <div className="text-center space-y-2 flex flex-col items-center">
+              <Image
+                src="/brand-logo.png"
+                alt="Clínica Zoe"
+                width={64}
+                height={64}
+                priority
+                className="h-16 w-16 rounded-full object-cover shadow-lg border-2 border-primary/30 mb-2"
+              />
               <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary font-heading">Criar Conta de Paciente</h1>
               <p className="text-xs sm:text-sm text-text-secondary">
                 Informe seus dados para primeiro acesso ao sistema.

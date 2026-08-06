@@ -235,20 +235,14 @@ export function AdminShell({
         {/* Sidebar Brand Header */}
         <div className="flex h-14 shrink-0 items-center justify-between px-4 border-b border-border/80">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5 group">
-            {logoUrl ? (
-              <Image
-                src={logoUrl}
-                alt={clinicName}
-                width={28}
-                height={28}
-                unoptimized
-                className="h-7 w-7 rounded-lg object-contain bg-card-elevated p-0.5 border border-border group-hover:scale-105 transition-transform"
-              />
-            ) : (
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-forest text-[11px] font-black text-white shadow-xs group-hover:scale-105 transition-transform">
-                CZ
-              </div>
-            )}
+            <Image
+              src={logoUrl || "/brand-logo.png"}
+              alt={clinicName}
+              width={32}
+              height={32}
+              unoptimized
+              className="h-8 w-8 rounded-full object-cover border border-border group-hover:scale-105 transition-transform"
+            />
             <div className="flex flex-col min-w-0">
               <span className="truncate text-xs font-bold tracking-tight text-text-primary font-heading">
                 {clinicName}

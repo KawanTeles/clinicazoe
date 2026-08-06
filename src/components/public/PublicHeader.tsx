@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -76,14 +77,14 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
         >
           {/* Brand Logo */}
           <Link href="/" className="group flex shrink-0 items-center gap-3">
-            <motion.div
-              whileHover={{ scale: 1.06, rotate: 2 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#14B8A6] via-[#0F766E] to-[#115E59] text-xs font-black text-white shadow-[0_0_18px_rgba(15,118,110,0.35)] border border-[rgba(20,184,166,0.3)] transform-gpu"
-            >
-              CZ
-            </motion.div>
+            <Image
+              src="/brand-logo.png"
+              alt={clinicName}
+              width={48}
+              height={48}
+              priority
+              className="h-[38px] w-[38px] sm:h-[44px] sm:w-[44px] rounded-full object-cover shadow-[0_0_15px_rgba(20,184,166,0.3)] border border-[rgba(20,184,166,0.35)] transition-transform duration-200 group-hover:scale-105"
+            />
             <span className="hidden text-base font-extrabold tracking-tight text-text-primary transition-colors group-hover:text-[var(--link)] font-heading sm:inline">
               {clinicName}
             </span>
@@ -230,9 +231,13 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
               <div>
                 <div className="flex items-center justify-between pb-6 border-b border-border/70">
                   <Link href="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#6EE7B7] via-[#2E8B57] to-[#0B3D2E] text-xs font-black text-white border border-[rgba(110,231,183,0.3)] shadow-[0_0_15px_rgba(110,231,183,0.3)]">
-                      CZ
-                    </div>
+                    <Image
+                      src="/brand-logo.png"
+                      alt={clinicName}
+                      width={38}
+                      height={38}
+                      className="h-9 w-9 rounded-full object-cover border border-border shadow-xs"
+                    />
                     <span className="text-base font-extrabold text-text-primary font-heading">{clinicName}</span>
                   </Link>
 

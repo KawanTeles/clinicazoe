@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
 import { CardContent } from "@/components/ui/Card";
@@ -15,10 +16,15 @@ export default function SignupPage() {
       <div className="h-4" />
       <PageEntrance className="w-full max-w-sm">
         <PageEntranceItem>
-          <div className="mb-8 text-center">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-forest text-lg font-bold text-white shadow-[0_0_20px_rgba(46,139,87,0.3)] mb-3 font-heading">
-              CZ
-            </div>
+          <div className="mb-8 text-center flex flex-col items-center">
+            <Image
+              src="/brand-logo.png"
+              alt="Clínica Zoe"
+              width={64}
+              height={64}
+              priority
+              className="h-16 w-16 rounded-full object-cover shadow-lg border-2 border-primary/30 mb-3"
+            />
             <h1 className="text-2xl font-extrabold tracking-tight text-text-primary font-heading">ClinicaZoe</h1>
             <p className="mt-1.5 text-sm text-text-secondary">Crie sua conta de paciente</p>
           </div>

@@ -29,12 +29,38 @@ export const metadata: Metadata = {
   },
   description: "Cuidados de saúde com tecnologia, excelência e acolhimento. Agendamento de consultas online rápida e segura.",
   keywords: ["clínica médica", "agendamento médico", "consultas online", "especialistas de saúde", "Clínica Zoe"],
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: ["/favicon.ico"],
+  },
+  manifest: "/site.webmanifest",
   openGraph: {
     title: "Clínica Zoe — Medicina de Excelência",
     description: "Cuidados de saúde com tecnologia, excelência e acolhimento.",
     type: "website",
     locale: "pt_BR",
     siteName: "Clínica Zoe",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Clínica Zoe — Identidade Visual Oficial",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Clínica Zoe — Medicina de Excelência",
+    description: "Cuidados de saúde com tecnologia, excelência e acolhimento.",
+    images: ["/og-image.png"],
   },
 };
 
@@ -43,6 +69,8 @@ const jsonLd = {
   "@type": "MedicalOrganization",
   name: "Clínica Zoe",
   url: "https://clinicazoe.com.br",
+  logo: "https://clinicazoe.com.br/brand-logo.png",
+  image: "https://clinicazoe.com.br/og-image.png",
   description: "Cuidados de saúde com tecnologia, excelência e acolhimento.",
   medicalSpecialty: [
     "Cardiology",
