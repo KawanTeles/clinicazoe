@@ -8,13 +8,15 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatCurrency } from "@/lib/whatsapp";
 import { getAttendanceInfo } from "@/lib/attendance";
-import type { PaymentMethod } from "@/lib/supabase/types";
+import { MODALITY_LABELS, PARTICULAR_PRODUCT_LABELS, insuranceRequiresModality } from "@/lib/constants";
+import type { Modality, ParticularProduct, PaymentMethod } from "@/lib/supabase/types";
 import {
   getBookableInsurances,
   getBookableProfessionals,
   getAvailableDates,
   getAvailableTimes,
   getProfessionalPricing,
+  type ProfessionalPricingResult,
 } from "@/modules/appointments/services/booking-queries";
 import { createAppointment } from "@/modules/appointments/services/booking-actions";
 
@@ -36,17 +38,15 @@ interface TimeOption {
   endTime: string;
 }
 
-interface PricingOption {
-  paymentMethod: PaymentMethod;
-  value: number;
-}
-
 const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   cartao: "Cartão",
   pix: "PIX",
   dinheiro: "Dinheiro",
   convenio: "Convênio",
 };
+
+const MODALITIES: Modality[] = ["aba", "comum"];
+const PARTICULAR_PAYMENT_METHODS: PaymentMethod[] = ["cartao", "pix", "dinheiro"];
 
 const WEEKDAY_FORMATTER = new Intl.DateTimeFormat("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
 
@@ -63,12 +63,34 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
   const [date, setDate] = useState<string | null>(null);
   const [times, setTimes] = useState<TimeOption[]>([]);
   const [time, setTime] = useState<TimeOption | null>(null);
-  const [pricing, setPricing] = useState<PricingOption[]>([]);
+  const [pricing, setPricing] = useState<ProfessionalPricingResult | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [modality, setModality] = useState<Modality | null>(null);
+  const [particularProduct, setParticularProduct] = useState<ParticularProduct | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ whatsappLink: string | null } | null>(null);
+
+  const requiresModality = insuranceRequiresModality(insurance?.name);
+  const STEP = {
+    specialty: 1,
+    insurance: 2,
+    professional: 3,
+    modality: requiresModality ? 4 : -1,
+    date: requiresModality ? 5 : 4,
+    time: requiresModality ? 6 : 5,
+    confirmation: requiresModality ? 7 : 6,
+  };
+  const stepLabels = requiresModality
+    ? ["Especialidade", "Convênio", "Profissional", "Modalidade", "Data", "Horário", "Confirmação"]
+    : ["Especialidade", "Convênio", "Profissional", "Data", "Horário", "Confirmação"];
+  const selectedValue =
+    pricing?.insuranceKind === "convenio"
+      ? pricing.options.find((o) => o.modality === modality)?.value ?? null
+      : pricing?.insuranceKind === "particular"
+        ? pricing.options.find((o) => o.product === particularProduct)?.value ?? null
+        : null;
 
   async function selectSpecialty(option: Option) {
     setSpecialty(option);
@@ -85,6 +107,10 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
   async function selectInsurance(option: Option) {
     setInsurance(option);
     setProfessional(null);
+    setPricing(null);
+    setModality(null);
+    setParticularProduct(null);
+    setPaymentMethod(null);
     setLoading(true);
     setError(null);
     const data = await getBookableProfessionals(specialty!.id, option.id);
@@ -97,13 +123,26 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
   async function selectProfessional(option: ProfessionalOption) {
     setProfessional(option);
     setDate(null);
+    setModality(null);
+    setParticularProduct(null);
+    setPaymentMethod(null);
     setLoading(true);
     setError(null);
-    const data = await getAvailableDates(option.id);
-    setDates(data);
+    const [datesData, pricingResult] = await Promise.all([
+      getAvailableDates(option.id),
+      getProfessionalPricing(option.id, insurance!.id),
+    ]);
+    setDates(datesData);
+    setPricing(pricingResult);
     setLoading(false);
-    if (data.length === 0) setError("Esse profissional não tem horários disponíveis no momento.");
-    setStep(4);
+    if (datesData.length === 0) setError("Esse profissional não tem horários disponíveis no momento.");
+    setStep(requiresModality ? STEP.modality : STEP.date);
+  }
+
+  function selectModality(m: Modality) {
+    setModality(m);
+    setPaymentMethod("convenio");
+    setStep(STEP.date);
   }
 
   async function selectDate(selected: string) {
@@ -111,26 +150,28 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
     setTime(null);
     setLoading(true);
     setError(null);
-    const data = await getAvailableTimes(professional!.id, insurance!.id, selected);
+    const data = await getAvailableTimes(professional!.id, insurance!.id, selected, modality ?? undefined);
     setTimes(data);
     setLoading(false);
     if (data.length === 0) setError("Sem horários livres nesse dia. Escolha outra data.");
-    setStep(5);
+    setStep(STEP.time);
   }
 
-  async function selectTime(option: TimeOption) {
+  function selectTime(option: TimeOption) {
     setTime(option);
-    setLoading(true);
-    setError(null);
-    const options = await getProfessionalPricing(professional!.id, insurance!.id);
-    setPricing(options);
-    setPaymentMethod(options[0]?.paymentMethod ?? null);
-    setLoading(false);
-    setStep(6);
+    setStep(STEP.confirmation);
   }
 
   async function handleConfirm() {
     if (!specialty || !insurance || !professional || !date || !time || !paymentMethod) return;
+    if (requiresModality && !modality) {
+      setError("Selecione a modalidade (ABA ou Comum).");
+      return;
+    }
+    if (!requiresModality && !particularProduct) {
+      setError("Selecione Consulta Particular ou Pacote Particular.");
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -144,6 +185,8 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
       startTime: time.startTime,
       endTime: time.endTime,
       paymentMethod,
+      modality: modality ?? undefined,
+      particularProduct: particularProduct ?? undefined,
     });
 
     setLoading(false);
@@ -189,7 +232,7 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
   return (
     <div className="flex flex-col gap-6">
       <ol className="flex flex-wrap gap-2 text-xs">
-        {["Especialidade", "Convênio", "Profissional", "Data", "Horário", "Confirmação"].map(
+        {stepLabels.map(
           (label, index) => (
             <li key={label}>
               <span
@@ -274,7 +317,39 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
         </div>
       )}
 
-      {step === 4 && (
+      {step === STEP.modality && (
+        <div className="flex flex-wrap gap-2.5">
+          {loading ? (
+            <Skeleton className="h-12 w-full rounded-xl" />
+          ) : pricing?.insuranceKind === "convenio" && pricing.options.length > 0 ? (
+            MODALITIES.map((m) => {
+              const opt = pricing.options.find((o) => o.modality === m);
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  disabled={!opt}
+                  onClick={() => opt && selectModality(m)}
+                  className={
+                    !opt
+                      ? "rounded-xl border border-border/50 bg-card-elevated/30 px-4 py-3 text-xs font-bold text-text-muted cursor-not-allowed"
+                      : "rounded-xl border border-border bg-card px-4 py-3 text-xs font-bold text-text-primary shadow-sm transition-all hover:border-primary hover:bg-card-elevated cursor-pointer"
+                  }
+                >
+                  {MODALITY_LABELS[m]}
+                  {opt ? ` — ${formatCurrency(opt.value)}` : " (sem valor)"}
+                </button>
+              );
+            })
+          ) : (
+            <p className="text-xs font-semibold text-danger">
+              Este profissional ainda não possui um valor cadastrado para essa modalidade.
+            </p>
+          )}
+        </div>
+      )}
+
+      {step === STEP.date && (
         <div className="flex flex-wrap gap-2.5">
           {loading ? (
             <Skeleton className="h-12 w-full rounded-xl" />
@@ -293,7 +368,7 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
         </div>
       )}
 
-      {step === 5 && (
+      {step === STEP.time && (
         <div className="flex flex-wrap gap-2.5">
           {loading ? (
             <Skeleton className="h-12 w-full rounded-xl" />
@@ -312,11 +387,11 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
         </div>
       )}
 
-      {step === 6 && specialty && insurance && professional && date && time && (
+      {step === STEP.confirmation && specialty && insurance && professional && date && time && (
         <Card className="border-border shadow-card">
           <CardContent className="flex flex-col gap-5 p-6">
             {(() => {
-              const attendance = getAttendanceInfo(insurance?.name, paymentMethod);
+              const attendance = getAttendanceInfo(insurance?.name, paymentMethod, modality ?? undefined, particularProduct ?? undefined);
               return (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs rounded-xl border border-border bg-card-elevated/50 p-4">
                   <p>
@@ -334,7 +409,10 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
                   {attendance.isConvenio ? (
                     <p>
                       <span className="text-text-muted">Convênio: </span>
-                      <span className="font-bold text-text-primary">{attendance.insuranceName}</span>
+                      <span className="font-bold text-text-primary">
+                        {attendance.insuranceName}
+                        {attendance.modalityLabel ? ` — ${attendance.modalityLabel}` : ""}
+                      </span>
                     </p>
                   ) : paymentMethod ? (
                     <p>
@@ -348,45 +426,71 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
                       {WEEKDAY_FORMATTER.format(new Date(`${date}T00:00:00`))} às {time.startTime.slice(0, 5)}
                     </span>
                   </p>
+                  {selectedValue != null && (
+                    <p className="col-span-full">
+                      <span className="text-text-muted">Valor: </span>
+                      <span className="font-black text-primary">{formatCurrency(selectedValue)}</span>
+                    </p>
+                  )}
                 </div>
               );
             })()}
 
-            {pricing.length > 0 ? (
-              <div className="flex flex-col gap-2">
-                <p className="text-xs font-bold text-text-primary uppercase tracking-wider">
-                  {insurance?.name && insurance.name !== "Particular" ? "Confirmar Valor do Convênio" : "Forma de Pagamento"}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {pricing.map((option) => {
-                    const optAtt = getAttendanceInfo(insurance?.name, option.paymentMethod);
-                    const label = optAtt.isConvenio ? `${optAtt.insuranceName} — ${formatCurrency(option.value)}` : `${optAtt.paymentMethodLabel} — ${formatCurrency(option.value)}`;
-                    return (
+            {requiresModality ? null : pricing?.insuranceKind === "particular" && pricing.options.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs font-bold text-text-primary uppercase tracking-wider">Produto Particular</p>
+                  <div className="flex flex-wrap gap-2">
+                    {pricing.options.map((opt) => (
                       <button
-                        key={option.paymentMethod}
+                        key={opt.product}
                         type="button"
-                        onClick={() => setPaymentMethod(option.paymentMethod)}
+                        onClick={() => setParticularProduct(opt.product)}
                         className={
-                          paymentMethod === option.paymentMethod
+                          particularProduct === opt.product
                             ? "rounded-xl border-2 border-primary bg-[var(--badge-bg)] px-4 py-2.5 text-xs font-bold text-[var(--primary)] shadow-sm cursor-pointer"
                             : "rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-text-secondary hover:border-primary/50 cursor-pointer"
                         }
                       >
-                        {label}
+                        {PARTICULAR_PRODUCT_LABELS[opt.product]} — {formatCurrency(opt.value)}
                       </button>
-                    );
-                  })}
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs font-bold text-text-primary uppercase tracking-wider">Forma de Pagamento</p>
+                  <div className="flex flex-wrap gap-2">
+                    {PARTICULAR_PAYMENT_METHODS.map((pm) => (
+                      <button
+                        key={pm}
+                        type="button"
+                        onClick={() => setPaymentMethod(pm)}
+                        className={
+                          paymentMethod === pm
+                            ? "rounded-xl border-2 border-primary bg-[var(--badge-bg)] px-4 py-2.5 text-xs font-bold text-[var(--primary)] shadow-sm cursor-pointer"
+                            : "rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-text-secondary hover:border-primary/50 cursor-pointer"
+                        }
+                      >
+                        {PAYMENT_LABELS[pm]}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : (
               <p className="text-xs font-semibold text-danger">
-                Este profissional não tem valor configurado para este atendimento.
+                Valores particulares ainda não configurados em Configurações da Clínica.
               </p>
             )}
 
             {error && <p className="text-xs font-semibold text-danger">{error}</p>}
 
-            <Button type="button" disabled={loading || !paymentMethod} onClick={handleConfirm} className="w-full font-bold shadow-button">
+            <Button
+              type="button"
+              disabled={loading || !paymentMethod || (requiresModality ? !modality : !particularProduct)}
+              onClick={handleConfirm}
+              className="w-full font-bold shadow-button"
+            >
               {loading ? "Confirmando..." : "Confirmar Agendamento"}
             </Button>
           </CardContent>

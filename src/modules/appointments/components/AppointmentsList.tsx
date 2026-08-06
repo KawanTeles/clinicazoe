@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency } from "@/lib/whatsapp";
-import type { Role } from "@/lib/supabase/types";
+import type { Modality, Role } from "@/lib/supabase/types";
 import type { AppointmentView } from "@/modules/appointments/services/appointment-queries";
 import {
   cancelAppointment,
@@ -58,6 +58,7 @@ interface AttachDialogState {
   date: string;
   professionalId: string;
   insuranceId: string;
+  modality: Modality | null;
 }
 
 export function AppointmentsList({
@@ -257,7 +258,7 @@ export function AppointmentsList({
               {filteredAppointments.map((appt) => {
                 const isOwnProfessional = isProfessional && appt.professionalId === viewerId;
                 const canManageRecurrence = isStaff || isOwnProfessional;
-                const attendance = getAttendanceInfo(appt.insuranceName, appt.paymentMethod);
+                const attendance = getAttendanceInfo(appt.insuranceName, appt.paymentMethod, appt.modality, appt.particularProduct);
 
                 return (
                   <tr key={appt.id} className="transition-colors hover:bg-card-elevated/40">
@@ -266,9 +267,19 @@ export function AppointmentsList({
                     <td className="px-5 py-4 text-text-secondary">
                       <span className="font-semibold text-text-primary">{attendance.attendanceType}</span>
                       {attendance.isConvenio ? (
-                        <span className="block text-xs text-text-muted">{attendance.insuranceName}</span>
+                        <>
+                          <span className="block text-xs text-text-muted">{attendance.insuranceName}</span>
+                          {attendance.modalityLabel && (
+                            <span className="block text-[10px] text-text-muted">Modalidade: {attendance.modalityLabel}</span>
+                          )}
+                        </>
                       ) : (
-                        <span className="block text-xs text-text-muted">{attendance.paymentMethodLabel}</span>
+                        <>
+                          <span className="block text-xs text-text-muted">{attendance.paymentMethodLabel}</span>
+                          {attendance.particularProductLabel && (
+                            <span className="block text-[10px] text-text-muted">{attendance.particularProductLabel}</span>
+                          )}
+                        </>
                       )}
                     </td>
                     <td className="px-5 py-4 text-text-secondary">
@@ -363,6 +374,7 @@ export function AppointmentsList({
                                   date: appt.date,
                                   professionalId: appt.professionalId,
                                   insuranceId: appt.insuranceId,
+                                  modality: appt.modality,
                                 })
                               }
                             >
@@ -438,6 +450,7 @@ export function AppointmentsList({
           date={attachDialog.date}
           professionalId={attachDialog.professionalId}
           insuranceId={attachDialog.insuranceId}
+          modality={attachDialog.modality ?? undefined}
           onClose={() => setAttachDialog(null)}
           onDone={handleAttachDialogDone}
         />

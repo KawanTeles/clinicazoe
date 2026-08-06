@@ -9,12 +9,14 @@ import {
   previewAttachRecurrence,
   type OccurrencePreview,
 } from "@/modules/appointments/services/recurrence-actions";
+import type { Modality } from "@/lib/supabase/types";
 
 interface AttachRecurrenceDialogProps {
   appointmentId: string;
   date: string;
   professionalId: string;
   insuranceId: string;
+  modality?: Modality;
   onClose: () => void;
   onDone: (createdCount: number) => void;
 }
@@ -24,6 +26,7 @@ export function AttachRecurrenceDialog({
   date,
   professionalId,
   insuranceId,
+  modality,
   onClose,
   onDone,
 }: AttachRecurrenceDialogProps) {
@@ -99,6 +102,7 @@ export function AttachRecurrenceDialog({
             confirming={saving}
             onConfirm={handleConfirmCreate}
             onCancel={() => setOccurrences(null)}
+            modality={modality}
           />
         ) : (
           <>

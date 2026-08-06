@@ -14,10 +14,17 @@ import {
   getAvailableTimes,
   getProfessionalPricing,
   getEffectiveDuration,
+  type ProfessionalPricingResult,
 } from "@/modules/appointments/services/booking-queries";
 import { createPublicAppointment } from "@/modules/appointments/services/booking-actions";
 import { formatCurrency } from "@/lib/whatsapp";
 import { getAttendanceInfo } from "@/lib/attendance";
+import { MODALITY_LABELS, PARTICULAR_PRODUCT_LABELS, insuranceRequiresModality } from "@/lib/constants";
+import type { Modality, ParticularProduct } from "@/lib/supabase/types";
+
+const MODALITIES: Modality[] = ["aba", "comum"];
+const PARTICULAR_PAYMENT_METHODS: ("pix" | "cartao" | "dinheiro")[] = ["pix", "cartao", "dinheiro"];
+const PAYMENT_METHOD_LABELS: Record<string, string> = { pix: "Pix", cartao: "Cartão", dinheiro: "Dinheiro" };
 
 interface Specialty {
   id: string;
@@ -43,12 +50,14 @@ export function PublicBookingFlow({
   initialProfessionals,
   defaultProfessionalId,
 }: PublicBookingFlowProps) {
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
+  const [step, setStep] = useState<number>(1);
   const [selectedSpecialtyId, setSelectedSpecialtyId] = useState<string>("");
   const [selectedInsuranceId, setSelectedInsuranceId] = useState<string>("");
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>(defaultProfessionalId || "");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedSlot, setSelectedSlot] = useState<{ slotId: string; startTime: string; endTime: string } | null>(null);
+  const [modality, setModality] = useState<Modality | null>(null);
+  const [particularProduct, setParticularProduct] = useState<ParticularProduct | null>(null);
 
   // Form patient
   const [patientName, setPatientName] = useState("");
@@ -61,7 +70,7 @@ export function PublicBookingFlow({
   const [professionals, setProfessionals] = useState<Professional[]>(initialProfessionals);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [availableTimes, setAvailableTimes] = useState<{ slotId: string; startTime: string; endTime: string }[]>([]);
-  const [pricingOptions, setPricingOptions] = useState<{ paymentMethod: string; value: number }[]>([]);
+  const [pricing, setPricing] = useState<ProfessionalPricingResult | null>(null);
   const [effectiveDuration, setEffectiveDuration] = useState<number | null>(null);
 
   // UI States
@@ -69,6 +78,27 @@ export function PublicBookingFlow({
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successResult, setSuccessResult] = useState<{ whatsappLink?: string | null } | null>(null);
+
+  // O convênio é escolhido automaticamente (o primeiro disponível para a
+  // especialidade, sem etapa própria no site público) — mas se for Unimed ou
+  // Postal Saúde, ainda precisa da etapa de Modalidade antes da agenda.
+  const currentInsuranceName = insurances.find((i) => i.id === selectedInsuranceId)?.name;
+  const requiresModality = insuranceRequiresModality(currentInsuranceName);
+  const STEP = {
+    specialty: 1,
+    professional: 2,
+    modality: requiresModality ? 3 : -1,
+    date: requiresModality ? 4 : 3,
+    time: requiresModality ? 5 : 4,
+    details: requiresModality ? 6 : 5,
+    confirmation: requiresModality ? 7 : 6,
+  };
+  const selectedValue =
+    pricing?.insuranceKind === "convenio"
+      ? pricing.options.find((o) => o.modality === modality)?.value ?? null
+      : pricing?.insuranceKind === "particular"
+        ? pricing.options.find((o) => o.product === particularProduct)?.value ?? null
+        : null;
 
   // Auto initialize if defaultProfessionalId provided
   useEffect(() => {
@@ -128,24 +158,39 @@ export function PublicBookingFlow({
 
   async function handleSelectProfessional(profId: string) {
     setSelectedProfessionalId(profId);
+    setModality(null);
+    setParticularProduct(null);
     setLoading(true);
     setErrorMsg(null);
     try {
       const dates = await getAvailableDates(profId);
       setAvailableDates(dates);
       const insId = selectedInsuranceId || (insurances[0]?.id ?? "");
-      const [pricing, duration] = await Promise.all([
-        getProfessionalPricing(profId, insId),
-        getEffectiveDuration(profId, insId),
-      ]);
-      setPricingOptions(pricing);
-      setEffectiveDuration(duration);
-      if (pricing.length > 0) {
-        setPaymentMethod(pricing[0].paymentMethod as any);
+      const pricingResult = await getProfessionalPricing(profId, insId);
+      setPricing(pricingResult);
+      if (insuranceRequiresModality(insurances.find((i) => i.id === insId)?.name)) {
+        setStep(3);
+      } else {
+        const duration = await getEffectiveDuration(profId, insId);
+        setEffectiveDuration(duration);
+        setStep(3);
       }
-      setStep(3);
     } catch {
       setErrorMsg("Falha ao carregar datas disponíveis.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSelectModality(m: Modality) {
+    setModality(m);
+    setPaymentMethod("convenio");
+    setLoading(true);
+    try {
+      const insId = selectedInsuranceId || (insurances[0]?.id ?? "");
+      const duration = await getEffectiveDuration(selectedProfessionalId, insId, m);
+      setEffectiveDuration(duration);
+      setStep(STEP.date);
     } finally {
       setLoading(false);
     }
@@ -159,10 +204,11 @@ export function PublicBookingFlow({
       const times = await getAvailableTimes(
         selectedProfessionalId,
         selectedInsuranceId || (insurances[0]?.id ?? ""),
-        date
+        date,
+        modality ?? undefined,
       );
       setAvailableTimes(times);
-      setStep(4);
+      setStep(STEP.time);
     } catch {
       setErrorMsg("Falha ao carregar horários disponíveis.");
     } finally {
@@ -172,7 +218,7 @@ export function PublicBookingFlow({
 
   function handleSelectSlot(slot: { slotId: string; startTime: string; endTime: string }) {
     setSelectedSlot(slot);
-    setStep(5);
+    setStep(STEP.details);
   }
 
   function handleProceedToConfirmation(e: React.FormEvent) {
@@ -181,8 +227,12 @@ export function PublicBookingFlow({
       setErrorMsg("Por favor, preencha nome e telefone com DDD.");
       return;
     }
+    if (!requiresModality && !particularProduct) {
+      setErrorMsg("Selecione Consulta Particular ou Pacote Particular.");
+      return;
+    }
     setErrorMsg(null);
-    setStep(6);
+    setStep(STEP.confirmation);
   }
 
   async function handleFinalSubmit() {
@@ -199,6 +249,8 @@ export function PublicBookingFlow({
       startTime: selectedSlot.startTime,
       endTime: selectedSlot.endTime,
       paymentMethod,
+      modality: modality ?? undefined,
+      particularProduct: particularProduct ?? undefined,
       patientName,
       patientPhone,
       patientEmail,
@@ -215,9 +267,8 @@ export function PublicBookingFlow({
 
   const currentProf = professionals.find((p) => p.id === selectedProfessionalId);
   const currentSpec = specialties.find((s) => s.id === selectedSpecialtyId);
-  const currentPricing = pricingOptions.find((p) => p.paymentMethod === paymentMethod);
   const currentInsurance = insurances.find((i) => i.id === selectedInsuranceId);
-  const attendance = getAttendanceInfo(currentInsurance?.name, paymentMethod);
+  const attendance = getAttendanceInfo(currentInsurance?.name, paymentMethod, modality ?? undefined, particularProduct ?? undefined);
 
   if (successResult) {
     return (
@@ -272,20 +323,21 @@ export function PublicBookingFlow({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-[var(--primary)]">
-              Passo {step} de 6
+              Passo {step} de {STEP.confirmation}
             </span>
             <h3 className="text-lg font-bold text-text-primary font-heading">
-              {step === 1 && "Escolha a Especialidade"}
-              {step === 2 && "Escolha o Profissional"}
-              {step === 3 && "Escolha a Data"}
-              {step === 4 && "Escolha o Horário"}
-              {step === 5 && "Informe seus Dados"}
-              {step === 6 && "Confirmação do Agendamento"}
+              {step === STEP.specialty && "Escolha a Especialidade"}
+              {step === STEP.professional && "Escolha o Profissional"}
+              {step === STEP.modality && "Escolha a Modalidade"}
+              {step === STEP.date && "Escolha a Data"}
+              {step === STEP.time && "Escolha o Horário"}
+              {step === STEP.details && "Informe seus Dados"}
+              {step === STEP.confirmation && "Confirmação do Agendamento"}
             </h3>
           </div>
           {step > 1 && (
             <button
-              onClick={() => setStep((step - 1) as any)}
+              onClick={() => setStep(step - 1)}
               className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--primary)] hover:underline transition-colors"
             >
               ← Voltar passo anterior
@@ -294,8 +346,8 @@ export function PublicBookingFlow({
         </div>
 
         {/* Indicator Steps */}
-        <div className="grid grid-cols-6 gap-2">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div className={requiresModality ? "grid grid-cols-7 gap-2" : "grid grid-cols-6 gap-2"}>
+          {Array.from({ length: STEP.confirmation }, (_, i) => i + 1).map((i) => (
             <div
               key={i}
               className={`h-2 rounded-full transition-all duration-300 ${
@@ -372,8 +424,47 @@ export function PublicBookingFlow({
         </div>
       )}
 
+      {/* STEP (só Unimed/Postal Saúde): MODALIDADE */}
+      {step === STEP.modality && (
+        <Card className="animate-fade-up">
+          <CardContent className="p-6 space-y-4">
+            <h4 className="text-sm font-semibold text-text-secondary">Selecione a modalidade de atendimento:</h4>
+            {loading ? (
+              <Skeleton className="h-16 w-full rounded-2xl" />
+            ) : pricing?.insuranceKind === "convenio" && pricing.options.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {MODALITIES.map((m) => {
+                  const opt = pricing.options.find((o) => o.modality === m);
+                  return (
+                    <button
+                      key={m}
+                      disabled={!opt}
+                      onClick={() => opt && handleSelectModality(m)}
+                      className={`p-5 rounded-2xl border text-left transition-all ${
+                        !opt
+                          ? "border-border/50 bg-card-elevated/30 text-text-muted cursor-not-allowed"
+                          : "border-border bg-card-elevated/70 hover:border-primary hover:bg-card-elevated"
+                      }`}
+                    >
+                      <h5 className="text-base font-bold text-text-primary font-heading">{MODALITY_LABELS[m]}</h5>
+                      <p className="text-xs text-[var(--primary)] mt-1 font-semibold">
+                        {opt ? formatCurrency(opt.value) : "Sem valor cadastrado"}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-danger py-4 text-center">
+                Este profissional ainda não possui um valor cadastrado para essa modalidade.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* STEP 3: DATA */}
-      {step === 3 && (
+      {step === STEP.date && (
         <Card className="animate-fade-up">
           <CardContent className="p-6">
             <h4 className="text-sm font-semibold text-text-secondary mb-4">
@@ -409,7 +500,7 @@ export function PublicBookingFlow({
       )}
 
       {/* STEP 4: HORÁRIO */}
-      {step === 4 && (
+      {step === STEP.time && (
         <Card className="animate-fade-up">
           <CardContent className="p-6">
             <h4 className="text-sm font-semibold text-text-secondary mb-4">
@@ -439,7 +530,7 @@ export function PublicBookingFlow({
       )}
 
       {/* STEP 5: DADOS DO PACIENTE */}
-      {step === 5 && (
+      {step === STEP.details && (
         <Card className="animate-fade-up">
           <CardContent className="p-6">
             <form onSubmit={handleProceedToConfirmation} className="space-y-4">
@@ -465,27 +556,55 @@ export function PublicBookingFlow({
                 onChange={(e) => setPatientEmail(e.target.value)}
               />
 
-              {pricingOptions.length > 0 && (
-                <div className="mt-4">
-                  <label className="text-sm font-medium text-text-secondary">Forma de Pagamento</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
-                    {pricingOptions.map((opt) => (
-                      <button
-                        type="button"
-                        key={opt.paymentMethod}
-                        onClick={() => setPaymentMethod(opt.paymentMethod as any)}
-                        className={`p-3 rounded-xl border text-xs font-semibold text-left transition-all ${
-                          paymentMethod === opt.paymentMethod
-                            ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)]"
-                            : "border-border bg-card-elevated text-text-secondary"
-                        }`}
-                      >
-                        <div className="uppercase">{opt.paymentMethod}</div>
-                        <div className="text-sm font-bold text-text-primary mt-1">{formatCurrency(opt.value)}</div>
-                      </button>
-                    ))}
+              {!requiresModality && (
+                <>
+                  <div className="mt-4">
+                    <label className="text-sm font-medium text-text-secondary">Tipo de Atendimento Particular</label>
+                    {pricing?.insuranceKind === "particular" && pricing.options.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-3 mt-2">
+                        {pricing.options.map((opt) => (
+                          <button
+                            type="button"
+                            key={opt.product}
+                            onClick={() => setParticularProduct(opt.product)}
+                            className={`p-3 rounded-xl border text-xs font-semibold text-left transition-all ${
+                              particularProduct === opt.product
+                                ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)]"
+                                : "border-border bg-card-elevated text-text-secondary"
+                            }`}
+                          >
+                            <div>{PARTICULAR_PRODUCT_LABELS[opt.product]}</div>
+                            <div className="text-sm font-bold text-text-primary mt-1">{formatCurrency(opt.value)}</div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-danger mt-2">
+                        Valores particulares ainda não configurados. Entre em contato com a clínica.
+                      </p>
+                    )}
                   </div>
-                </div>
+
+                  <div className="mt-4">
+                    <label className="text-sm font-medium text-text-secondary">Forma de Pagamento</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
+                      {PARTICULAR_PAYMENT_METHODS.map((pm) => (
+                        <button
+                          type="button"
+                          key={pm}
+                          onClick={() => setPaymentMethod(pm)}
+                          className={`p-3 rounded-xl border text-xs font-semibold text-left transition-all ${
+                            paymentMethod === pm
+                              ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)]"
+                              : "border-border bg-card-elevated text-text-secondary"
+                          }`}
+                        >
+                          <div className="uppercase">{PAYMENT_METHOD_LABELS[pm]}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
               )}
 
               <Button type="submit" size="lg" className="w-full mt-6 font-bold">
@@ -497,7 +616,7 @@ export function PublicBookingFlow({
       )}
 
       {/* STEP 6: CONFIRMAÇÃO */}
-      {step === 6 && (
+      {step === STEP.confirmation && (
         <Card className="border-primary/40 animate-fade-up">
           <CardContent className="p-6 space-y-6">
             <h4 className="text-base font-bold text-text-primary font-heading">Resumo das Informações</h4>
@@ -511,13 +630,24 @@ export function PublicBookingFlow({
               {attendance.isConvenio ? (
                 <div>
                   <span className="text-xs text-text-muted">Convênio</span>
-                  <p className="text-sm font-bold text-text-primary">{attendance.insuranceName}</p>
+                  <p className="text-sm font-bold text-text-primary">
+                    {attendance.insuranceName}
+                    {attendance.modalityLabel ? ` — ${attendance.modalityLabel}` : ""}
+                  </p>
                 </div>
               ) : (
-                <div>
-                  <span className="text-xs text-text-muted">Forma de Pagamento</span>
-                  <p className="text-sm font-bold text-text-primary">{attendance.paymentMethodLabel}</p>
-                </div>
+                <>
+                  <div>
+                    <span className="text-xs text-text-muted">Forma de Pagamento</span>
+                    <p className="text-sm font-bold text-text-primary">{attendance.paymentMethodLabel}</p>
+                  </div>
+                  {attendance.particularProductLabel && (
+                    <div>
+                      <span className="text-xs text-text-muted">Produto</span>
+                      <p className="text-sm font-bold text-text-primary">{attendance.particularProductLabel}</p>
+                    </div>
+                  )}
+                </>
               )}
               <div>
                 <span className="text-xs text-text-muted">Especialidade</span>
@@ -541,10 +671,10 @@ export function PublicBookingFlow({
                 <span className="text-xs text-text-muted">Paciente</span>
                 <p className="text-sm font-bold text-text-primary">{patientName} ({patientPhone})</p>
               </div>
-              {currentPricing && (
+              {selectedValue != null && (
                 <div>
                   <span className="text-xs text-text-muted">Valor da consulta</span>
-                  <p className="text-sm font-extrabold text-text-primary">{formatCurrency(currentPricing.value)}</p>
+                  <p className="text-sm font-extrabold text-text-primary">{formatCurrency(selectedValue)}</p>
                 </div>
               )}
             </div>

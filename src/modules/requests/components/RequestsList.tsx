@@ -90,7 +90,7 @@ export function RequestsList({ requests }: { requests: RequestView[] }) {
           </thead>
           <tbody className="divide-y divide-border/40">
             {requests.map((req) => {
-              const attendance = getAttendanceInfo(req.insuranceName, req.paymentMethod);
+              const attendance = getAttendanceInfo(req.insuranceName, req.paymentMethod, req.modality, req.particularProduct);
               return (
                 <tr key={req.id} className="transition-colors hover:bg-card-elevated/40">
                   <td className="px-5 py-4 font-bold text-text-primary">{req.patientName}</td>
@@ -99,9 +99,19 @@ export function RequestsList({ requests }: { requests: RequestView[] }) {
                   <td className="px-5 py-4 text-text-secondary">
                     <span className="font-semibold text-text-primary">{attendance.attendanceType}</span>
                     {attendance.isConvenio ? (
-                      <span className="block text-xs text-text-muted">{attendance.insuranceName}</span>
+                      <>
+                        <span className="block text-xs text-text-muted">{attendance.insuranceName}</span>
+                        {attendance.modalityLabel && (
+                          <span className="block text-[10px] text-text-muted">Modalidade: {attendance.modalityLabel}</span>
+                        )}
+                      </>
                     ) : (
-                      <span className="block text-xs text-text-muted">{attendance.paymentMethodLabel}</span>
+                      <>
+                        <span className="block text-xs text-text-muted">{attendance.paymentMethodLabel}</span>
+                        {attendance.particularProductLabel && (
+                          <span className="block text-[10px] text-text-muted">{attendance.particularProductLabel}</span>
+                        )}
+                      </>
                     )}
                   </td>
                   <td className="px-5 py-4 text-text-secondary">
@@ -150,7 +160,7 @@ export function RequestsList({ requests }: { requests: RequestView[] }) {
         }
       >
         {viewing && (() => {
-          const attendance = getAttendanceInfo(viewing.insuranceName, viewing.paymentMethod);
+          const attendance = getAttendanceInfo(viewing.insuranceName, viewing.paymentMethod, viewing.modality, viewing.particularProduct);
           return (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
@@ -171,15 +181,31 @@ export function RequestsList({ requests }: { requests: RequestView[] }) {
                 <p className="font-bold text-text-primary">{attendance.attendanceType}</p>
               </div>
               {attendance.isConvenio ? (
-                <div>
-                  <span className="text-xs text-text-muted">Convênio</span>
-                  <p className="font-bold text-text-primary">{attendance.insuranceName}</p>
-                </div>
+                <>
+                  <div>
+                    <span className="text-xs text-text-muted">Convênio</span>
+                    <p className="font-bold text-text-primary">{attendance.insuranceName}</p>
+                  </div>
+                  {attendance.modalityLabel && (
+                    <div>
+                      <span className="text-xs text-text-muted">Modalidade</span>
+                      <p className="font-bold text-text-primary">{attendance.modalityLabel}</p>
+                    </div>
+                  )}
+                </>
               ) : (
-                <div>
-                  <span className="text-xs text-text-muted">Forma de Pagamento</span>
-                  <p className="font-bold text-text-primary">{attendance.paymentMethodLabel}</p>
-                </div>
+                <>
+                  <div>
+                    <span className="text-xs text-text-muted">Forma de Pagamento</span>
+                    <p className="font-bold text-text-primary">{attendance.paymentMethodLabel}</p>
+                  </div>
+                  {attendance.particularProductLabel && (
+                    <div>
+                      <span className="text-xs text-text-muted">Produto</span>
+                      <p className="font-bold text-text-primary">{attendance.particularProductLabel}</p>
+                    </div>
+                  )}
+                </>
               )}
               <div>
                 <span className="text-xs text-text-muted">Data & Horário</span>

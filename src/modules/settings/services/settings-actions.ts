@@ -272,6 +272,43 @@ export async function updateClinicLocation(input: {
   return { error: null };
 }
 
+function parsePositiveOrEmpty(value: string): { ok: true; parsed: number | null } | { ok: false } {
+  const trimmed = value?.trim();
+  if (!trimmed) return { ok: true, parsed: null };
+  const parsed = Number(trimmed.replace(",", "."));
+  if (!Number.isFinite(parsed) || parsed < 0) return { ok: false };
+  return { ok: true, parsed };
+}
+
+export async function updateClinicParticularPricing(input: {
+  price_particular_consultation: string;
+  price_particular_package: string;
+}): Promise<ActionResult> {
+  const session = await requireAdmin().catch(() => null);
+  if (!session) return { error: "Acesso negado." };
+
+  const consultation = parsePositiveOrEmpty(input.price_particular_consultation);
+  const pkg = parsePositiveOrEmpty(input.price_particular_package);
+  if (!consultation.ok || !pkg.ok) {
+    return { error: "Informe valores válidos (maiores ou iguais a zero)." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("clinic_settings")
+    .update({
+      price_particular_consultation: consultation.parsed,
+      price_particular_package: pkg.parsed,
+    })
+    .eq("id", 1);
+
+  if (error) return { error: "Não foi possível salvar os valores particulares." };
+
+  await logAudit({ actorId: session.user.id, action: "clinic_settings.particular_pricing_updated", entity: "clinic_settings", entityId: "1" });
+  revalidatePublicSite();
+  return { error: null };
+}
+
 export async function updateAllClinicSettings(input: {
   name: string;
   legal_name: string;
@@ -300,6 +337,8 @@ export async function updateAllClinicSettings(input: {
   maps_url: string;
   latitude: string;
   longitude: string;
+  price_particular_consultation: string;
+  price_particular_package: string;
 }): Promise<ActionResult> {
   const session = await requireAdmin().catch(() => null);
   if (!session) return { error: "Acesso negado." };
@@ -352,6 +391,12 @@ export async function updateAllClinicSettings(input: {
     if (Number.isNaN(longitude) || longitude < -180 || longitude > 180) return { error: "Longitude inválida (-180 a 180)." };
   }
 
+  const consultation = parsePositiveOrEmpty(input.price_particular_consultation);
+  const pkg = parsePositiveOrEmpty(input.price_particular_package);
+  if (!consultation.ok || !pkg.ok) {
+    return { error: "Informe valores particulares válidos (maiores ou iguais a zero)." };
+  }
+
   const addressParts = {
     address_zip: nullIfEmpty(input.address_zip),
     address_street: nullIfEmpty(input.address_street),
@@ -386,6 +431,8 @@ export async function updateAllClinicSettings(input: {
       maps_url: mapsUrl,
       latitude,
       longitude,
+      price_particular_consultation: consultation.parsed,
+      price_particular_package: pkg.parsed,
     })
     .eq("id", 1);
 

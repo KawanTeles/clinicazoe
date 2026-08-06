@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
+import type { Database, Modality, ParticularProduct } from "@/lib/supabase/types";
 
 type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
 
@@ -20,6 +20,8 @@ export interface RequestView {
   endTime: string;
   value: number;
   paymentMethod: string;
+  modality: Modality | null;
+  particularProduct: ParticularProduct | null;
   status: string;
   requestedAt: string;
 }
@@ -64,6 +66,8 @@ async function denormalize(
     endTime: row.end_time,
     value: row.value,
     paymentMethod: row.payment_method,
+    modality: row.modality,
+    particularProduct: row.particular_product,
     status: row.status,
     requestedAt: row.created_at,
   }));

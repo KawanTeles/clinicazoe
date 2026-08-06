@@ -40,9 +40,6 @@ export async function getPublicWebsiteData() {
         bio: prof.bio || "Especialista qualificado comprometido com a excelência no atendimento e saúde do paciente.",
         avatarUrl,
         consultationDuration: prof.consultation_duration_minutes,
-        priceParticularPix: prof.price_particular_pix,
-        priceParticularCard: prof.price_particular_card,
-        priceParticularCash: prof.price_particular_cash,
       };
     })
   );
@@ -82,6 +79,8 @@ export async function getPublicWebsiteData() {
           holiday_close_time: null,
           logo_path: null,
           logo_url: null,
+          price_particular_consultation: null,
+          price_particular_package: null,
           created_at: "",
           updated_at: "",
         },

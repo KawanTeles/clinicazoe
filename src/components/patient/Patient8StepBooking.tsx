@@ -14,10 +14,13 @@ import {
   getAvailableTimes,
   getProfessionalPricing,
   getEffectiveDuration,
+  type ProfessionalPricingResult,
 } from "@/modules/appointments/services/booking-queries";
 import { createAppointment } from "@/modules/appointments/services/booking-actions";
 import { formatCurrency, buildWhatsAppLink } from "@/lib/whatsapp";
 import { getAttendanceInfo } from "@/lib/attendance";
+import { MODALITY_LABELS, PARTICULAR_PRODUCT_LABELS, insuranceRequiresModality } from "@/lib/constants";
+import type { Modality, ParticularProduct } from "@/lib/supabase/types";
 
 interface Specialty {
   id: string;
@@ -68,8 +71,9 @@ interface PaymentChoice {
   paymentMethod: "pix" | "cartao" | "dinheiro" | "convenio";
   cardType?: "credito" | "debito";
   label: string;
-  value: number;
 }
+
+const MODALITIES: Modality[] = ["aba", "comum"];
 
 export function Patient8StepBooking({
   specialties,
@@ -77,7 +81,7 @@ export function Patient8StepBooking({
   patientProfile,
   whatsappNumber,
 }: Patient8StepBookingProps) {
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7>(1);
+  const [step, setStep] = useState<number>(1);
 
   // Selections
   const [selectedInsuranceId, setSelectedInsuranceId] = useState<string>("");
@@ -86,6 +90,8 @@ export function Patient8StepBooking({
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedSlot, setSelectedSlot] = useState<{ slotId: string; startTime: string; endTime: string } | null>(null);
+  const [modality, setModality] = useState<Modality | null>(null);
+  const [particularProduct, setParticularProduct] = useState<ParticularProduct | null>(null);
 
   // Form patient
   const [patientName, setPatientName] = useState(patientProfile?.fullName || "");
@@ -99,7 +105,7 @@ export function Patient8StepBooking({
   const [professionals, setProfessionals] = useState<Professional[]>(initialProfessionals);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [availableTimes, setAvailableTimes] = useState<{ slotId: string; startTime: string; endTime: string }[]>([]);
-  const [pricingOptions, setPricingOptions] = useState<{ paymentMethod: string; value: number }[]>([]);
+  const [pricing, setPricing] = useState<ProfessionalPricingResult | null>(null);
   const [effectiveDuration, setEffectiveDuration] = useState<number | null>(null);
 
   // UI States
@@ -107,6 +113,27 @@ export function Patient8StepBooking({
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successResult, setSuccessResult] = useState<{ whatsappLink?: string | null } | null>(null);
+
+  // Unimed/Postal Saúde têm modalidade (ABA/Comum) e ganham uma etapa extra;
+  // Particular não tem modalidade, mas ganha a etapa de Forma de Pagamento —
+  // por isso o total continua 7 etapas nos dois casos.
+  const requiresModality = insuranceRequiresModality(selectedInsuranceName);
+  const STEP = {
+    insurance: 1,
+    professional: 2,
+    modality: requiresModality ? 3 : -1,
+    date: requiresModality ? 4 : 3,
+    time: requiresModality ? 5 : 4,
+    patientDetails: requiresModality ? 6 : 5,
+    payment: requiresModality ? -1 : 6,
+    summary: 7,
+  };
+  const selectedValue =
+    pricing?.insuranceKind === "convenio"
+      ? pricing.options.find((o) => o.modality === modality)?.value ?? null
+      : pricing?.insuranceKind === "particular"
+        ? pricing.options.find((o) => o.product === particularProduct)?.value ?? null
+        : null;
 
   async function loadInsurancesForSpecialty(specId: string) {
     setSelectedSpecialtyId(specId);
@@ -149,6 +176,9 @@ export function Patient8StepBooking({
   async function handleSelectInsurance(insId: string, insName: string) {
     setSelectedInsuranceId(insId);
     setSelectedInsuranceName(insName);
+    setModality(null);
+    setParticularProduct(null);
+    setPaymentMethod("pix");
     setLoading(true);
     setErrorMsg(null);
     try {
@@ -174,21 +204,24 @@ export function Patient8StepBooking({
   // ETAPA 2: Selecionar Profissional
   async function handleSelectProfessional(profId: string) {
     setSelectedProfessionalId(profId);
+    setModality(null);
+    setParticularProduct(null);
     setLoading(true);
     setErrorMsg(null);
     try {
-      const [dates, pricing, duration] = await Promise.all([
+      const [dates, pricingResult] = await Promise.all([
         getAvailableDates(profId),
         getProfessionalPricing(profId, selectedInsuranceId),
-        getEffectiveDuration(profId, selectedInsuranceId),
       ]);
       setAvailableDates(dates);
-      setPricingOptions(pricing);
-      setEffectiveDuration(duration);
-      if (pricing.length > 0) {
-        setPaymentMethod(pricing[0].paymentMethod as any);
+      setPricing(pricingResult);
+      if (requiresModality) {
+        setStep(STEP.modality);
+      } else {
+        const duration = await getEffectiveDuration(profId, selectedInsuranceId);
+        setEffectiveDuration(duration);
+        setStep(STEP.date);
       }
-      setStep(3);
     } catch {
       setErrorMsg("Falha ao carregar datas do profissional.");
     } finally {
@@ -196,15 +229,30 @@ export function Patient8StepBooking({
     }
   }
 
-  // ETAPA 3: Escolher Data
+  // ETAPA 3 (só Unimed/Postal Saúde): Escolher Modalidade
+  async function handleSelectModality(m: Modality) {
+    setModality(m);
+    setPaymentMethod("convenio");
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const duration = await getEffectiveDuration(selectedProfessionalId, selectedInsuranceId, m);
+      setEffectiveDuration(duration);
+      setStep(STEP.date);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ETAPA "Data": Escolher Data
   async function handleSelectDate(date: string) {
     setSelectedDate(date);
     setLoading(true);
     setErrorMsg(null);
     try {
-      const times = await getAvailableTimes(selectedProfessionalId, selectedInsuranceId, date);
+      const times = await getAvailableTimes(selectedProfessionalId, selectedInsuranceId, date, modality ?? undefined);
       setAvailableTimes(times);
-      setStep(4);
+      setStep(STEP.time);
     } catch {
       setErrorMsg("Falha ao carregar horários disponíveis.");
     } finally {
@@ -212,13 +260,13 @@ export function Patient8StepBooking({
     }
   }
 
-  // ETAPA 4: Escolher Horário
+  // ETAPA "Horário": Escolher Horário
   function handleSelectSlot(slot: { slotId: string; startTime: string; endTime: string }) {
     setSelectedSlot(slot);
-    setStep(5);
+    setStep(STEP.patientDetails);
   }
 
-  // ETAPA 5: Confirmar dados pessoais
+  // ETAPA "Dados Pessoais"
   function handleConfirmPatientDetails(e: React.FormEvent) {
     e.preventDefault();
     if (!patientName.trim() || !patientPhone.trim()) {
@@ -226,17 +274,28 @@ export function Patient8StepBooking({
       return;
     }
     setErrorMsg(null);
-    setStep(6);
+    // Convênio (Unimed/Postal): forma de pagamento já é fixa ("convenio") e a
+    // modalidade já foi escolhida — vai direto para o resumo. Particular:
+    // ainda falta escolher Consulta/Pacote + forma de pagamento.
+    setStep(requiresModality ? STEP.summary : STEP.payment);
   }
 
-  // ETAPA 6: Forma de Pagamento
-  function handleSelectPaymentMethod(choice: PaymentChoice) {
+  // ETAPA "Forma de Pagamento" (só Particular)
+  function handleSelectPaymentChoice(choice: PaymentChoice) {
     setPaymentMethod(choice.paymentMethod);
     if (choice.cardType) setCardType(choice.cardType);
-    setStep(7);
   }
 
-  // ETAPA 7: Enviar solicitação
+  function handleConfirmPayment() {
+    if (!particularProduct) {
+      setErrorMsg("Selecione Consulta Particular ou Pacote Particular.");
+      return;
+    }
+    setErrorMsg(null);
+    setStep(STEP.summary);
+  }
+
+  // ETAPA "Resumo": Enviar solicitação
   async function handleFinalSubmit() {
     if (!selectedSlot) return;
     setSubmitting(true);
@@ -251,6 +310,8 @@ export function Patient8StepBooking({
       startTime: selectedSlot.startTime,
       endTime: selectedSlot.endTime,
       paymentMethod,
+      modality: modality ?? undefined,
+      particularProduct: particularProduct ?? undefined,
     });
 
     setSubmitting(false);
@@ -260,17 +321,18 @@ export function Patient8StepBooking({
     } else {
       const currentProf = professionals.find((p) => p.id === selectedProfessionalId);
       const currentSpec = specialties.find((s) => s.id === selectedSpecialtyId);
-      const currentPricing = pricingOptions.find((p) => p.paymentMethod === paymentMethod);
 
-      const attendance = getAttendanceInfo(selectedInsuranceName, paymentMethod);
+      const attendance = getAttendanceInfo(selectedInsuranceName, paymentMethod, modality ?? undefined, particularProduct ?? undefined);
       let detailsText = `📄 Tipo de Atendimento: ${attendance.attendanceType}\n`;
       if (attendance.isConvenio) {
         detailsText += `🏥 Convênio: ${attendance.insuranceName}\n`;
+        if (attendance.modalityLabel) detailsText += `🧩 Modalidade: ${attendance.modalityLabel}\n`;
       } else {
         detailsText += `💳 Forma de Pagamento: ${paymentMethodDisplayLabel(paymentMethod, cardType)}\n`;
+        if (attendance.particularProductLabel) detailsText += `📦 ${attendance.particularProductLabel}\n`;
       }
 
-      const msg = `Nova solicitação de consulta:\n\nPaciente: ${patientName}\nWhatsApp: ${patientPhone}\nProfissional: ${currentProf?.fullName}\nEspecialidade: ${currentSpec?.name}\nData: ${selectedDate.split("-").reverse().join("/")}\nHorário: ${selectedSlot.startTime.slice(0, 5)}\n💰 Valor da Consulta: ${currentPricing ? formatCurrency(currentPricing.value) : "A combinar"}\n${detailsText.trim()}`;
+      const msg = `Nova solicitação de consulta:\n\nPaciente: ${patientName}\nWhatsApp: ${patientPhone}\nProfissional: ${currentProf?.fullName}\nEspecialidade: ${currentSpec?.name}\nData: ${selectedDate.split("-").reverse().join("/")}\nHorário: ${selectedSlot.startTime.slice(0, 5)}\n💰 Valor da Consulta: ${selectedValue != null ? formatCurrency(selectedValue) : "A combinar"}\n${detailsText.trim()}`;
 
       const link = buildWhatsAppLink(whatsappNumber, msg);
       setSuccessResult({ whatsappLink: link });
@@ -279,27 +341,19 @@ export function Patient8StepBooking({
 
   const currentProf = professionals.find((p) => p.id === selectedProfessionalId);
   const currentSpec = specialties.find((s) => s.id === selectedSpecialtyId);
-  const currentPricing = pricingOptions.find((p) => p.paymentMethod === paymentMethod);
-  const attendance = getAttendanceInfo(selectedInsuranceName, paymentMethod);
+  const attendance = getAttendanceInfo(selectedInsuranceName, paymentMethod, modality ?? undefined, particularProduct ?? undefined);
 
-  // "Cartão" vira duas opções na tela (Crédito/Débito) com a mesma tarifa —
-  // o profissional cadastra um único valor de cartão, não dois.
-  const paymentChoices: PaymentChoice[] = pricingOptions.flatMap((opt) => {
-    if (opt.paymentMethod === "cartao") {
-      return [
-        { key: "cartao-credito", paymentMethod: "cartao", cardType: "credito", label: "Cartão de Crédito", value: opt.value },
-        { key: "cartao-debito", paymentMethod: "cartao", cardType: "debito", label: "Cartão de Débito", value: opt.value },
-      ];
-    }
-    return [
-      {
-        key: opt.paymentMethod,
-        paymentMethod: opt.paymentMethod as PaymentChoice["paymentMethod"],
-        label: PAYMENT_METHOD_LABELS[opt.paymentMethod] ?? opt.paymentMethod,
-        value: opt.value,
-      },
-    ];
-  });
+  // "Cartão" vira duas opções na tela (Crédito/Débito) — mesma escolha
+  // informativa, não afeta o valor (que agora vem do Produto Particular).
+  const paymentChoices: PaymentChoice[] =
+    !requiresModality
+      ? [
+          { key: "pix", paymentMethod: "pix", label: "Pix" },
+          { key: "cartao-credito", paymentMethod: "cartao", cardType: "credito", label: "Cartão de Crédito" },
+          { key: "cartao-debito", paymentMethod: "cartao", cardType: "debito", label: "Cartão de Débito" },
+          { key: "dinheiro", paymentMethod: "dinheiro", label: "Dinheiro" },
+        ]
+      : [];
   const selectedChoiceKey = paymentMethod === "cartao" ? `cartao-${cardType}` : paymentMethod;
 
   if (successResult) {
@@ -358,18 +412,19 @@ export function Patient8StepBooking({
               Etapa {step} de 7
             </span>
             <h3 className="text-lg font-extrabold text-text-primary font-heading">
-              {step === 1 && "1. Selecionar Convênio"}
-              {step === 2 && "2. Selecionar Profissional"}
-              {step === 3 && "3. Escolher Data"}
-              {step === 4 && "4. Escolher Horário"}
-              {step === 5 && "5. Confirmar Dados Pessoais"}
-              {step === 6 && "6. Forma de Pagamento"}
-              {step === 7 && "7. Resumo Final & Envio"}
+              {step === STEP.insurance && "1. Selecionar Convênio"}
+              {step === STEP.professional && "2. Selecionar Profissional"}
+              {step === STEP.modality && "3. Modalidade"}
+              {step === STEP.date && `${STEP.date}. Escolher Data`}
+              {step === STEP.time && `${STEP.time}. Escolher Horário`}
+              {step === STEP.patientDetails && `${STEP.patientDetails}. Confirmar Dados Pessoais`}
+              {step === STEP.payment && `${STEP.payment}. Forma de Pagamento`}
+              {step === STEP.summary && "7. Resumo Final & Envio"}
             </h3>
           </div>
           {step > 1 && (
             <button
-              onClick={() => setStep((step - 1) as any)}
+              onClick={() => setStep(step - 1)}
               className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--primary)] hover:underline transition-colors"
             >
               ← Voltar etapa anterior
@@ -461,8 +516,47 @@ export function Patient8StepBooking({
         </div>
       )}
 
-      {/* ETAPA 3: ESCOLHER DATA */}
-      {step === 3 && (
+      {/* ETAPA 3 (só Unimed/Postal Saúde): MODALIDADE */}
+      {step === STEP.modality && (
+        <Card className="animate-fade-up">
+          <CardContent className="p-6 space-y-4">
+            <h4 className="text-sm font-semibold text-text-secondary">Selecione a modalidade de atendimento:</h4>
+            {loading ? (
+              <Skeleton className="h-16 w-full rounded-2xl" />
+            ) : pricing?.insuranceKind === "convenio" && pricing.options.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {MODALITIES.map((m) => {
+                  const opt = pricing.options.find((o) => o.modality === m);
+                  return (
+                    <button
+                      key={m}
+                      disabled={!opt}
+                      onClick={() => opt && handleSelectModality(m)}
+                      className={`p-5 rounded-2xl border text-left transition-all ${
+                        !opt
+                          ? "border-border/50 bg-card-elevated/30 text-text-muted cursor-not-allowed"
+                          : "border-border bg-card-elevated/70 hover:border-primary hover:bg-card-elevated"
+                      }`}
+                    >
+                      <h5 className="text-base font-bold text-text-primary font-heading">{MODALITY_LABELS[m]}</h5>
+                      <p className="text-xs text-[var(--primary)] mt-1 font-semibold">
+                        {opt ? formatCurrency(opt.value) : "Sem valor cadastrado"}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-danger py-4 text-center">
+                Este profissional ainda não possui um valor cadastrado para essa modalidade.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ETAPA "Data": ESCOLHER DATA */}
+      {step === STEP.date && (
         <Card className="animate-fade-up">
           <CardContent className="p-6">
             <h4 className="text-sm font-semibold text-text-secondary mb-4">
@@ -497,8 +591,8 @@ export function Patient8StepBooking({
         </Card>
       )}
 
-      {/* ETAPA 4: ESCOLHER HORÁRIO */}
-      {step === 4 && (
+      {/* ETAPA "Horário": ESCOLHER HORÁRIO */}
+      {step === STEP.time && (
         <Card className="animate-fade-up">
           <CardContent className="p-6">
             <h4 className="text-sm font-semibold text-text-secondary mb-4">
@@ -527,8 +621,8 @@ export function Patient8StepBooking({
         </Card>
       )}
 
-      {/* ETAPA 5: CONFIRMAR DADOS PESSOAIS */}
-      {step === 5 && (
+      {/* ETAPA "Dados Pessoais": CONFIRMAR DADOS PESSOAIS */}
+      {step === STEP.patientDetails && (
         <Card className="animate-fade-up">
           <CardContent className="p-6">
             <form onSubmit={handleConfirmPatientDetails} className="space-y-4">
@@ -555,39 +649,50 @@ export function Patient8StepBooking({
                 required
               />
               <Button type="submit" size="lg" className="w-full mt-6 font-bold">
-                Avançar para Pagamento →
+                {requiresModality ? "Avançar para Resumo →" : "Avançar para Pagamento →"}
               </Button>
             </form>
           </CardContent>
         </Card>
       )}
 
-      {/* ETAPA 6: FORMA DE PAGAMENTO */}
-      {step === 6 && (
+      {/* ETAPA "Forma de Pagamento" (só Particular): PRODUTO + PAGAMENTO */}
+      {step === STEP.payment && (
         <Card className="animate-fade-up">
-          <CardContent className="p-6 space-y-4">
-            {paymentChoices.length > 0 && (
-              <div className="flex items-center justify-between rounded-xl border border-primary/30 bg-[var(--badge-bg)] px-5 py-4">
-                <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
-                  Valor da consulta
-                </span>
-                <span className="text-2xl font-black text-[var(--primary)]">
-                  {formatCurrency(currentPricing?.value ?? paymentChoices[0].value)}
-                </span>
-              </div>
-            )}
+          <CardContent className="p-6 space-y-5">
+            <div>
+              <h4 className="text-sm font-semibold text-text-secondary mb-3">Selecione o tipo de atendimento particular:</h4>
+              {pricing?.insuranceKind === "particular" && pricing.options.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {pricing.options.map((opt) => (
+                    <button
+                      key={opt.product}
+                      onClick={() => setParticularProduct(opt.product)}
+                      className={`p-4 rounded-xl border text-left transition-all ${
+                        particularProduct === opt.product
+                          ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)]"
+                          : "border-border bg-card-elevated text-text-secondary"
+                      }`}
+                    >
+                      <div className="font-bold text-base text-text-primary">{PARTICULAR_PRODUCT_LABELS[opt.product]}</div>
+                      <div className="text-xs text-[var(--primary)] font-semibold mt-1">{formatCurrency(opt.value)}</div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-text-muted py-4 text-center">
+                  Valores particulares ainda não configurados. Entre em contato com a clínica.
+                </p>
+              )}
+            </div>
 
-            <h4 className="text-sm font-semibold text-text-secondary">Selecione a forma de pagamento:</h4>
-            {paymentChoices.length === 0 ? (
-              <p className="text-sm text-text-muted py-4 text-center">
-                Nenhuma forma de pagamento configurada para este profissional/convênio. Entre em contato com a clínica.
-              </p>
-            ) : (
+            <div>
+              <h4 className="text-sm font-semibold text-text-secondary mb-3">Selecione a forma de pagamento:</h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {paymentChoices.map((choice) => (
                   <button
                     key={choice.key}
-                    onClick={() => handleSelectPaymentMethod(choice)}
+                    onClick={() => handleSelectPaymentChoice(choice)}
                     className={`p-4 rounded-xl border text-left transition-all ${
                       selectedChoiceKey === choice.key
                         ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)]"
@@ -595,17 +700,20 @@ export function Patient8StepBooking({
                     }`}
                   >
                     <div className="font-bold text-base text-text-primary">{choice.label}</div>
-                    <div className="text-xs text-[var(--primary)] font-semibold mt-1">{formatCurrency(choice.value)}</div>
                   </button>
                 ))}
               </div>
-            )}
+            </div>
+
+            <Button size="lg" className="w-full mt-2 font-bold" onClick={handleConfirmPayment}>
+              Avançar para Resumo →
+            </Button>
           </CardContent>
         </Card>
       )}
 
-      {/* ETAPA 7: RESUMO FINAL & ENVIO */}
-      {step === 7 && (
+      {/* ETAPA "Resumo": RESUMO FINAL & ENVIO */}
+      {step === STEP.summary && (
         <Card className="border-primary/40 animate-fade-up">
           <CardContent className="p-6 space-y-6">
             <h4 className="text-base font-bold text-text-primary font-heading">Resumo Completo da Solicitação</h4>
@@ -613,7 +721,10 @@ export function Patient8StepBooking({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl bg-card-elevated/70 p-5 border border-border text-xs">
               <div>
                 <span className="text-text-muted">Convênio:</span>
-                <p className="text-sm font-bold text-text-primary mt-0.5">{selectedInsuranceName}</p>
+                <p className="text-sm font-bold text-text-primary mt-0.5">
+                  {selectedInsuranceName}
+                  {attendance.modalityLabel ? ` — ${attendance.modalityLabel}` : ""}
+                </p>
               </div>
               <div>
                 <span className="text-text-muted">Profissional:</span>
@@ -639,18 +750,21 @@ export function Patient8StepBooking({
                 <span className="text-text-muted">Paciente:</span>
                 <p className="text-sm font-bold text-text-primary mt-0.5">{patientName} ({patientPhone})</p>
               </div>
-              {currentPricing && (
+              {selectedValue != null && (
                 <div>
                   <span className="text-text-muted">Valor da consulta:</span>
-                  <p className="text-sm font-black text-[var(--primary)] mt-0.5">{formatCurrency(currentPricing.value)}</p>
+                  <p className="text-sm font-black text-[var(--primary)] mt-0.5">{formatCurrency(selectedValue)}</p>
                 </div>
               )}
-              <div>
-                <span className="text-text-muted">Pagamento:</span>
-                <p className="text-sm font-bold text-text-primary mt-0.5">
-                  {paymentMethodDisplayLabel(paymentMethod, cardType)}
-                </p>
-              </div>
+              {!requiresModality && (
+                <div>
+                  <span className="text-text-muted">Pagamento:</span>
+                  <p className="text-sm font-bold text-text-primary mt-0.5">
+                    {attendance.particularProductLabel ? `${attendance.particularProductLabel} — ` : ""}
+                    {paymentMethodDisplayLabel(paymentMethod, cardType)}
+                  </p>
+                </div>
+              )}
             </div>
 
             <Button

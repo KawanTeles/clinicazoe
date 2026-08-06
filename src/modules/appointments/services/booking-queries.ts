@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAvatarSignedUrl } from "@/lib/supabase/storage";
 import { PARTICULAR_INSURANCE_NAME } from "@/lib/constants";
 import { toLocalIsoDate, todayLocalIso } from "@/lib/date";
+import type { Modality, ParticularProduct } from "@/lib/supabase/types";
 import { generateSlotInstances, filterAvailableInstances } from "./slot-generator";
 
 const ACTIVE_APPOINTMENT_STATUSES = ["pendente", "confirmada", "concluida", "faltou"];
@@ -42,16 +43,16 @@ export async function getBookableInsurances(specialtyId: string) {
 
   const { data: professionals } = await supabase
     .from("professionals")
-    .select("id, price_particular_card, price_particular_pix, price_particular_cash, status")
+    .select("id, status")
     .eq("specialty_id", specialtyId)
     .eq("status", "active");
 
   if (!professionals || professionals.length === 0) return [];
 
   const professionalIds = professionals.map((p) => p.id);
-  const hasParticular = professionals.some(
-    (p) => p.price_particular_card || p.price_particular_pix || p.price_particular_cash,
-  );
+  // Particular é um valor global da clínica (Configurações da Clínica), não
+  // mais por profissional — qualquer profissional ativo aceita Particular.
+  const hasParticular = true;
 
   const { data: links } = await supabase
     .from("professional_insurances")
@@ -96,11 +97,7 @@ export async function getBookableProfessionals(specialtyId: string, insuranceId:
 
   let filtered = professionals;
 
-  if (isParticular) {
-    filtered = professionals.filter(
-      (p) => p.price_particular_card || p.price_particular_pix || p.price_particular_cash,
-    );
-  } else {
+  if (!isParticular) {
     const { data: links } = await supabase
       .from("professional_insurances")
       .select("professional_id")
@@ -112,6 +109,8 @@ export async function getBookableProfessionals(specialtyId: string, insuranceId:
     const allowedIds = new Set((links ?? []).map((l) => l.professional_id));
     filtered = professionals.filter((p) => allowedIds.has(p.id));
   }
+  // isParticular: Particular é global (Configurações da Clínica) — todo
+  // profissional ativo aceita, sem filtro adicional.
 
   const profileIds = filtered.map((p) => p.id);
   if (profileIds.length === 0) return [];
@@ -151,11 +150,7 @@ export async function getBookableProfessionalsByInsurance(insuranceId: string) {
 
   let filtered = professionals;
 
-  if (isParticular) {
-    filtered = professionals.filter(
-      (p) => p.price_particular_card || p.price_particular_pix || p.price_particular_cash,
-    );
-  } else {
+  if (!isParticular) {
     const { data: links } = await supabase
       .from("professional_insurances")
       .select("professional_id")
@@ -167,6 +162,8 @@ export async function getBookableProfessionalsByInsurance(insuranceId: string) {
     const allowedIds = new Set((links ?? []).map((l) => l.professional_id));
     filtered = professionals.filter((p) => allowedIds.has(p.id));
   }
+  // isParticular: Particular é global (Configurações da Clínica) — todo
+  // profissional ativo aceita, sem filtro adicional.
 
   if (filtered.length === 0) return [];
 
@@ -214,17 +211,24 @@ async function getHolidaySet(supabase: Awaited<ReturnType<typeof createClient>>)
   return new Set((data ?? []).map((h) => h.date));
 }
 
-/** Duração efetiva de uma consulta: override por convênio+profissional se
- * existir, senão a duração padrão do profissional. Nunca fixo no código. */
-export async function getEffectiveDuration(professionalId: string, insuranceId: string): Promise<number> {
+/** Duração efetiva de uma consulta: override por convênio+profissional (e
+ * modalidade, quando o convênio for Unimed/Postal Saúde) se existir, senão a
+ * duração padrão do profissional. Nunca fixo no código. */
+export async function getEffectiveDuration(
+  professionalId: string,
+  insuranceId: string,
+  modality?: Modality,
+): Promise<number> {
   const supabase = await createClient();
 
-  const { data: link } = await supabase
+  let query = supabase
     .from("professional_insurances")
     .select("duration_minutes")
     .eq("professional_id", professionalId)
-    .eq("insurance_id", insuranceId)
-    .maybeSingle();
+    .eq("insurance_id", insuranceId);
+  if (modality) query = query.eq("modality", modality);
+
+  const { data: link } = await query.maybeSingle();
 
   if (link?.duration_minutes) return link.duration_minutes;
 
@@ -289,8 +293,16 @@ export async function getMonthAvailability(
   insuranceId: string,
   year: number,
   month: number,
+  modality?: Modality,
 ): Promise<DayAvailability[]> {
   const supabase = await createClient();
+
+  let durationQuery = supabase
+    .from("professional_insurances")
+    .select("duration_minutes")
+    .eq("professional_id", professionalId)
+    .eq("insurance_id", insuranceId);
+  if (modality) durationQuery = durationQuery.eq("modality", modality);
 
   const [{ data: professional }, { data: durationOverride }] = await Promise.all([
     supabase
@@ -298,12 +310,7 @@ export async function getMonthAvailability(
       .select("consultation_duration_minutes")
       .eq("id", professionalId)
       .single(),
-    supabase
-      .from("professional_insurances")
-      .select("duration_minutes")
-      .eq("professional_id", professionalId)
-      .eq("insurance_id", insuranceId)
-      .maybeSingle(),
+    durationQuery.maybeSingle(),
   ]);
   if (!professional) return [];
   const effectiveDuration = durationOverride?.duration_minutes ?? professional.consultation_duration_minutes;
@@ -438,8 +445,16 @@ export async function getAvailableTimes(
   professionalId: string,
   insuranceId: string,
   date: string,
+  modality?: Modality,
 ) {
   const supabase = await createClient();
+
+  let durationQuery = supabase
+    .from("professional_insurances")
+    .select("duration_minutes")
+    .eq("professional_id", professionalId)
+    .eq("insurance_id", insuranceId);
+  if (modality) durationQuery = durationQuery.eq("modality", modality);
 
   const [{ data: professional }, { data: durationOverride }] = await Promise.all([
     supabase
@@ -447,12 +462,7 @@ export async function getAvailableTimes(
       .select("consultation_duration_minutes")
       .eq("id", professionalId)
       .single(),
-    supabase
-      .from("professional_insurances")
-      .select("duration_minutes")
-      .eq("professional_id", professionalId)
-      .eq("insurance_id", insuranceId)
-      .maybeSingle(),
+    durationQuery.maybeSingle(),
   ]);
   if (!professional) return [];
   const effectiveDuration = durationOverride?.duration_minutes ?? professional.consultation_duration_minutes;
@@ -527,33 +537,70 @@ export async function getAvailableTimes(
   return results.sort((a, b) => a.startTime.localeCompare(b.startTime));
 }
 
-export async function getProfessionalPricing(professionalId: string, insuranceId: string) {
+export type ProfessionalPricingResult =
+  | { insuranceKind: "convenio"; options: { modality: Modality; value: number }[] }
+  | { insuranceKind: "particular"; options: { product: ParticularProduct; value: number }[] };
+
+/** Preço aplicável a um profissional+convênio: para Particular, lê os 2
+ * valores globais em Configurações da Clínica (Consulta/Pacote); para os
+ * demais convênios (Unimed, Postal Saúde), lê o valor por modalidade
+ * (ABA/Comum) cadastrado para aquele profissional — se a modalidade não
+ * tiver linha cadastrada, ela simplesmente não aparece nas opções, o que é a
+ * base para bloquear o agendamento nesse caso. */
+export async function getProfessionalPricing(
+  professionalId: string,
+  insuranceId: string,
+): Promise<ProfessionalPricingResult> {
   const supabase = await createClient();
   const particular = await getInsuranceByName(PARTICULAR_INSURANCE_NAME);
 
   if (particular?.id === insuranceId) {
-    const { data: professional } = await supabase
-      .from("professionals")
-      .select("price_particular_card, price_particular_pix, price_particular_cash")
-      .eq("id", professionalId)
+    const { data: settings } = await supabase
+      .from("clinic_settings")
+      .select("price_particular_consultation, price_particular_package")
+      .eq("id", 1)
       .single();
 
-    const options: { paymentMethod: "cartao" | "pix" | "dinheiro"; value: number }[] = [];
-    if (professional?.price_particular_card)
-      options.push({ paymentMethod: "cartao", value: professional.price_particular_card });
-    if (professional?.price_particular_pix)
-      options.push({ paymentMethod: "pix", value: professional.price_particular_pix });
-    if (professional?.price_particular_cash)
-      options.push({ paymentMethod: "dinheiro", value: professional.price_particular_cash });
-    return options;
+    const options: { product: ParticularProduct; value: number }[] = [];
+    if (settings?.price_particular_consultation != null)
+      options.push({ product: "consulta", value: settings.price_particular_consultation });
+    if (settings?.price_particular_package != null)
+      options.push({ product: "pacote", value: settings.price_particular_package });
+
+    return { insuranceKind: "particular", options };
   }
 
   const { data } = await supabase
     .from("professional_insurances")
-    .select("value")
+    .select("modality, value")
     .eq("professional_id", professionalId)
-    .eq("insurance_id", insuranceId)
-    .single();
+    .eq("insurance_id", insuranceId);
 
-  return data ? [{ paymentMethod: "convenio" as const, value: data.value }] : [];
+  return {
+    insuranceKind: "convenio",
+    options: (data ?? []).map((row) => ({ modality: row.modality, value: row.value })),
+  };
+}
+
+/** Resolve o valor de uma consulta a partir da precificação real (nunca do
+ * client) e valida que a modalidade/produto escolhido tem valor cadastrado.
+ * Mesma mensagem de erro em ambos os casos, como pedido na regra de negócio. */
+export async function resolveAppointmentValue(
+  professionalId: string,
+  insuranceId: string,
+  modality?: Modality,
+  particularProduct?: ParticularProduct,
+): Promise<{ value: number | null; error: string | null }> {
+  const pricing = await getProfessionalPricing(professionalId, insuranceId);
+
+  const match =
+    pricing.insuranceKind === "convenio"
+      ? pricing.options.find((option) => option.modality === modality)
+      : pricing.options.find((option) => option.product === particularProduct);
+
+  if (!match) {
+    return { value: null, error: "Este profissional ainda não possui um valor cadastrado para essa modalidade." };
+  }
+
+  return { value: match.value, error: null };
 }

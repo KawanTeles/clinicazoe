@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarSignedUrl } from "@/lib/supabase/storage";
+import type { Modality } from "@/lib/supabase/types";
 
 export async function getTeamMembers() {
   const supabase = await createClient();
@@ -29,14 +30,14 @@ export async function getTeamMember(id: string) {
   if (!profile) return null;
 
   let professional = null;
-  let insurances: { insurance_id: string; value: number; duration_minutes: number | null }[] = [];
+  let insurances: { insurance_id: string; modality: Modality; value: number; duration_minutes: number | null }[] = [];
   if (profile.role === "profissional") {
     const { data } = await supabase.from("professionals").select("*").eq("id", id).single();
     professional = data;
 
     const { data: links } = await supabase
       .from("professional_insurances")
-      .select("insurance_id, value, duration_minutes")
+      .select("insurance_id, modality, value, duration_minutes")
       .eq("professional_id", id);
     insurances = links ?? [];
   }

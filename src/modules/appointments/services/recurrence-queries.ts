@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { WEEKDAY_LABELS } from "./recurrence-generator";
 import { requireCanManageSeries } from "./recurrence-actions";
+import type { Modality, ParticularProduct } from "@/lib/supabase/types";
 
 export interface SeriesDetail {
   id: string;
@@ -15,6 +16,8 @@ export interface SeriesDetail {
   insuranceId: string;
   insuranceName: string;
   paymentMethod: string;
+  modality: Modality | null;
+  particularProduct: ParticularProduct | null;
   dayOfWeek: number;
   startTime: string;
   endTime: string;
@@ -46,6 +49,8 @@ export async function getSeriesDetail(id: string): Promise<SeriesDetail | null> 
     insuranceId: series.insurance_id,
     insuranceName: insurance?.name ?? "",
     paymentMethod: series.payment_method,
+    modality: series.modality,
+    particularProduct: series.particular_product,
     dayOfWeek: series.day_of_week,
     startTime: series.start_time,
     endTime: series.end_time,

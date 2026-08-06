@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { getAvailableTimes } from "@/modules/appointments/services/booking-queries";
 import type { OccurrencePreview } from "@/modules/appointments/services/recurrence-actions";
+import type { Modality } from "@/lib/supabase/types";
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
 
@@ -21,6 +22,7 @@ interface ConflictsReviewProps {
   confirming: boolean;
   onConfirm: (skipDates: string[], overrides: Record<string, string>) => void;
   onCancel: () => void;
+  modality?: Modality;
 }
 
 export function ConflictsReview({
@@ -30,6 +32,7 @@ export function ConflictsReview({
   confirming,
   onConfirm,
   onCancel,
+  modality,
 }: ConflictsReviewProps) {
   const [overrides, setOverrides] = useState<Record<string, string>>({});
   const [alternatives, setAlternatives] = useState<Record<string, TimeOption[]>>({});
@@ -49,7 +52,7 @@ export function ConflictsReview({
     setExpandedDate(date);
     if (!alternatives[date]) {
       setLoadingDate(date);
-      const times = await getAvailableTimes(professionalId, insuranceId, date);
+      const times = await getAvailableTimes(professionalId, insuranceId, date, modality);
       setAlternatives((prev) => ({ ...prev, [date]: times }));
       setLoadingDate(null);
     }

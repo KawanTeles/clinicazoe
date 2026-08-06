@@ -9,6 +9,7 @@ import { ContactsCard } from "@/modules/settings/components/ContactsCard";
 import { BusinessHoursCard } from "@/modules/settings/components/BusinessHoursCard";
 import { SocialMediaCard } from "@/modules/settings/components/SocialMediaCard";
 import { LocationCard } from "@/modules/settings/components/LocationCard";
+import { ParticularPricingCard } from "@/modules/settings/components/ParticularPricingCard";
 import { SitePreview } from "@/modules/settings/components/SitePreview";
 import { updateAllClinicSettings } from "@/modules/settings/services/settings-actions";
 import { toFormState, type ClinicSettingsRow } from "@/modules/settings/utils/form-state";
@@ -65,6 +66,9 @@ export function ClinicSettingsPanel({ initial, logoUrl, readOnly }: ClinicSettin
           </div>
           <div className="md:col-span-1">
             <SocialMediaCard data={data} onChange={patch} readOnly={readOnly} />
+          </div>
+          <div className="md:col-span-1">
+            <ParticularPricingCard data={data} onChange={patch} readOnly={readOnly} />
           </div>
           <div className="md:col-span-2">
             <LocationCard data={data} onChange={patch} readOnly={readOnly} />

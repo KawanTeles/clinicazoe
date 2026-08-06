@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { formatCurrency } from "@/lib/whatsapp";
 import { getAttendanceInfo } from "@/lib/attendance";
-import type { PaymentMethod } from "@/lib/supabase/types";
+import { MODALITY_LABELS, PARTICULAR_PRODUCT_LABELS, insuranceRequiresModality } from "@/lib/constants";
+import type { Modality, ParticularProduct, PaymentMethod } from "@/lib/supabase/types";
 import { PatientPickerField } from "@/modules/patients/components/PatientPickerField";
 import { createPatient, type PatientSearchResult } from "@/modules/patients/services/patient-actions";
 import {
@@ -17,6 +18,7 @@ import {
   getProfessionalPricing,
   getEffectiveDuration,
   type DayAvailability,
+  type ProfessionalPricingResult,
 } from "@/modules/appointments/services/booking-queries";
 import { AvailabilityCalendar } from "@/modules/appointments/components/AvailabilityCalendar";
 import { createAppointmentForPatient } from "@/modules/appointments/services/booking-actions";
@@ -48,17 +50,15 @@ interface TimeOption {
   endTime: string;
 }
 
-interface PricingOption {
-  paymentMethod: PaymentMethod;
-  value: number;
-}
-
 const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   cartao: "Cartão",
   pix: "PIX",
   dinheiro: "Dinheiro",
   convenio: "Convênio",
 };
+
+const MODALITIES: Modality[] = ["aba", "comum"];
+const PARTICULAR_PAYMENT_METHODS: PaymentMethod[] = ["cartao", "pix", "dinheiro"];
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 
@@ -97,8 +97,18 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
   const [time, setTime] = useState<TimeOption | null>(null);
 
   // Etapa 7: pagamento
-  const [pricing, setPricing] = useState<PricingOption[]>([]);
+  const [pricing, setPricing] = useState<ProfessionalPricingResult | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [modality, setModality] = useState<Modality | null>(null);
+  const [particularProduct, setParticularProduct] = useState<ParticularProduct | null>(null);
+
+  const requiresModality = insuranceRequiresModality(insurance?.name);
+  const selectedValue =
+    pricing?.insuranceKind === "convenio"
+      ? pricing.options.find((o) => o.modality === modality)?.value ?? null
+      : pricing?.insuranceKind === "particular"
+        ? pricing.options.find((o) => o.product === particularProduct)?.value ?? null
+        : null;
 
   // Etapa 8: recorrência
   const [isRecurring, setIsRecurring] = useState(false);
@@ -154,6 +164,11 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
     setSelectedDayInfo(null);
     setTimes([]);
     setTime(null);
+    setPricing(null);
+    setModality(null);
+    setParticularProduct(null);
+    setPaymentMethod(null);
+    setDuration(null);
     setLoading(true);
     setError(null);
     const data = await getBookableProfessionalsByInsurance(option.id);
@@ -176,11 +191,35 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
     setSelectedDayInfo(null);
     setTimes([]);
     setTime(null);
+    setModality(null);
+    setParticularProduct(null);
+    setPaymentMethod(null);
+    setDuration(null);
     setError(null);
-    if (insurance) {
+    if (!insurance) return;
+    setLoading(true);
+    const result = await getProfessionalPricing(option.id, insurance.id);
+    setPricing(result);
+    setLoading(false);
+    if (result.insuranceKind === "particular") {
+      // Particular não tem modalidade — libera a duração/calendário na hora.
       const effectiveDuration = await getEffectiveDuration(option.id, insurance.id);
       setDuration(effectiveDuration);
     }
+  }
+
+  async function handleSelectModality(m: Modality) {
+    if (!professional || !insurance) return;
+    setModality(m);
+    setPaymentMethod("convenio");
+    setDate(null);
+    setSelectedDayInfo(null);
+    setTimes([]);
+    setTime(null);
+    setLoading(true);
+    const effectiveDuration = await getEffectiveDuration(professional.id, insurance.id, m);
+    setDuration(effectiveDuration);
+    setLoading(false);
   }
 
   async function handleSelectDay(day: DayAvailability) {
@@ -190,25 +229,27 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
     if (!professional || !insurance) return;
     setLoading(true);
     setError(null);
-    const data = await getAvailableTimes(professional.id, insurance.id, day.date);
+    const data = await getAvailableTimes(professional.id, insurance.id, day.date, modality ?? undefined);
     setTimes(data);
     setLoading(false);
     if (data.length === 0) setError(day.reason ?? "Sem horários livres nesse dia. Escolha outra data.");
   }
 
-  async function handleSelectTime(option: TimeOption) {
+  function handleSelectTime(option: TimeOption) {
     setTime(option);
-    if (!professional || !insurance) return;
-    setLoading(true);
-    const options = await getProfessionalPricing(professional.id, insurance.id);
-    setPricing(options);
-    setPaymentMethod(options[0]?.paymentMethod ?? null);
-    setLoading(false);
   }
 
   async function handleConfirm() {
     if (!patient || !professional || !insurance || !date || !time || !paymentMethod) {
       setError("Preencha todos os campos obrigatórios antes de confirmar.");
+      return;
+    }
+    if (requiresModality && !modality) {
+      setError("Selecione a modalidade (ABA ou Comum).");
+      return;
+    }
+    if (!requiresModality && !particularProduct) {
+      setError("Selecione Consulta Particular ou Pacote Particular.");
       return;
     }
 
@@ -226,6 +267,8 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
         startTime: time.startTime,
         endTime: time.endTime,
         paymentMethod,
+        modality: modality ?? undefined,
+        particularProduct: particularProduct ?? undefined,
       });
       setSaving(false);
       if (result.error) {
@@ -242,6 +285,8 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
       specialtyId: professional.specialty_id ?? "",
       insuranceId: insurance.id,
       paymentMethod,
+      modality: modality ?? undefined,
+      particularProduct: particularProduct ?? undefined,
       dayOfWeek: new Date(`${recurrence.startDate}T00:00:00`).getDay(),
       startTime: time.startTime,
       frequency: recurrence.frequency,
@@ -269,6 +314,8 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
       specialtyId: professional.specialty_id ?? "",
       insuranceId: insurance.id,
       paymentMethod,
+      modality: modality ?? undefined,
+      particularProduct: particularProduct ?? undefined,
       dayOfWeek: new Date(`${recurrence.startDate}T00:00:00`).getDay(),
       startTime: time.startTime,
       frequency: recurrence.frequency,
@@ -297,6 +344,9 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
     setSelectedDayInfo(null);
     setTimes([]);
     setTime(null);
+    setPricing(null);
+    setModality(null);
+    setParticularProduct(null);
     setPaymentMethod(null);
     setIsRecurring(false);
     setRecurrence(DEFAULT_RECURRENCE);
@@ -346,6 +396,7 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
         confirming={saving}
         onConfirm={handleConfirmRecurring}
         onCancel={() => setConflictOccurrences(null)}
+        modality={modality ?? undefined}
       />
     );
   }
@@ -481,13 +532,64 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
             </div>
             {!professional ? (
               <p className="text-xs text-text-muted">Selecione primeiro o profissional na coluna ao lado.</p>
+            ) : requiresModality && !modality ? (
+              <div className="flex flex-col gap-2">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Modalidade</label>
+                {loading ? (
+                  <p className="text-xs text-text-muted animate-pulse">Carregando valores...</p>
+                ) : pricing?.insuranceKind === "convenio" && pricing.options.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {MODALITIES.map((m) => {
+                      const opt = pricing.options.find((o) => o.modality === m);
+                      return (
+                        <button
+                          key={m}
+                          type="button"
+                          disabled={!opt}
+                          onClick={() => opt && handleSelectModality(m)}
+                          className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-all ${
+                            !opt
+                              ? "border-border/50 bg-card-elevated/20 text-text-muted cursor-not-allowed"
+                              : "border-border bg-card-elevated/40 text-text-primary hover:border-primary/50 cursor-pointer"
+                          }`}
+                        >
+                          {MODALITY_LABELS[m]}
+                          {opt ? ` — ${formatCurrency(opt.value)}` : " (sem valor)"}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-danger">
+                    Este profissional ainda não possui um valor cadastrado para essa modalidade.
+                  </p>
+                )}
+              </div>
             ) : (
               <>
-                {duration && (
-                  <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-card-elevated px-2 py-0.5 text-xs font-semibold text-text-secondary border border-border">
-                    ⏱ Duração da consulta: <strong className="text-text-primary">{duration} min</strong>
-                  </span>
-                )}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {duration && (
+                    <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-card-elevated px-2 py-0.5 text-xs font-semibold text-text-secondary border border-border">
+                      ⏱ Duração da consulta: <strong className="text-text-primary">{duration} min</strong>
+                    </span>
+                  )}
+                  {requiresModality && modality && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModality(null);
+                        setDate(null);
+                        setSelectedDayInfo(null);
+                        setTimes([]);
+                        setTime(null);
+                        setDuration(null);
+                      }}
+                      className="text-[10px] font-bold text-[var(--primary)] hover:underline"
+                    >
+                      {MODALITY_LABELS[modality]} · trocar modalidade
+                    </button>
+                  )}
+                </div>
 
                 {/* Calendário */}
                 <div>
@@ -498,6 +600,7 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
                       insuranceId={insurance.id}
                       selectedDate={date}
                       onSelectDate={handleSelectDay}
+                      modality={modality ?? undefined}
                     />
                   )}
                 </div>
@@ -564,7 +667,7 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
               </span>
             </div>
             {(() => {
-              const attendance = getAttendanceInfo(insurance?.name, paymentMethod);
+              const attendance = getAttendanceInfo(insurance?.name, paymentMethod, modality ?? undefined, particularProduct ?? undefined);
               return (
                 <div className="grid grid-cols-2 gap-2 text-xs border-b border-border/50 pb-2.5">
                   <div>
@@ -582,7 +685,10 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
                   {attendance.isConvenio ? (
                     <div>
                       <span className="text-text-muted block font-medium">Convênio:</span>
-                      <span className="font-bold text-text-primary truncate block">{attendance.insuranceName}</span>
+                      <span className="font-bold text-text-primary truncate block">
+                        {attendance.insuranceName}
+                        {attendance.modalityLabel ? ` — ${attendance.modalityLabel}` : ""}
+                      </span>
                     </div>
                   ) : paymentMethod ? (
                     <div>
@@ -598,44 +704,83 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
                         : "—"}
                     </span>
                   </div>
+                  {selectedValue != null && (
+                    <div className="col-span-2">
+                      <span className="text-text-muted block font-medium">Valor:</span>
+                      <span className="font-black text-primary">{formatCurrency(selectedValue)}</span>
+                    </div>
+                  )}
                 </div>
               );
             })()}
 
-            {/* Payment / Price Selection */}
-            <div>
-              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">
-                {insurance?.name && insurance.name !== "Particular" ? "Valor do Convênio" : "Forma de Pagamento"}
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {pricing.map((opt) => {
-                  const optAtt = getAttendanceInfo(insurance?.name, opt.paymentMethod);
-                  const btnLabel = optAtt.isConvenio
-                    ? `${optAtt.insuranceName} — ${formatCurrency(opt.value)}`
-                    : `${optAtt.paymentMethodLabel} — ${formatCurrency(opt.value)}`;
-                  return (
-                    <button
-                      key={opt.paymentMethod}
-                      type="button"
-                      onClick={() => setPaymentMethod(opt.paymentMethod)}
-                      className={`rounded-md border px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
-                        paymentMethod === opt.paymentMethod
-                          ? "border-primary bg-primary/10 text-primary font-bold shadow-xs"
-                          : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
-                      }`}
-                    >
-                      {btnLabel}
-                    </button>
-                  );
-                })}
+            {/* Particular: produto + forma de pagamento. Convênio: modalidade já escolhida acima. */}
+            {!requiresModality && (
+              <div className="flex flex-col gap-3">
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                    Produto Particular
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {pricing?.insuranceKind === "particular" && pricing.options.length > 0 ? (
+                      pricing.options.map((opt) => (
+                        <button
+                          key={opt.product}
+                          type="button"
+                          onClick={() => setParticularProduct(opt.product)}
+                          className={`rounded-md border px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                            particularProduct === opt.product
+                              ? "border-primary bg-primary/10 text-primary font-bold shadow-xs"
+                              : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
+                          }`}
+                        >
+                          {PARTICULAR_PRODUCT_LABELS[opt.product]} — {formatCurrency(opt.value)}
+                        </button>
+                      ))
+                    ) : (
+                      <p className="text-xs text-danger">
+                        Valores particulares ainda não configurados em Configurações da Clínica.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                    Forma de Pagamento
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {PARTICULAR_PAYMENT_METHODS.map((pm) => (
+                      <button
+                        key={pm}
+                        type="button"
+                        onClick={() => setPaymentMethod(pm)}
+                        className={`rounded-md border px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                          paymentMethod === pm
+                            ? "border-primary bg-primary/10 text-primary font-bold shadow-xs"
+                            : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
+                        }`}
+                      >
+                        {PAYMENT_LABELS[pm]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="pt-1">
               <Button
                 className="w-full h-10 text-xs font-bold shadow-button"
                 isLoading={saving}
-                disabled={!patient || !professional || !insurance || !date || !time || !paymentMethod}
+                disabled={
+                  !patient ||
+                  !professional ||
+                  !insurance ||
+                  !date ||
+                  !time ||
+                  !paymentMethod ||
+                  (requiresModality ? !modality : !particularProduct)
+                }
                 onClick={handleConfirm}
               >
                 Confirmar Agendamento

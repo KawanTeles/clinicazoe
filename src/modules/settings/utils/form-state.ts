@@ -30,6 +30,8 @@ export interface ClinicSettingsFormState {
   maps_url: string;
   latitude: string;
   longitude: string;
+  price_particular_consultation: string;
+  price_particular_package: string;
 }
 
 export const WEEKDAY_LABELS = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
@@ -73,5 +75,9 @@ export function toFormState(row: ClinicSettingsRow | null): ClinicSettingsFormSt
     maps_url: row?.maps_url ?? "",
     latitude: row?.latitude != null ? String(row.latitude) : "",
     longitude: row?.longitude != null ? String(row.longitude) : "",
+    price_particular_consultation:
+      row?.price_particular_consultation != null ? String(row.price_particular_consultation) : "",
+    price_particular_package:
+      row?.price_particular_package != null ? String(row.price_particular_package) : "",
   };
 }

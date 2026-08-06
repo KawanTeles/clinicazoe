@@ -16,8 +16,8 @@ import { logAudit } from "@/modules/team/services/audit";
 import { notify, notifyStaff } from "@/modules/notifications/services/notify";
 import { logPatientMessage } from "@/modules/patients/services/message-log";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { getAvailableTimes, getProfessionalPricing } from "./booking-queries";
-import type { PaymentMethod } from "@/lib/supabase/types";
+import { getAvailableTimes, resolveAppointmentValue } from "./booking-queries";
+import type { Modality, ParticularProduct, PaymentMethod } from "@/lib/supabase/types";
 
 async function requirePatient() {
   const session = await getCurrentUser();
@@ -44,6 +44,8 @@ export interface CreateAppointmentInput {
   startTime: string;
   endTime: string;
   paymentMethod: PaymentMethod;
+  modality?: Modality;
+  particularProduct?: ParticularProduct;
 }
 
 export async function createAppointment(
@@ -59,14 +61,23 @@ export async function createAppointment(
   const supabase = await createClient();
 
   // Nunca confia no valor vindo do client: recalcula a partir da precificação real.
-  const pricingOptions = await getProfessionalPricing(input.professionalId, input.insuranceId);
-  const pricing = pricingOptions.find((option) => option.paymentMethod === input.paymentMethod);
-  if (!pricing) {
-    return { error: "Forma de pagamento indisponível para este profissional/convênio." };
+  const pricing = await resolveAppointmentValue(
+    input.professionalId,
+    input.insuranceId,
+    input.modality,
+    input.particularProduct,
+  );
+  if (pricing.value == null) {
+    return { error: pricing.error ?? "Não foi possível calcular o valor da consulta." };
   }
 
   // Revalida a disponibilidade no servidor antes de gravar (evita duplo agendamento).
-  const availableTimes = await getAvailableTimes(input.professionalId, input.insuranceId, input.date);
+  const availableTimes = await getAvailableTimes(
+    input.professionalId,
+    input.insuranceId,
+    input.date,
+    input.modality,
+  );
   const stillAvailable = availableTimes.some(
     (slot) => slot.slotId === input.scheduleSlotId && slot.startTime === input.startTime,
   );
@@ -87,6 +98,8 @@ export async function createAppointment(
       end_time: input.endTime,
       payment_method: input.paymentMethod,
       value: pricing.value,
+      modality: input.modality ?? null,
+      particular_product: input.particularProduct ?? null,
       status: "pendente",
       source: "paciente",
     })
@@ -129,6 +142,8 @@ export async function createAppointment(
     startTime: input.startTime,
     value: pricing.value,
     paymentMethod: input.paymentMethod,
+    modality: input.modality,
+    particularProduct: input.particularProduct,
   });
 
   const whatsappLink = buildWhatsAppLink(clinic?.whatsapp_number, message);
@@ -247,6 +262,8 @@ export async function confirmAppointment(
     insurance_id: appointment.insurance_id,
     value: appointment.value,
     payment_method: appointment.payment_method,
+    modality: appointment.modality,
+    particular_product: appointment.particular_product,
     due_date: appointment.appointment_date,
   });
 
@@ -474,6 +491,8 @@ export interface CreateAppointmentForPatientInput {
   startTime: string;
   endTime: string;
   paymentMethod: PaymentMethod;
+  modality?: Modality;
+  particularProduct?: ParticularProduct;
 }
 
 /** Agendamento avulso criado pela recepção/admin para um paciente já
@@ -490,13 +509,22 @@ export async function createAppointmentForPatient(
     return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente de novo.` };
   }
 
-  const pricingOptions = await getProfessionalPricing(input.professionalId, input.insuranceId);
-  const pricing = pricingOptions.find((option) => option.paymentMethod === input.paymentMethod);
-  if (!pricing) {
-    return { error: "Forma de pagamento indisponível para este profissional/convênio." };
+  const pricing = await resolveAppointmentValue(
+    input.professionalId,
+    input.insuranceId,
+    input.modality,
+    input.particularProduct,
+  );
+  if (pricing.value == null) {
+    return { error: pricing.error ?? "Não foi possível calcular o valor da consulta." };
   }
 
-  const availableTimes = await getAvailableTimes(input.professionalId, input.insuranceId, input.date);
+  const availableTimes = await getAvailableTimes(
+    input.professionalId,
+    input.insuranceId,
+    input.date,
+    input.modality,
+  );
   const stillAvailable = availableTimes.some(
     (slot) => slot.slotId === input.scheduleSlotId && slot.startTime === input.startTime,
   );
@@ -518,6 +546,8 @@ export async function createAppointmentForPatient(
       end_time: input.endTime,
       payment_method: input.paymentMethod,
       value: pricing.value,
+      modality: input.modality ?? null,
+      particular_product: input.particularProduct ?? null,
       status: "pendente",
       source: "staff",
     })
@@ -569,6 +599,8 @@ export interface CreatePublicAppointmentInput {
   startTime: string;
   endTime: string;
   paymentMethod: PaymentMethod;
+  modality?: Modality;
+  particularProduct?: ParticularProduct;
   patientName: string;
   patientPhone: string;
   patientEmail?: string;
@@ -626,14 +658,23 @@ export async function createPublicAppointment(
   }
 
   // Validação de preço
-  const pricingOptions = await getProfessionalPricing(input.professionalId, input.insuranceId);
-  const pricing = pricingOptions.find((o) => o.paymentMethod === input.paymentMethod);
-  if (!pricing) {
-    return { error: "Forma de pagamento indisponível." };
+  const pricing = await resolveAppointmentValue(
+    input.professionalId,
+    input.insuranceId,
+    input.modality,
+    input.particularProduct,
+  );
+  if (pricing.value == null) {
+    return { error: pricing.error ?? "Não foi possível calcular o valor da consulta." };
   }
 
   // Validação de horário
-  const availableTimes = await getAvailableTimes(input.professionalId, input.insuranceId, input.date);
+  const availableTimes = await getAvailableTimes(
+    input.professionalId,
+    input.insuranceId,
+    input.date,
+    input.modality,
+  );
   const stillAvailable = availableTimes.some(
     (slot) => slot.slotId === input.scheduleSlotId && slot.startTime === input.startTime,
   );
@@ -655,6 +696,8 @@ export async function createPublicAppointment(
       end_time: input.endTime,
       payment_method: input.paymentMethod,
       value: pricing.value,
+      modality: input.modality ?? null,
+      particular_product: input.particularProduct ?? null,
       status: "pendente",
       source: "site_publico",
     })
@@ -695,6 +738,8 @@ export async function createPublicAppointment(
     startTime: input.startTime,
     value: pricing.value,
     paymentMethod: input.paymentMethod,
+    modality: input.modality,
+    particularProduct: input.particularProduct,
   });
 
   const whatsappLink = buildWhatsAppLink(clinic?.whatsapp_number, message);

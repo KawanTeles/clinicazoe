@@ -1,10 +1,13 @@
-import { PARTICULAR_INSURANCE_NAME } from "./constants";
+import { MODALITY_LABELS, PARTICULAR_INSURANCE_NAME, PARTICULAR_PRODUCT_LABELS } from "./constants";
+import type { Modality, ParticularProduct } from "./supabase/types";
 
 export interface AttendanceInfo {
   isConvenio: boolean;
   attendanceType: "Particular" | "Convênio";
   insuranceName: string | null;
   paymentMethodLabel: string | null;
+  modalityLabel: string | null;
+  particularProductLabel: string | null;
 }
 
 const PAYMENT_METHOD_MAP: Record<string, string> = {
@@ -16,7 +19,9 @@ const PAYMENT_METHOD_MAP: Record<string, string> = {
 
 export function getAttendanceInfo(
   insuranceName: string | null | undefined,
-  paymentMethod: string | null | undefined
+  paymentMethod: string | null | undefined,
+  modality?: Modality | null,
+  particularProduct?: ParticularProduct | null,
 ): AttendanceInfo {
   const normInsurance = (insuranceName ?? "").trim();
   const normPayment = (paymentMethod ?? "").trim().toLowerCase();
@@ -25,6 +30,11 @@ export function getAttendanceInfo(
     normPayment === "convenio" ||
     (normInsurance !== "" &&
       normInsurance.toLowerCase() !== PARTICULAR_INSURANCE_NAME.toLowerCase());
+
+  const modalityLabel = modality ? (MODALITY_LABELS[modality] ?? modality) : null;
+  const particularProductLabel = particularProduct
+    ? (PARTICULAR_PRODUCT_LABELS[particularProduct] ?? particularProduct)
+    : null;
 
   if (isConvenio) {
     return {
@@ -36,6 +46,8 @@ export function getAttendanceInfo(
           ? normInsurance
           : "Convênio",
       paymentMethodLabel: null,
+      modalityLabel,
+      particularProductLabel: null,
     };
   }
 
@@ -44,5 +56,7 @@ export function getAttendanceInfo(
     attendanceType: "Particular",
     insuranceName: null,
     paymentMethodLabel: PAYMENT_METHOD_MAP[normPayment] ?? (normPayment || "PIX"),
+    modalityLabel: null,
+    particularProductLabel,
   };
 }

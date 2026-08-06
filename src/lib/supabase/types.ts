@@ -13,6 +13,8 @@ export type AppointmentSource = "paciente" | "site_publico" | "staff";
 export type FinancialStatus = "em_aberto" | "pago";
 export type RecurrenceFrequency = "weekly" | "biweekly" | "monthly";
 export type SeriesStatus = "active" | "cancelled";
+export type Modality = "aba" | "comum";
+export type ParticularProduct = "consulta" | "pacote";
 
 /** day: convenção de Date.prototype.getDay() (0 = domingo ... 6 = sábado). */
 export interface BusinessHourEntry {
@@ -94,9 +96,6 @@ export interface Database {
           agenda_color: string;
           status: Status;
           consultation_duration_minutes: number;
-          price_particular_card: number | null;
-          price_particular_pix: number | null;
-          price_particular_cash: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -108,9 +107,6 @@ export interface Database {
           agenda_color?: string;
           status?: Status;
           consultation_duration_minutes?: number;
-          price_particular_card?: number | null;
-          price_particular_pix?: number | null;
-          price_particular_cash?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -122,9 +118,6 @@ export interface Database {
           agenda_color?: string;
           status?: Status;
           consultation_duration_minutes?: number;
-          price_particular_card?: number | null;
-          price_particular_pix?: number | null;
-          price_particular_cash?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -162,6 +155,8 @@ export interface Database {
           holiday_open_time: string | null;
           holiday_close_time: string | null;
           logo_path: string | null;
+          price_particular_consultation: number | null;
+          price_particular_package: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -196,6 +191,8 @@ export interface Database {
           holiday_open_time?: string | null;
           holiday_close_time?: string | null;
           logo_path?: string | null;
+          price_particular_consultation?: number | null;
+          price_particular_package?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -230,6 +227,8 @@ export interface Database {
           holiday_open_time?: string | null;
           holiday_close_time?: string | null;
           logo_path?: string | null;
+          price_particular_consultation?: number | null;
+          price_particular_package?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -335,18 +334,21 @@ export interface Database {
         Row: {
           professional_id: string;
           insurance_id: string;
+          modality: Modality;
           value: number;
           duration_minutes: number | null;
         };
         Insert: {
           professional_id: string;
           insurance_id: string;
+          modality: Modality;
           value?: number;
           duration_minutes?: number | null;
         };
         Update: {
           professional_id?: string;
           insurance_id?: string;
+          modality?: Modality;
           value?: number;
           duration_minutes?: number | null;
         };
@@ -389,6 +391,8 @@ export interface Database {
           end_time: string;
           payment_method: PaymentMethod;
           value: number;
+          modality: Modality | null;
+          particular_product: ParticularProduct | null;
           status: AppointmentStatus;
           source: AppointmentSource;
           notes: string | null;
@@ -409,6 +413,8 @@ export interface Database {
           end_time: string;
           payment_method: PaymentMethod;
           value: number;
+          modality?: Modality | null;
+          particular_product?: ParticularProduct | null;
           status?: AppointmentStatus;
           source?: AppointmentSource;
           notes?: string | null;
@@ -429,6 +435,8 @@ export interface Database {
           end_time?: string;
           payment_method?: PaymentMethod;
           value?: number;
+          modality?: Modality | null;
+          particular_product?: ParticularProduct | null;
           status?: AppointmentStatus;
           source?: AppointmentSource;
           notes?: string | null;
@@ -448,6 +456,8 @@ export interface Database {
           insurance_id: string | null;
           value: number;
           payment_method: PaymentMethod;
+          modality: Modality | null;
+          particular_product: ParticularProduct | null;
           due_date: string;
           status: FinancialStatus;
           paid_at: string | null;
@@ -462,6 +472,8 @@ export interface Database {
           insurance_id?: string | null;
           value: number;
           payment_method: PaymentMethod;
+          modality?: Modality | null;
+          particular_product?: ParticularProduct | null;
           due_date: string;
           status?: FinancialStatus;
           paid_at?: string | null;
@@ -476,6 +488,8 @@ export interface Database {
           insurance_id?: string | null;
           value?: number;
           payment_method?: PaymentMethod;
+          modality?: Modality | null;
+          particular_product?: ParticularProduct | null;
           due_date?: string;
           status?: FinancialStatus;
           paid_at?: string | null;
@@ -606,6 +620,8 @@ export interface Database {
           specialty_id: string | null;
           insurance_id: string;
           payment_method: PaymentMethod;
+          modality: Modality | null;
+          particular_product: ParticularProduct | null;
           day_of_week: number;
           start_time: string;
           end_time: string;
@@ -626,6 +642,8 @@ export interface Database {
           specialty_id?: string | null;
           insurance_id: string;
           payment_method: PaymentMethod;
+          modality?: Modality | null;
+          particular_product?: ParticularProduct | null;
           day_of_week: number;
           start_time: string;
           end_time: string;
@@ -646,6 +664,8 @@ export interface Database {
           specialty_id?: string | null;
           insurance_id?: string;
           payment_method?: PaymentMethod;
+          modality?: Modality | null;
+          particular_product?: ParticularProduct | null;
           day_of_week?: number;
           start_time?: string;
           end_time?: string;

@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkRateLimit } from "@/lib/rate-limit";
-import type { Role } from "@/lib/supabase/types";
+import type { Modality, Role } from "@/lib/supabase/types";
 import { logAudit } from "./audit";
 import { deleteUser } from "@/modules/user-management/services/user-actions";
 
@@ -24,6 +24,7 @@ function validateEmail(email: string) {
 
 interface ProfessionalInsuranceInput {
   insurance_id: string;
+  modality: Modality;
   value: number;
   duration_minutes?: number;
 }
@@ -39,9 +40,6 @@ export interface CreateTeamMemberInput {
   bio?: string;
   agenda_color?: string;
   consultation_duration_minutes?: number;
-  price_particular_card?: number;
-  price_particular_pix?: number;
-  price_particular_cash?: number;
   insurances?: ProfessionalInsuranceInput[];
 }
 
@@ -97,9 +95,6 @@ export async function createTeamMember(
       bio: input.bio?.trim() || null,
       agenda_color: input.agenda_color || "#2F8F83",
       consultation_duration_minutes: input.consultation_duration_minutes || 30,
-      price_particular_card: input.price_particular_card ?? null,
-      price_particular_pix: input.price_particular_pix ?? null,
-      price_particular_cash: input.price_particular_cash ?? null,
     });
     if (professionalError) {
       return { error: "Usuário criado, mas houve falha ao salvar os dados profissionais. Edite o membro para completar." };
@@ -110,6 +105,7 @@ export async function createTeamMember(
         input.insurances.map((insurance) => ({
           professional_id: userId,
           insurance_id: insurance.insurance_id,
+          modality: insurance.modality,
           value: insurance.value,
           duration_minutes: insurance.duration_minutes ?? null,
         })),
@@ -143,9 +139,6 @@ export interface UpdateTeamMemberInput {
   bio?: string;
   agenda_color?: string;
   consultation_duration_minutes?: number;
-  price_particular_card?: number;
-  price_particular_pix?: number;
-  price_particular_cash?: number;
   insurances?: ProfessionalInsuranceInput[];
 }
 
@@ -189,9 +182,6 @@ export async function updateTeamMember(
       bio: input.bio?.trim() || null,
       agenda_color: input.agenda_color || "#2F8F83",
       consultation_duration_minutes: input.consultation_duration_minutes || 30,
-      price_particular_card: input.price_particular_card ?? null,
-      price_particular_pix: input.price_particular_pix ?? null,
-      price_particular_cash: input.price_particular_cash ?? null,
     });
 
     await supabase.from("professional_insurances").delete().eq("professional_id", input.id);
@@ -200,6 +190,7 @@ export async function updateTeamMember(
         input.insurances.map((insurance) => ({
           professional_id: input.id,
           insurance_id: insurance.insurance_id,
+          modality: insurance.modality,
           value: insurance.value,
           duration_minutes: insurance.duration_minutes ?? null,
         })),

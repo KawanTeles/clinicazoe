@@ -9,6 +9,7 @@ import {
   type DayAvailability,
   type DayAvailabilityStatus,
 } from "@/modules/appointments/services/booking-queries";
+import type { Modality } from "@/lib/supabase/types";
 
 const WEEKDAY_HEADER = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MONTH_FORMATTER = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" });
@@ -33,6 +34,7 @@ export interface AvailabilityCalendarProps {
   insuranceId: string;
   selectedDate: string | null;
   onSelectDate: (day: DayAvailability) => void;
+  modality?: Modality;
 }
 
 export function AvailabilityCalendar({
@@ -40,6 +42,7 @@ export function AvailabilityCalendar({
   insuranceId,
   selectedDate,
   onSelectDate,
+  modality,
 }: AvailabilityCalendarProps) {
   const today = new Date();
   const [cursor, setCursor] = useState({ year: today.getFullYear(), month: today.getMonth() + 1 });
@@ -49,7 +52,7 @@ export function AvailabilityCalendar({
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    getMonthAvailability(professionalId, insuranceId, cursor.year, cursor.month).then((data) => {
+    getMonthAvailability(professionalId, insuranceId, cursor.year, cursor.month, modality).then((data) => {
       if (!cancelled) {
         setDays(data);
         setLoading(false);
@@ -58,7 +61,7 @@ export function AvailabilityCalendar({
     return () => {
       cancelled = true;
     };
-  }, [professionalId, insuranceId, cursor.year, cursor.month]);
+  }, [professionalId, insuranceId, cursor.year, cursor.month, modality]);
 
   const firstWeekday = new Date(cursor.year, cursor.month - 1, 1).getDay();
   const leadingBlanks = Array.from({ length: firstWeekday }, (_, i) => i);

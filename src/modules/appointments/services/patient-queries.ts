@@ -59,7 +59,9 @@ export async function getAppointmentsForPatient(patientId: string) {
 
   const { data: appointments } = await supabase
     .from("appointments")
-    .select("id, appointment_date, start_time, end_time, status, value, payment_method, professional_id, specialty_id, insurance_id")
+    .select(
+      "id, appointment_date, start_time, end_time, status, value, payment_method, modality, particular_product, professional_id, specialty_id, insurance_id",
+    )
     .eq("patient_id", patientId)
     .order("appointment_date", { ascending: false });
 

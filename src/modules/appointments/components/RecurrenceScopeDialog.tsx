@@ -210,6 +210,7 @@ export function RecurrenceScopeDialog({
             confirming={saving}
             onConfirm={handleConfirmBulk}
             onCancel={() => setOccurrences(null)}
+            modality={originalSeries?.modality ?? undefined}
           />
         ) : (
           <>

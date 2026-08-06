@@ -8,9 +8,9 @@ import { buildRescheduleMessage, buildStaffBookingConfirmationMessage, buildWhat
 import { logAudit } from "@/modules/team/services/audit";
 import { notify, notifyStaff } from "@/modules/notifications/services/notify";
 import { logPatientMessage } from "@/modules/patients/services/message-log";
-import type { Database, PaymentMethod, RecurrenceFrequency } from "@/lib/supabase/types";
+import type { Database, Modality, ParticularProduct, PaymentMethod, RecurrenceFrequency } from "@/lib/supabase/types";
 import { toLocalIsoDate, todayLocalIso } from "@/lib/date";
-import { getAvailableTimes, getProfessionalPricing } from "./booking-queries";
+import { getAvailableTimes, resolveAppointmentValue } from "./booking-queries";
 import { generateOccurrenceDates, WEEKDAY_LABELS } from "./recurrence-generator";
 
 type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
@@ -73,6 +73,8 @@ export interface RecurringBookingInput {
   specialtyId: string;
   insuranceId: string;
   paymentMethod: PaymentMethod;
+  modality?: Modality;
+  particularProduct?: ParticularProduct;
   dayOfWeek: number;
   startTime: string;
   frequency: RecurrenceFrequency;
@@ -87,13 +89,14 @@ async function buildPreview(
   insuranceId: string,
   dates: string[],
   startTime: string,
+  modality?: Modality,
 ): Promise<OccurrencePreview[]> {
   // Uma consulta ao banco por data candidata — roda em paralelo, senão uma
   // recorrência sem data final (até 12 meses ~52 datas) demora dezenas de
   // segundos rodando sequencialmente.
   return Promise.all(
     dates.map(async (date): Promise<OccurrencePreview> => {
-      const availableTimes = await getAvailableTimes(professionalId, insuranceId, date);
+      const availableTimes = await getAvailableTimes(professionalId, insuranceId, date, modality);
       const match = availableTimes.find((t) => t.startTime === startTime);
       return match
         ? { date, available: true, slotId: match.slotId, endTime: match.endTime }
@@ -123,7 +126,7 @@ export async function previewRecurringAppointments(
     return { error: "Nenhuma data gerada para esses parâmetros. Revise dia da semana e datas." };
   }
 
-  const occurrences = await buildPreview(input.professionalId, input.insuranceId, dates, input.startTime);
+  const occurrences = await buildPreview(input.professionalId, input.insuranceId, dates, input.startTime, input.modality);
   return { error: null, occurrences };
 }
 
@@ -152,6 +155,7 @@ async function resolveOccurrences(
   occurrences: OccurrencePreview[],
   skipDates: string[],
   overrides?: Record<string, string>,
+  modality?: Modality,
 ): Promise<ResolvedOccurrence[]> {
   const skip = new Set(skipDates);
   const resolved: ResolvedOccurrence[] = [];
@@ -161,7 +165,7 @@ async function resolveOccurrences(
 
     const overrideTime = overrides?.[occ.date];
     if (overrideTime) {
-      const altTimes = await getAvailableTimes(professionalId, insuranceId, occ.date);
+      const altTimes = await getAvailableTimes(professionalId, insuranceId, occ.date, modality);
       const match = altTimes.find((t) => t.startTime === overrideTime);
       if (match) resolved.push({ date: occ.date, startTime: match.startTime, endTime: match.endTime, slotId: match.slotId });
       continue;
@@ -185,9 +189,16 @@ export async function createRecurringAppointments(
     return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente de novo.` };
   }
 
-  const pricingOptions = await getProfessionalPricing(input.professionalId, input.insuranceId);
-  const pricing = pricingOptions.find((o) => o.paymentMethod === input.paymentMethod);
-  if (!pricing) return { error: "Forma de pagamento indisponível para este profissional/convênio." };
+  const pricing = await resolveAppointmentValue(
+    input.professionalId,
+    input.insuranceId,
+    input.modality,
+    input.particularProduct,
+  );
+  if (pricing.value == null) {
+    return { error: pricing.error ?? "Não foi possível calcular o valor da consulta." };
+  }
+  const appointmentValue = pricing.value;
 
   const preview = await previewRecurringAppointments(input);
   if (preview.error || !preview.occurrences) {
@@ -201,6 +212,7 @@ export async function createRecurringAppointments(
     preview.occurrences,
     input.skipDates,
     input.overrides,
+    input.modality,
   );
   if (toCreate.length === 0) return { error: "Nenhuma data disponível para criar." };
 
@@ -219,6 +231,8 @@ export async function createRecurringAppointments(
       specialty_id: input.specialtyId || null,
       insurance_id: input.insuranceId,
       payment_method: input.paymentMethod,
+      modality: input.modality ?? null,
+      particular_product: input.particularProduct ?? null,
       day_of_week: input.dayOfWeek,
       start_time: input.startTime,
       end_time: defaultEndTime,
@@ -244,7 +258,9 @@ export async function createRecurringAppointments(
     start_time: occ.startTime,
     end_time: occ.endTime,
     payment_method: input.paymentMethod,
-    value: pricing.value,
+    value: appointmentValue,
+    modality: input.modality ?? null,
+    particular_product: input.particularProduct ?? null,
     status: "pendente" as const,
     series_id: series.id,
     notes: input.notes?.trim() || null,
@@ -367,7 +383,13 @@ export async function previewRecurrenceUpdate(
     return { error: "Nenhuma data gerada para os novos parâmetros. Revise dia da semana, datas e frequência." };
   }
 
-  const occurrences = await buildPreview(series.professional_id, series.insurance_id, dates, input.startTime);
+  const occurrences = await buildPreview(
+    series.professional_id,
+    series.insurance_id,
+    dates,
+    input.startTime,
+    series.modality ?? undefined,
+  );
   return { error: null, occurrences };
 }
 
@@ -403,7 +425,12 @@ async function updateSingleOccurrence(
 
   if (!input.date || !input.startTime) return { error: "Informe a nova data e horário." };
 
-  const availableTimes = await getAvailableTimes(appointment.professional_id, appointment.insurance_id, input.date);
+  const availableTimes = await getAvailableTimes(
+    appointment.professional_id,
+    appointment.insurance_id,
+    input.date,
+    appointment.modality ?? undefined,
+  );
   const match = availableTimes.find((t) => t.startTime === input.startTime);
   if (!match) return { error: "Horário indisponível para essa data. Escolha outro." };
 
@@ -534,14 +561,20 @@ export async function updateRecurringAppointment(
     preview.occurrences,
     input.skipDates ?? [],
     input.overrides,
+    series.modality ?? undefined,
   );
   if (toCreate.length === 0) return { error: "Nenhuma data disponível para o novo horário." };
 
-  const pricingOptions = await getProfessionalPricing(series.professional_id, series.insurance_id);
-  const pricing = pricingOptions.find((o) => o.paymentMethod === series.payment_method);
-  if (!pricing) {
-    return { error: "Não foi possível recalcular o valor da consulta para este convênio/profissional." };
+  const pricing = await resolveAppointmentValue(
+    series.professional_id,
+    series.insurance_id,
+    series.modality ?? undefined,
+    series.particular_product ?? undefined,
+  );
+  if (pricing.value == null) {
+    return { error: pricing.error ?? "Não foi possível calcular o valor da consulta." };
   }
+  const appointmentValue = pricing.value;
 
   // Marca as ocorrências substituídas como remarcadas (nunca exclui —
   // preserva histórico), depois cria as novas com o dia/horário atualizado.
@@ -563,7 +596,9 @@ export async function updateRecurringAppointment(
     start_time: occ.startTime,
     end_time: occ.endTime,
     payment_method: series.payment_method,
-    value: pricing.value,
+    value: appointmentValue,
+    modality: series.modality,
+    particular_product: series.particular_product,
     status: "pendente" as const,
     series_id: series.id,
     notes: series.notes,
@@ -745,15 +780,26 @@ export async function extendSeries(
 
   if (dates.length === 0) return { error: "Nenhuma data nova para gerar." };
 
-  const occurrences = await buildPreview(series.professional_id, series.insurance_id, dates, series.start_time);
+  const occurrences = await buildPreview(
+    series.professional_id,
+    series.insurance_id,
+    dates,
+    series.start_time,
+    series.modality ?? undefined,
+  );
   const toCreate = occurrences.filter((o) => o.available);
   if (toCreate.length === 0) return { error: "Nenhuma data disponível no período." };
 
-  const pricingOptions = await getProfessionalPricing(series.professional_id, series.insurance_id);
-  const pricing = pricingOptions.find((o) => o.paymentMethod === series.payment_method);
-  if (!pricing) {
-    return { error: "Não foi possível recalcular o valor da consulta para este convênio/profissional." };
+  const pricing = await resolveAppointmentValue(
+    series.professional_id,
+    series.insurance_id,
+    series.modality ?? undefined,
+    series.particular_product ?? undefined,
+  );
+  if (pricing.value == null) {
+    return { error: pricing.error ?? "Não foi possível calcular o valor da consulta." };
   }
+  const appointmentValue = pricing.value;
 
   const rows = toCreate.map((occ) => ({
     patient_id: series.patient_id,
@@ -765,7 +811,9 @@ export async function extendSeries(
     start_time: series.start_time,
     end_time: occ.endTime!,
     payment_method: series.payment_method,
-    value: pricing.value,
+    value: appointmentValue,
+    modality: series.modality,
+    particular_product: series.particular_product,
     status: "pendente" as const,
     series_id: series.id,
     notes: series.notes,
@@ -832,6 +880,7 @@ export async function previewAttachRecurrence(
     appointment.insurance_id,
     futureDates,
     appointment.start_time.slice(0, 5),
+    appointment.modality ?? undefined,
   );
   return { error: null, occurrences };
 }
@@ -870,7 +919,13 @@ export async function attachRecurrenceToAppointment(
 
   const preview =
     futureDates.length > 0
-      ? await buildPreview(appointment.professional_id, appointment.insurance_id, futureDates, appointment.start_time.slice(0, 5))
+      ? await buildPreview(
+          appointment.professional_id,
+          appointment.insurance_id,
+          futureDates,
+          appointment.start_time.slice(0, 5),
+          appointment.modality ?? undefined,
+        )
       : [];
 
   const toCreate = await resolveOccurrences(
@@ -880,6 +935,7 @@ export async function attachRecurrenceToAppointment(
     preview,
     input.skipDates ?? [],
     input.overrides,
+    appointment.modality ?? undefined,
   );
 
   const admin = createAdminClient();
@@ -892,6 +948,8 @@ export async function attachRecurrenceToAppointment(
       specialty_id: appointment.specialty_id,
       insurance_id: appointment.insurance_id,
       payment_method: appointment.payment_method,
+      modality: appointment.modality,
+      particular_product: appointment.particular_product,
       day_of_week: dayOfWeek,
       start_time: appointment.start_time,
       end_time: appointment.end_time,
@@ -929,6 +987,8 @@ export async function attachRecurrenceToAppointment(
       end_time: occ.endTime,
       payment_method: appointment.payment_method,
       value: appointment.value,
+      modality: appointment.modality,
+      particular_product: appointment.particular_product,
       status: "pendente" as const,
       series_id: series.id,
       notes: input.notes?.trim() || null,

@@ -126,7 +126,7 @@ export default async function ClientePublicPage({
                 ) : (
                   <div className="space-y-4">
                     {appointments.map((appt) => {
-                      const attendance = getAttendanceInfo(appt.insuranceName, appt.payment_method);
+                      const attendance = getAttendanceInfo(appt.insuranceName, appt.payment_method, appt.modality, appt.particular_product);
                       return (
                         <div
                           key={appt.id}
@@ -151,7 +151,12 @@ export default async function ClientePublicPage({
                               </Badge>
                             </div>
                             <p className="text-xs text-[var(--link)] font-medium">
-                              {appt.specialtyName} — {attendance.attendanceType} {attendance.isConvenio ? `(${attendance.insuranceName})` : ""}
+                              {appt.specialtyName} — {attendance.attendanceType}{" "}
+                              {attendance.isConvenio
+                                ? `(${attendance.insuranceName}${attendance.modalityLabel ? ` — ${attendance.modalityLabel}` : ""})`
+                                : attendance.particularProductLabel
+                                ? `(${attendance.particularProductLabel})`
+                                : ""}
                             </p>
                             <p className="text-xs text-text-secondary">
                               Data: <strong className="text-text-primary">{appt.appointment_date.split("-").reverse().join("/")}</strong> às <strong className="text-text-primary">{appt.start_time.slice(0, 5)}</strong>

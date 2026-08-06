@@ -67,11 +67,9 @@ export default async function EditTeamMemberPage({
           consultation_duration_minutes: String(
             professional?.consultation_duration_minutes ?? 30,
           ),
-          price_particular_card: professional?.price_particular_card?.toString() ?? "",
-          price_particular_pix: professional?.price_particular_pix?.toString() ?? "",
-          price_particular_cash: professional?.price_particular_cash?.toString() ?? "",
           insurances: professionalInsurances.map((i) => ({
             insurance_id: i.insurance_id,
+            modality: i.modality,
             value: i.value.toString(),
             duration_minutes: i.duration_minutes?.toString() ?? "",
           })),

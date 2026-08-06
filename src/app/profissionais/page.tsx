@@ -85,10 +85,10 @@ export default async function ProfissionaisPage() {
                       <span>Duração da consulta:</span>
                       <span className="font-bold text-text-primary">{prof.consultationDuration} minutos</span>
                     </div>
-                    {prof.priceParticularPix && (
+                    {clinic.price_particular_consultation != null && (
                       <div className="flex justify-between items-center text-text-secondary">
-                        <span>Valor da sessão (Pix):</span>
-                        <span className="font-bold text-[var(--link)]">{formatCurrency(prof.priceParticularPix)}</span>
+                        <span>Consulta Particular:</span>
+                        <span className="font-bold text-[var(--link)]">{formatCurrency(clinic.price_particular_consultation)}</span>
                       </div>
                     )}
                   </div>

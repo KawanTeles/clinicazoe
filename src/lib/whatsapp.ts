@@ -44,6 +44,7 @@ export function formatCurrency(value: number) {
 }
 
 import { getAttendanceInfo } from "./attendance";
+import type { Modality, ParticularProduct } from "./supabase/types";
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
   cartao: "Cartão",
@@ -68,16 +69,20 @@ export function buildBookingMessage(params: {
   startTime: string;
   value: number;
   paymentMethod: string;
+  modality?: Modality | null;
+  particularProduct?: ParticularProduct | null;
   clinicPhone?: string | null;
 }) {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
-  const attendance = getAttendanceInfo(params.insuranceName, params.paymentMethod);
+  const attendance = getAttendanceInfo(params.insuranceName, params.paymentMethod, params.modality, params.particularProduct);
 
   let attendanceLines = `📄 Tipo de Atendimento: ${attendance.attendanceType}\n`;
   if (attendance.isConvenio) {
     attendanceLines += `🏥 Convênio: ${attendance.insuranceName}\n`;
+    if (attendance.modalityLabel) attendanceLines += `🧩 Modalidade: ${attendance.modalityLabel}\n`;
   } else {
     attendanceLines += `💳 Forma de Pagamento: ${attendance.paymentMethodLabel}\n`;
+    if (attendance.particularProductLabel) attendanceLines += `📦 ${attendance.particularProductLabel}\n`;
   }
 
   const baseMessage = (
