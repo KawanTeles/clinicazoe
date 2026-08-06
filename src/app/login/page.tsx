@@ -5,6 +5,7 @@ import { DeveloperSignature } from "@/components/public/DeveloperSignature";
 
 export const metadata = {
   title: "Entrar — ClinicaZoe",
+  description: "Acesse o painel administrativo da Clínica Zoe.",
 };
 
 export default function LoginPage() {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DeveloperSignature } from "@/components/public/DeveloperSignature";
+import { buildWhatsAppLink, formatWhatsAppDisplay } from "@/lib/whatsapp";
 
 interface PublicFooterProps {
   clinicName: string;
@@ -8,10 +9,13 @@ interface PublicFooterProps {
 }
 
 export function PublicFooter({ clinicName, address, whatsappNumber }: PublicFooterProps) {
+  const whatsappLink = buildWhatsAppLink(whatsappNumber, "Olá! Vim pelo site da Clínica Zoe.");
+  const whatsappDisplay = formatWhatsAppDisplay(whatsappNumber);
+
   return (
-    <footer className="border-t border-border/80 bg-[var(--bg-footer)] pt-14 pb-6 text-text-secondary">
+    <footer className="border-t border-border/80 bg-[var(--bg-footer)] pt-16 pb-8 text-text-secondary">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-8">
           {/* Brand Info */}
           <div className="space-y-4 md:col-span-1">
             <div className="flex items-center gap-3">
@@ -85,14 +89,14 @@ export function PublicFooter({ clinicName, address, whatsappNumber }: PublicFoot
             <p className="text-xs text-text-secondary leading-relaxed mb-3">
               {address || "Av. Paulista, 1000 - Bela Vista, São Paulo - SP"}
             </p>
-            {whatsappNumber && (
+            {whatsappLink && (
               <a
-                href={`https://wa.me/${whatsappNumber}`}
+                href={whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--link)] hover:text-text-primary transition-colors"
               >
-                <span>Central de Atendimento</span>
+                <span>Central de Atendimento{whatsappDisplay ? ` — ${whatsappDisplay}` : ""}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                   <polyline points="15 3 21 3 21 9" />
@@ -103,13 +107,13 @@ export function PublicFooter({ clinicName, address, whatsappNumber }: PublicFoot
           </div>
         </div>
 
-        <div className="mt-12 border-t border-border/70 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-text-muted gap-3">
+        <div className="mt-14 border-t border-border/70 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-muted">
           <p>© {new Date().getFullYear()} {clinicName}. Todos os direitos reservados.</p>
-          <p className="mt-1 sm:mt-0">Plataforma desenvolvida para alta performance e segurança.</p>
+          <p>Plataforma desenvolvida para alta performance e segurança.</p>
         </div>
 
         {/* Developer Signature Section */}
-        <div className="mt-4 border-t border-border/40 pt-2">
+        <div className="mt-6 border-t border-border/40 pt-4">
           <DeveloperSignature />
         </div>
       </div>

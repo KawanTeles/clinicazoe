@@ -22,7 +22,7 @@ const variantClasses: Record<Variant, string> = {
   primary:
     "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] active:bg-[var(--primary-dark)] shadow-[var(--shadow-button)] hover:shadow-[0_12px_30px_rgba(15,164,122,0.35)] hover:-translate-y-0.5 disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 border border-[var(--primary)]/40",
   secondary:
-    "bg-transparent text-[var(--link)] border-1.5 border-[var(--primary)] hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] hover:-translate-y-0.5 active:bg-[var(--primary-dark)] disabled:opacity-50 disabled:translate-y-0",
+    "bg-[var(--cta-secondary-bg)] text-[var(--cta-secondary-text)] border-1.5 border-[var(--primary)]/50 hover:bg-[var(--cta-secondary-bg-hover)] hover:border-[var(--primary)] hover:-translate-y-0.5 active:bg-[var(--cta-secondary-bg)] disabled:opacity-50 disabled:translate-y-0",
   ghost:
     "bg-transparent text-[var(--text-secondary)] hover:bg-[var(--primary)]/12 hover:text-[var(--primary)] active:bg-[var(--primary)]/20 disabled:opacity-50",
   danger:

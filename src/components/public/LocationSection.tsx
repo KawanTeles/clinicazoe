@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
+import { formatWhatsAppDisplay } from "@/lib/whatsapp";
 
 interface LocationSectionProps {
   clinicName: string;
@@ -11,6 +12,8 @@ interface LocationSectionProps {
 export function LocationSection({ clinicName, address, whatsappNumber }: LocationSectionProps) {
   const fullAddress = address || "Av. Paulista, 1000 - Bela Vista, São Paulo - SP, CEP 01310-100";
   const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(fullAddress)}`;
+  const mapsEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(fullAddress)}&output=embed`;
+  const whatsappDisplay = formatWhatsAppDisplay(whatsappNumber);
 
   return (
     <section id="como-chegar" className="py-20 border-t border-border/70 bg-background">
@@ -38,16 +41,12 @@ export function LocationSection({ clinicName, address, whatsappNumber }: Locatio
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border/70 text-xs">
                 <div>
-                  <span className="text-text-muted font-semibold">Telefone:</span>
-                  <p className="text-sm font-bold text-text-primary mt-0.5">(11) 3200-0000</p>
-                </div>
-                <div>
-                  <span className="text-text-muted font-semibold">WhatsApp:</span>
+                  <span className="text-text-muted font-semibold">Telefone / WhatsApp:</span>
                   <p className="text-sm font-bold text-[var(--link)] mt-0.5">
-                    {whatsappNumber ? `+${whatsappNumber}` : "(11) 99999-9999"}
+                    {whatsappDisplay ?? "Não disponível"}
                   </p>
                 </div>
-                <div className="sm:col-span-2">
+                <div>
                   <span className="text-text-muted font-semibold">E-mail:</span>
                   <p className="text-sm font-bold text-text-primary mt-0.5">contato@clinicazoe.com.br</p>
                 </div>
@@ -76,7 +75,7 @@ export function LocationSection({ clinicName, address, whatsappNumber }: Locatio
           <div className="lg:col-span-7 rounded-3xl border border-[rgba(110,231,183,0.18)] overflow-hidden min-h-[350px] lg:min-h-[450px] relative shadow-lg">
             <iframe
               title={`Mapa de localização da ${clinicName}`}
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.1975765796245!2d-46.65438868440539!3d-23.561349584682496!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce59c8da0aa315%3A0xd59f9431f2c9776a!2sAv.%20Paulista%2C%201000%20-%20Bela%20Vista%2C%20S%C3%A3o%20Paulo%20-%20SP%2C%2001310-100!5e0!3m2!1spt-BR!2sbr!4v1629837482910!5m2!1spt-BR!2sbr"
+              src={mapsEmbedUrl}
               width="100%"
               height="100%"
               style={{ border: 0, minHeight: "350px", filter: "invert(90%) hue-rotate(180deg) brightness(95%) contrast(90%)" }}

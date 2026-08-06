@@ -2,7 +2,19 @@
 
 /* ----------------------------------------------------
    CLÍNICA ZOE — THEME DESIGN SYSTEM (DARK & LIGHT MODE)
-   ---------------------------------------------------- */
+   ----------------------------------------------------
+   Hierarquia de peso visual (mesma identidade verde, pesos diferentes):
+
+   Elemento                          Token                         Peso
+   ---------------------------------------------------------------------
+   CTA principal (Agendar Consulta)  Button variant="primary"      Máximo
+   CTA secundário (WhatsApp, etc)    Button variant="secondary"    Médio
+   Link inline em texto/parágrafo    --link                        Médio-baixo
+   Link de navegação (breadcrumb)    --link-subtle                 Baixo
+   Badge de destaque (só Home)       Badge tone="premium"          Alto, raro
+   Badge informativo/neutro          Badge tone="neutral"          Baixo
+   Ícone decorativo em card info     --icon-informative             Baixo
+   ---------------------------------------------------------------------- */
 
 :root {
   /* Default Dark Mode Palette */
@@ -31,14 +43,26 @@
   /* Typography Colors */
   --text-primary: #F5F7F6;
   --text-secondary: #C8D4CF;
-  --text-muted: #7A9187;
+  --text-muted: #8AA298;
   --text-disabled: #556B62;
 
   /* Links & Badges */
   --link: #5ED39D;
   --link-hover: #86E5B8;
+  --link-subtle: #9DB5AD;
   --badge-bg: rgba(46, 139, 87, 0.15);
   --badge-text: #5ED39D;
+  --badge-neutral-bg: #17382D;
+  --badge-neutral-text: #C8D4CF;
+  --badge-neutral-border: #255044;
+
+  /* CTA hierarchy (secondary action — translucent, lower weight than primary) */
+  --cta-secondary-bg: rgba(46, 139, 87, 0.1);
+  --cta-secondary-bg-hover: rgba(46, 139, 87, 0.18);
+  --cta-secondary-text: #E4EBE8;
+
+  /* Informative icons (lower weight than --link, for decorative/info-only icons) */
+  --icon-informative: #8FA69C;
 
   /* Status Colors */
   --success: #2E8B57;
@@ -88,14 +112,26 @@
   /* Typography Colors */
   --text-primary: #102A22;
   --text-secondary: #4E665D;
-  --text-muted: #7A9187;
+  --text-muted: #5A7268;
   --text-disabled: #A3B5AE;
 
   /* Links & Badges */
   --link: #145A43;
   --link-hover: #0B3D2E;
+  --link-subtle: #5E7A70;
   --badge-bg: rgba(46, 139, 87, 0.1);
   --badge-text: #145A43;
+  --badge-neutral-bg: #EEF3F1;
+  --badge-neutral-text: #4E665D;
+  --badge-neutral-border: #D8E5DF;
+
+  /* CTA hierarchy (secondary action — translucent, lower weight than primary) */
+  --cta-secondary-bg: rgba(20, 90, 67, 0.06);
+  --cta-secondary-bg-hover: rgba(20, 90, 67, 0.12);
+  --cta-secondary-text: #1B2E27;
+
+  /* Informative icons (lower weight than --link, for decorative/info-only icons) */
+  --icon-informative: #6B8079;
 
   /* Status Colors */
   --success: #16A34A;
@@ -145,6 +181,10 @@
 
   --color-warning: var(--warning);
   --color-danger: var(--danger);
+
+  --color-link: var(--link);
+  --color-link-subtle: var(--link-subtle);
+  --color-icon-informative: var(--icon-informative);
 
   --shadow-button: var(--shadow-button);
   --shadow-card: var(--shadow-card);
@@ -342,4 +382,9 @@ body {
 
 .animate-glow {
   animation: pulseGlow 4s ease-in-out infinite;
+}
+
+/* Hero Typography — títulos grandes respiram melhor com tracking negativo sutil */
+.tracking-hero {
+  letter-spacing: -0.02em;
 }

@@ -13,6 +13,26 @@ export function buildWhatsAppLink(phone: string | null | undefined, message: str
   return `https://wa.me/${withCountryCode}?text=${encodeURIComponent(message)}`;
 }
 
+/**
+ * Formata um número de telefone cru (com ou sem DDI 55) para exibição visual
+ * no padrão internacional: "+55 82 XXXXX-XXXX". Se o formato não bater com o
+ * padrão esperado (DDI + DDD + número), cai num fallback seguro com apenas o
+ * prefixo "+" para nunca quebrar a renderização.
+ */
+export function formatWhatsAppDisplay(phone: string | null | undefined): string | null {
+  if (!phone) return null;
+
+  const digitsOnly = phone.replace(/\D/g, "");
+  if (!digitsOnly) return null;
+
+  const withCountryCode = digitsOnly.startsWith("55") ? digitsOnly : `55${digitsOnly}`;
+  const match = withCountryCode.match(/^55(\d{2})(\d{4,5})(\d{4})$/);
+  if (!match) return `+${withCountryCode}`;
+
+  const [, ddd, part1, part2] = match;
+  return `+55 ${ddd} ${part1}-${part2}`;
+}
+
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",

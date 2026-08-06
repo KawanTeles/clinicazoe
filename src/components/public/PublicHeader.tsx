@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { cn } from "@/lib/utils/cn";
+import { CTA_CLIENT_AREA, CTA_TEAM_AREA } from "@/lib/cta-labels";
 
 interface PublicHeaderProps {
   clinicName: string;
@@ -43,6 +44,16 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
     return () => {
       document.body.style.overflow = "unset";
     };
+  }, [mobileMenuOpen]);
+
+  // Fecha o menu mobile com Esc para navegação por teclado
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mobileMenuOpen]);
 
   return (
@@ -84,7 +95,7 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "relative px-4 py-2 rounded-full font-bold transition-all duration-300 ease-[var(--ease-premium)]",
+                    "relative px-4 py-2 rounded-full font-bold transition-all duration-300 ease-[var(--ease-premium)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     isActive
                       ? "bg-primary/25 text-text-primary border border-[rgba(110,231,183,0.3)] shadow-[0_0_15px_rgba(110,231,183,0.15)]"
                       : "text-text-secondary hover:text-text-primary hover:bg-white/5",
@@ -101,20 +112,22 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
             <ThemeToggle className="hidden sm:flex rounded-full h-10 w-10 border border-[rgba(110,231,183,0.2)] hover:border-[#6EE7B7]/50" />
 
             <div className="hidden items-center gap-2.5 lg:flex">
-              <Link href="/equipe">
+              <Link href="/equipe" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                 <button
                   type="button"
+                  tabIndex={-1}
                   className="rounded-full border border-[rgba(110,231,183,0.2)] bg-transparent px-4 py-2 text-xs font-bold text-text-secondary hover:bg-primary/15 hover:text-text-primary hover:border-[rgba(110,231,183,0.4)] transition-all duration-300"
                 >
-                  Área da Equipe
+                  {CTA_TEAM_AREA}
                 </button>
               </Link>
-              <Link href="/cliente/login">
+              <Link href="/cliente/login" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                 <button
                   type="button"
+                  tabIndex={-1}
                   className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#145A43] via-[#2E8B57] to-[#145A43] px-5 py-2.5 text-xs font-bold text-white shadow-[0_8px_25px_rgba(46,139,87,0.35)] border border-[rgba(110,231,183,0.3)] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-[0_12px_35px_rgba(46,139,87,0.45)] hover:from-[#2E8B57] hover:to-[#145A43]"
                 >
-                  <span>Área do Cliente</span>
+                  <span>{CTA_CLIENT_AREA}</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="14"
@@ -230,7 +243,7 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
                       transitionDelay: mobileMenuOpen ? `${index * 50 + 80}ms` : "0ms",
                     }}
                     className={cn(
-                      "flex items-center justify-between rounded-xl px-4 py-3 text-base font-semibold transition-all duration-300 ease-[var(--ease-premium)]",
+                      "flex items-center justify-between rounded-xl px-4 py-3 text-base font-semibold transition-all duration-300 ease-[var(--ease-premium)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                       mobileMenuOpen ? "translate-x-0 opacity-100" : "translate-x-6 opacity-0",
                       isActive
                         ? "bg-primary/25 text-text-primary font-bold border-l-4 border-[var(--link)] shadow-sm"
@@ -261,12 +274,17 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
               <ThemeToggle showLabel />
             </div>
 
-            <Link href="/cliente/login" onClick={() => setMobileMenuOpen(false)} className="w-full">
+            <Link
+              href="/cliente/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
               <button
                 type="button"
+                tabIndex={-1}
                 className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#145A43] via-[#2E8B57] to-[#145A43] py-3.5 text-sm font-bold text-white shadow-[0_10px_30px_rgba(46,139,87,0.35)] border border-[rgba(110,231,183,0.3)] transition-all duration-300 hover:scale-[1.01]"
               >
-                <span>Área do Cliente</span>
+                <span>{CTA_CLIENT_AREA}</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
@@ -285,12 +303,17 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
               </button>
             </Link>
 
-            <Link href="/equipe" onClick={() => setMobileMenuOpen(false)} className="w-full">
+            <Link
+              href="/equipe"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
               <button
                 type="button"
+                tabIndex={-1}
                 className="w-full rounded-xl border border-[rgba(110,231,183,0.2)] bg-card-elevated/60 py-3 text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-card-elevated transition-all duration-300 text-center"
               >
-                Área da Equipe
+                {CTA_TEAM_AREA}
               </button>
             </Link>
           </div>
