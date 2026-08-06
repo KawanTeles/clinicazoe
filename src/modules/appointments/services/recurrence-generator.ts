@@ -1,4 +1,5 @@
 import type { RecurrenceFrequency } from "@/lib/supabase/types";
+import { toLocalIsoDate } from "@/lib/date";
 
 export const WEEKDAY_LABELS = [
   "Domingo",
@@ -24,7 +25,7 @@ export interface GenerateOccurrencesParams {
 const SAFETY_MAX_OCCURRENCES = 104;
 
 function toIso(date: Date) {
-  return date.toISOString().slice(0, 10);
+  return toLocalIsoDate(date);
 }
 
 function parseIso(iso: string) {

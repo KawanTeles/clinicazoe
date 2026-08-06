@@ -6,6 +6,7 @@ import { getPatientDetail, getPatientMessages } from "@/modules/patients/service
 import { getAppointmentsForPatient } from "@/modules/appointments/services/patient-queries";
 import { listSeriesForPatient } from "@/modules/appointments/services/recurrence-queries";
 import { PatientDetailTabs } from "@/modules/patients/components/PatientDetailTabs";
+import { todayLocalIso } from "@/lib/date";
 
 export const metadata = {
   title: "Paciente — ClinicaZoe",
@@ -31,7 +32,7 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
   const insuranceNameById = new Map(insurances.map((i) => [i.id, i.name]));
   const professionalNameById = new Map(professionals.map((p) => [p.id, p.full_name]));
 
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = todayLocalIso();
   const upcoming = appointments
     .filter((a) => a.appointment_date >= todayIso && a.status !== "cancelada")
     .sort((a, b) => a.appointment_date.localeCompare(b.appointment_date));

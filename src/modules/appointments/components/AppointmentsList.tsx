@@ -17,6 +17,7 @@ import {
   updateAppointmentStatus,
 } from "@/modules/appointments/services/booking-actions";
 import { RecurrenceScopeDialog } from "@/modules/appointments/components/RecurrenceScopeDialog";
+import { AttachRecurrenceDialog } from "@/modules/appointments/components/AttachRecurrenceDialog";
 
 import { getAttendanceInfo } from "@/lib/attendance";
 
@@ -45,8 +46,16 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 interface ScopeDialogState {
   mode: "edit" | "delete";
   appointmentId: string;
+  seriesId: string;
   date: string;
   startTime: string;
+  professionalId: string;
+  insuranceId: string;
+}
+
+interface AttachDialogState {
+  appointmentId: string;
+  date: string;
   professionalId: string;
   insuranceId: string;
 }
@@ -65,6 +74,7 @@ export function AppointmentsList({
   const toast = useToast();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [scopeDialog, setScopeDialog] = useState<ScopeDialogState | null>(null);
+  const [attachDialog, setAttachDialog] = useState<AttachDialogState | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
 
@@ -175,6 +185,14 @@ export function AppointmentsList({
     setScopeDialog(null);
     toast.success(scopeDialog?.mode === "edit" ? "Consulta reagendada com sucesso." : "Consulta excluída com sucesso.");
     if (whatsappLink) window.open(whatsappLink, "_blank");
+    router.refresh();
+  }
+
+  function handleAttachDialogDone(createdCount: number) {
+    setAttachDialog(null);
+    toast.success(
+      createdCount > 1 ? `Recorrência criada: ${createdCount} consultas.` : "Consulta transformada em recorrente.",
+    );
     router.refresh();
   }
 
@@ -323,6 +341,7 @@ export function AppointmentsList({
                                 setScopeDialog({
                                   mode: "edit",
                                   appointmentId: appt.id,
+                                  seriesId: appt.seriesId!,
                                   date: appt.date,
                                   startTime: appt.startTime,
                                   professionalId: appt.professionalId,
@@ -330,7 +349,25 @@ export function AppointmentsList({
                                 })
                               }
                             >
-                              Editar
+                              Recorrência
+                            </Button>
+                          )}
+                        {isStaff &&
+                          !appt.seriesId &&
+                          (appt.status === "pendente" || appt.status === "confirmada") && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() =>
+                                setAttachDialog({
+                                  appointmentId: appt.id,
+                                  date: appt.date,
+                                  professionalId: appt.professionalId,
+                                  insuranceId: appt.insuranceId,
+                                })
+                              }
+                            >
+                              Recorrência
                             </Button>
                           )}
                         {isStaff && appt.seriesId && (appt.status === "pendente" || appt.status === "confirmada") && (
@@ -341,6 +378,7 @@ export function AppointmentsList({
                               setScopeDialog({
                                 mode: "delete",
                                 appointmentId: appt.id,
+                                seriesId: appt.seriesId!,
                                 date: appt.date,
                                 startTime: appt.startTime,
                                 professionalId: appt.professionalId,
@@ -385,12 +423,24 @@ export function AppointmentsList({
         <RecurrenceScopeDialog
           mode={scopeDialog.mode}
           appointmentId={scopeDialog.appointmentId}
+          seriesId={scopeDialog.seriesId}
           currentDate={scopeDialog.date}
           currentStartTime={scopeDialog.startTime}
           professionalId={scopeDialog.professionalId}
           insuranceId={scopeDialog.insuranceId}
           onClose={() => setScopeDialog(null)}
           onDone={handleScopeDialogDone}
+        />
+      )}
+
+      {attachDialog && (
+        <AttachRecurrenceDialog
+          appointmentId={attachDialog.appointmentId}
+          date={attachDialog.date}
+          professionalId={attachDialog.professionalId}
+          insuranceId={attachDialog.insuranceId}
+          onClose={() => setAttachDialog(null)}
+          onDone={handleAttachDialogDone}
         />
       )}
     </div>

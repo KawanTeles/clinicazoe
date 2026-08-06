@@ -1,5 +1,9 @@
+"use server";
+
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { WEEKDAY_LABELS } from "./recurrence-generator";
+import { requireCanManageSeries } from "./recurrence-actions";
 
 export interface SeriesDetail {
   id: string;
@@ -86,5 +90,133 @@ export async function listSeriesForPatient(patientId: string): Promise<PatientSe
     dayLabel: WEEKDAY_LABELS[s.day_of_week],
     startTime: s.start_time,
     status: s.status,
+  }));
+}
+
+const FREQUENCY_LABELS: Record<string, string> = {
+  weekly: "semanal",
+  biweekly: "quinzenal",
+  monthly: "mensal",
+};
+
+const SCOPE_LABELS: Record<string, string> = {
+  only: "apenas esta consulta",
+  following: "esta consulta e as próximas",
+  all: "toda a sequência",
+};
+
+function formatIsoDate(iso: string) {
+  const [year, month, day] = iso.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function formatHm(time: string) {
+  return time.slice(0, 5);
+}
+
+/** Traduz uma entrada crua de `audit_logs` (action + metadata em jsonb) numa
+ * frase legível para quem não é técnico — recepção/admin, não só auditoria. */
+function translateAuditEntry(action: string, metadata: Record<string, unknown>): string {
+  switch (action) {
+    case "appointment_series.created": {
+      const dayOfWeek = metadata.dayOfWeek as number | undefined;
+      const startTime = metadata.startTime as string | undefined;
+      const count = metadata.count as number | undefined;
+      const attached = Boolean(metadata.attachedFromAppointmentId);
+      const dayLabel = dayOfWeek !== undefined ? WEEKDAY_LABELS[dayOfWeek] : "—";
+      const timeLabel = startTime ? formatHm(startTime) : "—";
+      return `${attached ? "Consulta avulsa transformada em recorrência" : "Recorrência criada"}: toda ${dayLabel} às ${timeLabel}${count ? ` (${count} consulta${count > 1 ? "s" : ""})` : ""}.`;
+    }
+    case "appointment.rescheduled_occurrence": {
+      const previousDate = metadata.previousDate as string | undefined;
+      const previousTime = metadata.previousTime as string | undefined;
+      const newDate = metadata.newDate as string | undefined;
+      const newTime = metadata.newTime as string | undefined;
+      const reason = metadata.reason as string | null | undefined;
+      const from = previousDate ? `${formatIsoDate(previousDate)} ${formatHm(previousTime ?? "")}` : "—";
+      const to = newDate ? `${formatIsoDate(newDate)} ${formatHm(newTime ?? "")}` : "—";
+      return `Reagendou esta consulta de ${from} para ${to}${reason ? ` — motivo: ${reason}` : ""}.`;
+    }
+    case "appointment_series.rescheduled": {
+      const scope = metadata.scope as string | undefined;
+      const prevDay = metadata.previousDayOfWeek as number | undefined;
+      const prevTime = metadata.previousStartTime as string | undefined;
+      const newDay = metadata.newDayOfWeek as number | undefined;
+      const newTime = metadata.newStartTime as string | undefined;
+      const prevFreq = metadata.previousFrequency as string | undefined;
+      const newFreq = metadata.newFrequency as string | undefined;
+      const reason = metadata.reason as string | null | undefined;
+      const replaced = metadata.occurrencesReplaced as number | undefined;
+      const created = metadata.occurrencesCreated as number | undefined;
+      const from = prevDay !== undefined ? `${WEEKDAY_LABELS[prevDay]} ${formatHm(prevTime ?? "")}` : "—";
+      const to = newDay !== undefined ? `${WEEKDAY_LABELS[newDay]} ${formatHm(newTime ?? "")}` : "—";
+      const freqChange =
+        prevFreq && newFreq && prevFreq !== newFreq
+          ? `, frequência ${FREQUENCY_LABELS[prevFreq] ?? prevFreq} → ${FREQUENCY_LABELS[newFreq] ?? newFreq}`
+          : "";
+      const scopeLabel = scope ? SCOPE_LABELS[scope] ?? scope : "";
+      return `Alterou a recorrência (${scopeLabel}): de ${from} para ${to}${freqChange} — ${replaced ?? 0} consulta(s) substituída(s), ${created ?? 0} nova(s)${reason ? ` — motivo: ${reason}` : ""}.`;
+    }
+    case "appointment_series.cancelled": {
+      const scope = metadata.scope as string | undefined;
+      const cancelledCount = metadata.cancelledCount as number | undefined;
+      const scopeLabel = scope ? SCOPE_LABELS[scope] ?? scope : "";
+      return `Cancelou a recorrência (${scopeLabel}) — ${cancelledCount ?? 0} consulta(s) cancelada(s).`;
+    }
+    case "appointment_series.extended": {
+      const createdCount = metadata.createdCount as number | undefined;
+      return `Estendeu a recorrência — ${createdCount ?? 0} nova(s) consulta(s) geradas.`;
+    }
+    default:
+      return action;
+  }
+}
+
+export interface SeriesHistoryEntry {
+  id: number;
+  actorName: string;
+  date: string;
+  summary: string;
+}
+
+/** Histórico de alterações de uma série, legível para admin/recepção — não
+ * é o log técnico de `/audit` (que é admin-only e mostra JSON cru): aqui
+ * reaproveitamos a mesma tabela `audit_logs`, só filtrada por esta série e
+ * traduzida para frases humanas. */
+export async function getSeriesHistory(seriesId: string): Promise<SeriesHistoryEntry[]> {
+  await requireCanManageSeries(seriesId);
+  const admin = createAdminClient();
+
+  const [{ data: seriesLogs }, { data: apptLogs }] = await Promise.all([
+    admin
+      .from("audit_logs")
+      .select("id, actor_id, action, metadata, created_at")
+      .eq("entity", "appointment_series")
+      .eq("entity_id", seriesId),
+    admin
+      .from("audit_logs")
+      .select("id, actor_id, action, metadata, created_at")
+      .eq("entity", "appointments")
+      .eq("action", "appointment.rescheduled_occurrence")
+      .contains("metadata", { seriesId }),
+  ]);
+
+  const all = [...(seriesLogs ?? []), ...(apptLogs ?? [])].sort((a, b) =>
+    b.created_at.localeCompare(a.created_at),
+  );
+  if (all.length === 0) return [];
+
+  const actorIds = Array.from(new Set(all.map((l) => l.actor_id).filter((id): id is string => Boolean(id))));
+  const { data: profiles } =
+    actorIds.length > 0
+      ? await admin.from("profiles").select("id, full_name").in("id", actorIds)
+      : { data: [] as { id: string; full_name: string }[] };
+  const nameById = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
+
+  return all.map((log) => ({
+    id: log.id,
+    actorName: log.actor_id ? nameById.get(log.actor_id) ?? "Equipe" : "Sistema",
+    date: log.created_at,
+    summary: translateAuditEntry(log.action, (log.metadata ?? {}) as Record<string, unknown>),
   }));
 }

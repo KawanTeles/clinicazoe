@@ -3,9 +3,23 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAvatarSignedUrl } from "@/lib/supabase/storage";
 import { PARTICULAR_INSURANCE_NAME } from "@/lib/constants";
+import { toLocalIsoDate, todayLocalIso } from "@/lib/date";
 import { generateSlotInstances, filterAvailableInstances } from "./slot-generator";
 
 const ACTIVE_APPOINTMENT_STATUSES = ["pendente", "confirmada", "concluida", "faltou"];
+
+/** Rótulos usados só para compor o motivo textual de indisponibilidade —
+ * a convenção de índice (0=domingo) é a mesma de `Date.prototype.getDay()`
+ * usada em todo o módulo. */
+const WEEKDAY_UNAVAILABLE_LABELS = [
+  "aos domingos",
+  "às segundas-feiras",
+  "às terças-feiras",
+  "às quartas-feiras",
+  "às quintas-feiras",
+  "às sextas-feiras",
+  "aos sábados",
+];
 
 export async function getInsuranceByName(name: string) {
   const supabase = await createClient();
@@ -246,12 +260,178 @@ export async function getAvailableDates(professionalId: string, daysAhead = 45) 
   for (let i = 1; i <= daysAhead; i++) {
     const date = new Date(today);
     date.setDate(date.getDate() + i);
-    const iso = date.toISOString().slice(0, 10);
+    const iso = toLocalIsoDate(date);
     if (validWeekdays.has(date.getDay()) && !isBlockedDate(iso, exceptions ?? [], holidays)) {
       dates.push(iso);
     }
   }
   return dates;
+}
+
+export type DayAvailabilityStatus = "available" | "no-schedule" | "blocked" | "full" | "past";
+
+export interface DayAvailability {
+  date: string;
+  status: DayAvailabilityStatus;
+  reason?: string;
+  freeSlotsCount: number;
+}
+
+/**
+ * Disponibilidade de um mês inteiro para um profissional+convênio, num único
+ * lote de queries (não uma por dia) — alimenta o calendário visual. Nunca
+ * devolve um status "genérico": todo dia sem horário livre carrega o motivo
+ * concreto (sem expediente naquele dia da semana, bloqueio/férias com o
+ * `reason` cadastrado, feriado, ou agenda cheia).
+ */
+export async function getMonthAvailability(
+  professionalId: string,
+  insuranceId: string,
+  year: number,
+  month: number,
+): Promise<DayAvailability[]> {
+  const supabase = await createClient();
+
+  const [{ data: professional }, { data: durationOverride }] = await Promise.all([
+    supabase
+      .from("professionals")
+      .select("consultation_duration_minutes")
+      .eq("id", professionalId)
+      .single(),
+    supabase
+      .from("professional_insurances")
+      .select("duration_minutes")
+      .eq("professional_id", professionalId)
+      .eq("insurance_id", insuranceId)
+      .maybeSingle(),
+  ]);
+  if (!professional) return [];
+  const effectiveDuration = durationOverride?.duration_minutes ?? professional.consultation_duration_minutes;
+
+  const [{ data: slots }, { data: exceptions }, holidays] = await Promise.all([
+    supabase
+      .from("schedule_slots")
+      .select("*")
+      .eq("professional_id", professionalId)
+      .eq("status", "active"),
+    supabase
+      .from("schedule_exceptions")
+      .select("start_date, end_date, reason")
+      .eq("professional_id", professionalId),
+    getHolidaySet(supabase),
+  ]);
+
+  const slotsByWeekday = new Map<number, NonNullable<typeof slots>>();
+  for (const slot of slots ?? []) {
+    const list = slotsByWeekday.get(slot.day_of_week) ?? [];
+    list.push(slot);
+    slotsByWeekday.set(slot.day_of_week, list);
+  }
+
+  const { data: links } = await supabase
+    .from("schedule_slot_insurances")
+    .select("slot_id, insurance_id")
+    .in(
+      "slot_id",
+      (slots ?? []).map((s) => s.id),
+    );
+  const insurancesBySlot = new Map<string, Set<string>>();
+  for (const link of links ?? []) {
+    if (!insurancesBySlot.has(link.slot_id)) insurancesBySlot.set(link.slot_id, new Set());
+    insurancesBySlot.get(link.slot_id)!.add(link.insurance_id);
+  }
+
+  const firstDay = new Date(year, month - 1, 1);
+  const lastDay = new Date(year, month, 0);
+  const monthStart = toLocalIsoDate(firstDay);
+  const monthEnd = toLocalIsoDate(lastDay);
+
+  const { data: appointments } = await supabase
+    .from("appointments")
+    .select("appointment_date, start_time, status")
+    .eq("professional_id", professionalId)
+    .gte("appointment_date", monthStart)
+    .lte("appointment_date", monthEnd);
+
+  const bookedByDate = new Map<string, Record<string, number>>();
+  for (const appt of appointments ?? []) {
+    if (!ACTIVE_APPOINTMENT_STATUSES.includes(appt.status)) continue;
+    const map = bookedByDate.get(appt.appointment_date) ?? {};
+    const startTime = appt.start_time.slice(0, 5);
+    map[startTime] = (map[startTime] ?? 0) + 1;
+    bookedByDate.set(appt.appointment_date, map);
+  }
+
+  const todayIso = todayLocalIso();
+  const results: DayAvailability[] = [];
+  const daysInMonth = lastDay.getDate();
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const current = new Date(year, month - 1, day);
+    const iso = toLocalIsoDate(current);
+    const weekday = current.getDay();
+
+    if (iso < todayIso) {
+      results.push({ date: iso, status: "past", freeSlotsCount: 0 });
+      continue;
+    }
+
+    if (holidays.has(iso)) {
+      results.push({ date: iso, status: "blocked", reason: "Feriado.", freeSlotsCount: 0 });
+      continue;
+    }
+
+    const exception = (exceptions ?? []).find((e) => iso >= e.start_date && iso <= e.end_date);
+    if (exception) {
+      results.push({
+        date: iso,
+        status: "blocked",
+        reason: exception.reason || "Bloqueio na agenda do profissional.",
+        freeSlotsCount: 0,
+      });
+      continue;
+    }
+
+    const daySlots = slotsByWeekday.get(weekday) ?? [];
+    const matchingSlots = daySlots.filter((slot) => {
+      const restricted = insurancesBySlot.get(slot.id);
+      return !restricted || restricted.size === 0 || restricted.has(insuranceId);
+    });
+
+    if (matchingSlots.length === 0) {
+      results.push({
+        date: iso,
+        status: "no-schedule",
+        reason: `O profissional não atende ${WEEKDAY_UNAVAILABLE_LABELS[weekday]}.`,
+        freeSlotsCount: 0,
+      });
+      continue;
+    }
+
+    const bookedCountByStartTime = bookedByDate.get(iso) ?? {};
+    let freeSlotsCount = 0;
+    for (const slot of matchingSlots) {
+      const instances = generateSlotInstances(
+        slot.start_time.slice(0, 5),
+        slot.end_time.slice(0, 5),
+        effectiveDuration,
+      );
+      freeSlotsCount += filterAvailableInstances(instances, slot.capacity, bookedCountByStartTime).length;
+    }
+
+    if (freeSlotsCount === 0) {
+      results.push({
+        date: iso,
+        status: "full",
+        reason: "Todos os horários deste dia já foram ocupados.",
+        freeSlotsCount: 0,
+      });
+    } else {
+      results.push({ date: iso, status: "available", freeSlotsCount });
+    }
+  }
+
+  return results;
 }
 
 export async function getAvailableTimes(

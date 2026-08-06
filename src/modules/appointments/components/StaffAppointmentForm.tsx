@@ -13,11 +13,12 @@ import { PatientPickerField } from "@/modules/patients/components/PatientPickerF
 import { createPatient, type PatientSearchResult } from "@/modules/patients/services/patient-actions";
 import {
   getBookableProfessionalsByInsurance,
-  getAvailableDates,
   getAvailableTimes,
   getProfessionalPricing,
   getEffectiveDuration,
+  type DayAvailability,
 } from "@/modules/appointments/services/booking-queries";
+import { AvailabilityCalendar } from "@/modules/appointments/components/AvailabilityCalendar";
 import { createAppointmentForPatient } from "@/modules/appointments/services/booking-actions";
 import {
   createRecurringAppointments,
@@ -59,7 +60,6 @@ const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   convenio: "Convênio",
 };
 
-const WEEKDAY_FORMATTER = new Intl.DateTimeFormat("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 
 const DEFAULT_RECURRENCE: RecurrenceValue = {
@@ -91,8 +91,8 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
   const [duration, setDuration] = useState<number | null>(null);
 
   // Etapa 5-6: data/horário
-  const [dates, setDates] = useState<string[]>([]);
   const [date, setDate] = useState<string | null>(null);
+  const [selectedDayInfo, setSelectedDayInfo] = useState<DayAvailability | null>(null);
   const [times, setTimes] = useState<TimeOption[]>([]);
   const [time, setTime] = useState<TimeOption | null>(null);
 
@@ -148,8 +148,8 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
   async function handleSelectInsurance(option: Option) {
     setInsurance(option);
     setProfessional(null);
-    setDates([]);
     setDate(null);
+    setSelectedDayInfo(null);
     setTimes([]);
     setTime(null);
     setLoading(true);
@@ -171,30 +171,27 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
   async function handleSelectProfessional(option: ProfessionalOption) {
     setProfessional(option);
     setDate(null);
+    setSelectedDayInfo(null);
     setTimes([]);
     setTime(null);
-    setLoading(true);
     setError(null);
-    const [availableDates, effectiveDuration] = await Promise.all([
-      getAvailableDates(option.id),
-      insurance ? getEffectiveDuration(option.id, insurance.id) : Promise.resolve(null),
-    ]);
-    setDates(availableDates);
-    setDuration(effectiveDuration);
-    setLoading(false);
-    if (availableDates.length === 0) setError("Esse profissional não tem horários disponíveis no momento.");
+    if (insurance) {
+      const effectiveDuration = await getEffectiveDuration(option.id, insurance.id);
+      setDuration(effectiveDuration);
+    }
   }
 
-  async function handleSelectDate(selected: string) {
-    setDate(selected);
+  async function handleSelectDay(day: DayAvailability) {
+    setDate(day.date);
+    setSelectedDayInfo(day);
     setTime(null);
     if (!professional || !insurance) return;
     setLoading(true);
     setError(null);
-    const data = await getAvailableTimes(professional.id, insurance.id, selected);
+    const data = await getAvailableTimes(professional.id, insurance.id, day.date);
     setTimes(data);
     setLoading(false);
-    if (data.length === 0) setError("Sem horários livres nesse dia. Escolha outra data.");
+    if (data.length === 0) setError(day.reason ?? "Sem horários livres nesse dia. Escolha outra data.");
   }
 
   async function handleSelectTime(option: TimeOption) {
@@ -294,8 +291,8 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
     setPatient(null);
     setInsurance(null);
     setProfessional(null);
-    setDates([]);
     setDate(null);
+    setSelectedDayInfo(null);
     setTimes([]);
     setTime(null);
     setPaymentMethod(null);
@@ -485,28 +482,16 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
                   </span>
                 )}
 
-                {/* Dates */}
+                {/* Calendário */}
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Datas Disponíveis</label>
-                  {dates.length === 0 ? (
-                    <p className="text-xs text-text-muted">Nenhum dia disponível para o profissional.</p>
-                  ) : (
-                    <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
-                      {dates.map((iso) => (
-                        <button
-                          key={iso}
-                          type="button"
-                          onClick={() => handleSelectDate(iso)}
-                          className={`rounded-md border px-2.5 py-1 text-xs font-semibold transition-all ${
-                            date === iso
-                              ? "border-primary bg-primary text-white shadow-xs font-bold"
-                              : "border-border bg-card-elevated/40 text-text-primary hover:border-primary/50"
-                          }`}
-                        >
-                          {WEEKDAY_FORMATTER.format(new Date(`${iso}T00:00:00`))}
-                        </button>
-                      ))}
-                    </div>
+                  <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Data</label>
+                  {insurance && (
+                    <AvailabilityCalendar
+                      professionalId={professional.id}
+                      insuranceId={insurance.id}
+                      selectedDate={date}
+                      onSelectDate={handleSelectDay}
+                    />
                   )}
                 </div>
 
@@ -515,7 +500,7 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
                   <div>
                     <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Horários Livres</label>
                     {times.length === 0 ? (
-                      <p className="text-xs text-danger">Sem horários para este dia.</p>
+                      <p className="text-xs text-danger">{selectedDayInfo?.reason ?? "Sem horários para este dia."}</p>
                     ) : (
                       <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
                         {times.map((opt) => (

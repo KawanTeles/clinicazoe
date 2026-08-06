@@ -21,9 +21,14 @@ const FREQUENCY_OPTIONS: { value: RecurrenceFrequency; label: string }[] = [
 export function RecurrenceFields({
   value,
   onChange,
+  lockStartDate = false,
 }: {
   value: RecurrenceValue;
   onChange: (value: RecurrenceValue) => void;
+  /** Trava a data de início (usada quando ela já é definida pela consulta de
+   * origem, ex.: transformar uma consulta avulsa existente em recorrente —
+   * não faz sentido a recepção escolher outra data de início nesse caso). */
+  lockStartDate?: boolean;
 }) {
   const weekdayLabel = value.startDate
     ? WEEKDAY_LABELS[new Date(`${value.startDate}T00:00:00`).getDay()]
@@ -56,8 +61,12 @@ export function RecurrenceFields({
         label="Data de início"
         type="date"
         value={value.startDate}
+        disabled={lockStartDate}
         onChange={(e) => onChange({ ...value, startDate: e.target.value })}
       />
+      {lockStartDate && (
+        <p className="-mt-2.5 text-xs text-text-secondary">A data desta consulta define o dia da semana da recorrência.</p>
+      )}
 
       {weekdayLabel && (
         <p className="text-sm text-text-secondary">

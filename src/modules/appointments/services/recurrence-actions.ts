@@ -9,6 +9,7 @@ import { logAudit } from "@/modules/team/services/audit";
 import { notify, notifyStaff } from "@/modules/notifications/services/notify";
 import { logPatientMessage } from "@/modules/patients/services/message-log";
 import type { Database, PaymentMethod, RecurrenceFrequency } from "@/lib/supabase/types";
+import { toLocalIsoDate, todayLocalIso } from "@/lib/date";
 import { getAvailableTimes, getProfessionalPricing } from "./booking-queries";
 import { generateOccurrenceDates, WEEKDAY_LABELS } from "./recurrence-generator";
 
@@ -25,7 +26,7 @@ async function requireStaff() {
 /** Admin/recepcionista sempre podem gerenciar; profissional só a própria
  * série (e nunca cria/exclui, só edita dia/horário — reforçado também por
  * RLS/trigger no banco). */
-async function requireCanManageSeries(seriesId: string) {
+export async function requireCanManageSeries(seriesId: string) {
   const session = await getCurrentUser();
   if (!session) throw new Error("Acesso negado.");
 
@@ -47,7 +48,7 @@ async function requireCanManageSeries(seriesId: string) {
 function addDaysIso(iso: string, days: number) {
   const d = new Date(`${iso}T00:00:00`);
   d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  return toLocalIsoDate(d);
 }
 
 export interface OccurrencePreview {
@@ -293,6 +294,16 @@ export interface PreviewRecurrenceUpdateInput {
   scope: Extract<RecurrenceScope, "following" | "all">;
   dayOfWeek: number;
   startTime: string;
+  /** Quando omitidos, mantém o valor atual da série (comportamento de
+   * apenas trocar dia/horário, preservado para não quebrar o fluxo hoje). */
+  frequency?: RecurrenceFrequency;
+  /** Ancora a geração das novas ocorrências numa data diferente do corte
+   * padrão do escopo (ex.: "esse novo horário vale a partir de 15/09").
+   * As ocorrências antigas dentro do escopo continuam sendo substituídas a
+   * partir do corte padrão — só o início do NOVO padrão muda. */
+  startDate?: string;
+  endDate?: string | null;
+  maxOccurrences?: number | null;
 }
 
 export async function previewRecurrenceUpdate(
@@ -315,11 +326,16 @@ export async function previewRecurrenceUpdate(
     .single();
   if (!series) return { error: "Recorrência não encontrada." };
 
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = todayLocalIso();
   const cutoff = input.scope === "following" ? appointment.appointment_date : todayIso;
+  const generationStart = input.startDate || cutoff;
 
   let remainingMax: number | null = null;
-  if (series.max_occurrences) {
+  if (input.maxOccurrences !== undefined) {
+    // Quantidade redefinida explicitamente na edição — vale como novo teto
+    // a partir daqui, sem descontar ocorrências já criadas no padrão antigo.
+    remainingMax = input.maxOccurrences;
+  } else if (series.max_occurrences) {
     const { count } = await supabase
       .from("appointments")
       .select("id", { count: "exact", head: true })
@@ -332,15 +348,15 @@ export async function previewRecurrenceUpdate(
   }
 
   const dates = generateOccurrenceDates({
-    startDate: cutoff,
-    endDate: series.end_date,
-    frequency: series.frequency,
+    startDate: generationStart,
+    endDate: input.endDate !== undefined ? input.endDate : series.end_date,
+    frequency: input.frequency ?? series.frequency,
     dayOfWeek: input.dayOfWeek,
     maxOccurrences: remainingMax,
   });
 
   if (dates.length === 0) {
-    return { error: "Nenhuma data gerada para o novo dia/horário. Revise os parâmetros." };
+    return { error: "Nenhuma data gerada para os novos parâmetros. Revise dia da semana, datas e frequência." };
   }
 
   const occurrences = await buildPreview(series.professional_id, series.insurance_id, dates, input.startTime);
@@ -358,6 +374,11 @@ export interface UpdateRecurringAppointmentInput {
    * ignorar (escopo following/all) — mapa data -> horário alternativo. */
   overrides?: Record<string, string>;
   reason?: string;
+  /** Escopo following/all: quando omitidos, mantém os valores atuais da série. */
+  frequency?: RecurrenceFrequency;
+  startDate?: string;
+  endDate?: string | null;
+  maxOccurrences?: number | null;
 }
 
 async function updateSingleOccurrence(
@@ -397,6 +418,7 @@ async function updateSingleOccurrence(
     entity: "appointments",
     entityId: appointment.id,
     metadata: {
+      seriesId: appointment.series_id,
       previousDate: appointment.appointment_date,
       previousTime: appointment.start_time,
       newDate: input.date,
@@ -464,7 +486,7 @@ export async function updateRecurringAppointment(
     .single();
   if (!series) return { error: "Recorrência não encontrada." };
 
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = todayLocalIso();
   const cutoff = input.scope === "following" ? appointment.appointment_date : todayIso;
 
   const { data: candidates } = await supabase
@@ -488,6 +510,10 @@ export async function updateRecurringAppointment(
     scope: input.scope,
     dayOfWeek: input.dayOfWeek,
     startTime: input.startTime,
+    frequency: input.frequency,
+    startDate: input.startDate,
+    endDate: input.endDate,
+    maxOccurrences: input.maxOccurrences,
   });
   if (preview.error || !preview.occurrences) {
     return { error: preview.error ?? "Não foi possível validar as novas datas." };
@@ -547,6 +573,10 @@ export async function updateRecurringAppointment(
     .update({
       day_of_week: input.dayOfWeek,
       start_time: input.startTime,
+      frequency: input.frequency ?? series.frequency,
+      start_date: input.startDate ?? series.start_date,
+      end_date: input.endDate !== undefined ? input.endDate : series.end_date,
+      max_occurrences: input.maxOccurrences !== undefined ? input.maxOccurrences : series.max_occurrences,
       end_time: rows[0]?.end_time ?? series.end_time,
     })
     .eq("id", series.id);
@@ -560,8 +590,10 @@ export async function updateRecurringAppointment(
       scope: input.scope,
       previousDayOfWeek: series.day_of_week,
       previousStartTime: series.start_time,
+      previousFrequency: series.frequency,
       newDayOfWeek: input.dayOfWeek,
       newStartTime: input.startTime,
+      newFrequency: input.frequency ?? series.frequency,
       reason: input.reason ?? null,
       occurrencesReplaced: toReplace.length,
       occurrencesCreated: rows.length,
@@ -623,7 +655,7 @@ export async function cancelRecurringAppointment(
     return { error: null };
   }
 
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = todayLocalIso();
   const cutoff = scope === "following" ? appointment.appointment_date : todayIso;
 
   const { data: toCancel } = await supabase
@@ -727,4 +759,169 @@ export async function extendSeries(
   });
 
   return { error: null, createdCount: rows.length };
+}
+
+export interface AttachRecurrenceInput {
+  frequency: RecurrenceFrequency;
+  startDate: string;
+  endDate?: string | null;
+  maxOccurrences?: number | null;
+  notes?: string;
+  skipDates?: string[];
+  overrides?: Record<string, string>;
+}
+
+/** Gera o preview de ocorrências ao transformar uma consulta avulsa já
+ * existente em recorrente — a própria consulta conta como a 1ª ocorrência
+ * (nunca duplicada), só as datas futuras entram no preview de conflitos. */
+export async function previewAttachRecurrence(
+  appointmentId: string,
+  input: Omit<AttachRecurrenceInput, "notes" | "skipDates" | "overrides">,
+): Promise<{ error: string | null; occurrences?: OccurrencePreview[] }> {
+  await requireStaff();
+
+  const supabase = await createClient();
+  const { data: appointment } = await supabase.from("appointments").select("*").eq("id", appointmentId).single();
+  if (!appointment) return { error: "Consulta não encontrada." };
+  if (appointment.series_id) return { error: "Esta consulta já faz parte de uma recorrência." };
+
+  const dayOfWeek = new Date(`${input.startDate}T00:00:00`).getDay();
+  const dates = generateOccurrenceDates({
+    startDate: input.startDate,
+    endDate: input.endDate ?? null,
+    frequency: input.frequency,
+    dayOfWeek,
+    maxOccurrences: input.maxOccurrences ?? null,
+  });
+
+  const futureDates = dates.filter((d) => d !== appointment.appointment_date);
+  if (futureDates.length === 0) {
+    return { error: null, occurrences: [] };
+  }
+
+  const occurrences = await buildPreview(
+    appointment.professional_id,
+    appointment.insurance_id,
+    futureDates,
+    appointment.start_time.slice(0, 5),
+  );
+  return { error: null, occurrences };
+}
+
+/** Cria uma `appointment_series` a partir de uma consulta avulsa já
+ * existente (paciente/profissional/convênio/pagamento/valor herdados dela,
+ * nunca redigitados) e vincula essa mesma consulta como a 1ª ocorrência. */
+export async function attachRecurrenceToAppointment(
+  appointmentId: string,
+  input: AttachRecurrenceInput,
+): Promise<{ error: string | null; seriesId?: string; createdCount?: number }> {
+  const session = await requireStaff();
+
+  const rateLimit = checkRateLimit(`attach-recurrence:${session.user.id}`, 10, 60_000);
+  if (!rateLimit.allowed) {
+    return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente de novo.` };
+  }
+
+  const supabase = await createClient();
+  const { data: appointment } = await supabase.from("appointments").select("*").eq("id", appointmentId).single();
+  if (!appointment) return { error: "Consulta não encontrada." };
+  if (appointment.series_id) return { error: "Esta consulta já faz parte de uma recorrência." };
+  if (!["pendente", "confirmada"].includes(appointment.status)) {
+    return { error: "Só é possível tornar recorrente uma consulta pendente ou confirmada." };
+  }
+
+  const dayOfWeek = new Date(`${input.startDate}T00:00:00`).getDay();
+  const dates = generateOccurrenceDates({
+    startDate: input.startDate,
+    endDate: input.endDate ?? null,
+    frequency: input.frequency,
+    dayOfWeek,
+    maxOccurrences: input.maxOccurrences ?? null,
+  });
+  const futureDates = dates.filter((d) => d !== appointment.appointment_date);
+
+  const preview =
+    futureDates.length > 0
+      ? await buildPreview(appointment.professional_id, appointment.insurance_id, futureDates, appointment.start_time.slice(0, 5))
+      : [];
+
+  const toCreate = await resolveOccurrences(
+    appointment.professional_id,
+    appointment.insurance_id,
+    appointment.start_time.slice(0, 5),
+    preview,
+    input.skipDates ?? [],
+    input.overrides,
+  );
+
+  const admin = createAdminClient();
+
+  const { data: series, error: seriesError } = await admin
+    .from("appointment_series")
+    .insert({
+      patient_id: appointment.patient_id,
+      professional_id: appointment.professional_id,
+      specialty_id: appointment.specialty_id,
+      insurance_id: appointment.insurance_id,
+      payment_method: appointment.payment_method,
+      day_of_week: dayOfWeek,
+      start_time: appointment.start_time,
+      end_time: appointment.end_time,
+      frequency: input.frequency,
+      start_date: input.startDate,
+      end_date: input.endDate || null,
+      max_occurrences: input.maxOccurrences || null,
+      notes: input.notes?.trim() || null,
+      created_by: session.user.id,
+    })
+    .select("id")
+    .single();
+
+  if (seriesError || !series) return { error: "Não foi possível criar a recorrência." };
+
+  // UPDATE (diferente do INSERT acima) passa pelo trigger prevent_appointment_tampering,
+  // que decide o bypass de staff olhando auth.uid() — com o client admin (service role)
+  // isso retorna null e a atualização é bloqueada. Por isso aqui usa o client autenticado
+  // normal (mesmo padrão das demais UPDATEs em appointments neste arquivo).
+  const { error: linkError } = await supabase
+    .from("appointments")
+    .update({ series_id: series.id })
+    .eq("id", appointmentId);
+  if (linkError) return { error: "Recorrência criada, mas não foi possível vincular a consulta original." };
+
+  if (toCreate.length > 0) {
+    const rows = toCreate.map((occ) => ({
+      patient_id: appointment.patient_id,
+      professional_id: appointment.professional_id,
+      specialty_id: appointment.specialty_id,
+      insurance_id: appointment.insurance_id,
+      schedule_slot_id: occ.slotId,
+      appointment_date: occ.date,
+      start_time: occ.startTime,
+      end_time: occ.endTime,
+      payment_method: appointment.payment_method,
+      value: appointment.value,
+      status: "pendente" as const,
+      series_id: series.id,
+      notes: input.notes?.trim() || null,
+    }));
+    const { error: insertError } = await admin.from("appointments").insert(rows);
+    if (insertError) return { error: "Recorrência criada, mas houve falha ao gerar as próximas consultas." };
+  }
+
+  await logAudit({
+    actorId: session.user.id,
+    action: "appointment_series.created",
+    entity: "appointment_series",
+    entityId: series.id,
+    metadata: {
+      count: toCreate.length + 1,
+      frequency: input.frequency,
+      dayOfWeek,
+      startTime: appointment.start_time,
+      attachedFromAppointmentId: appointmentId,
+    },
+  });
+
+  return { error: null, seriesId: series.id, createdCount: toCreate.length + 1 };
 }

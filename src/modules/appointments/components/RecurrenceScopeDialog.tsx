@@ -1,10 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { ConflictsReview } from "@/modules/appointments/components/ConflictsReview";
+import { RecurrenceFields, type RecurrenceValue } from "@/modules/appointments/components/RecurrenceFields";
+import {
+  getSeriesDetail,
+  getSeriesHistory,
+  type SeriesDetail,
+  type SeriesHistoryEntry,
+} from "@/modules/appointments/services/recurrence-queries";
+import type { RecurrenceFrequency } from "@/lib/supabase/types";
 import {
   cancelRecurringAppointment,
   previewRecurrenceUpdate,
@@ -16,6 +24,7 @@ import {
 interface RecurrenceScopeDialogProps {
   mode: "edit" | "delete";
   appointmentId: string;
+  seriesId: string;
   currentDate: string;
   currentStartTime: string;
   professionalId: string;
@@ -30,9 +39,13 @@ const SCOPE_OPTIONS: { value: RecurrenceScope; label: string; description: strin
   { value: "all", label: "Toda a sequência de consultas", description: "Todas as ocorrências futuras da recorrência mudam." },
 ];
 
+const EMPTY_RECURRENCE: RecurrenceValue = { frequency: "weekly", startDate: "", endDate: "", maxOccurrences: "", notes: "" };
+const HISTORY_DATE_FORMATTER = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });
+
 export function RecurrenceScopeDialog({
   mode,
   appointmentId,
+  seriesId,
   currentDate,
   currentStartTime,
   professionalId,
@@ -48,6 +61,33 @@ export function RecurrenceScopeDialog({
   const [occurrences, setOccurrences] = useState<OccurrencePreview[] | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Escopos following/all: edição completa (frequência, datas, qtd), reaproveitando
+  // o mesmo formulário da criação. Só o que o usuário realmente alterar é enviado.
+  const [originalSeries, setOriginalSeries] = useState<SeriesDetail | null>(null);
+  const [recurrence, setRecurrence] = useState<RecurrenceValue>({ ...EMPTY_RECURRENCE, startDate: currentDate });
+  const [bulkStartTime, setBulkStartTime] = useState(currentStartTime.slice(0, 5));
+  const [stopRecurrence, setStopRecurrence] = useState(false);
+
+  const [history, setHistory] = useState<SeriesHistoryEntry[] | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+
+  useEffect(() => {
+    if (mode !== "edit") return;
+    getSeriesDetail(seriesId).then((series) => {
+      if (!series) return;
+      setOriginalSeries(series);
+      setRecurrence({
+        frequency: series.frequency as RecurrenceFrequency,
+        startDate: currentDate,
+        endDate: series.endDate ?? "",
+        maxOccurrences: series.maxOccurrences ? String(series.maxOccurrences) : "",
+        notes: "",
+      });
+    });
+    getSeriesHistory(seriesId).then(setHistory);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, seriesId]);
 
   async function handleDelete() {
     setSaving(true);
@@ -79,15 +119,44 @@ export function RecurrenceScopeDialog({
     onDone(result.whatsappLink);
   }
 
+  async function handleStopRecurrence() {
+    setSaving(true);
+    setError(null);
+    const result = await cancelRecurringAppointment(appointmentId, scope as "following" | "all");
+    setSaving(false);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    toast.success("A repetição foi interrompida a partir daqui.");
+    onDone();
+  }
+
+  function buildBulkInput() {
+    const dayOfWeek = new Date(`${recurrence.startDate}T00:00:00`).getDay();
+    const frequency = originalSeries && recurrence.frequency !== originalSeries.frequency ? recurrence.frequency : undefined;
+    const startDate = recurrence.startDate !== currentDate ? recurrence.startDate : undefined;
+    const originalEndDateStr = originalSeries?.endDate ?? "";
+    const endDate = recurrence.endDate !== originalEndDateStr ? recurrence.endDate || null : undefined;
+    const originalMaxStr = originalSeries?.maxOccurrences ? String(originalSeries.maxOccurrences) : "";
+    const maxOccurrences =
+      recurrence.maxOccurrences !== originalMaxStr ? (recurrence.maxOccurrences ? Number(recurrence.maxOccurrences) : null) : undefined;
+    return { dayOfWeek, frequency, startDate, endDate, maxOccurrences };
+  }
+
   async function handlePreviewBulk() {
     setSaving(true);
     setError(null);
-    const dayOfWeek = new Date(`${date}T00:00:00`).getDay();
+    const { dayOfWeek, frequency, startDate, endDate, maxOccurrences } = buildBulkInput();
     const result = await previewRecurrenceUpdate({
       appointmentId,
       scope: scope as "following" | "all",
       dayOfWeek,
-      startTime,
+      startTime: bulkStartTime,
+      frequency,
+      startDate,
+      endDate,
+      maxOccurrences,
     });
     setSaving(false);
     if (result.error || !result.occurrences) {
@@ -100,15 +169,19 @@ export function RecurrenceScopeDialog({
   async function handleConfirmBulk(skipDates: string[], overrides: Record<string, string>) {
     setSaving(true);
     setError(null);
-    const dayOfWeek = new Date(`${date}T00:00:00`).getDay();
+    const { dayOfWeek, frequency, startDate, endDate, maxOccurrences } = buildBulkInput();
     const result = await updateRecurringAppointment({
       appointmentId,
       scope,
       dayOfWeek,
-      startTime,
+      startTime: bulkStartTime,
       skipDates,
       overrides,
       reason: reason || undefined,
+      frequency,
+      startDate,
+      endDate,
+      maxOccurrences,
     });
     setSaving(false);
     if (result.error) {
@@ -117,6 +190,8 @@ export function RecurrenceScopeDialog({
     }
     onDone(result.whatsappLink);
   }
+
+  const isBulkScope = scope === "following" || scope === "all";
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -137,9 +212,33 @@ export function RecurrenceScopeDialog({
           />
         ) : (
           <>
-            <h2 className="text-lg font-bold text-text-primary">
-              {mode === "edit" ? "O que deseja alterar?" : "O que deseja excluir?"}
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-text-primary">
+                {mode === "edit" ? "O que deseja alterar?" : "O que deseja excluir?"}
+              </h2>
+              {history && history.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowHistory((v) => !v)}
+                  className="text-xs font-bold text-primary hover:underline"
+                >
+                  {showHistory ? "Ocultar histórico" : `Ver histórico (${history.length})`}
+                </button>
+              )}
+            </div>
+
+            {showHistory && history && (
+              <div className="flex max-h-48 flex-col gap-2 overflow-y-auto rounded-xl border border-border bg-card-elevated/40 p-3">
+                {history.map((entry) => (
+                  <div key={entry.id} className="border-b border-border/40 pb-2 last:border-0 last:pb-0">
+                    <p className="text-xs text-text-primary">{entry.summary}</p>
+                    <p className="text-[10px] text-text-muted">
+                      {entry.actorName} — {HISTORY_DATE_FORMATTER.format(new Date(entry.date))}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="flex flex-col gap-2">
               {SCOPE_OPTIONS.map((option) => (
@@ -152,7 +251,10 @@ export function RecurrenceScopeDialog({
                     name="scope"
                     className="mt-1 h-4 w-4 accent-primary"
                     checked={scope === option.value}
-                    onChange={() => setScope(option.value)}
+                    onChange={() => {
+                      setScope(option.value);
+                      setStopRecurrence(false);
+                    }}
                   />
                   <span>
                     <span className="block text-sm font-semibold text-text-primary">{option.label}</span>
@@ -162,21 +264,11 @@ export function RecurrenceScopeDialog({
               ))}
             </div>
 
-            {mode === "edit" && (
+            {mode === "edit" && scope === "only" && (
               <>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <Input
-                    label={scope === "only" ? "Nova data" : "A partir de (define o novo dia da semana)"}
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                  />
-                  <Input
-                    label="Novo horário"
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                  />
+                  <Input label="Nova data" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                  <Input label="Novo horário" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
                 </div>
                 <Input
                   label="Motivo (opcional)"
@@ -184,6 +276,38 @@ export function RecurrenceScopeDialog({
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                 />
+              </>
+            )}
+
+            {mode === "edit" && isBulkScope && (
+              <>
+                <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-text-primary">
+                  <input
+                    type="checkbox"
+                    checked={stopRecurrence}
+                    onChange={(e) => setStopRecurrence(e.target.checked)}
+                    className="h-3.5 w-3.5 rounded accent-primary"
+                  />
+                  Parar a repetição a partir daqui (virar consulta única)
+                </label>
+
+                {!stopRecurrence && (
+                  <>
+                    <Input
+                      label="Novo horário"
+                      type="time"
+                      value={bulkStartTime}
+                      onChange={(e) => setBulkStartTime(e.target.value)}
+                    />
+                    <RecurrenceFields value={recurrence} onChange={setRecurrence} />
+                    <Input
+                      label="Motivo (opcional)"
+                      placeholder="Ex.: feriado, troca de agenda..."
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                    />
+                  </>
+                )}
               </>
             )}
 
@@ -197,13 +321,17 @@ export function RecurrenceScopeDialog({
                 <Button variant="danger" size="sm" isLoading={saving} onClick={handleDelete}>
                   Excluir
                 </Button>
+              ) : scope === "only" ? (
+                <Button size="sm" isLoading={saving} onClick={handleEditOnly}>
+                  Salvar
+                </Button>
+              ) : stopRecurrence ? (
+                <Button variant="danger" size="sm" isLoading={saving} onClick={handleStopRecurrence}>
+                  Parar repetição
+                </Button>
               ) : (
-                <Button
-                  size="sm"
-                  isLoading={saving}
-                  onClick={scope === "only" ? handleEditOnly : handlePreviewBulk}
-                >
-                  {scope === "only" ? "Salvar" : "Revisar alterações"}
+                <Button size="sm" isLoading={saving} onClick={handlePreviewBulk}>
+                  Revisar alterações
                 </Button>
               )}
             </div>
