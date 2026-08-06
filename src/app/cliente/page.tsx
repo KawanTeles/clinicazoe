@@ -16,6 +16,8 @@ export const metadata = {
   description: "Acompanhe seus agendamentos, histórico médico e consultas na Clínica Zoe.",
 };
 
+import { getAttendanceInfo } from "@/lib/attendance";
+
 export default async function ClientePublicPage({
   searchParams,
 }: {
@@ -111,43 +113,50 @@ export default async function ClientePublicPage({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {appointments.map((appt) => (
-                    <div
-                      key={appt.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-border bg-card-elevated/70 hover:border-primary/60 transition-all"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-text-primary">{appt.professionalName}</span>
-                          <Badge
-                            tone={
-                              appt.status === "confirmada"
-                                ? "success"
-                                : appt.status === "pendente"
-                                ? "warning"
-                                : appt.status === "cancelada" || appt.status === "recusada"
-                                ? "danger"
-                                : "neutral"
-                            }
-                            className="text-[11px]"
-                          >
-                            {appt.status.toUpperCase()}
-                          </Badge>
+                  {appointments.map((appt) => {
+                    const attendance = getAttendanceInfo(appt.insuranceName, appt.payment_method);
+                    return (
+                      <div
+                        key={appt.id}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-border bg-card-elevated/70 hover:border-primary/60 transition-all"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-text-primary">{appt.professionalName}</span>
+                            <Badge
+                              tone={
+                                appt.status === "confirmada"
+                                  ? "success"
+                                  : appt.status === "pendente"
+                                  ? "warning"
+                                  : appt.status === "cancelada" || appt.status === "recusada"
+                                  ? "danger"
+                                  : "neutral"
+                              }
+                              className="text-[11px]"
+                            >
+                              {appt.status.toUpperCase()}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-[var(--link)]">
+                            {appt.specialtyName} — {attendance.attendanceType} {attendance.isConvenio ? `(${attendance.insuranceName})` : ""}
+                          </p>
+                          <p className="text-xs text-text-secondary">
+                            Data: <strong className="text-text-primary">{appt.appointment_date.split("-").reverse().join("/")}</strong> às <strong className="text-text-primary">{appt.start_time.slice(0, 5)}</strong>
+                          </p>
                         </div>
-                        <p className="text-xs text-[var(--link)]">{appt.specialtyName} — {appt.insuranceName}</p>
-                        <p className="text-xs text-text-secondary">
-                          Data: <strong className="text-text-primary">{appt.appointment_date.split("-").reverse().join("/")}</strong> às <strong className="text-text-primary">{appt.start_time.slice(0, 5)}</strong>
-                        </p>
-                      </div>
 
-                      <div className="text-right">
-                        <span className="text-sm font-extrabold text-text-primary">
-                          R$ {appt.value.toFixed(2)}
-                        </span>
-                        <p className="text-[11px] text-text-muted uppercase">{appt.payment_method}</p>
+                        <div className="text-right">
+                          <span className="text-sm font-extrabold text-text-primary">
+                            R$ {appt.value.toFixed(2)}
+                          </span>
+                          <p className="text-[11px] text-text-muted font-medium">
+                            {attendance.isConvenio ? attendance.insuranceName : `Particular (${attendance.paymentMethodLabel})`}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>

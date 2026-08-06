@@ -17,6 +17,7 @@ import {
 } from "@/modules/appointments/services/booking-queries";
 import { createPublicAppointment } from "@/modules/appointments/services/booking-actions";
 import { formatCurrency } from "@/lib/whatsapp";
+import { getAttendanceInfo } from "@/lib/attendance";
 
 interface Specialty {
   id: string;
@@ -215,6 +216,8 @@ export function PublicBookingFlow({
   const currentProf = professionals.find((p) => p.id === selectedProfessionalId);
   const currentSpec = specialties.find((s) => s.id === selectedSpecialtyId);
   const currentPricing = pricingOptions.find((p) => p.paymentMethod === paymentMethod);
+  const currentInsurance = insurances.find((i) => i.id === selectedInsuranceId);
+  const attendance = getAttendanceInfo(currentInsurance?.name, paymentMethod);
 
   if (successResult) {
     return (
@@ -500,6 +503,22 @@ export function PublicBookingFlow({
             <h4 className="text-base font-bold text-text-primary font-heading">Resumo das Informações</h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl bg-card-elevated/70 p-4 border border-border">
+
+              <div>
+                <span className="text-xs text-text-muted">Tipo de Atendimento</span>
+                <p className="text-sm font-bold text-text-primary">{attendance.attendanceType}</p>
+              </div>
+              {attendance.isConvenio ? (
+                <div>
+                  <span className="text-xs text-text-muted">Convênio</span>
+                  <p className="text-sm font-bold text-text-primary">{attendance.insuranceName}</p>
+                </div>
+              ) : (
+                <div>
+                  <span className="text-xs text-text-muted">Forma de Pagamento</span>
+                  <p className="text-sm font-bold text-text-primary">{attendance.paymentMethodLabel}</p>
+                </div>
+              )}
               <div>
                 <span className="text-xs text-text-muted">Especialidade</span>
                 <p className="text-sm font-bold text-text-primary">{currentSpec?.name}</p>

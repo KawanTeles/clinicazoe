@@ -74,7 +74,7 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
         >
           {/* Brand Logo */}
           <Link href="/" className="group flex shrink-0 items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#6EE7B7] via-[#2E8B57] to-[#0B3D2E] text-xs font-black text-white shadow-[0_0_18px_rgba(110,231,183,0.35)] border border-[rgba(110,231,183,0.3)] transition-transform duration-300 ease-[var(--ease-premium)] group-hover:scale-105">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#14B8A6] via-[#0F766E] to-[#115E59] text-xs font-black text-white shadow-[0_0_18px_rgba(15,118,110,0.35)] border border-[rgba(20,184,166,0.3)] transition-transform duration-300 ease-[var(--ease-premium)] group-hover:scale-105">
               CZ
             </div>
             <span className="hidden text-base font-extrabold tracking-tight text-text-primary transition-colors group-hover:text-[var(--link)] font-heading sm:inline">
@@ -97,8 +97,8 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
                   className={cn(
                     "relative px-4 py-2 rounded-full font-bold transition-all duration-300 ease-[var(--ease-premium)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     isActive
-                      ? "bg-primary/25 text-text-primary border border-[rgba(110,231,183,0.3)] shadow-[0_0_15px_rgba(110,231,183,0.15)]"
-                      : "text-text-secondary hover:text-text-primary hover:bg-white/5",
+                      ? "bg-primary/10 text-primary border border-[#0F766E]/20 shadow-xs dark:bg-primary/25 dark:text-text-primary"
+                      : "text-text-secondary hover:text-text-primary hover:bg-black/5 dark:hover:bg-white/5",
                   )}
                 >
                   {link.label}
@@ -109,14 +109,14 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
 
           {/* Action Buttons & Theme Toggle */}
           <div className="flex items-center gap-2.5">
-            <ThemeToggle className="hidden sm:flex rounded-full h-10 w-10 border border-[rgba(110,231,183,0.2)] hover:border-[#6EE7B7]/50" />
+            <ThemeToggle className="hidden sm:flex rounded-full h-10 w-10 border border-border hover:border-primary/50" />
 
             <div className="hidden items-center gap-2.5 lg:flex">
               <Link href="/equipe" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                 <button
                   type="button"
                   tabIndex={-1}
-                  className="rounded-full border border-[rgba(110,231,183,0.2)] bg-transparent px-4 py-2 text-xs font-bold text-text-secondary hover:bg-primary/15 hover:text-text-primary hover:border-[rgba(110,231,183,0.4)] transition-all duration-300"
+                  className="rounded-full border border-border bg-white text-text-secondary hover:bg-[#F8FAFC] hover:text-text-primary hover:border-[#0F766E]/50 dark:bg-card-elevated dark:text-text-secondary dark:hover:bg-card transition-all duration-300 px-4 py-2 text-xs font-bold"
                 >
                   {CTA_TEAM_AREA}
                 </button>
@@ -125,7 +125,7 @@ export function PublicHeader({ clinicName }: PublicHeaderProps) {
                 <button
                   type="button"
                   tabIndex={-1}
-                  className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#145A43] via-[#2E8B57] to-[#145A43] px-5 py-2.5 text-xs font-bold text-white shadow-[0_8px_25px_rgba(46,139,87,0.35)] border border-[rgba(110,231,183,0.3)] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-[0_12px_35px_rgba(46,139,87,0.45)] hover:from-[#2E8B57] hover:to-[#145A43]"
+                  className="group inline-flex items-center gap-2 rounded-full bg-[#0F766E] hover:bg-[#115E59] px-5 py-2.5 text-xs font-bold text-white shadow-[0_10px_25px_rgba(15,118,110,0.18)] border border-[#0F766E]/30 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02]"
                 >
                   <span>{CTA_CLIENT_AREA}</span>
                   <svg

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { formatCurrency } from "@/lib/whatsapp";
+import { getAttendanceInfo } from "@/lib/attendance";
 import type { PaymentMethod } from "@/lib/supabase/types";
 import { PatientPickerField } from "@/modules/patients/components/PatientPickerField";
 import { createPatient, type PatientSearchResult } from "@/modules/patients/services/patient-actions";
@@ -567,50 +568,74 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
           <div className="rounded-xl border border-primary/40 bg-card/90 p-3.5 flex flex-col gap-3 shadow-xs">
             <div className="flex items-center justify-between border-b border-border/60 pb-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
-                6. Resumo e Pagamento
+                6. Resumo do Atendimento
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-xs border-b border-border/50 pb-2.5">
-              <div>
-                <span className="text-text-muted block font-medium">Paciente:</span>
-                <span className="font-bold text-text-primary truncate block">{patient?.fullName || "—"}</span>
-              </div>
-              <div>
-                <span className="text-text-muted block font-medium">Profissional:</span>
-                <span className="font-bold text-text-primary truncate block">{professional?.fullName || "—"}</span>
-              </div>
-              <div>
-                <span className="text-text-muted block font-medium">Convênio:</span>
-                <span className="font-bold text-text-primary truncate block">{insurance?.name || "—"}</span>
-              </div>
-              <div>
-                <span className="text-text-muted block font-medium">Data / Hora:</span>
-                <span className="font-bold text-primary dark:text-[var(--link)]">
-                  {date && time
-                    ? `${dateFormatter.format(new Date(`${date}T00:00:00`))} às ${time.startTime.slice(0, 5)}`
-                    : "—"}
-                </span>
-              </div>
-            </div>
+            {(() => {
+              const attendance = getAttendanceInfo(insurance?.name, paymentMethod);
+              return (
+                <div className="grid grid-cols-2 gap-2 text-xs border-b border-border/50 pb-2.5">
+                  <div>
+                    <span className="text-text-muted block font-medium">Paciente:</span>
+                    <span className="font-bold text-text-primary truncate block">{patient?.fullName || "—"}</span>
+                  </div>
+                  <div>
+                    <span className="text-text-muted block font-medium">Profissional:</span>
+                    <span className="font-bold text-text-primary truncate block">{professional?.fullName || "—"}</span>
+                  </div>
+                  <div>
+                    <span className="text-text-muted block font-medium">Tipo de Atendimento:</span>
+                    <span className="font-bold text-text-primary truncate block">{attendance.attendanceType}</span>
+                  </div>
+                  {attendance.isConvenio ? (
+                    <div>
+                      <span className="text-text-muted block font-medium">Convênio:</span>
+                      <span className="font-bold text-text-primary truncate block">{attendance.insuranceName}</span>
+                    </div>
+                  ) : paymentMethod ? (
+                    <div>
+                      <span className="text-text-muted block font-medium">Forma de Pagamento:</span>
+                      <span className="font-bold text-text-primary truncate block">{attendance.paymentMethodLabel}</span>
+                    </div>
+                  ) : null}
+                  <div className="col-span-2">
+                    <span className="text-text-muted block font-medium">Data / Hora:</span>
+                    <span className="font-bold text-primary dark:text-[var(--link)]">
+                      {date && time
+                        ? `${dateFormatter.format(new Date(`${date}T00:00:00`))} às ${time.startTime.slice(0, 5)}`
+                        : "—"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
 
-            {/* Payment Methods */}
+            {/* Payment / Price Selection */}
             <div>
-              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Forma de Pagamento</label>
+              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                {insurance?.name && insurance.name !== "Particular" ? "Valor do Convênio" : "Forma de Pagamento"}
+              </label>
               <div className="flex flex-wrap gap-1.5">
-                {pricing.map((opt) => (
-                  <button
-                    key={opt.paymentMethod}
-                    type="button"
-                    onClick={() => setPaymentMethod(opt.paymentMethod)}
-                    className={`rounded-md border px-2.5 py-1 text-xs font-semibold transition-all ${
-                      paymentMethod === opt.paymentMethod
-                        ? "border-primary bg-primary/10 text-primary font-bold shadow-xs"
-                        : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
-                    }`}
-                  >
-                    {PAYMENT_LABELS[opt.paymentMethod]} — {formatCurrency(opt.value)}
-                  </button>
-                ))}
+                {pricing.map((opt) => {
+                  const optAtt = getAttendanceInfo(insurance?.name, opt.paymentMethod);
+                  const btnLabel = optAtt.isConvenio
+                    ? `${optAtt.insuranceName} — ${formatCurrency(opt.value)}`
+                    : `${optAtt.paymentMethodLabel} — ${formatCurrency(opt.value)}`;
+                  return (
+                    <button
+                      key={opt.paymentMethod}
+                      type="button"
+                      onClick={() => setPaymentMethod(opt.paymentMethod)}
+                      className={`rounded-md border px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                        paymentMethod === opt.paymentMethod
+                          ? "border-primary bg-primary/10 text-primary font-bold shadow-xs"
+                          : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
+                      }`}
+                    >
+                      {btnLabel}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

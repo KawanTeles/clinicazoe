@@ -18,6 +18,8 @@ import {
 } from "@/modules/appointments/services/booking-actions";
 import { RecurrenceScopeDialog } from "@/modules/appointments/components/RecurrenceScopeDialog";
 
+import { getAttendanceInfo } from "@/lib/attendance";
+
 const STATUS_LABELS: Record<string, string> = {
   pendente: "Pendente",
   confirmada: "Confirmada",
@@ -224,7 +226,7 @@ export function AppointmentsList({
               <tr>
                 {isStaff && <th className="px-5 py-3.5 font-bold">Paciente</th>}
                 <th className="px-5 py-3.5 font-bold">Profissional</th>
-                <th className="px-5 py-3.5 font-bold">Convênio</th>
+                <th className="px-5 py-3.5 font-bold">Tipo de Atendimento</th>
                 <th className="px-5 py-3.5 font-bold">Data/Hora</th>
                 <th className="px-5 py-3.5 font-bold">Valor</th>
                 <th className="px-5 py-3.5 font-bold">Status</th>
@@ -236,12 +238,20 @@ export function AppointmentsList({
               {filteredAppointments.map((appt) => {
                 const isOwnProfessional = isProfessional && appt.professionalId === viewerId;
                 const canManageRecurrence = isStaff || isOwnProfessional;
+                const attendance = getAttendanceInfo(appt.insuranceName, appt.paymentMethod);
 
                 return (
                   <tr key={appt.id} className="transition-colors hover:bg-card-elevated/40">
                     {isStaff && <td className="px-5 py-4 font-bold text-text-primary">{appt.patientName}</td>}
                     <td className="px-5 py-4 font-semibold text-text-primary">{appt.professionalName}</td>
-                    <td className="px-5 py-4 text-text-secondary">{appt.insuranceName}</td>
+                    <td className="px-5 py-4 text-text-secondary">
+                      <span className="font-semibold text-text-primary">{attendance.attendanceType}</span>
+                      {attendance.isConvenio ? (
+                        <span className="block text-xs text-text-muted">{attendance.insuranceName}</span>
+                      ) : (
+                        <span className="block text-xs text-text-muted">{attendance.paymentMethodLabel}</span>
+                      )}
+                    </td>
                     <td className="px-5 py-4 text-text-secondary">
                       {dateFormatter.format(new Date(`${appt.date}T00:00:00`))}{" "}
                       <span className="font-semibold text-text-primary">{appt.startTime.slice(0, 5)}</span>

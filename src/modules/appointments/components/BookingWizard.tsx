@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatCurrency } from "@/lib/whatsapp";
+import { getAttendanceInfo } from "@/lib/attendance";
 import type { PaymentMethod } from "@/lib/supabase/types";
 import {
   getBookableInsurances,
@@ -314,50 +315,72 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
       {step === 6 && specialty && insurance && professional && date && time && (
         <Card className="border-border shadow-card">
           <CardContent className="flex flex-col gap-5 p-6">
-            <div className="grid grid-cols-1 gap-4 text-xs sm:grid-cols-2 rounded-xl border border-border bg-card-elevated/50 p-4">
-              <p>
-                <span className="text-text-muted">Especialidade: </span>
-                <span className="font-bold text-text-primary">{specialty.name}</span>
-              </p>
-              <p>
-                <span className="text-text-muted">Convênio: </span>
-                <span className="font-bold text-text-primary">{insurance.name}</span>
-              </p>
-              <p>
-                <span className="text-text-muted">Profissional: </span>
-                <span className="font-bold text-text-primary">{professional.fullName}</span>
-              </p>
-              <p>
-                <span className="text-text-muted">Data/Hora: </span>
-                <span className="font-bold text-[var(--primary)]">
-                  {WEEKDAY_FORMATTER.format(new Date(`${date}T00:00:00`))} às {time.startTime.slice(0, 5)}
-                </span>
-              </p>
-            </div>
+            {(() => {
+              const attendance = getAttendanceInfo(insurance?.name, paymentMethod);
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs rounded-xl border border-border bg-card-elevated/50 p-4">
+                  <p>
+                    <span className="text-text-muted">Especialidade: </span>
+                    <span className="font-bold text-text-primary">{specialty.name}</span>
+                  </p>
+                  <p>
+                    <span className="text-text-muted">Profissional: </span>
+                    <span className="font-bold text-text-primary">{professional.fullName}</span>
+                  </p>
+                  <p>
+                    <span className="text-text-muted">Tipo de Atendimento: </span>
+                    <span className="font-bold text-text-primary">{attendance.attendanceType}</span>
+                  </p>
+                  {attendance.isConvenio ? (
+                    <p>
+                      <span className="text-text-muted">Convênio: </span>
+                      <span className="font-bold text-text-primary">{attendance.insuranceName}</span>
+                    </p>
+                  ) : paymentMethod ? (
+                    <p>
+                      <span className="text-text-muted">Forma de Pagamento: </span>
+                      <span className="font-bold text-text-primary">{attendance.paymentMethodLabel}</span>
+                    </p>
+                  ) : null}
+                  <p className="col-span-full">
+                    <span className="text-text-muted">Data/Hora: </span>
+                    <span className="font-bold text-[var(--primary)]">
+                      {WEEKDAY_FORMATTER.format(new Date(`${date}T00:00:00`))} às {time.startTime.slice(0, 5)}
+                    </span>
+                  </p>
+                </div>
+              );
+            })()}
 
             {pricing.length > 0 ? (
               <div className="flex flex-col gap-2">
-                <p className="text-xs font-bold text-text-primary uppercase tracking-wider">Forma de Pagamento</p>
+                <p className="text-xs font-bold text-text-primary uppercase tracking-wider">
+                  {insurance?.name && insurance.name !== "Particular" ? "Confirmar Valor do Convênio" : "Forma de Pagamento"}
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {pricing.map((option) => (
-                    <button
-                      key={option.paymentMethod}
-                      type="button"
-                      onClick={() => setPaymentMethod(option.paymentMethod)}
-                      className={
-                        paymentMethod === option.paymentMethod
-                          ? "rounded-xl border-2 border-primary bg-[var(--badge-bg)] px-4 py-2.5 text-xs font-bold text-[var(--primary)] shadow-sm cursor-pointer"
-                          : "rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-text-secondary hover:border-primary/50 cursor-pointer"
-                      }
-                    >
-                      {PAYMENT_LABELS[option.paymentMethod]} — {formatCurrency(option.value)}
-                    </button>
-                  ))}
+                  {pricing.map((option) => {
+                    const optAtt = getAttendanceInfo(insurance?.name, option.paymentMethod);
+                    const label = optAtt.isConvenio ? `${optAtt.insuranceName} — ${formatCurrency(option.value)}` : `${optAtt.paymentMethodLabel} — ${formatCurrency(option.value)}`;
+                    return (
+                      <button
+                        key={option.paymentMethod}
+                        type="button"
+                        onClick={() => setPaymentMethod(option.paymentMethod)}
+                        className={
+                          paymentMethod === option.paymentMethod
+                            ? "rounded-xl border-2 border-primary bg-[var(--badge-bg)] px-4 py-2.5 text-xs font-bold text-[var(--primary)] shadow-sm cursor-pointer"
+                            : "rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-text-secondary hover:border-primary/50 cursor-pointer"
+                        }
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ) : (
               <p className="text-xs font-semibold text-danger">
-                Este profissional não tem valor configurado para esse convênio.
+                Este profissional não tem valor configurado para este atendimento.
               </p>
             )}
 

@@ -64,7 +64,7 @@ export function LocationSection({ clinicName, address, whatsappNumber }: Locatio
 
             <div className="pt-4">
               <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="block w-full">
-                <Button size="lg" withArrow className="w-full font-bold shadow-[0_12px_35px_rgba(46,139,87,0.35)] hover:scale-[1.02]">
+                <Button variant="secondary" size="lg" withArrow className="w-full font-bold shadow-xs hover:scale-[1.02]">
                   Ver rota no Google Maps
                 </Button>
               </a>

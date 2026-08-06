@@ -4,11 +4,11 @@ import { cn } from "@/lib/utils/cn";
 type Tone = "neutral" | "success" | "warning" | "danger" | "premium";
 
 const toneClasses: Record<Tone, string> = {
-  neutral: "bg-[var(--badge-neutral-bg)] text-[var(--badge-neutral-text)] border border-[var(--badge-neutral-border)]",
-  success: "bg-[var(--badge-bg)] text-[var(--badge-text)] border border-[var(--primary)]/30",
-  warning: "bg-[var(--warning)]/15 text-[var(--warning)] border border-[var(--warning)]/30",
-  danger: "bg-[var(--danger)]/15 text-[var(--danger)] border border-[var(--danger)]/30",
-  premium: "bg-[var(--badge-bg)] text-[var(--primary-light)] border border-[var(--primary)]/40 shadow-[0_0_12px_rgba(15,164,122,0.25)]",
+  neutral: "bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0] dark:bg-[#1E293B] dark:text-[#94A3B8] dark:border-[#334155]",
+  success: "bg-[rgba(15,118,110,0.10)] text-[#0F766E] border border-[rgba(15,118,110,0.15)] dark:bg-[rgba(45,212,191,0.15)] dark:text-[#2DD4BF] dark:border-[rgba(45,212,191,0.25)]",
+  warning: "bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20",
+  danger: "bg-[#DC2626]/10 text-[#DC2626] border border-[#DC2626]/20",
+  premium: "bg-[rgba(15,118,110,0.10)] text-[#0F766E] border border-[rgba(15,118,110,0.18)] dark:bg-[rgba(45,212,191,0.15)] dark:text-[#2DD4BF] dark:border-[rgba(45,212,191,0.25)]",
 };
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {

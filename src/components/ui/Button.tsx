@@ -1,7 +1,7 @@
 import { ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils/cn";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -20,13 +20,15 @@ const arrowCircleSize: Record<Size, string> = {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] active:bg-[var(--primary-dark)] shadow-[var(--shadow-button)] hover:shadow-[0_12px_30px_rgba(15,164,122,0.35)] hover:-translate-y-0.5 disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 border border-[var(--primary)]/40",
+    "bg-[#0F766E] text-white hover:bg-[#115E59] active:bg-[#0D9488] shadow-[0_10px_25px_rgba(15,118,110,0.18)] hover:-translate-y-0.5 disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 border border-[#0F766E]/30",
   secondary:
-    "bg-[var(--cta-secondary-bg)] text-[var(--cta-secondary-text)] border-1.5 border-[var(--primary)]/50 hover:bg-[var(--cta-secondary-bg-hover)] hover:border-[var(--primary)] hover:-translate-y-0.5 active:bg-[var(--cta-secondary-bg)] disabled:opacity-50 disabled:translate-y-0",
+    "bg-white text-[#0F766E] border border-[#CBD5E1] hover:bg-[#F8FAFC] hover:border-[#0F766E] dark:bg-[#1E293B] dark:text-[#2DD4BF] dark:border-border dark:hover:bg-[#334155] dark:hover:border-[#2DD4BF] shadow-xs hover:-translate-y-0.5 disabled:opacity-50 disabled:translate-y-0",
+  outline:
+    "bg-transparent text-[#334155] border border-[#CBD5E1] hover:bg-[#F8FAFC] hover:border-[#94A3B8] dark:text-text-secondary dark:border-border dark:hover:bg-[#1E293B] disabled:opacity-50",
   ghost:
-    "bg-transparent text-[var(--text-secondary)] hover:bg-[var(--primary)]/12 hover:text-[var(--primary)] active:bg-[var(--primary)]/20 disabled:opacity-50",
+    "bg-transparent text-[#475569] border-0 hover:bg-[rgba(15,118,110,0.06)] hover:text-[#0F766E] dark:text-text-muted dark:hover:bg-[rgba(45,212,191,0.1)] dark:hover:text-[#2DD4BF] active:bg-[rgba(15,118,110,0.12)] disabled:opacity-50",
   danger:
-    "bg-[#EF4444]/15 text-[#EF4444] dark:text-[#F87171] border border-[#EF4444]/30 hover:bg-[#EF4444] hover:text-white hover:border-[#EF4444] active:bg-[#DC2626] disabled:opacity-50",
+    "bg-[#DC2626]/10 text-[#DC2626] dark:text-[#F87171] border border-[#DC2626]/30 hover:bg-[#DC2626] hover:text-white hover:border-[#DC2626] active:bg-[#B91C1C] disabled:opacity-50",
 };
 
 const sizeClasses: Record<Size, string> = {
@@ -46,8 +48,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || isLoading}
         aria-busy={isLoading || undefined}
         className={cn(
-          "group inline-flex items-center justify-center gap-2 font-semibold transition-all duration-300 ease-[var(--ease-premium)] cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] disabled:cursor-not-allowed disabled:active:scale-100",
-          withArrow && "pr-[0.3rem]",
+          "group inline-flex items-center justify-center text-center gap-2 font-semibold transition-all duration-300 ease-[var(--ease-premium)] cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] disabled:cursor-not-allowed disabled:active:scale-100",
           variantClasses[variant],
           sizeClasses[size],
           className,

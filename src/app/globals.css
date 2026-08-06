@@ -18,139 +18,139 @@
 
 :root {
   /* Default Dark Mode Palette */
-  --primary: #0B3D2E;
-  --primary-hover: #145A43;
-  --primary-light: #145A43;
-  --primary-dark: #081C15;
-  --primary-active: #081C15;
+  --primary: #0F766E;
+  --primary-hover: #14B8A6;
+  --primary-light: #2DD4BF;
+  --primary-dark: #0D9488;
+  --primary-active: #0D9488;
 
-  --secondary: #17382D;
-  --accent: #2E8B57;
-  --accent-light: #5ED39D;
-
-  /* Backgrounds & Surfaces */
-  --background: #081C15;
-  --surface: #102A22;
-  --card: #102A22;
-  --card-elevated: #17382D;
-  --bg-header: rgba(8, 28, 21, 0.85);
-  --bg-footer: #05140F;
-
-  /* Borders & Dividers */
-  --border: #255044;
-  --divider: rgba(37, 80, 68, 0.4);
-
-  /* Typography Colors */
-  --text-primary: #F5F7F6;
-  --text-secondary: #C8D4CF;
-  --text-muted: #8AA298;
-  --text-disabled: #556B62;
-
-  /* Links & Badges */
-  --link: #5ED39D;
-  --link-hover: #86E5B8;
-  --link-subtle: #9DB5AD;
-  --badge-bg: rgba(46, 139, 87, 0.15);
-  --badge-text: #5ED39D;
-  --badge-neutral-bg: #17382D;
-  --badge-neutral-text: #C8D4CF;
-  --badge-neutral-border: #255044;
-
-  /* CTA hierarchy (secondary action — translucent, lower weight than primary) */
-  --cta-secondary-bg: rgba(46, 139, 87, 0.1);
-  --cta-secondary-bg-hover: rgba(46, 139, 87, 0.18);
-  --cta-secondary-text: #E4EBE8;
-
-  /* Informative icons (lower weight than --link, for decorative/info-only icons) */
-  --icon-informative: #8FA69C;
-
-  /* Status Colors */
-  --success: #2E8B57;
-  --warning: #EAB308;
-  --danger: #EF4444;
-
-  /* Shadows */
-  --shadow-button: 0 10px 30px rgba(11, 61, 46, 0.4);
-  --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.35);
-  --shadow-card-hover: 0 16px 45px rgba(46, 139, 87, 0.25);
-  --shadow-glow: 0 0 35px rgba(46, 139, 87, 0.2);
-
-  /* Scrollbar Tokens */
-  --scrollbar-track: #081C15;
-  --scrollbar-thumb: #145A43;
-  --scrollbar-hover: #2E8B57;
-
-  /* Selection Tokens */
-  --selection-bg: #2E8B57;
-  --selection-text: #FFFFFF;
-}
-
-/* Light Theme Variables */
-.light, [data-theme='light'] {
-  --primary: #145A43;
-  --primary-hover: #0B3D2E;
-  --primary-light: #2E8B57;
-  --primary-dark: #081C15;
-  --primary-active: #0B3D2E;
-
-  --secondary: #EEF3F1;
-  --accent: #2E8B57;
-  --accent-light: #145A43;
+  --secondary: #1E293B;
+  --accent: #14B8A6;
+  --accent-light: #2DD4BF;
 
   /* Backgrounds & Surfaces */
-  --background: #F7F9F8;
-  --surface: #FFFFFF;
-  --card: #FFFFFF;
-  --card-elevated: #EEF3F1;
-  --bg-header: rgba(247, 249, 248, 0.88);
-  --bg-footer: #EEF3F1;
+  --background: #0F172A;
+  --surface: #1E293B;
+  --card: #1E293B;
+  --card-elevated: #334155;
+  --bg-header: rgba(15, 23, 42, 0.85);
+  --bg-footer: #0B132B;
 
   /* Borders & Dividers */
-  --border: #D8E5DF;
-  --divider: rgba(16, 42, 34, 0.08);
+  --border: #334155;
+  --divider: rgba(226, 232, 240, 0.1);
 
   /* Typography Colors */
-  --text-primary: #102A22;
-  --text-secondary: #4E665D;
-  --text-muted: #5A7268;
-  --text-disabled: #A3B5AE;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-disabled: #475569;
 
   /* Links & Badges */
-  --link: #145A43;
-  --link-hover: #0B3D2E;
-  --link-subtle: #5E7A70;
-  --badge-bg: rgba(46, 139, 87, 0.1);
-  --badge-text: #145A43;
-  --badge-neutral-bg: #EEF3F1;
-  --badge-neutral-text: #4E665D;
-  --badge-neutral-border: #D8E5DF;
+  --link: #2DD4BF;
+  --link-hover: #5EEAD4;
+  --link-subtle: #94A3B8;
+  --badge-bg: rgba(20, 184, 166, 0.12);
+  --badge-text: #2DD4BF;
+  --badge-neutral-bg: #1E293B;
+  --badge-neutral-text: #94A3B8;
+  --badge-neutral-border: #334155;
 
-  /* CTA hierarchy (secondary action — translucent, lower weight than primary) */
-  --cta-secondary-bg: rgba(20, 90, 67, 0.06);
-  --cta-secondary-bg-hover: rgba(20, 90, 67, 0.12);
-  --cta-secondary-text: #1B2E27;
+  /* CTA hierarchy */
+  --cta-secondary-bg: #1E293B;
+  --cta-secondary-bg-hover: #334155;
+  --cta-secondary-text: #2DD4BF;
 
-  /* Informative icons (lower weight than --link, for decorative/info-only icons) */
-  --icon-informative: #6B8079;
+  /* Informative icons */
+  --icon-informative: #64748B;
 
   /* Status Colors */
   --success: #16A34A;
-  --warning: #D97706;
+  --warning: #F59E0B;
   --danger: #DC2626;
 
   /* Shadows */
-  --shadow-button: 0 8px 25px rgba(20, 90, 67, 0.22);
-  --shadow-card: 0 4px 25px rgba(16, 42, 34, 0.06);
-  --shadow-card-hover: 0 12px 35px rgba(20, 90, 67, 0.12);
-  --shadow-glow: 0 0 30px rgba(20, 90, 67, 0.1);
+  --shadow-button: 0 10px 25px rgba(15, 118, 110, 0.35);
+  --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.35);
+  --shadow-card-hover: 0 16px 45px rgba(20, 184, 166, 0.2);
+  --shadow-glow: 0 0 35px rgba(20, 184, 166, 0.15);
 
   /* Scrollbar Tokens */
-  --scrollbar-track: #EEF3F1;
-  --scrollbar-thumb: #2E8B57;
-  --scrollbar-hover: #145A43;
+  --scrollbar-track: #0F172A;
+  --scrollbar-thumb: #1E293B;
+  --scrollbar-hover: #0F766E;
 
   /* Selection Tokens */
-  --selection-bg: #145A43;
+  --selection-bg: #0F766E;
+  --selection-text: #FFFFFF;
+}
+
+/* Light Theme Variables (Clínica Zoe Premium Visual Hierarchy) */
+.light, [data-theme='light'] {
+  --primary: #0F766E;
+  --primary-hover: #115E59;
+  --primary-light: #14B8A6;
+  --primary-dark: #0D9488;
+  --primary-active: #0D9488;
+
+  --secondary: #F1F5F9;
+  --accent: #14B8A6;
+  --accent-light: #0D9488;
+
+  /* Backgrounds & Surfaces */
+  --background: #F8FAFC;
+  --surface: #FFFFFF;
+  --card: #FFFFFF;
+  --card-elevated: #F1F5F9;
+  --bg-header: rgba(248, 250, 252, 0.88);
+  --bg-footer: #F1F5F9;
+
+  /* Borders & Dividers */
+  --border: #E2E8F0;
+  --divider: rgba(15, 23, 42, 0.08);
+
+  /* Typography Colors */
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --text-disabled: #94A3B8;
+
+  /* Links & Badges */
+  --link: #0F766E;
+  --link-hover: #115E59;
+  --link-subtle: #475569;
+  --badge-bg: rgba(15, 118, 110, 0.10);
+  --badge-text: #0F766E;
+  --badge-neutral-bg: #F1F5F9;
+  --badge-neutral-text: #475569;
+  --badge-neutral-border: #E2E8F0;
+
+  /* CTA hierarchy */
+  --cta-secondary-bg: #FFFFFF;
+  --cta-secondary-bg-hover: #F8FAFC;
+  --cta-secondary-text: #0F766E;
+
+  /* Informative icons */
+  --icon-informative: #64748B;
+
+  /* Status Colors */
+  --success: #16A34A;
+  --warning: #F59E0B;
+  --danger: #DC2626;
+
+  /* Shadows */
+  --shadow-button: 0 10px 25px rgba(15, 118, 110, 0.18);
+  --shadow-card: 0 4px 20px rgba(15, 23, 42, 0.04);
+  --shadow-card-hover: 0 12px 35px rgba(15, 118, 110, 0.12);
+  --shadow-glow: 0 0 30px rgba(15, 118, 110, 0.08);
+
+  /* Scrollbar Tokens */
+  --scrollbar-track: #F1F5F9;
+  --scrollbar-thumb: #CBD5E1;
+  --scrollbar-hover: #0F766E;
+
+  /* Selection Tokens */
+  --selection-bg: #0F766E;
   --selection-text: #FFFFFF;
 }
 

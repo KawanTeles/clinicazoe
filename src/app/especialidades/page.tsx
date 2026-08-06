@@ -94,7 +94,7 @@ export default async function EspecialidadesPage() {
 
                     <div className="mt-8 pt-4 border-t border-border/60">
                       <Link href="/cliente/login" className="block w-full">
-                        <Button className="w-full font-bold" size="sm" withArrow>
+                        <Button variant="secondary" className="w-full font-bold" size="sm" withArrow>
                           {CTA_PRIMARY}
                         </Button>
                       </Link>

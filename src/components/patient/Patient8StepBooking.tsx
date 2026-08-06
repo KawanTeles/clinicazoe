@@ -17,6 +17,7 @@ import {
 } from "@/modules/appointments/services/booking-queries";
 import { createAppointment } from "@/modules/appointments/services/booking-actions";
 import { formatCurrency, buildWhatsAppLink } from "@/lib/whatsapp";
+import { getAttendanceInfo } from "@/lib/attendance";
 
 interface Specialty {
   id: string;
@@ -238,7 +239,15 @@ export function Patient8StepBooking({
       const currentSpec = specialties.find((s) => s.id === selectedSpecialtyId);
       const currentPricing = pricingOptions.find((p) => p.paymentMethod === paymentMethod);
 
-      const msg = `Nova solicitação de consulta:\n\nPaciente: ${patientName}\nWhatsApp: ${patientPhone}\nConvênio: ${selectedInsuranceName}\nProfissional: ${currentProf?.fullName}\nEspecialidade: ${currentSpec?.name}\nData: ${selectedDate.split("-").reverse().join("/")}\nHorário: ${selectedSlot.startTime.slice(0, 5)}\nValor: ${currentPricing ? formatCurrency(currentPricing.value) : "A combinar"}\nPagamento: ${paymentMethod.toUpperCase()}`;
+      const attendance = getAttendanceInfo(selectedInsuranceName, paymentMethod);
+      let detailsText = `📄 Tipo de Atendimento: ${attendance.attendanceType}\n`;
+      if (attendance.isConvenio) {
+        detailsText += `🏥 Convênio: ${attendance.insuranceName}\n`;
+      } else {
+        detailsText += `💳 Forma de Pagamento: ${attendance.paymentMethodLabel}\n`;
+      }
+
+      const msg = `Nova solicitação de consulta:\n\nPaciente: ${patientName}\nWhatsApp: ${patientPhone}\nProfissional: ${currentProf?.fullName}\nEspecialidade: ${currentSpec?.name}\nData: ${selectedDate.split("-").reverse().join("/")}\nHorário: ${selectedSlot.startTime.slice(0, 5)}\n💰 Valor da Consulta: ${currentPricing ? formatCurrency(currentPricing.value) : "A combinar"}\n${detailsText.trim()}`;
 
       const link = buildWhatsAppLink(whatsappNumber, msg);
       setSuccessResult({ whatsappLink: link });
@@ -248,6 +257,7 @@ export function Patient8StepBooking({
   const currentProf = professionals.find((p) => p.id === selectedProfessionalId);
   const currentSpec = specialties.find((s) => s.id === selectedSpecialtyId);
   const currentPricing = pricingOptions.find((p) => p.paymentMethod === paymentMethod);
+  const attendance = getAttendanceInfo(selectedInsuranceName, paymentMethod);
 
   if (successResult) {
     return (

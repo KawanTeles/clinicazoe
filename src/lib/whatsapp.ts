@@ -43,6 +43,8 @@ export function formatCurrency(value: number) {
   return currencyFormatter.format(value);
 }
 
+import { getAttendanceInfo } from "./attendance";
+
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
   cartao: "Cartão",
   pix: "PIX",
@@ -69,16 +71,24 @@ export function buildBookingMessage(params: {
   clinicPhone?: string | null;
 }) {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
+  const attendance = getAttendanceInfo(params.insuranceName, params.paymentMethod);
+
+  let attendanceLines = `📄 Tipo de Atendimento: ${attendance.attendanceType}\n`;
+  if (attendance.isConvenio) {
+    attendanceLines += `🏥 Convênio: ${attendance.insuranceName}\n`;
+  } else {
+    attendanceLines += `💳 Forma de Pagamento: ${attendance.paymentMethodLabel}\n`;
+  }
+
   const baseMessage = (
     `Novo agendamento (Pendente)\n` +
     `Paciente: ${params.patientName}\n` +
     `Telefone: ${params.patientPhone}\n` +
     `Especialidade: ${params.specialtyName}\n` +
     `Profissional: ${params.professionalName}\n` +
-    `Convênio: ${params.insuranceName}\n` +
     `Data/Hora: ${date} às ${params.startTime.slice(0, 5)}\n` +
-    `Valor: ${formatCurrency(params.value)}\n` +
-    `Forma de pagamento: ${PAYMENT_METHOD_LABELS[params.paymentMethod] ?? params.paymentMethod}`
+    `💰 Valor da Consulta: ${formatCurrency(params.value)}\n` +
+    attendanceLines.trim()
   );
   return appendClinicFooter(baseMessage, params.clinicPhone);
 }

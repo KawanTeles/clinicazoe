@@ -141,7 +141,7 @@ export default async function HomePage() {
 
                     <div className="pt-2">
                       <Link href="/cliente/login" className="block w-full">
-                        <Button withArrow className="w-full font-bold shadow-[0_8px_25px_rgba(46,139,87,0.3)] hover:scale-[1.01]">{CTA_PRIMARY}</Button>
+                        <Button variant="secondary" withArrow className="w-full font-bold shadow-xs hover:scale-[1.01]">{CTA_PRIMARY}</Button>
                       </Link>
                     </div>
                   </div>
