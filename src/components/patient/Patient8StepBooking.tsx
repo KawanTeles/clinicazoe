@@ -50,6 +50,27 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
   convenio: "Convênio",
 };
 
+/** "Cartão" cobre um único preço cadastrado pelo profissional (sem distinção
+ * de crédito/débito no banco) — aqui só desdobramos a apresentação em duas
+ * opções de mesma tarifa, sem alterar o valor nem o payment_method salvo. */
+function paymentMethodDisplayLabel(
+  paymentMethod: string,
+  cardType: "credito" | "debito",
+): string {
+  if (paymentMethod === "cartao") {
+    return cardType === "credito" ? "Cartão de Crédito" : "Cartão de Débito";
+  }
+  return PAYMENT_METHOD_LABELS[paymentMethod] ?? paymentMethod;
+}
+
+interface PaymentChoice {
+  key: string;
+  paymentMethod: "pix" | "cartao" | "dinheiro" | "convenio";
+  cardType?: "credito" | "debito";
+  label: string;
+  value: number;
+}
+
 export function Patient8StepBooking({
   specialties,
   initialProfessionals,
@@ -71,6 +92,7 @@ export function Patient8StepBooking({
   const [patientPhone, setPatientPhone] = useState(patientProfile?.phone || "");
   const [patientEmail, setPatientEmail] = useState(patientProfile?.email || "");
   const [paymentMethod, setPaymentMethod] = useState<"pix" | "cartao" | "dinheiro" | "convenio">("pix");
+  const [cardType, setCardType] = useState<"credito" | "debito">("credito");
 
   // Dynamic lists
   const [insurances, setInsurances] = useState<{ id: string; name: string }[]>([]);
@@ -208,8 +230,9 @@ export function Patient8StepBooking({
   }
 
   // ETAPA 6: Forma de Pagamento
-  function handleSelectPaymentMethod(pm: "pix" | "cartao" | "dinheiro" | "convenio") {
-    setPaymentMethod(pm);
+  function handleSelectPaymentMethod(choice: PaymentChoice) {
+    setPaymentMethod(choice.paymentMethod);
+    if (choice.cardType) setCardType(choice.cardType);
     setStep(7);
   }
 
@@ -244,7 +267,7 @@ export function Patient8StepBooking({
       if (attendance.isConvenio) {
         detailsText += `🏥 Convênio: ${attendance.insuranceName}\n`;
       } else {
-        detailsText += `💳 Forma de Pagamento: ${attendance.paymentMethodLabel}\n`;
+        detailsText += `💳 Forma de Pagamento: ${paymentMethodDisplayLabel(paymentMethod, cardType)}\n`;
       }
 
       const msg = `Nova solicitação de consulta:\n\nPaciente: ${patientName}\nWhatsApp: ${patientPhone}\nProfissional: ${currentProf?.fullName}\nEspecialidade: ${currentSpec?.name}\nData: ${selectedDate.split("-").reverse().join("/")}\nHorário: ${selectedSlot.startTime.slice(0, 5)}\n💰 Valor da Consulta: ${currentPricing ? formatCurrency(currentPricing.value) : "A combinar"}\n${detailsText.trim()}`;
@@ -258,6 +281,26 @@ export function Patient8StepBooking({
   const currentSpec = specialties.find((s) => s.id === selectedSpecialtyId);
   const currentPricing = pricingOptions.find((p) => p.paymentMethod === paymentMethod);
   const attendance = getAttendanceInfo(selectedInsuranceName, paymentMethod);
+
+  // "Cartão" vira duas opções na tela (Crédito/Débito) com a mesma tarifa —
+  // o profissional cadastra um único valor de cartão, não dois.
+  const paymentChoices: PaymentChoice[] = pricingOptions.flatMap((opt) => {
+    if (opt.paymentMethod === "cartao") {
+      return [
+        { key: "cartao-credito", paymentMethod: "cartao", cardType: "credito", label: "Cartão de Crédito", value: opt.value },
+        { key: "cartao-debito", paymentMethod: "cartao", cardType: "debito", label: "Cartão de Débito", value: opt.value },
+      ];
+    }
+    return [
+      {
+        key: opt.paymentMethod,
+        paymentMethod: opt.paymentMethod as PaymentChoice["paymentMethod"],
+        label: PAYMENT_METHOD_LABELS[opt.paymentMethod] ?? opt.paymentMethod,
+        value: opt.value,
+      },
+    ];
+  });
+  const selectedChoiceKey = paymentMethod === "cartao" ? `cartao-${cardType}` : paymentMethod;
 
   if (successResult) {
     return (
@@ -523,27 +566,36 @@ export function Patient8StepBooking({
       {step === 6 && (
         <Card className="animate-fade-up">
           <CardContent className="p-6 space-y-4">
+            {paymentChoices.length > 0 && (
+              <div className="flex items-center justify-between rounded-xl border border-primary/30 bg-[var(--badge-bg)] px-5 py-4">
+                <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
+                  Valor da consulta
+                </span>
+                <span className="text-2xl font-black text-[var(--primary)]">
+                  {formatCurrency(currentPricing?.value ?? paymentChoices[0].value)}
+                </span>
+              </div>
+            )}
+
             <h4 className="text-sm font-semibold text-text-secondary">Selecione a forma de pagamento:</h4>
-            {pricingOptions.length === 0 ? (
+            {paymentChoices.length === 0 ? (
               <p className="text-sm text-text-muted py-4 text-center">
                 Nenhuma forma de pagamento configurada para este profissional/convênio. Entre em contato com a clínica.
               </p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {pricingOptions.map((opt) => (
+                {paymentChoices.map((choice) => (
                   <button
-                    key={opt.paymentMethod}
-                    onClick={() => handleSelectPaymentMethod(opt.paymentMethod as any)}
+                    key={choice.key}
+                    onClick={() => handleSelectPaymentMethod(choice)}
                     className={`p-4 rounded-xl border text-left transition-all ${
-                      paymentMethod === opt.paymentMethod
+                      selectedChoiceKey === choice.key
                         ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)]"
                         : "border-border bg-card-elevated text-text-secondary"
                     }`}
                   >
-                    <div className="font-bold text-base text-text-primary">
-                      {PAYMENT_METHOD_LABELS[opt.paymentMethod] ?? opt.paymentMethod}
-                    </div>
-                    <div className="text-xs text-[var(--primary)] font-semibold mt-1">{formatCurrency(opt.value)}</div>
+                    <div className="font-bold text-base text-text-primary">{choice.label}</div>
+                    <div className="text-xs text-[var(--primary)] font-semibold mt-1">{formatCurrency(choice.value)}</div>
                   </button>
                 ))}
               </div>
@@ -596,7 +648,7 @@ export function Patient8StepBooking({
               <div>
                 <span className="text-text-muted">Pagamento:</span>
                 <p className="text-sm font-bold text-text-primary mt-0.5">
-                  {PAYMENT_METHOD_LABELS[paymentMethod] ?? paymentMethod}
+                  {paymentMethodDisplayLabel(paymentMethod, cardType)}
                 </p>
               </div>
             </div>

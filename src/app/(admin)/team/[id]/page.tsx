@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getAvatarSignedUrl } from "@/lib/supabase/storage";
@@ -35,11 +34,11 @@ export default async function EditTeamMemberPage({
   ]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 max-w-5xl mx-auto">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">Editar membro</h1>
-          <p className="mt-1 text-sm text-text-secondary">{profile.full_name}</p>
+          <h1 className="text-xl font-bold tracking-tight text-text-primary font-heading">Editar Membro</h1>
+          <p className="mt-0.5 text-xs text-text-secondary">{profile.full_name}</p>
         </div>
         {profile.role === "profissional" && (
           <Link href={`/team/${profile.id}/schedule`}>
@@ -48,43 +47,36 @@ export default async function EditTeamMemberPage({
         )}
       </div>
 
-      <Card className="max-w-2xl">
-        <CardHeader>
-          <CardTitle>Dados do membro</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TeamMemberForm
-            mode="edit"
-            memberId={profile.id}
-            isSelf={profile.id === session.user.id}
-            avatarUrl={avatarUrl}
-            specialties={specialties}
-            insurances={insurances}
-            initial={{
-              full_name: profile.full_name,
-              email,
-              phone: profile.phone ?? "",
-              role: profile.role,
-              status: profile.status,
-              specialty_id: professional?.specialty_id ?? "",
-              license_number: professional?.license_number ?? "",
-              bio: professional?.bio ?? "",
-              agenda_color: professional?.agenda_color ?? "#2E8B57",
-              consultation_duration_minutes: String(
-                professional?.consultation_duration_minutes ?? 30,
-              ),
-              price_particular_card: professional?.price_particular_card?.toString() ?? "",
-              price_particular_pix: professional?.price_particular_pix?.toString() ?? "",
-              price_particular_cash: professional?.price_particular_cash?.toString() ?? "",
-              insurances: professionalInsurances.map((i) => ({
-                insurance_id: i.insurance_id,
-                value: i.value.toString(),
-                duration_minutes: i.duration_minutes?.toString() ?? "",
-              })),
-            }}
-          />
-        </CardContent>
-      </Card>
+      <TeamMemberForm
+        mode="edit"
+        memberId={profile.id}
+        isSelf={profile.id === session.user.id}
+        avatarUrl={avatarUrl}
+        specialties={specialties}
+        insurances={insurances}
+        initial={{
+          full_name: profile.full_name,
+          email,
+          phone: profile.phone ?? "",
+          role: profile.role,
+          status: profile.status,
+          specialty_id: professional?.specialty_id ?? "",
+          license_number: professional?.license_number ?? "",
+          bio: professional?.bio ?? "",
+          agenda_color: professional?.agenda_color ?? "#2E8B57",
+          consultation_duration_minutes: String(
+            professional?.consultation_duration_minutes ?? 30,
+          ),
+          price_particular_card: professional?.price_particular_card?.toString() ?? "",
+          price_particular_pix: professional?.price_particular_pix?.toString() ?? "",
+          price_particular_cash: professional?.price_particular_cash?.toString() ?? "",
+          insurances: professionalInsurances.map((i) => ({
+            insurance_id: i.insurance_id,
+            value: i.value.toString(),
+            duration_minutes: i.duration_minutes?.toString() ?? "",
+          })),
+        }}
+      />
     </div>
   );
 }

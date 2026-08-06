@@ -138,6 +138,8 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
       fullName: newName,
       phone: newPhone || null,
       whatsapp: newWhatsapp || null,
+      email: null,
+      avatarUrl: null,
       city: newCity || null,
       preferredInsuranceId: null,
       preferredProfessionalId: null,
@@ -367,7 +369,12 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
                 1. Seleção do Paciente
               </span>
             </div>
-            <PatientPickerField selectedName={patient?.fullName} onSelect={handleSelectPatient} />
+            <PatientPickerField
+              selectedName={patient?.fullName}
+              selectedPhone={patient?.phone}
+              onSelect={handleSelectPatient}
+              onClear={() => setPatient(null)}
+            />
             {!showCreatePatient ? (
               <button
                 type="button"

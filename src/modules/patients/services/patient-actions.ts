@@ -3,6 +3,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getAvatarSignedUrl } from "@/lib/supabase/storage";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/modules/team/services/audit";
 
@@ -161,50 +162,86 @@ export interface PatientSearchResult {
   fullName: string;
   phone: string | null;
   whatsapp: string | null;
+  email: string | null;
+  avatarUrl: string | null;
   city: string | null;
   preferredInsuranceId: string | null;
   preferredProfessionalId: string | null;
 }
 
-/** Busca rápida para o agendamento da recepção — pré-preenche telefone,
- * WhatsApp, convênio e cidade a partir do cadastro do paciente. */
+const PATIENT_LIST_LIMIT = 200;
+
+/** Busca para o combobox de paciente do agendamento da recepção — pré-preenche
+ * telefone, WhatsApp, convênio e cidade a partir do cadastro do paciente.
+ * Com `query` vazia, devolve todos os pacientes ativos (ordenados por nome)
+ * para abrir a lista completa assim que o campo recebe foco. */
 export async function searchPatientsForBooking(query: string): Promise<PatientSearchResult[]> {
   await requireStaff();
 
   const search = query.trim();
-  if (search.length < 2) return [];
-
   const supabase = await createClient();
-  const { data: profiles } = await supabase
+
+  let matchingIds: string[] | null = null;
+
+  if (search.length > 0) {
+    const [{ data: byProfile }, { data: byDetails }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id")
+        .eq("role", "paciente")
+        .or(`full_name.ilike.%${search}%,phone.ilike.%${search}%`),
+      supabase
+        .from("patient_details")
+        .select("id")
+        .or(`whatsapp.ilike.%${search}%,email.ilike.%${search}%`),
+    ]);
+
+    const idSet = new Set<string>([
+      ...(byProfile ?? []).map((p) => p.id),
+      ...(byDetails ?? []).map((d) => d.id),
+    ]);
+    matchingIds = Array.from(idSet);
+    if (matchingIds.length === 0) return [];
+  }
+
+  let profilesQuery = supabase
     .from("profiles")
-    .select("id, full_name, phone")
+    .select("id, full_name, phone, avatar_path")
     .eq("role", "paciente")
     .eq("status", "active")
-    .or(`full_name.ilike.%${search}%,phone.ilike.%${search}%`)
     .order("full_name")
-    .limit(10);
+    .limit(PATIENT_LIST_LIMIT);
 
+  if (matchingIds) {
+    profilesQuery = profilesQuery.in("id", matchingIds);
+  }
+
+  const { data: profiles } = await profilesQuery;
   if (!profiles || profiles.length === 0) return [];
 
   const ids = profiles.map((p) => p.id);
   const { data: details } = await supabase
     .from("patient_details")
-    .select("id, whatsapp, city, preferred_insurance_id, preferred_professional_id")
+    .select("id, whatsapp, email, city, preferred_insurance_id, preferred_professional_id")
     .in("id", ids);
   const detailsById = new Map((details ?? []).map((d) => [d.id, d]));
 
-  return profiles.map((profile) => {
-    const detail = detailsById.get(profile.id);
-    return {
-      id: profile.id,
-      fullName: profile.full_name,
-      phone: profile.phone,
-      whatsapp: detail?.whatsapp ?? null,
-      city: detail?.city ?? null,
-      preferredInsuranceId: detail?.preferred_insurance_id ?? null,
-      preferredProfessionalId: detail?.preferred_professional_id ?? null,
-    };
-  });
+  return Promise.all(
+    profiles.map(async (profile) => {
+      const detail = detailsById.get(profile.id);
+      return {
+        id: profile.id,
+        fullName: profile.full_name,
+        phone: profile.phone,
+        whatsapp: detail?.whatsapp ?? null,
+        email: detail?.email ?? null,
+        avatarUrl: await getAvatarSignedUrl(supabase, profile.avatar_path),
+        city: detail?.city ?? null,
+        preferredInsuranceId: detail?.preferred_insurance_id ?? null,
+        preferredProfessionalId: detail?.preferred_professional_id ?? null,
+      };
+    }),
+  );
 }
 
 export async function setPatientStatus(
