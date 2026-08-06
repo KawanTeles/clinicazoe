@@ -6,6 +6,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { useToast } from "@/components/ui/Toast";
 import { ROLE_LABELS } from "@/lib/navigation";
 import { PARTICULAR_INSURANCE_NAME } from "@/lib/constants";
 import type { Role } from "@/lib/supabase/types";
@@ -82,6 +83,7 @@ export function TeamMemberForm({
   initial,
 }: TeamMemberFormProps) {
   const router = useRouter();
+  const toast = useToast();
   const values = initial ?? DEFAULTS;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const convenios = insurances.filter((i) => i.name !== PARTICULAR_INSURANCE_NAME);
@@ -169,69 +171,75 @@ export function TeamMemberForm({
 
     setSaving(true);
 
-    let targetId = memberId;
-    const professionalFields = {
-      specialty_id: specialtyId || undefined,
-      license_number: licenseNumber,
-      bio,
-      agenda_color: agendaColor,
-      consultation_duration_minutes: Number(duration) || 30,
-      price_particular_card: parsePrice(priceCard),
-      price_particular_pix: parsePrice(pricePix),
-      price_particular_cash: parsePrice(priceCash),
-      insurances: buildInsurancesPayload(),
-    };
+    try {
+      let targetId = memberId;
+      const professionalFields = {
+        specialty_id: specialtyId || undefined,
+        license_number: licenseNumber,
+        bio,
+        agenda_color: agendaColor,
+        consultation_duration_minutes: Number(duration) || 30,
+        price_particular_card: parsePrice(priceCard),
+        price_particular_pix: parsePrice(pricePix),
+        price_particular_cash: parsePrice(priceCash),
+        insurances: buildInsurancesPayload(),
+      };
 
-    if (mode === "create") {
-      const result = await createTeamMember({
-        full_name: fullName,
-        email,
-        password,
-        phone,
-        role,
-        ...professionalFields,
-      });
-      if (result.error) {
-        setSaving(false);
-        setError(result.error);
-        return;
+      if (mode === "create") {
+        const result = await createTeamMember({
+          full_name: fullName,
+          email,
+          password,
+          phone,
+          role,
+          ...professionalFields,
+        });
+        if (result.error) {
+          setError(result.error);
+          return;
+        }
+        targetId = result.id;
+      } else {
+        const result = await updateTeamMember({
+          id: memberId!,
+          full_name: fullName,
+          phone,
+          role,
+          status,
+          password: password || undefined,
+          ...professionalFields,
+        });
+        if (result.error) {
+          setError(result.error);
+          return;
+        }
       }
-      targetId = result.id;
-    } else {
-      const result = await updateTeamMember({
-        id: memberId!,
-        full_name: fullName,
-        phone,
-        role,
-        status,
-        password: password || undefined,
-        ...professionalFields,
-      });
-      if (result.error) {
-        setSaving(false);
-        setError(result.error);
-        return;
-      }
-    }
 
-    if (photoFile && targetId) {
-      const photoData = new FormData();
-      photoData.set("file", photoFile);
-      const photoResult = await uploadTeamMemberAvatar(targetId, photoData);
-      setSaving(false);
-      if (photoResult.error) {
-        setError(photoResult.error);
-        return;
+      if (photoFile && targetId) {
+        const photoData = new FormData();
+        photoData.set("file", photoFile);
+        const photoResult = await uploadTeamMemberAvatar(targetId, photoData);
+        if (photoResult.error) {
+          setError(photoResult.error);
+          return;
+        }
       }
-    } else {
-      setSaving(false);
-    }
 
-    if (onCancel) {
-      onCancel();
-    } else {
-      router.push("/team");
+      toast.success(
+        mode === "create" ? `"${fullName}" foi cadastrado com sucesso.` : "Alterações salvas com sucesso.",
+      );
+
       router.refresh();
+
+      if (onCancel) {
+        onCancel();
+      } else {
+        router.push("/team");
+      }
+    } catch {
+      setError("Não foi possível concluir a operação. Tente novamente.");
+    } finally {
+      setSaving(false);
     }
   }
 

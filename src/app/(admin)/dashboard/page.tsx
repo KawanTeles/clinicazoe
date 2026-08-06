@@ -93,6 +93,18 @@ export default async function DashboardPage() {
         <Kpi label="Cancelamentos" value={String(data.cancelledCount)} subtext="Registros cancelados" />
       </div>
 
+      <div>
+        <h2 className="text-sm font-bold uppercase tracking-wider text-text-secondary">Indicadores financeiros</h2>
+        <div className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Kpi label="Faturamento do dia" value={formatCurrency(data.billingToday)} subtext="Pagamentos recebidos hoje" />
+          <Kpi label="Faturamento da semana" value={formatCurrency(data.billingWeek)} subtext="Pagamentos recebidos na semana" />
+          <Kpi label="Faturamento do mês" value={formatCurrency(data.billingMonth)} subtext="Pagamentos recebidos no mês" />
+          <Kpi label="Consultas realizadas" value={String(data.completedCount)} subtext="Atendimentos concluídos" />
+          <Kpi label="Consultas pendentes" value={String(data.pendingCount)} subtext="Aguardando confirmação" />
+          <Kpi label="Consultas confirmadas" value={String(data.confirmedCount)} subtext="Confirmadas e agendadas" />
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card className="overflow-hidden">
           <CardHeader>

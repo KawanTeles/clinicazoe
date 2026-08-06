@@ -10,7 +10,7 @@ export const metadata = {
   title: "Financeiro — ClinicaZoe",
 };
 
-const ALLOWED_ROLES = ["admin", "profissional"];
+const ALLOWED_ROLES = ["admin", "profissional", "recepcionista"];
 
 export default async function FinancialPage({
   searchParams,

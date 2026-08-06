@@ -13,13 +13,19 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function startOfMonthISO() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+}
+
 export async function getStaffDashboard(role: Role, userId: string) {
   const supabase = await createClient();
   const today = todayISO();
   const weekStart = startOfWeekISO();
+  const monthStart = startOfMonthISO();
 
   let appointmentsQuery = supabase.from("appointments").select("id, appointment_date, status");
-  let financialQuery = supabase.from("financial_entries").select("value, status");
+  let financialQuery = supabase.from("financial_entries").select("value, status, paid_at");
 
   if (role === "profissional") {
     appointmentsQuery = appointmentsQuery.eq("professional_id", userId);
@@ -48,6 +54,9 @@ export async function getStaffDashboard(role: Role, userId: string) {
     (a) => a.appointment_date >= weekStart && activeStatuses.includes(a.status),
   ).length;
   const cancelled_count = rows.filter((a) => a.status === "cancelada").length;
+  const completed_count = rows.filter((a) => a.status === "concluida").length;
+  const pending_count = rows.filter((a) => a.status === "pendente").length;
+  const confirmed_count = rows.filter((a) => a.status === "confirmada").length;
 
   const finance = financialEntries ?? [];
   const receitaPrevista = finance
@@ -57,12 +66,29 @@ export async function getStaffDashboard(role: Role, userId: string) {
     .filter((f) => f.status === "pago")
     .reduce((sum, f) => sum + f.value, 0);
 
+  const paidEntries = finance.filter((f) => f.status === "pago" && f.paid_at);
+  const billingToday = paidEntries
+    .filter((f) => f.paid_at!.slice(0, 10) === today)
+    .reduce((sum, f) => sum + f.value, 0);
+  const billingWeek = paidEntries
+    .filter((f) => f.paid_at!.slice(0, 10) >= weekStart)
+    .reduce((sum, f) => sum + f.value, 0);
+  const billingMonth = paidEntries
+    .filter((f) => f.paid_at!.slice(0, 10) >= monthStart)
+    .reduce((sum, f) => sum + f.value, 0);
+
   return {
     todayCount: today_count,
     weekCount: week_count,
     cancelledCount: cancelled_count,
+    completedCount: completed_count,
+    pendingCount: pending_count,
+    confirmedCount: confirmed_count,
     receitaPrevista,
     receitaRecebida,
+    billingToday,
+    billingWeek,
+    billingMonth,
     activeProfessionals: activeProfessionals ?? null,
   };
 }

@@ -79,6 +79,7 @@ export function AppointmentsList({
   const [statusFilter, setStatusFilter] = useState<string>("todos");
 
   const isStaff = viewerRole === "admin" || viewerRole === "recepcionista";
+  const isAdmin = viewerRole === "admin";
   const isPatient = viewerRole === "paciente";
   const isProfessional = viewerRole === "profissional";
 
@@ -319,16 +320,14 @@ export function AppointmentsList({
                             >
                               Lembrete
                             </Button>
-                            {!appt.seriesId && (
-                              <Button
-                                size="sm"
-                                variant="danger"
-                                isLoading={busyId === appt.id}
-                                onClick={() => handleStaffCancel(appt.id)}
-                              >
-                                Cancelar
-                              </Button>
-                            )}
+                            <Button
+                              size="sm"
+                              variant="danger"
+                              isLoading={busyId === appt.id}
+                              onClick={() => handleStaffCancel(appt.id)}
+                            >
+                              Cancelar
+                            </Button>
                           </>
                         )}
                         {canManageRecurrence &&
@@ -370,7 +369,7 @@ export function AppointmentsList({
                               Recorrência
                             </Button>
                           )}
-                        {isStaff && appt.seriesId && (appt.status === "pendente" || appt.status === "confirmada") && (
+                        {isAdmin && appt.seriesId && (appt.status === "pendente" || appt.status === "confirmada") && (
                           <Button
                             size="sm"
                             variant="danger"

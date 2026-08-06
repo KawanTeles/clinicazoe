@@ -8,7 +8,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function markAsPaid(entryId: string): Promise<{ error: string | null }> {
   const session = await getCurrentUser();
-  if (!session || !["admin", "profissional"].includes(session.profile.role)) {
+  if (!session || !["admin", "profissional", "recepcionista"].includes(session.profile.role)) {
     return { error: "Acesso negado." };
   }
 

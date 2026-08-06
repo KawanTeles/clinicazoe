@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { checkRateLimit } from "@/lib/rate-limit";
 import type { Role } from "@/lib/supabase/types";
 import { logAudit } from "./audit";
+import { deleteUser } from "@/modules/user-management/services/user-actions";
 
 const TEAM_ROLES: Role[] = ["admin", "recepcionista", "profissional"];
 
@@ -79,11 +80,17 @@ export async function createTeamMember(
   const supabase = await createClient();
 
   if (input.phone.trim()) {
-    await supabase.from("profiles").update({ phone: input.phone.trim() }).eq("id", userId);
+    const { error: phoneError } = await supabase
+      .from("profiles")
+      .update({ phone: input.phone.trim() })
+      .eq("id", userId);
+    if (phoneError) {
+      return { error: "Usuário criado, mas houve falha ao salvar o telefone. Edite o membro para completar." };
+    }
   }
 
   if (input.role === "profissional") {
-    await supabase.from("professionals").insert({
+    const { error: professionalError } = await supabase.from("professionals").insert({
       id: userId,
       specialty_id: input.specialty_id || null,
       license_number: input.license_number?.trim() || null,
@@ -94,9 +101,12 @@ export async function createTeamMember(
       price_particular_pix: input.price_particular_pix ?? null,
       price_particular_cash: input.price_particular_cash ?? null,
     });
+    if (professionalError) {
+      return { error: "Usuário criado, mas houve falha ao salvar os dados profissionais. Edite o membro para completar." };
+    }
 
     if (input.insurances && input.insurances.length > 0) {
-      await supabase.from("professional_insurances").insert(
+      const { error: insurancesError } = await supabase.from("professional_insurances").insert(
         input.insurances.map((insurance) => ({
           professional_id: userId,
           insurance_id: insurance.insurance_id,
@@ -104,6 +114,9 @@ export async function createTeamMember(
           duration_minutes: insurance.duration_minutes ?? null,
         })),
       );
+      if (insurancesError) {
+        return { error: "Usuário criado, mas houve falha ao salvar os convênios. Edite o membro para completar." };
+      }
     }
   }
 
@@ -266,25 +279,8 @@ export async function uploadTeamMemberAvatar(
 }
 
 export async function deleteTeamMember(id: string): Promise<{ error: string | null }> {
-  const session = await requireAdmin();
-
-  if (id === session.user.id) {
-    return { error: "Você não pode excluir a própria conta." };
-  }
-
-  const admin = createAdminClient();
-  const { error } = await admin.auth.admin.deleteUser(id);
-
-  if (error) {
-    return { error: "Não foi possível excluir este usuário." };
-  }
-
-  await logAudit({
-    actorId: session.user.id,
-    action: "team_member.deleted",
-    entity: "profiles",
-    entityId: id,
-  });
-
-  return { error: null };
+  // Reaproveita a mesma política de exclusão do módulo de usuários (admin-only,
+  // bloqueio do último admin ativo e bloqueio quando há consultas/histórico
+  // vinculado) para não duplicar essa lógica em dois módulos.
+  return deleteUser(id);
 }

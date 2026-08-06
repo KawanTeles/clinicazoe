@@ -23,6 +23,14 @@ async function requireStaff() {
   return session;
 }
 
+async function requireAdmin() {
+  const session = await getCurrentUser();
+  if (!session || session.profile.role !== "admin") {
+    throw new Error("Acesso negado.");
+  }
+  return session;
+}
+
 /** Admin/recepcionista sempre podem gerenciar; profissional só a própria
  * série (e nunca cria/exclui, só edita dia/horário — reforçado também por
  * RLS/trigger no banco). */
@@ -633,11 +641,11 @@ export async function updateRecurringAppointment(
   return { error: null, whatsappLink, skippedConfirmed };
 }
 
-export async function cancelRecurringAppointment(
+async function cancelRecurringAppointmentCore(
+  session: { user: { id: string } },
   appointmentId: string,
   scope: RecurrenceScope,
 ): Promise<{ error: string | null }> {
-  const session = await requireStaff();
   const supabase = await createClient();
 
   const { data: appointment } = await supabase.from("appointments").select("*").eq("id", appointmentId).single();
@@ -684,6 +692,26 @@ export async function cancelRecurringAppointment(
   });
 
   return { error: null };
+}
+
+/** Usado para "parar a repetição a partir daqui" dentro da edição — admin e
+ * recepcionista podem cancelar/parar consultas (item de negócio "Cancelar"). */
+export async function cancelRecurringAppointment(
+  appointmentId: string,
+  scope: RecurrenceScope,
+): Promise<{ error: string | null }> {
+  const session = await requireStaff();
+  return cancelRecurringAppointmentCore(session, appointmentId, scope);
+}
+
+/** Usado pelo botão "Excluir" de uma consulta recorrente — exclusão é
+ * restrita ao Administrador; a recepção continua podendo cancelar. */
+export async function deleteRecurringAppointment(
+  appointmentId: string,
+  scope: RecurrenceScope,
+): Promise<{ error: string | null }> {
+  const session = await requireAdmin();
+  return cancelRecurringAppointmentCore(session, appointmentId, scope);
 }
 
 export async function extendSeries(

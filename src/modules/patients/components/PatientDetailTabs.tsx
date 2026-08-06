@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency } from "@/lib/whatsapp";
 import { setPatientStatus } from "@/modules/patients/services/patient-actions";
@@ -97,19 +98,40 @@ export function PatientDetailTabs({
 }: PatientDetailTabsProps) {
   const router = useRouter();
   const toast = useToast();
+  const confirm = useConfirm();
   const [tab, setTab] = useState<Tab>("Dados");
   const [togglingStatus, setTogglingStatus] = useState(false);
 
-  async function handleToggleStatus() {
+  async function handleReactivate() {
     setTogglingStatus(true);
-    const next = patient.status === "active" ? "inactive" : "active";
-    const result = await setPatientStatus(patient.id, next);
+    const result = await setPatientStatus(patient.id, "active");
     setTogglingStatus(false);
     if (result.error) {
       toast.error(result.error);
       return;
     }
-    toast.success(next === "active" ? "Paciente ativado." : "Paciente desativado.");
+    toast.success("Paciente reativado com sucesso.");
+    router.refresh();
+  }
+
+  async function handleDelete() {
+    const confirmed = await confirm({
+      title: `Excluir "${patient.fullName}"?`,
+      description:
+        "Para preservar consultas e histórico clínico já registrados, o cadastro será desativado em vez de apagado permanentemente. Essa ação pode ser revertida reativando o paciente.",
+      confirmLabel: "Excluir",
+      tone: "danger",
+    });
+    if (!confirmed) return;
+
+    setTogglingStatus(true);
+    const result = await setPatientStatus(patient.id, "inactive");
+    setTogglingStatus(false);
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Paciente excluído com sucesso.");
     router.refresh();
   }
 
@@ -131,13 +153,14 @@ export function PatientDetailTabs({
               <Button variant="secondary">Editar</Button>
             </Link>
           )}
-          {canChangeStatus && (
-            <Button
-              variant={patient.status === "active" ? "danger" : "primary"}
-              isLoading={togglingStatus}
-              onClick={handleToggleStatus}
-            >
-              {patient.status === "active" ? "Desativar" : "Ativar"}
+          {canChangeStatus && patient.status === "active" && (
+            <Button variant="danger" isLoading={togglingStatus} onClick={handleDelete}>
+              Excluir
+            </Button>
+          )}
+          {canChangeStatus && patient.status === "inactive" && (
+            <Button variant="primary" isLoading={togglingStatus} onClick={handleReactivate}>
+              Reativar
             </Button>
           )}
         </div>
