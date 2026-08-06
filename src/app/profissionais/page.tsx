@@ -4,6 +4,8 @@ import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
 import { PageHero } from "@/components/public/PageHero";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
+import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
+import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { EmptyState } from "@/components/public/EmptyState";
 import { SmartGrid } from "@/components/public/SmartGrid";
 import { Avatar } from "@/components/ui/Avatar";
@@ -37,12 +39,14 @@ export default async function ProfissionaisPage() {
       <PublicHeader clinicName={clinic.name} />
 
       <main className="flex-1 py-16 lg:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
-          <PageHero
-            breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Profissionais" }]}
-            title="Nossos Profissionais"
-            subtitle="Médicos experientes e dedicados a oferecer a melhor assistência à sua saúde."
-          />
+        <PageEntrance className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
+          <PageEntranceItem>
+            <PageHero
+              breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Profissionais" }]}
+              title="Nossos Profissionais"
+              subtitle="Médicos experientes e dedicados a oferecer a melhor assistência à sua saúde."
+            />
+          </PageEntranceItem>
 
           <h2 className="sr-only">Lista de Profissionais</h2>
           <SmartGrid
@@ -63,51 +67,49 @@ export default async function ProfissionaisPage() {
               />
             }
             renderItem={(prof, index) => (
-              <ScrollReveal key={prof.id} animation="fade-up" delayMs={index * 120}>
-                <div className="flex flex-col justify-between rounded-3xl border border-border bg-card p-8 shadow-card hover:border-primary/60 transition-all h-full">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <Avatar src={prof.avatarUrl} name={prof.fullName} size={80} rounded="2xl" className="shadow-md" />
-                      <div>
-                        <h3 className="text-lg font-bold text-text-primary">{prof.fullName}</h3>
-                        <Badge tone="success" className="mt-1 text-xs">{prof.specialtyName}</Badge>
-                        <p className="text-xs text-text-muted mt-1 font-mono">{prof.licenseNumber}</p>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-text-secondary leading-relaxed">{prof.bio}</p>
-
-                    <div className="p-4 rounded-2xl bg-card-elevated/70 border border-border/60 space-y-2 text-xs">
-                      <div className="flex justify-between items-center text-text-secondary">
-                        <span>Duração da consulta:</span>
-                        <span className="font-bold text-text-primary">{prof.consultationDuration} minutos</span>
-                      </div>
-                      {prof.priceParticularPix && (
-                        <div className="flex justify-between items-center text-text-secondary">
-                          <span>Valor da sessão (Pix):</span>
-                          <span className="font-bold text-[var(--link)]">{formatCurrency(prof.priceParticularPix)}</span>
-                        </div>
-                      )}
+              <AnimatedCard key={prof.id} delayMs={index * 120} className="p-8 flex flex-col justify-between h-full rounded-3xl">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Avatar src={prof.avatarUrl} name={prof.fullName} size={80} rounded="2xl" className="shadow-md" />
+                    <div>
+                      <h3 className="text-lg font-bold text-text-primary font-heading">{prof.fullName}</h3>
+                      <Badge tone="success" className="mt-1 text-xs">{prof.specialtyName}</Badge>
+                      <p className="text-xs text-text-muted mt-1 font-mono">{prof.licenseNumber}</p>
                     </div>
                   </div>
 
-                  <div className="mt-8 pt-4 border-t border-border/60 space-y-3">
-                    <Link href={`/profissionais/${prof.id}`} className="block w-full">
-                      <Button variant="secondary" className="w-full" size="sm">
-                        {CTA_VIEW_PROFILE}
-                      </Button>
-                    </Link>
-                    <Link href="/cliente/login" className="block w-full">
-                      <Button variant="outline" className="w-full font-bold" size="sm" withArrow>
-                        {CTA_PRIMARY}
-                      </Button>
-                    </Link>
+                  <p className="text-xs text-text-secondary leading-relaxed">{prof.bio}</p>
+
+                  <div className="p-4 rounded-2xl bg-card-elevated/70 border border-border/60 space-y-2 text-xs">
+                    <div className="flex justify-between items-center text-text-secondary">
+                      <span>Duração da consulta:</span>
+                      <span className="font-bold text-text-primary">{prof.consultationDuration} minutos</span>
+                    </div>
+                    {prof.priceParticularPix && (
+                      <div className="flex justify-between items-center text-text-secondary">
+                        <span>Valor da sessão (Pix):</span>
+                        <span className="font-bold text-[var(--link)]">{formatCurrency(prof.priceParticularPix)}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </ScrollReveal>
+
+                <div className="mt-8 pt-4 border-t border-border/60 space-y-3">
+                  <Link href={`/profissionais/${prof.id}`} className="block w-full">
+                    <Button variant="secondary" className="w-full font-bold" size="sm">
+                      {CTA_VIEW_PROFILE}
+                    </Button>
+                  </Link>
+                  <Link href="/cliente/login" className="block w-full">
+                    <Button variant="outline" className="w-full font-bold" size="sm" withArrow>
+                      {CTA_PRIMARY}
+                    </Button>
+                  </Link>
+                </div>
+              </AnimatedCard>
             )}
           />
-        </div>
+        </PageEntrance>
       </main>
 
       <PublicFooter clinicName={clinic.name} address={clinic.address} whatsappNumber={clinic.whatsapp_number} />

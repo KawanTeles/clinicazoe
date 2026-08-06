@@ -4,6 +4,8 @@ import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
 import { PageHero } from "@/components/public/PageHero";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
+import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
+import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { CTA_PRIMARY } from "@/lib/cta-labels";
@@ -33,19 +35,21 @@ export default async function ClinicaPage() {
       <PublicHeader clinicName={clinic.name} />
 
       <main className="flex-1 py-16 lg:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-20">
-          <PageHero
-            breadcrumbItems={[{ label: "Início", href: "/" }, { label: "A Clínica" }]}
-            title="A Clínica Zoe"
-            subtitle="Inovação, ética e o acolhimento humano no centro de tudo que fazemos."
-          />
+        <PageEntrance className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-20">
+          <PageEntranceItem>
+            <PageHero
+              breadcrumbItems={[{ label: "Início", href: "/" }, { label: "A Clínica" }]}
+              title="A Clínica Zoe"
+              subtitle="Inovação, ética e o acolhimento humano no centro de tudo que fazemos."
+            />
+          </PageEntranceItem>
 
           {/* History & Mission */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <ScrollReveal animation="slide-left">
               <div className="space-y-6">
                 <Badge tone="success">Nossa História</Badge>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-text-primary">
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-text-primary font-heading">
                   Uma trajetória construída com dedicação e rigor científico
                 </h2>
                 <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
@@ -58,38 +62,40 @@ export default async function ClinicaPage() {
             </ScrollReveal>
 
             <ScrollReveal animation="slide-right">
-              <div className="rounded-3xl border border-border bg-card p-8 shadow-card space-y-6">
+              <AnimatedCard className="rounded-3xl p-8 space-y-6">
                 <div className="p-4 rounded-2xl bg-card-elevated border border-border/60">
-                  <h3 className="text-base font-bold text-[var(--link)]">Missão</h3>
+                  <h3 className="text-base font-bold text-[var(--link)] font-heading">Missão</h3>
                   <p className="text-xs text-text-secondary mt-1 leading-relaxed">
                     Promover a saúde integral e prevenção personalizada através de condutas baseadas em evidências e atendimento humanizado.
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-card-elevated border border-border/60">
-                  <h3 className="text-base font-bold text-[var(--link)]">Visão</h3>
+                  <h3 className="text-base font-bold text-[var(--link)] font-heading">Visão</h3>
                   <p className="text-xs text-text-secondary mt-1 leading-relaxed">
                     Ser reconhecida como o centro médico modelo em inovação, satisfação do paciente e segurança clínica na região.
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-card-elevated border border-border/60">
-                  <h3 className="text-base font-bold text-[var(--link)]">Valores</h3>
+                  <h3 className="text-base font-bold text-[var(--link)] font-heading">Valores</h3>
                   <p className="text-xs text-text-secondary mt-1 leading-relaxed">
                     Ética inabalável, respeito à vida, transparência total e constante evolução técnica.
                   </p>
                 </div>
-              </div>
+              </AnimatedCard>
             </ScrollReveal>
           </div>
 
           {/* CTA */}
-          <div className="text-center pt-8 border-t border-border/60">
-            <Link href="/cliente/login">
-              <Button size="lg" withArrow className="font-bold">
-                {CTA_PRIMARY}
-              </Button>
-            </Link>
-          </div>
-        </div>
+          <ScrollReveal animation="fade-up">
+            <div className="text-center pt-8 border-t border-border/60">
+              <Link href="/cliente/login">
+                <Button size="lg" withArrow className="font-bold">
+                  {CTA_PRIMARY}
+                </Button>
+              </Link>
+            </div>
+          </ScrollReveal>
+        </PageEntrance>
       </main>
 
       <PublicFooter clinicName={clinic.name} address={clinic.address} whatsappNumber={clinic.whatsapp_number} />

@@ -4,6 +4,8 @@ import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
 import { PageHero } from "@/components/public/PageHero";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
+import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
+import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { EmptyState } from "@/components/public/EmptyState";
 import { SmartGrid } from "@/components/public/SmartGrid";
 import { Button } from "@/components/ui/Button";
@@ -34,12 +36,14 @@ export default async function ConveniosPage() {
       <PublicHeader clinicName={clinic.name} />
 
       <main className="flex-1 py-16 lg:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
-          <PageHero
-            breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Convênios" }]}
-            title="Convênios Aceitos"
-            subtitle="Trabalhamos com os principais planos de saúde do país e também atendimento particular com facilidades."
-          />
+        <PageEntrance className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
+          <PageEntranceItem>
+            <PageHero
+              breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Convênios" }]}
+              title="Convênios Aceitos"
+              subtitle="Trabalhamos com os principais planos de saúde do país e também atendimento particular com facilidades."
+            />
+          </PageEntranceItem>
 
           <h2 className="sr-only">Convênios Disponíveis</h2>
           <SmartGrid
@@ -59,36 +63,34 @@ export default async function ConveniosPage() {
               />
             }
             renderItem={(ins, index) => (
-              <ScrollReveal key={ins.id} animation="fade-up" delayMs={index * 80}>
-                <div className="flex flex-col justify-between rounded-2xl border border-border bg-card p-6 shadow-card hover:border-primary/60 transition-all h-full">
-                  <div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card-elevated text-[var(--link)] border border-border mb-4">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-bold text-text-primary">{ins.name}</h3>
-                    <p className="text-xs text-text-secondary mt-2">
-                      Cobertura para consultas médicas especializadas na Clínica Zoe.
-                    </p>
+              <AnimatedCard key={ins.id} delayMs={index * 80} className="p-6 flex flex-col justify-between h-full rounded-2xl">
+                <div>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card-elevated text-[var(--link)] border border-border mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
                   </div>
-
-                  <div className="mt-6 pt-4 border-t border-border/60">
-                    <Link href="/cliente/login" className="block w-full">
-                      <Button variant="secondary" size="sm" className="w-full">
-                        {CTA_PRIMARY}
-                      </Button>
-                    </Link>
-                  </div>
+                  <h3 className="text-lg font-bold text-text-primary font-heading">{ins.name}</h3>
+                  <p className="text-xs text-text-secondary mt-2 leading-relaxed">
+                    Cobertura para consultas médicas especializadas na Clínica Zoe.
+                  </p>
                 </div>
-              </ScrollReveal>
+
+                <div className="mt-6 pt-4 border-t border-border/60">
+                  <Link href="/cliente/login" className="block w-full">
+                    <Button variant="secondary" size="sm" className="w-full font-bold">
+                      {CTA_PRIMARY}
+                    </Button>
+                  </Link>
+                </div>
+              </AnimatedCard>
             )}
           />
 
           {/* Info Card */}
           <ScrollReveal animation="fade-up">
-            <div className="rounded-3xl border border-border bg-card p-8 text-center max-w-3xl mx-auto space-y-4">
-              <h3 className="text-xl font-bold text-text-primary">Não encontrou seu plano de saúde?</h3>
+            <AnimatedCard className="rounded-3xl p-8 text-center max-w-3xl mx-auto space-y-4">
+              <h3 className="text-xl font-bold text-text-primary font-heading">Não encontrou seu plano de saúde?</h3>
               <p className="text-xs sm:text-sm text-text-secondary">
                 Atendemos também na modalidade particular com reembolso para diversos convênios. Entre em contato para entender como solicitar seu recibo de reembolso.
               </p>
@@ -97,9 +99,9 @@ export default async function ConveniosPage() {
                   <Button size="lg" withArrow className="font-bold">Falar com nossa equipe</Button>
                 </Link>
               </div>
-            </div>
+            </AnimatedCard>
           </ScrollReveal>
-        </div>
+        </PageEntrance>
       </main>
 
       <PublicFooter clinicName={clinic.name} address={clinic.address} whatsappNumber={clinic.whatsapp_number} />

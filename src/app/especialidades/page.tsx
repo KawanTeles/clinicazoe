@@ -4,6 +4,8 @@ import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
 import { PageHero } from "@/components/public/PageHero";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
+import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
+import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { EmptyState } from "@/components/public/EmptyState";
 import { SmartGrid } from "@/components/public/SmartGrid";
 import { Badge } from "@/components/ui/Badge";
@@ -35,12 +37,14 @@ export default async function EspecialidadesPage() {
       <PublicHeader clinicName={clinic.name} />
 
       <main className="flex-1 py-16 lg:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
-          <PageHero
-            breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Especialidades" }]}
-            title="Especialidades Médicas"
-            subtitle="Cuidados especializados e tratamentos personalizados para sua saúde integral."
-          />
+        <PageEntrance className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
+          <PageEntranceItem>
+            <PageHero
+              breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Especialidades" }]}
+              title="Especialidades Médicas"
+              subtitle="Cuidados especializados e tratamentos personalizados para sua saúde integral."
+            />
+          </PageEntranceItem>
 
           <h2 className="sr-only">Lista de Especialidades</h2>
           <SmartGrid
@@ -63,48 +67,46 @@ export default async function EspecialidadesPage() {
               const relatedProfs = professionals.filter((p) => p.specialtyName === spec.name);
 
               return (
-                <ScrollReveal key={spec.id} animation="fade-up" delayMs={index * 100}>
-                  <div className="flex flex-col justify-between rounded-3xl border border-border bg-card p-8 shadow-card hover:border-primary/60 transition-all h-full">
-                    <div className="space-y-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                        </svg>
-                      </div>
-                      <h3 className="text-xl font-bold text-text-primary">{spec.name}</h3>
-                      <p className="text-xs text-text-secondary leading-relaxed">
-                        Atendimento preventivo, diagnóstico avançado e acompanhamento personalizado nesta especialidade.
-                      </p>
+                <AnimatedCard key={spec.id} delayMs={index * 100} className="p-8 flex flex-col justify-between h-full rounded-3xl">
+                  <div className="space-y-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-bold text-text-primary font-heading">{spec.name}</h3>
+                    <p className="text-xs text-text-secondary leading-relaxed">
+                      Atendimento preventivo, diagnóstico avançado e acompanhamento personalizado nesta especialidade.
+                    </p>
 
-                      {relatedProfs.length > 0 && (
-                        <div className="pt-3 border-t border-border/60">
-                          <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
-                            Médicos desta área:
-                          </span>
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {relatedProfs.map((p) => (
-                              <Badge key={p.id} tone="neutral" className="text-[11px]">
-                                {p.fullName}
-                              </Badge>
-                            ))}
-                          </div>
+                    {relatedProfs.length > 0 && (
+                      <div className="pt-3 border-t border-border/60">
+                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                          Médicos desta área:
+                        </span>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {relatedProfs.map((p) => (
+                            <Badge key={p.id} tone="neutral" className="text-[11px]">
+                              {p.fullName}
+                            </Badge>
+                          ))}
                         </div>
-                      )}
-                    </div>
-
-                    <div className="mt-8 pt-4 border-t border-border/60">
-                      <Link href="/cliente/login" className="block w-full">
-                        <Button variant="secondary" className="w-full font-bold" size="sm" withArrow>
-                          {CTA_PRIMARY}
-                        </Button>
-                      </Link>
-                    </div>
+                      </div>
+                    )}
                   </div>
-                </ScrollReveal>
+
+                  <div className="mt-8 pt-4 border-t border-border/60">
+                    <Link href="/cliente/login" className="block w-full">
+                      <Button variant="secondary" className="w-full font-bold" size="sm" withArrow>
+                        {CTA_PRIMARY}
+                      </Button>
+                    </Link>
+                  </div>
+                </AnimatedCard>
               );
             }}
           />
-        </div>
+        </PageEntrance>
       </main>
 
       <PublicFooter clinicName={clinic.name} address={clinic.address} whatsappNumber={clinic.whatsapp_number} />

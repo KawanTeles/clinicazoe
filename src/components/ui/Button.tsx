@@ -1,4 +1,7 @@
+"use client";
+
 import { ButtonHTMLAttributes, forwardRef } from "react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
 
 type Variant = "primary" | "secondary" | "outline" | "ghost" | "danger";
@@ -20,15 +23,15 @@ const arrowCircleSize: Record<Size, string> = {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-[#0F766E] text-white hover:bg-[#115E59] active:bg-[#0D9488] shadow-[0_10px_25px_rgba(15,118,110,0.18)] hover:-translate-y-0.5 disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 border border-[#0F766E]/30",
+    "bg-[#0F766E] text-white hover:bg-[#115E59] active:bg-[#0D9488] shadow-[0_10px_25px_rgba(15,118,110,0.22)] border border-[#0F766E]/40 hover:border-[#14B8A6]/60",
   secondary:
-    "bg-white text-[#0F766E] border border-[#CBD5E1] hover:bg-[#F8FAFC] hover:border-[#0F766E] dark:bg-[#1E293B] dark:text-[#2DD4BF] dark:border-border dark:hover:bg-[#334155] dark:hover:border-[#2DD4BF] shadow-xs hover:-translate-y-0.5 disabled:opacity-50 disabled:translate-y-0",
+    "bg-white text-[#0F766E] border border-[#CBD5E1] hover:bg-[#F8FAFC] hover:border-[#0F766E] dark:bg-[#1E293B] dark:text-[#2DD4BF] dark:border-border dark:hover:bg-[#334155] dark:hover:border-[#2DD4BF] shadow-xs",
   outline:
-    "bg-transparent text-[#334155] border border-[#CBD5E1] hover:bg-[#F8FAFC] hover:border-[#94A3B8] dark:text-text-secondary dark:border-border dark:hover:bg-[#1E293B] disabled:opacity-50",
+    "bg-transparent text-[#334155] border border-[#CBD5E1] hover:bg-[#F8FAFC] hover:border-[#94A3B8] dark:text-text-secondary dark:border-border dark:hover:bg-[#1E293B]",
   ghost:
-    "bg-transparent text-[#475569] border-0 hover:bg-[rgba(15,118,110,0.06)] hover:text-[#0F766E] dark:text-text-muted dark:hover:bg-[rgba(45,212,191,0.1)] dark:hover:text-[#2DD4BF] active:bg-[rgba(15,118,110,0.12)] disabled:opacity-50",
+    "bg-transparent text-[#475569] border-0 hover:bg-[rgba(15,118,110,0.06)] hover:text-[#0F766E] dark:text-text-muted dark:hover:bg-[rgba(45,212,191,0.1)] dark:hover:text-[#2DD4BF] active:bg-[rgba(15,118,110,0.12)]",
   danger:
-    "bg-[#DC2626]/10 text-[#DC2626] dark:text-[#F87171] border border-[#DC2626]/30 hover:bg-[#DC2626] hover:text-white hover:border-[#DC2626] active:bg-[#B91C1C] disabled:opacity-50",
+    "bg-[#DC2626]/10 text-[#DC2626] dark:text-[#F87171] border border-[#DC2626]/30 hover:bg-[#DC2626] hover:text-white hover:border-[#DC2626] active:bg-[#B91C1C]",
 };
 
 const sizeClasses: Record<Size, string> = {
@@ -39,21 +42,26 @@ const sizeClasses: Record<Size, string> = {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { className, variant = "primary", size = "md", isLoading = false, withArrow = false, disabled, children, ...props },
+    { className, variant = "primary", size = "md", isLoading = false, withArrow = false, disabled, children, onClick, type = "button", ...props },
     ref,
   ) => {
     return (
-      <button
+      <motion.button
         ref={ref}
+        type={type}
         disabled={disabled || isLoading}
         aria-busy={isLoading || undefined}
+        whileHover={disabled || isLoading ? undefined : { scale: 1.02, y: -1 }}
+        whileTap={disabled || isLoading ? undefined : { scale: 0.97, y: 0 }}
+        transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+        onClick={onClick}
         className={cn(
-          "group inline-flex items-center justify-center text-center gap-2 font-semibold transition-all duration-300 ease-[var(--ease-premium)] cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] disabled:cursor-not-allowed disabled:active:scale-100",
+          "group inline-flex items-center justify-center text-center gap-2 font-semibold transition-colors duration-200 cursor-pointer transform-gpu will-change-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F766E] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none",
           variantClasses[variant],
           sizeClasses[size],
           className,
         )}
-        {...props}
+        {...(props as any)}
       >
         {isLoading && (
           <svg
@@ -74,20 +82,19 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {withArrow && !isLoading && (
           <span
             className={cn(
-              "inline-flex shrink-0 items-center justify-center rounded-full bg-white/15 transition-all duration-300 ease-[var(--ease-premium)] group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:bg-white/25",
+              "inline-flex shrink-0 items-center justify-center rounded-full bg-white/15 transition-all duration-200 ease-out group-hover:translate-x-1 group-hover:-translate-y-px group-hover:bg-white/25",
               arrowCircleSize[size],
             )}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="5" y1="19" x2="19" y2="5" />
               <polyline points="8 5 19 5 19 16" />
             </svg>
           </span>
         )}
-      </button>
+      </motion.button>
     );
   },
 );
 
 Button.displayName = "Button";
-

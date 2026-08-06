@@ -58,6 +58,7 @@ const jsonLd = {
 };
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { AnimationProvider } from "@/components/animation/AnimationProvider";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -79,9 +80,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-full flex flex-col bg-background text-text-primary font-sans transition-colors duration-300">
         <ThemeProvider>
-          <ToastProvider>
-            <ConfirmDialogProvider>{children}</ConfirmDialogProvider>
-          </ToastProvider>
+          <AnimationProvider>
+            <ToastProvider>
+              <ConfirmDialogProvider>{children}</ConfirmDialogProvider>
+            </ToastProvider>
+          </AnimationProvider>
         </ThemeProvider>
       </body>
     </html>
