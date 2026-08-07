@@ -30,6 +30,7 @@ interface AdminShellProps {
   notifications: NotificationItem[];
   unreadCount: number;
   pendingRequestsCount?: number;
+  waitlistCount?: number;
   clinicName: string;
   logoUrl: string | null;
   children: React.ReactNode;
@@ -85,6 +86,15 @@ function renderNavIcon(icon?: string) {
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
+        </svg>
+      );
+    case "waitlist":
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <circle cx="18" cy="7.5" r="3.2" strokeDasharray="1.5 2.2" />
+          <path d="M18 6v1.7l1.1 1" />
         </svg>
       );
     case "users":
@@ -176,6 +186,7 @@ export function AdminShell({
   notifications,
   unreadCount,
   pendingRequestsCount = 0,
+  waitlistCount = 0,
   clinicName,
   logoUrl,
   children,
@@ -200,6 +211,7 @@ export function AdminShell({
     "/dashboard": "Visão Geral",
     "/book": "Visão Geral",
     "/requests": "Visão Geral",
+    "/waitlist": "Atendimento & Agenda",
     "/appointments": "Atendimento & Agenda",
     "/my-schedule": "Atendimento & Agenda",
     "/my-patients": "Atendimento & Agenda",
@@ -304,6 +316,11 @@ export function AdminShell({
                         {item.href === "/requests" && pendingRequestsCount > 0 && (
                           <span className="absolute -right-1.5 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold text-white shadow-[0_0_6px_var(--danger)]">
                             {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
+                          </span>
+                        )}
+                        {item.href === "/waitlist" && waitlistCount > 0 && (
+                          <span className="absolute -right-1.5 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold text-white shadow-[0_0_6px_var(--danger)]">
+                            {waitlistCount > 9 ? "9+" : waitlistCount}
                           </span>
                         )}
                       </span>

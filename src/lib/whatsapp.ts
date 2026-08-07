@@ -196,6 +196,81 @@ export function buildRejectionMessage(params: {
   return appendClinicFooter(baseMessage, params.clinicPhone);
 }
 
+const WAITLIST_PERIOD_LABELS: Record<string, string> = {
+  manha: "Manhã",
+  tarde: "Tarde",
+  noite: "Noite",
+};
+
+const WAITLIST_DAY_LABELS: Record<number, string> = {
+  0: "Domingo",
+  1: "Segunda",
+  2: "Terça",
+  3: "Quarta",
+  4: "Quinta",
+  5: "Sexta",
+  6: "Sábado",
+};
+
+const MODALITY_LABEL_FALLBACK: Record<Modality, string> = { aba: "ABA", comum: "Comum" };
+
+/** Enviada à clínica quando um paciente entra na Lista de Espera (sem
+ * horários compatíveis no fluxo de agendamento). */
+export function buildWaitlistClinicNotificationMessage(params: {
+  patientName: string;
+  patientPhone: string;
+  specialtyName: string;
+  professionalName?: string | null;
+  insuranceName: string;
+  modality?: Modality | null;
+  periodPreference?: string | null;
+  preferredDays?: number[];
+  notes?: string | null;
+  clinicPhone?: string | null;
+}) {
+  const daysLabel = (params.preferredDays ?? [])
+    .slice()
+    .sort((a, b) => a - b)
+    .map((d) => WAITLIST_DAY_LABELS[d] ?? String(d))
+    .join(", ");
+
+  const baseMessage = (
+    `📋 NOVA SOLICITAÇÃO DE LISTA DE ESPERA\n\n` +
+    `Nome: ${params.patientName}\n` +
+    `Telefone: ${params.patientPhone}\n` +
+    `Especialidade: ${params.specialtyName}\n` +
+    `Profissional: ${params.professionalName || "Sem preferência"}\n` +
+    `Convênio: ${params.insuranceName}\n` +
+    `Modalidade: ${params.modality ? MODALITY_LABEL_FALLBACK[params.modality] : "—"}\n` +
+    `Período preferido: ${params.periodPreference ? WAITLIST_PERIOD_LABELS[params.periodPreference] ?? params.periodPreference : "Sem preferência"}\n` +
+    `Dias disponíveis: ${daysLabel || "Sem preferência"}\n` +
+    `Observações: ${params.notes?.trim() || "—"}`
+  );
+  return appendClinicFooter(baseMessage, params.clinicPhone);
+}
+
+/** Enviada ao paciente pela recepção ao clicar em "Oferecer Vaga" numa
+ * entrada da Lista de Espera — mesmo padrão wa.me do restante do sistema. */
+export function buildWaitlistOfferMessage(params: {
+  patientName: string;
+  specialtyName: string;
+  appointmentDate: string;
+  startTime: string;
+  clinicPhone?: string | null;
+}) {
+  const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
+  const baseMessage = (
+    `Olá, ${params.patientName}!\n\n` +
+    `Surgiu uma vaga na Clínica Zoe para a especialidade de ${params.specialtyName}.\n\n` +
+    `Data: ${date}\n` +
+    `Horário: ${params.startTime.slice(0, 5)}\n\n` +
+    `Caso tenha interesse, responda esta mensagem para confirmarmos seu agendamento.\n\n` +
+    `Qualquer dúvida, estamos à disposição.\n\n` +
+    `Atenciosamente,\nEquipe Clínica Zoe`
+  );
+  return appendClinicFooter(baseMessage, params.clinicPhone);
+}
+
 export function buildConfirmationMessage(params: {
   professionalName: string;
   appointmentDate: string;

@@ -16,6 +16,7 @@ import { logAudit } from "@/modules/team/services/audit";
 import { notify, notifyStaff } from "@/modules/notifications/services/notify";
 import { logPatientMessage } from "@/modules/patients/services/message-log";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { notifyWaitlistMatches } from "@/modules/waitlist/services/waitlist-actions";
 import { getAvailableTimes, resolveAppointmentValue } from "./booking-queries";
 import type { Modality, ParticularProduct, PaymentMethod } from "@/lib/supabase/types";
 
@@ -178,7 +179,7 @@ export async function cancelAppointment(
 
   const { data: appointment } = await supabase
     .from("appointments")
-    .select("appointment_date, start_time, professional_id")
+    .select("appointment_date, start_time, professional_id, specialty_id, insurance_id, modality")
     .eq("id", appointmentId)
     .single();
 
@@ -195,6 +196,17 @@ export async function cancelAppointment(
     entity: "appointments",
     entityId: appointmentId,
   });
+
+  if (appointment && !rescheduled) {
+    await notifyWaitlistMatches({
+      specialtyId: appointment.specialty_id,
+      professionalId: appointment.professional_id,
+      insuranceId: appointment.insurance_id,
+      modality: appointment.modality,
+      appointmentDate: appointment.appointment_date,
+      startTime: appointment.start_time,
+    });
+  }
 
   if (session.profile.role !== "paciente" || !appointment) {
     return { error: null };
@@ -404,7 +416,7 @@ export async function updateAppointmentStatus(
 
   const { data: appointment } = await supabase
     .from("appointments")
-    .select("patient_id, appointment_date, start_time")
+    .select("patient_id, appointment_date, start_time, professional_id, specialty_id, insurance_id, modality")
     .eq("id", appointmentId)
     .single();
 
@@ -422,6 +434,17 @@ export async function updateAppointmentStatus(
     entityId: appointmentId,
     metadata: { status },
   });
+
+  if (appointment && status === "cancelada") {
+    await notifyWaitlistMatches({
+      specialtyId: appointment.specialty_id,
+      professionalId: appointment.professional_id,
+      insuranceId: appointment.insurance_id,
+      modality: appointment.modality,
+      appointmentDate: appointment.appointment_date,
+      startTime: appointment.start_time,
+    });
+  }
 
   if (appointment && (status === "cancelada" || status === "remarcada")) {
     await notify({
@@ -501,7 +524,7 @@ export interface CreateAppointmentForPatientInput {
  * responsabilidade de createRecurringAppointments, em recurrence-actions). */
 export async function createAppointmentForPatient(
   input: CreateAppointmentForPatientInput,
-): Promise<{ error: string | null; whatsappLink?: string | null }> {
+): Promise<{ error: string | null; whatsappLink?: string | null; appointmentId?: string }> {
   const session = await requireStaff();
 
   const rateLimit = checkRateLimit(`staff-booking:${session.user.id}`, 30, 60_000);
@@ -587,7 +610,7 @@ export async function createAppointmentForPatient(
 
   await logPatientMessage({ patientId: input.patientId, appointmentId: appointment.id, type: "booking", sentBy: session.user.id });
 
-  return { error: null, whatsappLink };
+  return { error: null, whatsappLink, appointmentId: appointment.id };
 }
 
 export interface CreatePublicAppointmentInput {

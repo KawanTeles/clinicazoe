@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -22,6 +22,7 @@ import {
 } from "@/modules/appointments/services/booking-queries";
 import { AvailabilityCalendar } from "@/modules/appointments/components/AvailabilityCalendar";
 import { createAppointmentForPatient } from "@/modules/appointments/services/booking-actions";
+import { convertWaitlistToAppointment } from "@/modules/waitlist/services/waitlist-actions";
 import {
   createRecurringAppointments,
   previewRecurringAppointments,
@@ -70,11 +71,29 @@ const DEFAULT_RECURRENCE: RecurrenceValue = {
   notes: "",
 };
 
-export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
+interface StaffAppointmentFormProps {
+  insurances: Option[];
+  /** Preenchimento inicial ao abrir a partir de um registro da Lista de
+   * Espera — todos opcionais, sem efeito no uso manual de "Novo Agendamento". */
+  initialPatient?: PatientSearchResult;
+  initialInsurance?: Option;
+  initialProfessionalId?: string;
+  initialModality?: Modality;
+  waitlistEntryId?: string;
+}
+
+export function StaffAppointmentForm({
+  insurances,
+  initialPatient,
+  initialInsurance,
+  initialProfessionalId,
+  initialModality,
+  waitlistEntryId,
+}: StaffAppointmentFormProps) {
   const router = useRouter();
 
   // Etapa 1: paciente
-  const [patient, setPatient] = useState<PatientSearchResult | null>(null);
+  const [patient, setPatient] = useState<PatientSearchResult | null>(initialPatient ?? null);
   const [showCreatePatient, setShowCreatePatient] = useState(false);
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
@@ -222,6 +241,32 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
     setLoading(false);
   }
 
+  // Prefill best-effort ao abrir a partir de uma entrada da Lista de Espera:
+  // convênio dispara o carregamento de profissionais, que por sua vez dispara
+  // a pré-seleção do profissional e, depois, da modalidade. Data/horário
+  // continuam manuais — é a vaga livre que a recepção está escolhendo.
+  useEffect(() => {
+    if (initialInsurance) {
+      void handleSelectInsurance(initialInsurance);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (initialProfessionalId && !professional && professionals.length > 0) {
+      const match = professionals.find((p) => p.id === initialProfessionalId);
+      if (match) void handleSelectProfessional(match);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [professionals]);
+
+  useEffect(() => {
+    if (initialModality && requiresModality && !modality && pricing?.insuranceKind === "convenio") {
+      void handleSelectModality(initialModality);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pricing]);
+
   async function handleSelectDay(day: DayAvailability) {
     setDate(day.date);
     setSelectedDayInfo(day);
@@ -274,6 +319,9 @@ export function StaffAppointmentForm({ insurances }: { insurances: Option[] }) {
       if (result.error) {
         setError(result.error);
         return;
+      }
+      if (waitlistEntryId && result.appointmentId) {
+        await convertWaitlistToAppointment(waitlistEntryId, result.appointmentId);
       }
       setSuccessResult({ whatsappLink: result.whatsappLink, count: 1 });
       return;

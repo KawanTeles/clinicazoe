@@ -20,6 +20,7 @@ import { createAppointment } from "@/modules/appointments/services/booking-actio
 import { formatCurrency, buildWhatsAppLink } from "@/lib/whatsapp";
 import { getAttendanceInfo } from "@/lib/attendance";
 import { MODALITY_LABELS, PARTICULAR_PRODUCT_LABELS, insuranceRequiresModality } from "@/lib/constants";
+import { WaitlistEntryModal } from "@/modules/waitlist/components/WaitlistEntryModal";
 import type { Modality, ParticularProduct } from "@/lib/supabase/types";
 
 interface Specialty {
@@ -75,6 +76,30 @@ interface PaymentChoice {
 
 const MODALITIES: Modality[] = ["aba", "comum"];
 
+function NoAvailabilityState({ onJoinWaitlist }: { onJoinWaitlist: () => void }) {
+  return (
+    <div className="flex flex-col items-center gap-4 py-8 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card-elevated/70 text-text-muted">
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      </div>
+      <div className="max-w-sm space-y-1.5">
+        <h5 className="text-sm font-bold text-text-primary font-heading">
+          No momento não há horários disponíveis para esta especialidade.
+        </h5>
+        <p className="text-xs text-text-secondary leading-relaxed">
+          Você pode entrar na nossa Lista de Espera e entraremos em contato assim que surgir uma vaga.
+        </p>
+      </div>
+      <Button onClick={onJoinWaitlist} className="font-bold">
+        Entrar na Lista de Espera
+      </Button>
+    </div>
+  );
+}
+
 export function Patient8StepBooking({
   specialties,
   initialProfessionals,
@@ -113,6 +138,7 @@ export function Patient8StepBooking({
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successResult, setSuccessResult] = useState<{ whatsappLink?: string | null } | null>(null);
+  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
 
   // Unimed/Postal Saúde têm modalidade (ABA/Comum) e ganham uma etapa extra;
   // Particular não tem modalidade, mas ganha a etapa de Forma de Pagamento —
@@ -565,9 +591,7 @@ export function Patient8StepBooking({
             {loading ? (
               <Skeleton className="h-16 w-full rounded-2xl" />
             ) : availableDates.length === 0 ? (
-              <p className="text-sm text-text-muted py-6 text-center">
-                Nenhum dia disponível nos próximos 45 dias.
-              </p>
+              <NoAvailabilityState onJoinWaitlist={() => setShowWaitlistModal(true)} />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
                 {availableDates.map((dateStr) => {
@@ -601,9 +625,7 @@ export function Patient8StepBooking({
             {loading ? (
               <Skeleton className="h-14 w-full rounded-2xl" />
             ) : availableTimes.length === 0 ? (
-              <p className="text-sm text-text-muted py-6 text-center">
-                Sem horários disponíveis para esta data. Escolha outro dia.
-              </p>
+              <NoAvailabilityState onJoinWaitlist={() => setShowWaitlistModal(true)} />
             ) : (
               <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-3">
                 {availableTimes.map((slot) => (
@@ -778,6 +800,17 @@ export function Patient8StepBooking({
           </CardContent>
         </Card>
       )}
+
+      <WaitlistEntryModal
+        isOpen={showWaitlistModal}
+        onClose={() => setShowWaitlistModal(false)}
+        specialtyId={selectedSpecialtyId || specialties[0]?.id || ""}
+        specialtyName={currentSpec?.name ?? specialties[0]?.name ?? ""}
+        insuranceId={selectedInsuranceId}
+        insuranceName={selectedInsuranceName}
+        professionals={professionals.map((p) => ({ id: p.id, fullName: p.fullName }))}
+        patientProfile={patientProfile}
+      />
     </div>
   );
 }

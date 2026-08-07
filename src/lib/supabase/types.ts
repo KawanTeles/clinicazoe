@@ -15,6 +15,14 @@ export type RecurrenceFrequency = "weekly" | "biweekly" | "monthly";
 export type SeriesStatus = "active" | "cancelled";
 export type Modality = "aba" | "comum";
 export type ParticularProduct = "consulta" | "pacote";
+export type WaitlistStatus =
+  | "aguardando"
+  | "contato_realizado"
+  | "vaga_oferecida"
+  | "agendado"
+  | "cancelado"
+  | "sem_interesse";
+export type WaitlistPeriod = "manha" | "tarde" | "noite";
 
 /** day: convenção de Date.prototype.getDay() (0 = domingo ... 6 = sábado). */
 export interface BusinessHourEntry {
@@ -783,6 +791,81 @@ export interface Database {
           date?: string;
           description?: string | null;
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      waitlist_entries: {
+        Row: {
+          id: string;
+          patient_id: string;
+          patient_name: string;
+          patient_phone: string;
+          patient_email: string | null;
+          specialty_id: string;
+          professional_id: string | null;
+          insurance_id: string;
+          modality: Modality | null;
+          period_preference: WaitlistPeriod | null;
+          preferred_days: number[];
+          notes: string | null;
+          status: WaitlistStatus;
+          appointment_id: string | null;
+          contacted_by: string | null;
+          contacted_at: string | null;
+          offered_at: string | null;
+          accepted_at: string | null;
+          declined_at: string | null;
+          viewed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          patient_id: string;
+          patient_name: string;
+          patient_phone: string;
+          patient_email?: string | null;
+          specialty_id: string;
+          professional_id?: string | null;
+          insurance_id: string;
+          modality?: Modality | null;
+          period_preference?: WaitlistPeriod | null;
+          preferred_days?: number[];
+          notes?: string | null;
+          status?: WaitlistStatus;
+          appointment_id?: string | null;
+          contacted_by?: string | null;
+          contacted_at?: string | null;
+          offered_at?: string | null;
+          accepted_at?: string | null;
+          declined_at?: string | null;
+          viewed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          patient_id?: string;
+          patient_name?: string;
+          patient_phone?: string;
+          patient_email?: string | null;
+          specialty_id?: string;
+          professional_id?: string | null;
+          insurance_id?: string;
+          modality?: Modality | null;
+          period_preference?: WaitlistPeriod | null;
+          preferred_days?: number[];
+          notes?: string | null;
+          status?: WaitlistStatus;
+          appointment_id?: string | null;
+          contacted_by?: string | null;
+          contacted_at?: string | null;
+          offered_at?: string | null;
+          accepted_at?: string | null;
+          declined_at?: string | null;
+          viewed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };

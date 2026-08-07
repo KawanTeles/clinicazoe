@@ -9,6 +9,7 @@ import {
   getStaffDashboard,
   getWeeklySeries,
 } from "@/modules/dashboard/services/dashboard-queries";
+import { getWaitlistWaitingCount } from "@/modules/waitlist/services/waitlist-queries";
 import { AppointmentsBarChart } from "@/modules/dashboard/components/AppointmentsBarChart";
 import { RevenueBarChart } from "@/modules/dashboard/components/RevenueBarChart";
 
@@ -60,9 +61,10 @@ export default async function DashboardPage() {
     );
   }
 
-  const [data, weekly] = await Promise.all([
+  const [data, weekly, waitlistCount] = await Promise.all([
     getStaffDashboard(role, session.user.id),
     getWeeklySeries(role, session.user.id),
+    getWaitlistWaitingCount(),
   ]);
 
   return (
@@ -92,6 +94,20 @@ export default async function DashboardPage() {
         )}
         <Kpi label="Cancelamentos" value={String(data.cancelledCount)} subtext="Registros cancelados" />
       </div>
+
+      <Card className="overflow-hidden">
+        <CardContent className="flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Lista de Espera</p>
+            <p className="mt-1 text-2xl font-extrabold text-text-primary font-heading">
+              {waitlistCount} {waitlistCount === 1 ? "paciente aguardando" : "pacientes aguardando"}
+            </p>
+          </div>
+          <Link href="/waitlist">
+            <Button variant="secondary" className="font-bold">Gerenciar Lista</Button>
+          </Link>
+        </CardContent>
+      </Card>
 
       <div>
         <h2 className="text-sm font-bold uppercase tracking-wider text-text-secondary">Indicadores financeiros</h2>
