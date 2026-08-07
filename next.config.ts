@@ -8,12 +8,15 @@ const supabaseHostname = supabaseUrl ? new URL(supabaseUrl).hostname : undefined
 // ambos inline por natureza no App Router. connect-src/frame-src liberam
 // apenas Supabase (dados/storage) e o embed do Google Maps já usado em
 // LocationSection — nenhum outro host de terceiros é carregado pelo site.
+// 'unsafe-eval' só em dev: o React usa eval() para stack traces do modo
+// desenvolvimento (nunca em produção), e o Turbopack/Fast Refresh também
+// depende dele — sem isso o CSP bloqueia o próprio HMR.
 const csp = [
   "default-src 'self'",
   "base-uri 'self'",
   "form-action 'self'",
   "object-src 'none'",
-  `script-src 'self' 'unsafe-inline'`,
+  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
   `style-src 'self' 'unsafe-inline'`,
   `img-src 'self' data: blob: https:`,
   `font-src 'self' data:`,
