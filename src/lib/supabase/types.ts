@@ -250,6 +250,7 @@ export interface Database {
           entity: string;
           entity_id: string | null;
           metadata: Record<string, unknown>;
+          ip: string | null;
           created_at: string;
         };
         Insert: {
@@ -259,6 +260,7 @@ export interface Database {
           entity: string;
           entity_id?: string | null;
           metadata?: Record<string, unknown>;
+          ip?: string | null;
           created_at?: string;
         };
         Update: {
@@ -268,6 +270,7 @@ export interface Database {
           entity?: string;
           entity_id?: string | null;
           metadata?: Record<string, unknown>;
+          ip?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -766,6 +769,123 @@ export interface Database {
           patient_response?: string | null;
           home_guidance?: string | null;
           observations?: string | null;
+          created_by?: string;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_settings: {
+        Row: {
+          id: number;
+          provider: string;
+          model: string | null;
+          api_key_ciphertext: string | null;
+          api_key_last4: string | null;
+          connection_status: string;
+          connection_tested_at: string | null;
+          ai_enabled: boolean;
+          evolution_assistant_enabled: boolean;
+          show_review_notice: boolean;
+          reports_enabled: boolean;
+          patient_assistant_enabled: boolean;
+          monthly_request_limit: number | null;
+          daily_request_limit: number | null;
+          monthly_request_limit_per_user: number | null;
+          limit_action: string;
+          updated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          provider?: string;
+          model?: string | null;
+          api_key_ciphertext?: string | null;
+          api_key_last4?: string | null;
+          connection_status?: string;
+          connection_tested_at?: string | null;
+          ai_enabled?: boolean;
+          evolution_assistant_enabled?: boolean;
+          show_review_notice?: boolean;
+          reports_enabled?: boolean;
+          patient_assistant_enabled?: boolean;
+          monthly_request_limit?: number | null;
+          daily_request_limit?: number | null;
+          monthly_request_limit_per_user?: number | null;
+          limit_action?: string;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          provider?: string;
+          model?: string | null;
+          api_key_ciphertext?: string | null;
+          api_key_last4?: string | null;
+          connection_status?: string;
+          connection_tested_at?: string | null;
+          ai_enabled?: boolean;
+          evolution_assistant_enabled?: boolean;
+          show_review_notice?: boolean;
+          reports_enabled?: boolean;
+          patient_assistant_enabled?: boolean;
+          monthly_request_limit?: number | null;
+          daily_request_limit?: number | null;
+          monthly_request_limit_per_user?: number | null;
+          limit_action?: string;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_reports: {
+        Row: {
+          id: string;
+          patient_id: string;
+          professional_id: string;
+          template: string;
+          period_start: string | null;
+          period_end: string | null;
+          evolution_ids: string[];
+          title: string;
+          content: string;
+          status: string;
+          created_by: string;
+          updated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          patient_id: string;
+          professional_id: string;
+          template: string;
+          period_start?: string | null;
+          period_end?: string | null;
+          evolution_ids?: string[];
+          title: string;
+          content?: string;
+          status?: string;
+          created_by: string;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          patient_id?: string;
+          professional_id?: string;
+          template?: string;
+          period_start?: string | null;
+          period_end?: string | null;
+          evolution_ids?: string[];
+          title?: string;
+          content?: string;
+          status?: string;
           created_by?: string;
           updated_by?: string | null;
           created_at?: string;

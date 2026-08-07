@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
+import { AIWritingAssistant } from "@/modules/ai/components/AIWritingAssistant";
 import type { EvolutionContentInput } from "@/modules/evolutions/services/evolution-actions";
 
 interface EvolutionFormProps {
@@ -11,6 +12,9 @@ interface EvolutionFormProps {
   onSubmit: (input: EvolutionContentInput) => Promise<{ error: string | null }>;
   onCancel: () => void;
   onSaved: () => void;
+  /** Só true quando o usuário é o profissional dono da consulta e o recurso está habilitado pelo admin. */
+  aiEnabled?: boolean;
+  appointmentId?: string;
 }
 
 const FIELDS: {
@@ -35,7 +39,15 @@ const FIELDS: {
   { key: "observations", label: "Observações", hint: "" },
 ];
 
-export function EvolutionForm({ initial, submitLabel, onSubmit, onCancel, onSaved }: EvolutionFormProps) {
+export function EvolutionForm({
+  initial,
+  submitLabel,
+  onSubmit,
+  onCancel,
+  onSaved,
+  aiEnabled,
+  appointmentId,
+}: EvolutionFormProps) {
   const [values, setValues] = useState<EvolutionContentInput>({
     session_summary: initial?.session_summary ?? "",
     clinical_evolution: initial?.clinical_evolution ?? "",
@@ -67,6 +79,12 @@ export function EvolutionForm({ initial, submitLabel, onSubmit, onCancel, onSave
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {aiEnabled && appointmentId && (
+        <AIWritingAssistant
+          appointmentId={appointmentId}
+          onTextReady={(text) => setValues((prev) => ({ ...prev, clinical_evolution: text }))}
+        />
+      )}
       {FIELDS.map((field) => (
         <Textarea
           key={field.key}

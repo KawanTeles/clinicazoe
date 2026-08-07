@@ -157,6 +157,42 @@ export async function getPatientDetail(id: string): Promise<PatientDetail | null
   };
 }
 
+export interface PatientOption {
+  id: string;
+  fullName: string;
+  phone: string | null;
+}
+
+/** Só pacientes com quem o profissional logado já teve consulta — usado pelo
+ * assistente de Relatórios IA para o profissional escolher entre os próprios
+ * pacientes (RLS de appointments/profiles reforça o mesmo escopo). */
+export async function searchOwnPatients(professionalId: string, query: string): Promise<PatientOption[]> {
+  const supabase = await createClient();
+
+  const { data: appointments } = await supabase
+    .from("appointments")
+    .select("patient_id")
+    .eq("professional_id", professionalId);
+
+  const patientIds = Array.from(new Set((appointments ?? []).map((a) => a.patient_id)));
+  if (patientIds.length === 0) return [];
+
+  let profilesQuery = supabase
+    .from("profiles")
+    .select("id, full_name, phone")
+    .in("id", patientIds)
+    .eq("role", "paciente")
+    .order("full_name")
+    .limit(20);
+
+  const trimmed = query.trim();
+  if (trimmed) profilesQuery = profilesQuery.ilike("full_name", `%${trimmed}%`);
+
+  const { data } = await profilesQuery;
+
+  return (data ?? []).map((p) => ({ id: p.id, fullName: p.full_name, phone: p.phone }));
+}
+
 export async function getPatientMessages(patientId: string) {
   const supabase = await createClient();
   const { data } = await supabase

@@ -26,6 +26,7 @@ interface EvolutionPanelProps {
   appointmentStatus: string;
   isOwnerProfessional: boolean;
   evolution: EvolutionView | null;
+  aiEnabled?: boolean;
 }
 
 /** Conteúdo da aba "Evolução" da tela de detalhes da consulta. */
@@ -34,6 +35,7 @@ export function EvolutionPanel({
   appointmentStatus,
   isOwnerProfessional,
   evolution,
+  aiEnabled,
 }: EvolutionPanelProps) {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
@@ -69,6 +71,8 @@ export function EvolutionPanel({
           }
           onCancel={() => setShowForm(false)}
           onSaved={handleSaved}
+          aiEnabled={aiEnabled}
+          appointmentId={appointmentId}
         />
       </div>
     );

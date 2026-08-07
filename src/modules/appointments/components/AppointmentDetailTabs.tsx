@@ -35,6 +35,7 @@ interface AppointmentDetailTabsProps {
   canViewEvolution: boolean;
   isOwnerProfessional: boolean;
   evolution: EvolutionView | null;
+  aiEnabled?: boolean;
 }
 
 export function AppointmentDetailTabs({
@@ -42,6 +43,7 @@ export function AppointmentDetailTabs({
   canViewEvolution,
   isOwnerProfessional,
   evolution,
+  aiEnabled,
 }: AppointmentDetailTabsProps) {
   const [tab, setTab] = useState<"Detalhes" | "Evolução">("Detalhes");
   const attendance = getAttendanceInfo(
@@ -109,6 +111,7 @@ export function AppointmentDetailTabs({
           appointmentStatus={appointment.status}
           isOwnerProfessional={isOwnerProfessional}
           evolution={evolution}
+          aiEnabled={aiEnabled}
         />
       )}
     </div>

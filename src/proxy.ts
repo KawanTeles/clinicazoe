@@ -16,6 +16,7 @@ const STAFF_ROUTES = [
   "/my-schedule",
   "/my-patients",
   "/book",
+  "/reports",
 ];
 
 const PATIENT_PROTECTED_ROUTES = ["/cliente/agendar"];

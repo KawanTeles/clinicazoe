@@ -71,12 +71,20 @@ export default async function AuditPage({
                   )}
                 </td>
                 <td className="px-5 py-4">
-                  {log.metadata && Object.keys(log.metadata).length > 0 ? (
+                  {log.ip || (log.metadata && Object.keys(log.metadata).length > 0) ? (
                     <details className="group">
                       <summary className="cursor-pointer text-xs font-semibold text-[var(--link)] hover:text-[var(--link-hover)]">ver detalhes</summary>
-                      <pre className="mt-2 max-w-xs overflow-x-auto rounded-xl border border-border bg-card-elevated p-3 font-mono text-xs text-text-secondary">
-                        {JSON.stringify(log.metadata, null, 2)}
-                      </pre>
+                      <div className="mt-2 max-w-xs rounded-xl border border-border bg-card-elevated p-3 text-xs text-text-secondary">
+                        {log.ip && (
+                          <p className="mb-2 font-mono">
+                            <span className="font-sans font-bold uppercase tracking-wider text-text-muted">IP: </span>
+                            {log.ip}
+                          </p>
+                        )}
+                        {log.metadata && Object.keys(log.metadata).length > 0 && (
+                          <pre className="overflow-x-auto font-mono">{JSON.stringify(log.metadata, null, 2)}</pre>
+                        )}
+                      </div>
                     </details>
                   ) : (
                     <span className="text-xs text-text-muted">—</span>

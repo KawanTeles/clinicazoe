@@ -27,8 +27,12 @@ export default async function EvolutionsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  // Evolução do Paciente é prontuário clínico: acesso exclusivo do
+  // profissional responsável (sigilo profissional / LGPD). A RLS de
+  // patient_evolutions já restringe searchEvolutions() às evoluções do
+  // próprio profissional mesmo que ele filtre por outro nome.
   const session = await getCurrentUser();
-  if (!session || session.profile.role !== "admin") redirect("/dashboard");
+  if (!session || session.profile.role !== "profissional") redirect("/dashboard");
 
   const params = await searchParams;
   const page = Math.max(1, Number(params.page) || 1);
@@ -49,9 +53,9 @@ export default async function EvolutionsPage({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">Evoluções</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">Evolução do Paciente</h1>
         <p className="mt-1 text-sm text-text-secondary">
-          Busque o histórico clínico registrado pelos profissionais, por paciente, profissional, especialidade ou período.
+          Busque o histórico clínico dos seus pacientes por nome, especialidade ou período.
         </p>
       </div>
 
