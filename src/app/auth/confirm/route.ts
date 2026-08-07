@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const from = searchParams.get("from");
 
   if (code) {
     const supabase = await createClient();
@@ -22,5 +23,11 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/cliente/login?confirm_error=1`);
+  // "from" só é enviado pelo fluxo de login com Google (signInWithGoogle),
+  // para devolver o erro à mesma tela em que o login foi iniciado
+  // (/login para equipe, /cliente/login para paciente).
+  const errorRedirect =
+    from === "/login" ? `${origin}/login?oauth_error=1` : `${origin}/cliente/login?confirm_error=1`;
+
+  return NextResponse.redirect(errorRedirect);
 }

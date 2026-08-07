@@ -41,6 +41,7 @@ export interface Database {
           full_name: string;
           phone: string | null;
           avatar_path: string | null;
+          avatar_url: string | null;
           role: Role;
           status: Status;
           last_sign_in_at: string | null;
@@ -52,6 +53,7 @@ export interface Database {
           full_name?: string;
           phone?: string | null;
           avatar_path?: string | null;
+          avatar_url?: string | null;
           role?: Role;
           status?: Status;
           last_sign_in_at?: string | null;
@@ -63,6 +65,7 @@ export interface Database {
           full_name?: string;
           phone?: string | null;
           avatar_path?: string | null;
+          avatar_url?: string | null;
           role?: Role;
           status?: Status;
           last_sign_in_at?: string | null;

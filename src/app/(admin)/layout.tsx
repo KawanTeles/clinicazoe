@@ -21,7 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const supabase = await createClient();
   const [avatarUrl, permissions, notifications, unreadCount, clinicSettings, pendingRequestsCount, waitlistCount] =
     await Promise.all([
-      getAvatarSignedUrl(supabase, profile.avatar_path),
+      getAvatarSignedUrl(supabase, profile.avatar_path, profile.avatar_url),
       getPermissions(profile.role),
       getNotifications(session.user.id),
       getUnreadCount(session.user.id),

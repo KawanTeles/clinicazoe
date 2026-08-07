@@ -14,7 +14,7 @@ export default async function ProfilePage() {
   if (!session) redirect("/login");
 
   const supabase = await createClient();
-  const avatarUrl = await getAvatarSignedUrl(supabase, session.profile.avatar_path);
+  const avatarUrl = await getAvatarSignedUrl(supabase, session.profile.avatar_path, session.profile.avatar_url);
 
   return (
     <div className="flex flex-col gap-6">

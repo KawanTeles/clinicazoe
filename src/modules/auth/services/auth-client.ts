@@ -10,6 +10,19 @@ export async function signOut() {
   return supabase.auth.signOut();
 }
 
+export async function signInWithGoogle(fromPath?: string) {
+  const supabase = createClient();
+  const redirectTo = new URL("/auth/confirm", window.location.origin);
+  if (fromPath) {
+    redirectTo.searchParams.set("from", fromPath);
+  }
+
+  return supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: redirectTo.toString() },
+  });
+}
+
 export async function signUpPatient(params: {
   fullName: string;
   email: string;
