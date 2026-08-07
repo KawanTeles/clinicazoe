@@ -9,6 +9,11 @@ import { signInWithGoogle, signInWithPassword } from "@/modules/auth/services/au
 
 interface LoginFormProps {
   signupHref?: string | null;
+  /**
+   * O login com Google é exclusivo do Portal do Paciente — nunca deve
+   * aparecer nas telas de acesso da equipe (admin/recepcionista/profissional).
+   */
+  allowGoogle?: boolean;
 }
 
 function GoogleIcon() {
@@ -34,7 +39,7 @@ function GoogleIcon() {
   );
 }
 
-export function LoginForm({ signupHref = "/cliente/signup" }: LoginFormProps) {
+export function LoginForm({ signupHref = null, allowGoogle = false }: LoginFormProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -107,23 +112,27 @@ export function LoginForm({ signupHref = "/cliente/signup" }: LoginFormProps) {
         </Button>
       </form>
 
-      <div className="flex items-center gap-3">
-        <span className="h-px flex-1 bg-border" />
-        <span className="text-xs font-medium text-text-secondary">ou</span>
-        <span className="h-px flex-1 bg-border" />
-      </div>
+      {allowGoogle && (
+        <>
+          <div className="flex items-center gap-3">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-xs font-medium text-text-secondary">ou</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
 
-      <Button
-        type="button"
-        variant="secondary"
-        isLoading={googleLoading}
-        disabled={loading}
-        onClick={handleGoogleSignIn}
-        className="w-full gap-2.5"
-      >
-        {!googleLoading && <GoogleIcon />}
-        Entrar com Google
-      </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            isLoading={googleLoading}
+            disabled={loading}
+            onClick={handleGoogleSignIn}
+            className="w-full gap-2.5"
+          >
+            {!googleLoading && <GoogleIcon />}
+            Entrar com Google
+          </Button>
+        </>
+      )}
 
       {signupHref && (
         <p className="text-center text-xs text-text-secondary mt-2">

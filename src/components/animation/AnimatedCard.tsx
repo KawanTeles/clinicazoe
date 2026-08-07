@@ -1,7 +1,7 @@
 "use client";
 
-import { ReactNode } from "react";
-import { motion, Variants } from "framer-motion";
+import { ReactNode, memo } from "react";
+import { m, Variants } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
 
 interface AnimatedCardProps {
@@ -31,7 +31,7 @@ const cardVariants: Variants = {
   }),
 };
 
-export function AnimatedCard({
+export const AnimatedCard = memo(function AnimatedCard({
   children,
   className = "",
   delayMs = 0,
@@ -40,7 +40,7 @@ export function AnimatedCard({
   onClick,
 }: AnimatedCardProps) {
   return (
-    <motion.div
+    <m.div
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
@@ -62,6 +62,6 @@ export function AnimatedCard({
       )}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
-}
+});

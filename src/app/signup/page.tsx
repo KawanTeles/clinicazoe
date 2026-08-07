@@ -6,8 +6,9 @@ import { SignupForm } from "@/modules/auth/components/SignupForm";
 import { DeveloperSignature } from "@/components/public/DeveloperSignature";
 
 export const metadata = {
-  title: "Criar conta — ClinicaZoe",
+  title: "Criar conta — Clínica Zoe",
   description: "Crie sua conta de acesso ao painel administrativo da Clínica Zoe.",
+  robots: { index: false, follow: false, nocache: true },
 };
 
 export default function SignupPage() {
@@ -25,7 +26,7 @@ export default function SignupPage() {
               priority
               className="h-16 w-16 rounded-full object-cover shadow-lg border-2 border-primary/30 mb-3"
             />
-            <h1 className="text-2xl font-extrabold tracking-tight text-text-primary font-heading">ClinicaZoe</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight text-text-primary font-heading">Clínica Zoe</h1>
             <p className="mt-1.5 text-sm text-text-secondary">Crie sua conta de paciente</p>
           </div>
           <AnimatedCard className="shadow-[0_15px_50px_rgba(0,0,0,0.4)]">

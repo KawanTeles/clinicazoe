@@ -14,28 +14,39 @@ import { Button } from "@/components/ui/Button";
 import { formatCurrency } from "@/lib/whatsapp";
 import { CTA_PRIMARY, CTA_VIEW_PROFILE } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
+import { buildEntitySlug } from "@/lib/slug";
 
 export const metadata = {
   title: "Corpo Médico e Profissionais — Clínica Zoe",
-  description: "Conheça nossos médicos especialistas, qualificações, horários e agende sua consulta.",
+  description: "Conheça os médicos especialistas da Clínica Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar sua consulta hoje mesmo.",
   alternates: { canonical: `${SITE_URL}/profissionais` },
   openGraph: {
     title: "Corpo Médico e Profissionais — Clínica Zoe",
-    description: "Conheça nossos médicos especialistas, qualificações, horários e agende sua consulta.",
+    description: "Conheça os médicos especialistas da Clínica Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar sua consulta hoje mesmo.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Corpo Médico e Profissionais — Clínica Zoe",
-    description: "Conheça nossos médicos especialistas, qualificações, horários e agende sua consulta.",
+    description: "Conheça os médicos especialistas da Clínica Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar sua consulta hoje mesmo.",
   },
 };
 
 export default async function ProfissionaisPage() {
   const { clinic, professionals } = await getPublicWebsiteData();
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Início", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Profissionais", item: `${SITE_URL}/profissionais` },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
       <main className="flex-1 py-16 lg:py-24">
@@ -95,7 +106,7 @@ export default async function ProfissionaisPage() {
                 </div>
 
                 <div className="mt-8 pt-4 border-t border-border/60 space-y-3">
-                  <Link href={`/profissionais/${prof.id}`} className="block w-full">
+                  <Link href={`/profissionais/${buildEntitySlug(prof.fullName, prof.id)}`} className="block w-full">
                     <Button variant="secondary" className="w-full font-bold" size="sm">
                       {CTA_VIEW_PROFILE}
                     </Button>

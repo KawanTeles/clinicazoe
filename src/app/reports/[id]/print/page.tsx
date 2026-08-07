@@ -7,7 +7,8 @@ import { getClinicSettings } from "@/modules/settings/services/settings-queries"
 import { PrintOnMount } from "@/modules/ai/components/PrintOnMount";
 
 export const metadata = {
-  title: "Imprimir Relatório — ClinicaZoe",
+  title: "Imprimir Relatório — Clínica Zoe",
+  robots: { index: false, follow: false, nocache: true },
 };
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });

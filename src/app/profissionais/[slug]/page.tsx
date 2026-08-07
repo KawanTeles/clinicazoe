@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import { getPublicWebsiteData } from "@/lib/public-queries";
 import { PublicHeader } from "@/components/public/PublicHeader";
@@ -12,50 +12,103 @@ import { Button } from "@/components/ui/Button";
 import { formatCurrency } from "@/lib/whatsapp";
 import { CTA_PRIMARY } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
+import { buildEntitySlug } from "@/lib/slug";
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+async function findProfessional(slug: string) {
   const { professionals } = await getPublicWebsiteData();
-  const prof = professionals.find((p) => p.id === id);
-  if (!prof) return { title: "Profissional | Clínica Zoe" };
+  const bySlug = professionals.find((p) => buildEntitySlug(p.fullName, p.id) === slug);
+  if (bySlug) return { prof: bySlug, professionals, canonicalSlug: slug };
+
+  // Compatibilidade com o formato antigo (UUID puro na URL): resolve o
+  // profissional pelo id e redireciona permanentemente para a URL amigável,
+  // preservando o valor de SEO de links/indexação já existentes.
+  const byId = professionals.find((p) => p.id === slug);
+  if (byId) return { prof: byId, professionals, canonicalSlug: buildEntitySlug(byId.fullName, byId.id) };
+
+  return null;
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const result = await findProfessional(slug);
+  if (!result) return { title: "Profissional | Clínica Zoe" };
+  const { prof, canonicalSlug } = result;
+
+  const title = `${prof.fullName} — ${prof.specialtyName} | Clínica Zoe`;
+  const description = prof.bio.length > 160 ? `${prof.bio.slice(0, 157)}...` : prof.bio;
+
   return {
-    title: `${prof.fullName} — ${prof.specialtyName} | Clínica Zoe`,
-    description: prof.bio,
-    alternates: { canonical: `${SITE_URL}/profissionais/${prof.id}` },
-    openGraph: {
-      title: `${prof.fullName} — ${prof.specialtyName} | Clínica Zoe`,
-      description: prof.bio,
-      type: "profile",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `${prof.fullName} — ${prof.specialtyName} | Clínica Zoe`,
-      description: prof.bio,
-    },
+    title,
+    description,
+    alternates: { canonical: `${SITE_URL}/profissionais/${canonicalSlug}` },
+    openGraph: { title, description, type: "profile" },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
-export default async function ProfissionalDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const { clinic, professionals } = await getPublicWebsiteData();
-  const prof = professionals.find((p) => p.id === id);
+export default async function ProfissionalDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const result = await findProfessional(slug);
 
-  if (!prof) notFound();
+  if (!result) notFound();
+  const { prof, canonicalSlug } = result;
+
+  if (canonicalSlug !== slug) {
+    permanentRedirect(`/profissionais/${canonicalSlug}`);
+  }
+
+  const { clinic } = await getPublicWebsiteData();
+
+  const breadcrumbItems = [
+    { label: "Início", href: "/" },
+    { label: "Profissionais", href: "/profissionais" },
+    { label: prof.fullName },
+  ];
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: breadcrumbItems.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.label,
+      ...(item.href ? { item: `${SITE_URL}${item.href}` } : {}),
+    })),
+  };
+
+  const physicianJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Physician",
+    name: prof.fullName,
+    medicalSpecialty: prof.specialtyName,
+    description: prof.bio,
+    url: `${SITE_URL}/profissionais/${canonicalSlug}`,
+    ...(prof.avatarUrl ? { image: prof.avatarUrl } : {}),
+    ...(prof.licenseNumber ? { identifier: prof.licenseNumber } : {}),
+    worksFor: {
+      "@type": "MedicalClinic",
+      name: clinic.name || "Clínica Zoe",
+      url: SITE_URL,
+    },
+  };
 
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(physicianJsonLd) }}
+      />
+
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
       <main className="flex-1 py-16 lg:py-24">
         <PageEntrance className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 space-y-12">
           <PageEntranceItem>
-            <Breadcrumb
-              items={[
-                { label: "Início", href: "/" },
-                { label: "Profissionais", href: "/profissionais" },
-                { label: prof.fullName },
-              ]}
-            />
+            <Breadcrumb items={breadcrumbItems} />
           </PageEntranceItem>
 
           <PageEntranceItem>

@@ -13,32 +13,43 @@ import { SITE_URL } from "@/lib/site-url";
 
 export const metadata = {
   title: "A Clínica — História, Missão e Valores | Clínica Zoe",
-  description: "Conheça a trajetória da Clínica Zoe, nossa missão de atendimento humanizado e padrão internacional de saúde.",
+  description: "Conheça a história, missão, visão e valores da Clínica Zoe: atendimento humanizado, ética médica e padrão internacional de qualidade em saúde integrada.",
   alternates: { canonical: `${SITE_URL}/clinica` },
   openGraph: {
     title: "A Clínica — História, Missão e Valores | Clínica Zoe",
-    description: "Conheça a trajetória da Clínica Zoe, nossa missão de atendimento humanizado e padrão internacional de saúde.",
+    description: "Conheça a história, missão, visão e valores da Clínica Zoe: atendimento humanizado, ética médica e padrão internacional de qualidade em saúde integrada.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "A Clínica — História, Missão e Valores | Clínica Zoe",
-    description: "Conheça a trajetória da Clínica Zoe, nossa missão de atendimento humanizado e padrão internacional de saúde.",
+    description: "Conheça a história, missão, visão e valores da Clínica Zoe: atendimento humanizado, ética médica e padrão internacional de qualidade em saúde integrada.",
   },
 };
 
 export default async function ClinicaPage() {
   const { clinic } = await getPublicWebsiteData();
 
+  const breadcrumbItems = [{ label: "Início", href: "/" }, { label: "A Clínica" }];
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Início", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "A Clínica", item: `${SITE_URL}/clinica` },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
       <main className="flex-1 py-16 lg:py-24">
         <PageEntrance className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-20">
           <PageEntranceItem>
             <PageHero
-              breadcrumbItems={[{ label: "Início", href: "/" }, { label: "A Clínica" }]}
+              breadcrumbItems={breadcrumbItems}
               title="A Clínica Zoe"
               subtitle="Inovação, ética e o acolhimento humano no centro de tudo que fazemos."
             />

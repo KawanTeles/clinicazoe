@@ -661,7 +661,8 @@ export async function createPublicAppointment(
       const { data: authUser, error: authError } = await admin.auth.admin.createUser({
         email: dummyEmail,
         email_confirm: true,
-        user_metadata: { full_name: input.patientName, role: "paciente" },
+        user_metadata: { full_name: input.patientName },
+        app_metadata: { role: "paciente" },
       });
 
       if (authError || !authUser.user) {

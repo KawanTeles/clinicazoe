@@ -1,7 +1,4 @@
-"use client";
-
 import { ReactNode } from "react";
-import { motion, Variants } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
 
 interface PageEntranceProps {
@@ -10,54 +7,24 @@ interface PageEntranceProps {
   delayMs?: number;
 }
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      duration: 0.4,
-      ease: [0.32, 0.72, 0, 1],
-      staggerChildren: 0.1,
-      delayChildren: 0.05,
-    },
-  },
-};
-
-export const pageItemVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    y: 18,
-    scale: 0.99,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: 0.6,
-      ease: [0.16, 1, 0.3, 1],
-    },
-  },
-};
-
+/**
+ * Animação de entrada do hero (fade + slide-up + stagger) em CSS puro — ver
+ * `.page-entrance` / `.page-entrance-item` em globals.css. Não usa Framer
+ * Motion de propósito: este é o conteúdo mais provável de ser o LCP de cada
+ * página, e não deve depender de nenhum bundle JS carregar para pintar. Não
+ * precisa ser Client Component — CSS anima sozinho, sem JS nenhum.
+ */
 export function PageEntrance({ children, className = "", delayMs = 0 }: PageEntranceProps) {
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-      style={{ transitionDelay: `${delayMs}ms` }}
-      className={cn("w-full transform-gpu", className)}
+    <div
+      style={delayMs ? { animationDelay: `${delayMs}ms` } : undefined}
+      className={cn("page-entrance w-full transform-gpu", className)}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
 export function PageEntranceItem({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return (
-    <motion.div variants={pageItemVariants} className={cn("transform-gpu", className)}>
-      {children}
-    </motion.div>
-  );
+  return <div className={cn("page-entrance-item transform-gpu", className)}>{children}</div>;
 }

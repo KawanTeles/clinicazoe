@@ -57,7 +57,7 @@ export default async function PatientLoginPage({
             <AnimatedCard className="shadow-card">
               <CardContent className="p-6 sm:p-8">
                 <Suspense>
-                  <LoginForm signupHref="/cliente/signup" />
+                  <LoginForm signupHref="/cliente/signup" allowGoogle />
                 </Suspense>
               </CardContent>
             </AnimatedCard>

@@ -16,7 +16,7 @@ import { getAppointmentsForPatient } from "@/modules/appointments/services/patie
 import { getAttendanceInfo } from "@/lib/attendance";
 
 export const metadata = {
-  title: "Área do Cliente — ClinicaZoe Portal do Paciente",
+  title: "Área do Cliente — Clínica Zoe",
   description: "Acompanhe seus agendamentos, histórico médico e consultas na Clínica Zoe.",
 };
 

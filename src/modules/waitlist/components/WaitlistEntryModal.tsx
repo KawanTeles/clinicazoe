@@ -157,7 +157,7 @@ export function WaitlistEntryModal({
                 href={result.whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 py-3 text-sm font-bold text-white transition-all hover:bg-[#1EBE5A] sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#0F7A3D] px-5 py-3 text-sm font-bold text-white transition-all hover:bg-[#0C6432] sm:w-auto"
               >
                 Reabrir mensagem no WhatsApp
               </a>

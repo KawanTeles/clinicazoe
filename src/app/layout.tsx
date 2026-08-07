@@ -24,20 +24,26 @@ const bricolage = Bricolage_Grotesque({
   display: "swap",
 });
 
-const FALLBACK_NAME = "ClinicaZoe";
-const DESCRIPTION = "Cuidados de saúde com tecnologia, excelência e acolhimento. Agendamento de consultas online rápida e segura.";
+const FALLBACK_NAME = "Clínica Zoe";
+const DESCRIPTION =
+  "Clínica Zoe: atendimento médico humanizado com tecnologia de ponta, corpo clínico especializado e agendamento de consultas 100% online, rápido e seguro.";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { clinic } = await getSiteMetadataForLayout();
   const name = clinic?.name || FALLBACK_NAME;
 
   return {
+    metadataBase: new URL(SITE_URL),
     title: {
       default: `${name} — Medicina de Excelência e Saúde Integrada`,
       template: `%s | ${name}`,
     },
     description: DESCRIPTION,
     keywords: ["clínica médica", "agendamento médico", "consultas online", "especialistas de saúde", name],
+    authors: [{ name }],
+    creator: name,
+    publisher: name,
+    formatDetection: { email: false, address: false, telephone: false },
     icons: {
       icon: [
         { url: "/favicon.ico" },
@@ -54,6 +60,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       locale: "pt_BR",
       siteName: name,
+      url: SITE_URL,
       images: [
         {
           url: "/og-image.png",
@@ -69,19 +76,35 @@ export async function generateMetadata(): Promise<Metadata> {
       description: DESCRIPTION,
       images: ["/og-image.png"],
     },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+    },
   };
 }
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AnimationProvider } from "@/components/animation/AnimationProvider";
 
+const SCHEMA_WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { clinic, specialtyNames } = await getSiteMetadataForLayout();
   const name = clinic?.name || FALLBACK_NAME;
 
+  const openingHours = (clinic?.business_hours ?? [])
+    .filter((entry) => entry.is_open)
+    .map((entry) => ({
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: `https://schema.org/${SCHEMA_WEEKDAYS[entry.day]}`,
+      opens: entry.open_time,
+      closes: entry.close_time,
+    }));
+
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "MedicalOrganization",
+    "@type": ["MedicalClinic", "MedicalBusiness"],
     name,
     ...(clinic?.legal_name ? { legalName: clinic.legal_name } : {}),
     url: SITE_URL,
@@ -104,6 +127,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           },
         }
       : {}),
+    ...(clinic?.latitude != null && clinic?.longitude != null
+      ? {
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: clinic.latitude,
+            longitude: clinic.longitude,
+          },
+          hasMap: clinic?.maps_url || `https://maps.google.com/?q=${clinic.latitude},${clinic.longitude}`,
+        }
+      : {}),
+    ...(openingHours.length > 0 ? { openingHoursSpecification: openingHours } : {}),
     medicalSpecialty: specialtyNames.length > 0 ? specialtyNames : ["GeneralPractice"],
     availableService: {
       "@type": "MedicalProcedure",
@@ -112,6 +146,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     sameAs: [clinic?.instagram_url, clinic?.facebook_url, clinic?.linkedin_url, clinic?.youtube_url].filter(
       (url): url is string => Boolean(url),
     ),
+  };
+
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name,
+    url: SITE_URL,
+    inLanguage: "pt-BR",
+    publisher: { "@type": "MedicalClinic", name },
   };
 
   return (
@@ -129,6 +172,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
       </head>
       <body className="min-h-full flex flex-col bg-background text-text-primary font-sans transition-colors duration-300">

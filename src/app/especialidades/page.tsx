@@ -12,28 +12,39 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { CTA_PRIMARY } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
+import { buildEntitySlug } from "@/lib/slug";
 
 export const metadata = {
   title: "Especialidades Médicas — Clínica Zoe",
-  description: "Conheça todas as especialidades atendidas na Clínica Zoe por nosso corpo médico.",
+  description: "Conheça todas as especialidades médicas atendidas na Clínica Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada consulta.",
   alternates: { canonical: `${SITE_URL}/especialidades` },
   openGraph: {
     title: "Especialidades Médicas — Clínica Zoe",
-    description: "Conheça todas as especialidades atendidas na Clínica Zoe por nosso corpo médico.",
+    description: "Conheça todas as especialidades médicas atendidas na Clínica Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada consulta.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Especialidades Médicas — Clínica Zoe",
-    description: "Conheça todas as especialidades atendidas na Clínica Zoe por nosso corpo médico.",
+    description: "Conheça todas as especialidades médicas atendidas na Clínica Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada consulta.",
   },
 };
 
 export default async function EspecialidadesPage() {
   const { clinic, specialties, professionals } = await getPublicWebsiteData();
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Início", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Especialidades", item: `${SITE_URL}/especialidades` },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
       <main className="flex-1 py-16 lg:py-24">
@@ -74,10 +85,23 @@ export default async function EspecialidadesPage() {
                         <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
                       </svg>
                     </div>
-                    <h3 className="text-xl font-bold text-text-primary font-heading">{spec.name}</h3>
+                    <h3 className="text-xl font-bold text-text-primary font-heading">
+                      <Link
+                        href={`/especialidades/${buildEntitySlug(spec.name, spec.id)}`}
+                        className="hover:text-[var(--link)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                      >
+                        {spec.name}
+                      </Link>
+                    </h3>
                     <p className="text-xs text-text-secondary leading-relaxed">
                       Atendimento preventivo, diagnóstico avançado e acompanhamento personalizado nesta especialidade.
                     </p>
+                    <Link
+                      href={`/especialidades/${buildEntitySlug(spec.name, spec.id)}`}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-[var(--link)] hover:underline"
+                    >
+                      Saiba mais →
+                    </Link>
 
                     {relatedProfs.length > 0 && (
                       <div className="pt-3 border-t border-border/60">

@@ -1,7 +1,7 @@
 "use client";
 
-import { ReactNode } from "react";
-import { motion, Variants } from "framer-motion";
+import { ReactNode, memo } from "react";
+import { m, Variants } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
 
 export type ScrollAnimationType =
@@ -43,7 +43,7 @@ const variants: Record<ScrollAnimationType, Variants> = {
   },
 };
 
-export function ScrollReveal({
+export const ScrollReveal = memo(function ScrollReveal({
   children,
   animation = "fade-up",
   delayMs = 0,
@@ -54,7 +54,7 @@ export function ScrollReveal({
   const selectedVariants = variants[animation] || variants["fade-up"];
 
   return (
-    <motion.div
+    <m.div
       initial="hidden"
       whileInView="visible"
       viewport={{ once, margin: "0px 0px -40px 0px" }}
@@ -67,6 +67,6 @@ export function ScrollReveal({
       className={cn("transform-gpu will-change-transform", className)}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
-}
+});

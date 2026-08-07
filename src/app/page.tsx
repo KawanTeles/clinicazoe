@@ -14,9 +14,11 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { CTA_PRIMARY, CTA_VIEW_ALL_PROFESSIONALS, CTA_VIEW_ALL_SPECIALTIES, CTA_VIEW_PROFILE } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
+import { buildEntitySlug } from "@/lib/slug";
 
 const TITLE = "Clínica Zoe — Medicina de Alta Performance e Saúde Integrada";
-const DESCRIPTION = "Referência em atendimento médico de excelência, corpo clínico renomado e tecnologia de ponta.";
+const DESCRIPTION =
+  "Referência em atendimento médico de excelência, corpo clínico renomado, tecnologia de ponta e agendamento 100% online. Marque sua consulta com a Clínica Zoe.";
 
 export const metadata = {
   title: TITLE,
@@ -33,6 +35,7 @@ export default async function HomePage() {
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
+      <main>
       {/* HERO SECTION */}
       <section className="relative overflow-hidden pt-16 pb-24 lg:pt-24 lg:pb-36 bg-gradient-forest-subtle">
         {/* Ambient Glow */}
@@ -130,21 +133,21 @@ export default async function HomePage() {
                         </div>
                         <div>
                           <span className="text-xs font-bold uppercase tracking-wider text-[var(--link)]">Centro Médico Integrado</span>
-                          <h3 className="text-xl font-extrabold text-text-primary font-heading mt-0.5">Padrão Internacional</h3>
+                          <p className="text-xl font-extrabold text-text-primary font-heading mt-0.5">Padrão Internacional</p>
                         </div>
                       </div>
 
                       <div className="space-y-3.5">
                         <div className="group/item rounded-xl border border-[rgba(110,231,183,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(110,231,183,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
-                          <h4 className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Consultas Presenciais & Telemedicina</h4>
+                          <p className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Consultas Presenciais & Telemedicina</p>
                           <p className="text-xs text-text-secondary mt-1 leading-relaxed">Flexibilidade e comodidade com suporte completo.</p>
                         </div>
                         <div className="group/item rounded-xl border border-[rgba(110,231,183,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(110,231,183,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
-                          <h4 className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Prontuário Digital Criptografado</h4>
+                          <p className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Prontuário Digital Criptografado</p>
                           <p className="text-xs text-text-secondary mt-1 leading-relaxed">Segurança de dados e acesso instantâneo ao seu histórico.</p>
                         </div>
                         <div className="group/item rounded-xl border border-[rgba(110,231,183,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(110,231,183,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
-                          <h4 className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Principais Convênios Aceitos</h4>
+                          <p className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Principais Convênios Aceitos</p>
                           <p className="text-xs text-text-secondary mt-1 leading-relaxed">Ampla cobertura e facilidades para plano e particular.</p>
                         </div>
                       </div>
@@ -294,7 +297,7 @@ export default async function HomePage() {
                   </h3>
                   <p className="mt-1 text-xs text-text-secondary">Atendimento presencial e online</p>
                 </div>
-                <Link href="/especialidades" className="mt-6 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
+                <Link href={`/especialidades/${buildEntitySlug(spec.name, spec.id)}`} className="mt-6 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
                   Ver detalhes →
                 </Link>
               </AnimatedCard>
@@ -350,7 +353,7 @@ export default async function HomePage() {
                 </div>
 
                 <div className="mt-6 pt-4 border-t border-border/70">
-                  <Link href={`/profissionais/${prof.id}`} className="block w-full">
+                  <Link href={`/profissionais/${buildEntitySlug(prof.fullName, prof.id)}`} className="block w-full">
                     <Button variant="secondary" size="sm" className="w-full font-bold border border-border/80 hover:border-primary/60">
                       {CTA_VIEW_PROFILE}
                     </Button>
@@ -408,6 +411,7 @@ export default async function HomePage() {
         latitude={clinic.latitude}
         longitude={clinic.longitude}
       />
+      </main>
 
       <PublicFooter
         clinicName={clinic.name}

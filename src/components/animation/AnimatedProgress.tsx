@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { memo } from "react";
+import { m } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
 
 interface AnimatedProgressProps {
@@ -11,7 +12,7 @@ interface AnimatedProgressProps {
   delayMs?: number;
 }
 
-export function AnimatedProgress({
+export const AnimatedProgress = memo(function AnimatedProgress({
   value,
   height = "h-2",
   className = "",
@@ -22,7 +23,7 @@ export function AnimatedProgress({
 
   return (
     <div className={cn("w-full overflow-hidden rounded-full bg-card-elevated border border-border/40", height, className)}>
-      <motion.div
+      <m.div
         initial={{ width: 0 }}
         whileInView={{ width: `${percentage}%` }}
         viewport={{ once: true, amount: 0.5 }}
@@ -35,4 +36,4 @@ export function AnimatedProgress({
       />
     </div>
   );
-}
+});

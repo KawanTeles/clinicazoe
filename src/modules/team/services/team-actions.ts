@@ -64,7 +64,8 @@ export async function createTeamMember(
     email: input.email,
     password: input.password,
     email_confirm: true,
-    user_metadata: { full_name: input.full_name.trim(), role: input.role },
+    user_metadata: { full_name: input.full_name.trim() },
+    app_metadata: { role: input.role },
   });
 
   if (createError) {

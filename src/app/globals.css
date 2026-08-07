@@ -42,8 +42,8 @@
 
   /* Typography Colors */
   --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
+  --text-secondary: #96A5BA; /* #94A3B8 media 4.49:1 em fundos translúcidos (bg-card-elevated/70) — abaixo do mínimo AA por 0.01 */
+  --text-muted: #8B98AE; /* WCAG AA (4.5:1+) em --card/--bg-footer; #64748B media 3.07–3.86:1 */
   --text-disabled: #475569;
 
   /* Links & Badges */
@@ -112,7 +112,7 @@
   /* Typography Colors */
   --text-primary: #0F172A;
   --text-secondary: #475569;
-  --text-muted: #64748B;
+  --text-muted: #5B6B82; /* WCAG AA (4.5:1+); #64748B ficava em 4.34:1 no rodapé */
   --text-disabled: #94A3B8;
 
   /* Links & Badges */
@@ -153,6 +153,63 @@
   --selection-bg: #0F766E;
   --selection-text: #FFFFFF;
 }
+
+/* Framer Motion já respeita prefers-reduced-motion via MotionConfig
+   reducedMotion="user" (AnimationProvider). Esta regra cobre o resto: as
+   transições/animações puramente CSS (Tailwind `transition-*`, `duration-*`,
+   `animate-spin` do spinner de loading) usadas nos componentes fora do
+   Framer Motion, que não passam por aquele provider. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ----------------------------------------------------
+   PAGE ENTRANCE (hero) — CSS puro, de propósito.
+   ----------------------------------------------------
+   É a mesma animação que existia via Framer Motion (fade + slide-up +
+   stagger), reescrita em @keyframes. O conteúdo do hero é o candidato a LCP
+   de cada página; se ele começa em opacity:0 esperando o motor de animação
+   do Framer Motion carregar, o LCP fica refém do JS. CSS anima a partir do
+   primeiro paint, sem esperar nenhum bundle. Valores idênticos aos das
+   variants antigas (ver git blame de PageEntrance.tsx): container 0.4s
+   cubic-bezier(0.32,0.72,0,1); item 0.6s cubic-bezier(0.16,1,0.3,1);
+   delayChildren 0.05s + staggerChildren 0.1s via nth-child. */
+@keyframes page-entrance-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes page-entrance-item {
+  from { opacity: 0; transform: translateY(18px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.page-entrance {
+  animation: page-entrance-fade 0.4s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.page-entrance-item {
+  opacity: 0;
+  animation: page-entrance-item 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.05s;
+}
+
+.page-entrance > .page-entrance-item:nth-child(2) { animation-delay: 0.15s; }
+.page-entrance > .page-entrance-item:nth-child(3) { animation-delay: 0.25s; }
+.page-entrance > .page-entrance-item:nth-child(4) { animation-delay: 0.35s; }
+.page-entrance > .page-entrance-item:nth-child(5) { animation-delay: 0.45s; }
+.page-entrance > .page-entrance-item:nth-child(6) { animation-delay: 0.55s; }
+.page-entrance > .page-entrance-item:nth-child(7) { animation-delay: 0.65s; }
+.page-entrance > .page-entrance-item:nth-child(8) { animation-delay: 0.75s; }
+.page-entrance > .page-entrance-item:nth-child(9) { animation-delay: 0.85s; }
+.page-entrance > .page-entrance-item:nth-child(10) { animation-delay: 0.95s; }
 
 @theme inline {
   --color-primary: var(--primary);

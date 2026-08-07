@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -9,6 +10,13 @@ import { getNotifications, getUnreadCount } from "@/modules/notifications/servic
 import { getClinicLogoUrl, getClinicSettings } from "@/modules/settings/services/settings-queries";
 import { getPendingRequestsCount } from "@/modules/requests/services/request-queries";
 import { getWaitlistUnseenCount } from "@/modules/waitlist/services/waitlist-queries";
+
+// Painel administrativo: rota inteira é privada. Definido no layout para
+// cobrir todas as ~30 páginas do grupo (admin) de uma vez só — páginas
+// filhas que não redefinem `robots` herdam este valor automaticamente.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false, nocache: true },
+};
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getCurrentUser();

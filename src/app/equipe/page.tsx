@@ -11,8 +11,9 @@ import { CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
 export const metadata = {
-  title: "Área da Equipe — ClinicaZoe",
+  title: "Área da Equipe — Clínica Zoe",
   description: "Acesso restrito para colaboradores da Clínica Zoe.",
+  robots: { index: false, follow: false, nocache: true },
 };
 
 export default async function EquipePublicPage() {

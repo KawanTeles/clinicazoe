@@ -91,7 +91,6 @@ export function PublicFooter({
                 alt={clinicName}
                 width={40}
                 height={40}
-                unoptimized
                 className="h-10 w-10 rounded-full object-cover shadow-sm border border-border/50"
               />
               <span className="text-xl font-bold text-text-primary font-heading">{clinicName}</span>
@@ -121,7 +120,7 @@ export function PublicFooter({
 
           {/* Navigation Links */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--link)] font-heading mb-4">Navegação</h4>
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--link)] font-heading mb-4">Navegação</p>
             <ul className="space-y-2.5 text-sm">
               <li>
                 <Link href="/" className="hover:text-text-primary transition-colors">
@@ -148,7 +147,7 @@ export function PublicFooter({
 
           {/* Information */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--link)] font-heading mb-4">Serviços & Convênios</h4>
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--link)] font-heading mb-4">Serviços & Convênios</p>
             <ul className="space-y-2.5 text-sm">
               <li>
                 <Link href="/convenios" className="hover:text-text-primary transition-colors">
@@ -175,7 +174,7 @@ export function PublicFooter({
 
           {/* Contact */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--link)] font-heading mb-4">Atendimento</h4>
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--link)] font-heading mb-4">Atendimento</p>
             {address && <p className="text-xs text-text-secondary leading-relaxed mb-3">{address}</p>}
             {email && <p className="text-xs text-text-secondary leading-relaxed mb-3">{email}</p>}
             {extraPhones.length > 0 && (

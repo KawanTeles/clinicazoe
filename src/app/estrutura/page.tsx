@@ -12,25 +12,35 @@ import { SITE_URL } from "@/lib/site-url";
 
 export const metadata = {
   title: "Estrutura e Tecnologia — Clínica Zoe",
-  description: "Conheça nossas instalações modernas, salas de atendimento e tecnologia médica.",
+  description: "Conheça a estrutura da Clínica Zoe: consultórios climatizados, central diagnóstica integrada, biossegurança rigorosa e acessibilidade para todos os pacientes.",
   alternates: { canonical: `${SITE_URL}/estrutura` },
   openGraph: {
     title: "Estrutura e Tecnologia — Clínica Zoe",
-    description: "Conheça nossas instalações modernas, salas de atendimento e tecnologia médica.",
+    description: "Conheça a estrutura da Clínica Zoe: consultórios climatizados, central diagnóstica integrada, biossegurança rigorosa e acessibilidade para todos os pacientes.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Estrutura e Tecnologia — Clínica Zoe",
-    description: "Conheça nossas instalações modernas, salas de atendimento e tecnologia médica.",
+    description: "Conheça a estrutura da Clínica Zoe: consultórios climatizados, central diagnóstica integrada, biossegurança rigorosa e acessibilidade para todos os pacientes.",
   },
 };
 
 export default async function EstruturaPage() {
   const { clinic } = await getPublicWebsiteData();
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Início", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Estrutura", item: `${SITE_URL}/estrutura` },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
       <main className="flex-1 py-16 lg:py-24">

@@ -1,10 +1,16 @@
 import { MetadataRoute } from "next";
 import { getPublicWebsiteData } from "@/lib/public-queries";
 import { SITE_URL } from "@/lib/site-url";
+import { buildEntitySlug } from "@/lib/slug";
 
+// Só entram no sitemap as rotas públicas e indexáveis. Área do cliente,
+// login/signup e o painel administrativo não têm valor de busca (conteúdo
+// privado/duplicado por usuário) e já são bloqueados em robots.ts + noindex
+// — mantê-los fora daqui evita sinalizar ao Google páginas que ele nunca
+// deve indexar.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_URL;
-  const { professionals } = await getPublicWebsiteData();
+  const { professionals, specialties } = await getPublicWebsiteData();
 
   const institutionalRoutes: MetadataRoute.Sitemap = [
     { path: "/clinica", changeFrequency: "monthly", priority: 0.7 },
@@ -21,7 +27,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const professionalRoutes: MetadataRoute.Sitemap = professionals.map((prof) => ({
-    url: `${baseUrl}/profissionais/${prof.id}`,
+    url: `${baseUrl}/profissionais/${buildEntitySlug(prof.fullName, prof.id)}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+
+  const specialtyRoutes: MetadataRoute.Sitemap = specialties.map((spec) => ({
+    url: `${baseUrl}/especialidades/${buildEntitySlug(spec.name, spec.id)}`,
     lastModified: new Date(),
     changeFrequency: "monthly",
     priority: 0.6,
@@ -36,23 +49,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...institutionalRoutes,
     ...professionalRoutes,
-    {
-      url: `${baseUrl}/equipe`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/cliente`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/login`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
+    ...specialtyRoutes,
   ];
 }

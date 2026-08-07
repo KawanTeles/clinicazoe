@@ -16,17 +16,17 @@ import { WEEKDAY_LABELS } from "@/modules/settings/utils/form-state";
 
 export const metadata = {
   title: "Contato e Localização",
-  description: "Fale com nossa central de atendimento, confira nosso endereço e horários de funcionamento.",
+  description: "Fale com a Clínica Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende sua consulta com poucos cliques.",
   alternates: { canonical: `${SITE_URL}/contato` },
   openGraph: {
     title: "Contato e Localização",
-    description: "Fale com nossa central de atendimento, confira nosso endereço e horários de funcionamento.",
+    description: "Fale com a Clínica Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende sua consulta com poucos cliques.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Contato e Localização",
-    description: "Fale com nossa central de atendimento, confira nosso endereço e horários de funcionamento.",
+    description: "Fale com a Clínica Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende sua consulta com poucos cliques.",
   },
 };
 
@@ -36,8 +36,18 @@ export default async function ContatoPage() {
   const whatsappDisplay = formatWhatsAppDisplay(clinic.whatsapp_number);
   const sortedHours = [...(clinic.business_hours ?? [])].sort((a, b) => a.day - b.day);
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Início", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Contato", item: `${SITE_URL}/contato` },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
       <main className="flex-1 py-16 lg:py-24">
@@ -103,7 +113,7 @@ export default async function ContatoPage() {
                       href={whatsappLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-[#1EBE5A] shadow-[0_10px_30px_rgba(37,211,102,0.3)] w-full active:scale-98"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0F7A3D] px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-[#0C6432] shadow-[0_10px_30px_rgba(37,211,102,0.3)] w-full active:scale-98"
                     >
                       <span>{CTA_WHATSAPP}</span>
                       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

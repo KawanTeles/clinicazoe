@@ -14,25 +14,35 @@ import { SITE_URL } from "@/lib/site-url";
 
 export const metadata = {
   title: "Convênios Atendidos — Clínica Zoe",
-  description: "Confira a lista de planos de saúde e convênios aceitos na Clínica Zoe.",
+  description: "Veja os planos de saúde e convênios médicos aceitos pela Clínica Zoe, além das condições para atendimento particular com reembolso facilitado.",
   alternates: { canonical: `${SITE_URL}/convenios` },
   openGraph: {
     title: "Convênios Atendidos — Clínica Zoe",
-    description: "Confira a lista de planos de saúde e convênios aceitos na Clínica Zoe.",
+    description: "Veja os planos de saúde e convênios médicos aceitos pela Clínica Zoe, além das condições para atendimento particular com reembolso facilitado.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Convênios Atendidos — Clínica Zoe",
-    description: "Confira a lista de planos de saúde e convênios aceitos na Clínica Zoe.",
+    description: "Veja os planos de saúde e convênios médicos aceitos pela Clínica Zoe, além das condições para atendimento particular com reembolso facilitado.",
   },
 };
 
 export default async function ConveniosPage() {
   const { clinic, insurances } = await getPublicWebsiteData();
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Início", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Convênios", item: `${SITE_URL}/convenios` },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
       <main className="flex-1 py-16 lg:py-24">

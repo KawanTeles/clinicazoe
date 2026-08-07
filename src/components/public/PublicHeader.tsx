@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { cn } from "@/lib/utils/cn";
 import { CTA_CLIENT_AREA, CTA_TEAM_AREA } from "@/lib/cta-labels";
@@ -26,15 +26,24 @@ const NAV_LINKS = [
 export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
+  // IntersectionObserver em vez de scroll listener: o listener antigo
+  // (window.addEventListener("scroll")) reexecutava a cada pixel rolado,
+  // forçando um re-render do header em cada frame de scroll. O sentinel é
+  // fixado no documento a 20px do topo (mesma marca de "window.scrollY >
+  // 20" de antes); o observer só dispara quando ele cruza a borda da
+  // viewport — uma chamada por transição, não uma por frame.
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
+    const el = sentinelRef.current;
+    if (!el) return;
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    const observer = new IntersectionObserver(([entry]) => setScrolled(!entry.isIntersecting), {
+      threshold: 0,
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   // Prevent background scrolling when mobile menu is open
@@ -61,8 +70,10 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
 
   return (
     <>
+      <div ref={sentinelRef} aria-hidden="true" style={{ position: "absolute", top: 20, left: 0, height: 1, width: 1, pointerEvents: "none" }} />
+
       {/* Floating Island Header with Framer Motion slide-down entry */}
-      <motion.header
+      <m.header
         initial={{ y: -30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -84,7 +95,6 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
               width={48}
               height={48}
               priority
-              unoptimized
               className="h-[38px] w-[38px] sm:h-[44px] sm:w-[44px] rounded-full object-cover shadow-[0_0_15px_rgba(20,184,166,0.3)] border border-[rgba(20,184,166,0.35)] transition-transform duration-200 group-hover:scale-105"
             />
             <span className="hidden text-base font-extrabold tracking-tight text-text-primary transition-colors group-hover:text-[var(--link)] font-heading sm:inline">
@@ -113,7 +123,7 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                 >
                   {link.label}
                   {isActive && (
-                    <motion.div
+                    <m.div
                       layoutId="activePill"
                       className="absolute inset-0 rounded-full border border-primary/30 bg-primary/10 dark:bg-primary/20 pointer-events-none"
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
@@ -130,7 +140,7 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
 
             <div className="hidden items-center gap-2.5 lg:flex">
               <Link href="/equipe" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background">
-                <motion.button
+                <m.button
                   type="button"
                   tabIndex={-1}
                   whileHover={{ scale: 1.02, y: -1 }}
@@ -139,10 +149,10 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                   className="rounded-full border border-border bg-white text-text-secondary hover:bg-[#F8FAFC] hover:text-text-primary hover:border-[#0F766E]/50 dark:bg-card-elevated dark:text-text-secondary dark:hover:bg-card transition-colors duration-200 px-4 py-2 text-xs font-bold cursor-pointer"
                 >
                   {CTA_TEAM_AREA}
-                </motion.button>
+                </m.button>
               </Link>
               <Link href="/cliente/login" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background">
-                <motion.button
+                <m.button
                   type="button"
                   tabIndex={-1}
                   whileHover={{ scale: 1.02, y: -1 }}
@@ -166,14 +176,14 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                     <path d="M5 12h14" />
                     <path d="m12 5 7 7-7 7" />
                   </svg>
-                </motion.button>
+                </m.button>
               </Link>
             </div>
 
             <ThemeToggle className="sm:hidden rounded-full h-9 w-9 border border-[rgba(110,231,183,0.2)]" />
 
             {/* Mobile Hamburger Button */}
-            <motion.button
+            <m.button
               type="button"
               aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
               aria-expanded={mobileMenuOpen}
@@ -202,17 +212,17 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                   )}
                 />
               </span>
-            </motion.button>
+            </m.button>
           </div>
         </div>
-      </motion.header>
+      </m.header>
 
       {/* Mobile Drawer Panel with AnimatePresence */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             {/* Backdrop Fade */}
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -222,7 +232,7 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
             />
 
             {/* Sliding Panel */}
-            <motion.div
+            <m.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
@@ -238,14 +248,13 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                       alt={clinicName}
                       width={38}
                       height={38}
-                      unoptimized
                       className="h-9 w-9 rounded-full object-cover border border-border shadow-xs"
                     />
                     <span className="text-base font-extrabold text-text-primary font-heading">{clinicName}</span>
                   </Link>
 
                   {/* Close Button */}
-                  <motion.button
+                  <m.button
                     type="button"
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
@@ -257,7 +266,7 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                       <line x1="18" y1="6" x2="6" y2="18" />
                       <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
-                  </motion.button>
+                  </m.button>
                 </div>
 
                 {/* Navigation Items Staggered */}
@@ -269,7 +278,7 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                         : pathname.startsWith(link.href);
 
                     return (
-                      <motion.div
+                      <m.div
                         key={link.href}
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -291,14 +300,14 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                             <span className="h-2 w-2 rounded-full bg-[var(--link)] shadow-[0_0_8px_var(--link)]" />
                           )}
                         </Link>
-                      </motion.div>
+                      </m.div>
                     );
                   })}
                 </nav>
               </div>
 
               {/* Bottom Panel Actions Staggered */}
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
@@ -352,8 +361,8 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                     {CTA_TEAM_AREA}
                   </button>
                 </Link>
-              </motion.div>
-            </motion.div>
+              </m.div>
+            </m.div>
           </div>
         )}
       </AnimatePresence>
