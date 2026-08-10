@@ -22,6 +22,7 @@ interface MyPatientDetailTabsProps {
     } | null;
   };
   evolutions: EvolutionView[];
+  evolutionsTotalPages: number;
   aiAssistantEnabled: boolean;
 }
 
@@ -29,7 +30,12 @@ const BASE_TABS = ["Dados", "Histórico Clínico"] as const;
 const AI_TAB = "🤖 Assistente IA";
 type Tab = (typeof BASE_TABS)[number] | typeof AI_TAB;
 
-export function MyPatientDetailTabs({ patient, evolutions, aiAssistantEnabled }: MyPatientDetailTabsProps) {
+export function MyPatientDetailTabs({
+  patient,
+  evolutions,
+  evolutionsTotalPages,
+  aiAssistantEnabled,
+}: MyPatientDetailTabsProps) {
   const [tab, setTab] = useState<Tab>("Dados");
   const visibleTabs: Tab[] = aiAssistantEnabled ? [...BASE_TABS, AI_TAB] : [...BASE_TABS];
 
@@ -87,7 +93,11 @@ export function MyPatientDetailTabs({ patient, evolutions, aiAssistantEnabled }:
       {tab === "Histórico Clínico" && (
         <div>
           <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-text-secondary">Histórico Clínico</h2>
-          <EvolutionTimeline evolutions={evolutions} />
+          <EvolutionTimeline
+            patientId={patient.id}
+            initialEvolutions={evolutions}
+            initialTotalPages={evolutionsTotalPages}
+          />
         </div>
       )}
 

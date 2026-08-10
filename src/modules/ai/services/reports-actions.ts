@@ -22,9 +22,12 @@ async function requireProfessionalWithReportsAccess() {
   return session;
 }
 
-/** Busca de paciente para o assistente de Relatórios IA: profissional só vê os
- * próprios pacientes; admin (só visualiza relatórios, não gera) usa a busca
- * ampla de `listPatients`, reaproveitada aqui em vez de duplicada. */
+/** Busca de paciente para o assistente de Relatórios IA: profissional só vê
+ * os próprios pacientes. Desde a migration 0031 (sigilo profissional/LGPD)
+ * a permissão `ai.reports.use` foi removida do admin, então o ramo abaixo
+ * que usa a busca ampla de `listPatients` na prática não é mais alcançado
+ * por ninguém além de profissional — mantido apenas para não quebrar o
+ * contrato da função caso a permissão do admin seja restaurada no futuro. */
 export async function searchPatientsForReport(query: string): Promise<PatientOption[]> {
   const session = await getCurrentUser();
   if (!session) return [];
@@ -181,6 +184,13 @@ export async function generateAIReport(input: {
 
   if (error) return { error: "Relatório gerado, mas houve falha ao salvar. Tente novamente." };
 
+  // Integridade referencial: além do array evolution_ids (mantido por
+  // compatibilidade com as leituras existentes), grava o mesmo vínculo na
+  // tabela ai_report_evolutions (FK real para ai_reports/patient_evolutions).
+  await supabase
+    .from("ai_report_evolutions")
+    .insert(selected.map((e) => ({ report_id: created.id, evolution_id: e.id })));
+
   await logAudit({
     actorId: session.user.id,
     action: "ai.report.generated",
@@ -267,6 +277,12 @@ export async function duplicateAIReport(id: string): Promise<{ error: string | n
     .single();
 
   if (error) return { error: "Não foi possível duplicar o relatório." };
+
+  if (original.evolution_ids.length > 0) {
+    await supabase
+      .from("ai_report_evolutions")
+      .insert(original.evolution_ids.map((evolutionId) => ({ report_id: created.id, evolution_id: evolutionId })));
+  }
 
   await logAudit({
     actorId: session.user.id,

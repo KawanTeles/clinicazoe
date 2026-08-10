@@ -78,6 +78,20 @@ async function denormalize(
 
 const PAGE_SIZE = 20;
 
+/** Ids das consultas onde o profissional é coterapeuta (atendimento
+ * compartilhado, Fase 2) — sem isso, a própria agenda dele nunca mostraria
+ * uma consulta compartilhada da qual ele participa mas não é o principal. */
+async function getCoTherapistAppointmentIds(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  professionalId: string,
+): Promise<string[]> {
+  const { data } = await supabase
+    .from("appointment_professionals")
+    .select("appointment_id")
+    .eq("professional_id", professionalId);
+  return (data ?? []).map((r) => r.appointment_id);
+}
+
 export async function getAppointmentsForViewer(
   role: Role,
   userId: string,
@@ -93,7 +107,11 @@ export async function getAppointmentsForViewer(
   if (role === "paciente") {
     query = query.eq("patient_id", userId);
   } else if (role === "profissional") {
-    query = query.eq("professional_id", userId);
+    const coTherapistAppointmentIds = await getCoTherapistAppointmentIds(supabase, userId);
+    query =
+      coTherapistAppointmentIds.length > 0
+        ? query.or(`professional_id.eq.${userId},id.in.(${coTherapistAppointmentIds.join(",")})`)
+        : query.eq("professional_id", userId);
   } else {
     // admin / recepcionista: vê tudo, exceto solicitações de cliente ainda
     // pendentes de aprovação — essas ficam só no módulo Solicitações até

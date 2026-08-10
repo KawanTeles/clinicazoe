@@ -27,7 +27,9 @@ async function namesById(supabase: Awaited<ReturnType<typeof createClient>>, ids
   return new Map((data ?? []).map((p) => [p.id, p.full_name]));
 }
 
-/** RLS já resolve o escopo: profissional vê só as próprias, admin vê todas. */
+/** RLS já resolve o escopo: desde a migration 0031 (sigilo profissional/
+ * LGPD), só o profissional dono do relatório o enxerga — admin não vê
+ * relatório clínico algum, mesmo padrão de patient_evolutions. */
 export async function listAIReports(): Promise<AIReportListItem[]> {
   const supabase = await createClient();
   const { data } = await supabase

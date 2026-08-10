@@ -24,7 +24,7 @@ const REALIZED_STATUSES = ["confirmada", "concluida"];
 interface EvolutionPanelProps {
   appointmentId: string;
   appointmentStatus: string;
-  isOwnerProfessional: boolean;
+  canManageEvolution: boolean;
   evolution: EvolutionView | null;
   aiEnabled?: boolean;
 }
@@ -33,15 +33,15 @@ interface EvolutionPanelProps {
 export function EvolutionPanel({
   appointmentId,
   appointmentStatus,
-  isOwnerProfessional,
+  canManageEvolution,
   evolution,
   aiEnabled,
 }: EvolutionPanelProps) {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
 
-  const canCreate = isOwnerProfessional && REALIZED_STATUSES.includes(appointmentStatus);
-  const canEdit = isOwnerProfessional && evolution !== null;
+  const canCreate = canManageEvolution && REALIZED_STATUSES.includes(appointmentStatus);
+  const canEdit = canManageEvolution && evolution !== null;
 
   function handleSaved() {
     setShowForm(false);

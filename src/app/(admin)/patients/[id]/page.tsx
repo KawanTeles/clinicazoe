@@ -5,7 +5,7 @@ import { getActiveProfessionals } from "@/modules/professionals/services/profess
 import { getPatientDetail, getPatientMessages } from "@/modules/patients/services/patient-queries";
 import { getAppointmentsForPatient } from "@/modules/appointments/services/patient-queries";
 import { listSeriesForPatient } from "@/modules/appointments/services/recurrence-queries";
-import { getEvolutionsForPatient } from "@/modules/evolutions/services/evolution-queries";
+import { getEvolutionsForPatientPage } from "@/modules/evolutions/services/evolution-queries";
 import { PatientDetailTabs } from "@/modules/patients/components/PatientDetailTabs";
 import { todayLocalIso } from "@/lib/date";
 
@@ -20,14 +20,14 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const isAdmin = session.profile.role === "admin";
 
-  const [patient, appointments, messages, insurances, professionals, series, evolutions] = await Promise.all([
+  const [patient, appointments, messages, insurances, professionals, series, evolutionsPage] = await Promise.all([
     getPatientDetail(id),
     getAppointmentsForPatient(id),
     getPatientMessages(id),
     getInsurances(),
     getActiveProfessionals(),
     listSeriesForPatient(id),
-    isAdmin ? getEvolutionsForPatient(id) : Promise.resolve([]),
+    isAdmin ? getEvolutionsForPatientPage(id, 1) : Promise.resolve({ items: [], totalPages: 1 }),
   ]);
 
   if (!patient) notFound();
@@ -63,7 +63,8 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
       canManage
       canChangeStatus={isAdmin}
       canViewClinical={isAdmin}
-      evolutions={evolutions}
+      evolutions={evolutionsPage.items}
+      evolutionsTotalPages={evolutionsPage.totalPages}
     />
   );
 }

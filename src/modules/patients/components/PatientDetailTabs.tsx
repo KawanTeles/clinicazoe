@@ -68,6 +68,7 @@ interface PatientDetailTabsProps {
   /** Só true para admin — recepcionista nunca recebe a aba de prontuário. */
   canViewClinical?: boolean;
   evolutions?: EvolutionView[];
+  evolutionsTotalPages?: number;
 }
 
 const BASE_TABS = ["Dados", "Próximas consultas", "Histórico", "Recorrências", "Mensagens"] as const;
@@ -103,6 +104,7 @@ export function PatientDetailTabs({
   canChangeStatus,
   canViewClinical = false,
   evolutions = [],
+  evolutionsTotalPages = 1,
 }: PatientDetailTabsProps) {
   const router = useRouter();
   const toast = useToast();
@@ -222,7 +224,13 @@ export function PatientDetailTabs({
 
       {tab === "Próximas consultas" && <AppointmentsTable rows={upcoming} empty="Nenhuma consulta futura." />}
       {tab === "Histórico" && <AppointmentsTable rows={history} empty="Nenhuma consulta anterior." />}
-      {tab === CLINICAL_TAB && <EvolutionTimeline evolutions={evolutions} />}
+      {tab === CLINICAL_TAB && (
+        <EvolutionTimeline
+          patientId={patient.id}
+          initialEvolutions={evolutions}
+          initialTotalPages={evolutionsTotalPages}
+        />
+      )}
 
       {tab === "Recorrências" && (
         <div className="flex flex-col gap-3">

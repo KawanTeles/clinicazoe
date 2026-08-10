@@ -211,6 +211,45 @@ async function getHolidaySet(supabase: Awaited<ReturnType<typeof createClient>>)
   return new Set((data ?? []).map((h) => h.date));
 }
 
+/** Ids das consultas onde este profissional é COTERAPEUTA (não o principal)
+ * — usado para somar a ocupação da agenda dele nas checagens de
+ * disponibilidade/conflito abaixo, já que um coterapeuta também fica
+ * ocupado no horário do atendimento compartilhado. */
+async function getCoTherapistAppointmentIds(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  professionalId: string,
+): Promise<string[]> {
+  const { data } = await supabase
+    .from("appointment_professionals")
+    .select("appointment_id")
+    .eq("professional_id", professionalId);
+  return (data ?? []).map((r) => r.appointment_id);
+}
+
+export interface CoTherapistInfo {
+  professionalId: string;
+  fullName: string;
+}
+
+/** Coterapeutas vinculados a uma consulta específica (não inclui o
+ * principal). RLS de appointment_professionals já restringe quem pode ver
+ * isso a quem já tem acesso à consulta. */
+export async function getCoTherapistsForAppointment(appointmentId: string): Promise<CoTherapistInfo[]> {
+  const supabase = await createClient();
+  const { data: links } = await supabase
+    .from("appointment_professionals")
+    .select("professional_id")
+    .eq("appointment_id", appointmentId);
+
+  const professionalIds = (links ?? []).map((l) => l.professional_id);
+  if (professionalIds.length === 0) return [];
+
+  const { data: profiles } = await supabase.from("profiles").select("id, full_name").in("id", professionalIds);
+  const nameById = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
+
+  return professionalIds.map((id) => ({ professionalId: id, fullName: nameById.get(id) ?? "Profissional" }));
+}
+
 /** Duração efetiva de uma consulta: override por convênio+profissional (e
  * modalidade, quando o convênio for Unimed/Postal Saúde) se existir, senão a
  * duração padrão do profissional. Nunca fixo no código. */
@@ -353,15 +392,27 @@ export async function getMonthAvailability(
   const monthStart = toLocalIsoDate(firstDay);
   const monthEnd = toLocalIsoDate(lastDay);
 
-  const { data: appointments } = await supabase
-    .from("appointments")
-    .select("appointment_date, start_time, status")
-    .eq("professional_id", professionalId)
-    .gte("appointment_date", monthStart)
-    .lte("appointment_date", monthEnd);
+  const coTherapistAppointmentIds = await getCoTherapistAppointmentIds(supabase, professionalId);
+
+  const [{ data: appointments }, { data: coTherapistAppointments }] = await Promise.all([
+    supabase
+      .from("appointments")
+      .select("appointment_date, start_time, status")
+      .eq("professional_id", professionalId)
+      .gte("appointment_date", monthStart)
+      .lte("appointment_date", monthEnd),
+    coTherapistAppointmentIds.length > 0
+      ? supabase
+          .from("appointments")
+          .select("appointment_date, start_time, status")
+          .in("id", coTherapistAppointmentIds)
+          .gte("appointment_date", monthStart)
+          .lte("appointment_date", monthEnd)
+      : Promise.resolve({ data: [] as { appointment_date: string; start_time: string; status: string }[] }),
+  ]);
 
   const bookedByDate = new Map<string, Record<string, number>>();
-  for (const appt of appointments ?? []) {
+  for (const appt of [...(appointments ?? []), ...(coTherapistAppointments ?? [])]) {
     if (!ACTIVE_APPOINTMENT_STATUSES.includes(appt.status)) continue;
     const map = bookedByDate.get(appt.appointment_date) ?? {};
     const startTime = appt.start_time.slice(0, 5);
@@ -508,14 +559,25 @@ export async function getAvailableTimes(
 
   if (matchingSlots.length === 0) return [];
 
-  const { data: existingAppointments } = await supabase
-    .from("appointments")
-    .select("start_time, status")
-    .eq("professional_id", professionalId)
-    .eq("appointment_date", date);
+  const coTherapistAppointmentIds = await getCoTherapistAppointmentIds(supabase, professionalId);
+
+  const [{ data: existingAppointments }, { data: coTherapistAppointments }] = await Promise.all([
+    supabase
+      .from("appointments")
+      .select("start_time, status")
+      .eq("professional_id", professionalId)
+      .eq("appointment_date", date),
+    coTherapistAppointmentIds.length > 0
+      ? supabase
+          .from("appointments")
+          .select("start_time, status")
+          .in("id", coTherapistAppointmentIds)
+          .eq("appointment_date", date)
+      : Promise.resolve({ data: [] as { start_time: string; status: string }[] }),
+  ]);
 
   const bookedCountByStartTime: Record<string, number> = {};
-  for (const appt of existingAppointments ?? []) {
+  for (const appt of [...(existingAppointments ?? []), ...(coTherapistAppointments ?? [])]) {
     if (!ACTIVE_APPOINTMENT_STATUSES.includes(appt.status)) continue;
     bookedCountByStartTime[appt.start_time.slice(0, 5)] =
       (bookedCountByStartTime[appt.start_time.slice(0, 5)] ?? 0) + 1;

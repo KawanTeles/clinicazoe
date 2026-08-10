@@ -1,6 +1,24 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Role } from "@/lib/supabase/types";
 
+/** Ids das consultas onde este profissional é coterapeuta (atendimento
+ * compartilhado, Fase 2) — somadas às consultas onde ele é o principal para
+ * as contagens/agregações do dashboard não ficarem incompletas para quem
+ * participa de um atendimento sem ser o "dono" da agenda consumida.
+ * Financeiro fica de fora por enquanto: financial_entries ainda só tem o
+ * professional_id principal (modelo de rateio para coterapeuta pendente de
+ * decisão de negócio). */
+async function getCoTherapistAppointmentIds(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  professionalId: string,
+): Promise<string[]> {
+  const { data } = await supabase
+    .from("appointment_professionals")
+    .select("appointment_id")
+    .eq("professional_id", professionalId);
+  return (data ?? []).map((r) => r.appointment_id);
+}
+
 function startOfWeekISO() {
   const now = new Date();
   const day = now.getDay();
@@ -27,14 +45,20 @@ export async function getStaffDashboard(role: Role, userId: string) {
   let appointmentsQuery = supabase.from("appointments").select("id, appointment_date, status");
   let financialQuery = supabase.from("financial_entries").select("value, status, paid_at");
 
+  const coTherapistAppointmentIds =
+    role === "profissional" ? await getCoTherapistAppointmentIds(supabase, userId) : [];
+
   if (role === "profissional") {
     appointmentsQuery = appointmentsQuery.eq("professional_id", userId);
     financialQuery = financialQuery.eq("professional_id", userId);
   }
 
-  const [{ data: appointments }, { data: financialEntries }, { count: activeProfessionals }] =
+  const [{ data: appointments }, { data: coTherapistAppointments }, { data: financialEntries }, { count: activeProfessionals }] =
     await Promise.all([
       appointmentsQuery,
+      coTherapistAppointmentIds.length > 0
+        ? supabase.from("appointments").select("id, appointment_date, status").in("id", coTherapistAppointmentIds)
+        : Promise.resolve({ data: [] as { id: string; appointment_date: string; status: string }[] }),
       financialQuery,
       role === "admin" || role === "recepcionista"
         ? supabase
@@ -44,7 +68,7 @@ export async function getStaffDashboard(role: Role, userId: string) {
         : Promise.resolve({ count: null }),
     ]);
 
-  const rows = appointments ?? [];
+  const rows = [...(appointments ?? []), ...(coTherapistAppointments ?? [])];
   const activeStatuses = ["pendente", "confirmada"];
 
   const today_count = rows.filter(
@@ -124,20 +148,31 @@ export async function getWeeklySeries(role: Role, userId: string): Promise<Daily
     .select("due_date, status, value")
     .gte("due_date", rangeStart);
 
+  const coTherapistAppointmentIds =
+    role === "profissional" ? await getCoTherapistAppointmentIds(supabase, userId) : [];
+
   if (role === "profissional") {
     appointmentsQuery = appointmentsQuery.eq("professional_id", userId);
     financialQuery = financialQuery.eq("professional_id", userId);
   }
 
-  const [{ data: appointments }, { data: financialEntries }] = await Promise.all([
+  const [{ data: appointments }, { data: coTherapistAppointments }, { data: financialEntries }] = await Promise.all([
     appointmentsQuery,
+    coTherapistAppointmentIds.length > 0
+      ? supabase
+          .from("appointments")
+          .select("appointment_date, status")
+          .in("id", coTherapistAppointmentIds)
+          .gte("appointment_date", rangeStart)
+      : Promise.resolve({ data: [] as { appointment_date: string; status: string }[] }),
     financialQuery,
   ]);
 
+  const allAppointments = [...(appointments ?? []), ...(coTherapistAppointments ?? [])];
   const activeStatuses = ["pendente", "confirmada", "concluida"];
 
   return days.map((date) => {
-    const dayAppointments = (appointments ?? []).filter(
+    const dayAppointments = allAppointments.filter(
       (a) => a.appointment_date === date && activeStatuses.includes(a.status),
     ).length;
     const dayFinancial = (financialEntries ?? []).filter((f) => f.due_date === date);

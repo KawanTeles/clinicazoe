@@ -779,6 +779,27 @@ export interface Database {
         };
         Relationships: [];
       };
+      appointment_professionals: {
+        Row: {
+          appointment_id: string;
+          professional_id: string;
+          created_at: string;
+          created_by: string | null;
+        };
+        Insert: {
+          appointment_id: string;
+          professional_id: string;
+          created_at?: string;
+          created_by?: string | null;
+        };
+        Update: {
+          appointment_id?: string;
+          professional_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+        };
+        Relationships: [];
+      };
       ai_settings: {
         Row: {
           id: number;
@@ -893,6 +914,24 @@ export interface Database {
           updated_by?: string | null;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_report_evolutions: {
+        Row: {
+          report_id: string;
+          evolution_id: string;
+          created_at: string;
+        };
+        Insert: {
+          report_id: string;
+          evolution_id: string;
+          created_at?: string;
+        };
+        Update: {
+          report_id?: string;
+          evolution_id?: string;
+          created_at?: string;
         };
         Relationships: [];
       };

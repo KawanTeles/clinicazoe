@@ -6,6 +6,21 @@ import { logAudit } from "@/modules/team/services/audit";
 import { notifyStaff } from "@/modules/notifications/services/notify";
 import { checkRateLimit } from "@/lib/rate-limit";
 
+/** Marca um lançamento financeiro como pago. O escopo de quem pode dar baixa
+ * em qual lançamento é decidido pela RLS de `financial_entries` (não por
+ * essa função, que não filtra por dono) — comportamento confirmado e
+ * intencional na migration 0022_receptionist_mark_as_paid.sql:
+ *   - admin: qualquer lançamento (`is_admin()`).
+ *   - recepcionista: qualquer lançamento (`current_role() = 'recepcionista'`,
+ *     sem checar `professional_id`) — é rotina de recepção dar baixa em
+ *     pagamentos de qualquer profissional no balcão.
+ *   - profissional: só os próprios (`professional_id = auth.uid()`).
+ *
+ * O update usa `.select().maybeSingle()` para saber se a RLS de fato afetou
+ * alguma linha — sem isso, um profissional tentando dar baixa no lançamento
+ * de outro recebia falso sucesso (RLS nega a alteração em silêncio, sem
+ * erro, só zero linhas afetadas) e ainda gerava um audit_log de uma baixa
+ * que nunca aconteceu. */
 export async function markAsPaid(entryId: string): Promise<{ error: string | null }> {
   const session = await getCurrentUser();
   if (!session || !["admin", "profissional", "recepcionista"].includes(session.profile.role)) {
@@ -18,18 +33,16 @@ export async function markAsPaid(entryId: string): Promise<{ error: string | nul
   }
 
   const supabase = await createClient();
-  const { data: entry } = await supabase
-    .from("financial_entries")
-    .select("value")
-    .eq("id", entryId)
-    .single();
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("financial_entries")
     .update({ status: "pago", paid_at: new Date().toISOString() })
-    .eq("id", entryId);
+    .eq("id", entryId)
+    .select("value")
+    .maybeSingle();
 
   if (error) return { error: "Não foi possível marcar como pago." };
+  if (!updated) return { error: "Lançamento não encontrado ou você não tem permissão para alterá-lo." };
 
   await logAudit({
     actorId: session.user.id,
@@ -38,11 +51,11 @@ export async function markAsPaid(entryId: string): Promise<{ error: string | nul
     entityId: entryId,
   });
 
-  if (session.profile.role === "profissional" && entry) {
+  if (session.profile.role === "profissional") {
     await notifyStaff({
       type: "financial.paid",
       title: "Pagamento registrado",
-      message: `${session.profile.full_name} marcou um lançamento de R$ ${entry.value.toFixed(2)} como pago.`,
+      message: `${session.profile.full_name} marcou um lançamento de R$ ${updated.value.toFixed(2)} como pago.`,
       entity: "financial_entries",
       entityId: entryId,
     });

@@ -4,6 +4,10 @@ import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/modules/team/services/audit";
+import {
+  getEvolutionsForPatientPage,
+  type EvolutionView,
+} from "@/modules/evolutions/services/evolution-queries";
 
 async function requireProfessional() {
   const session = await getCurrentUser();
@@ -39,9 +43,12 @@ export interface CreateEvolutionInput extends EvolutionContentInput {
   appointment_id: string;
 }
 
-/** Cria a evolução de uma consulta já realizada. Só o profissional
- * responsável pela consulta pode chamar isso — a RLS (patient_evolutions_
- * insert_own) reforça a mesma regra no banco caso algo escape daqui. */
+/** Cria a evolução de uma consulta já realizada. O profissional precisa
+ * estar vinculado à consulta — como principal (appointments.professional_id)
+ * ou como coterapeuta (appointment_professionals, atendimento
+ * compartilhado, Fase 2) — a RLS (patient_evolutions_insert_own) e o
+ * trigger patient_evolutions_validate reforçam a mesma regra no banco caso
+ * algo escape daqui. */
 export async function createEvolution(
   input: CreateEvolutionInput,
 ): Promise<{ error: string | null; id?: string }> {
@@ -65,8 +72,21 @@ export async function createEvolution(
     .maybeSingle();
 
   if (!appointment) return { error: "Consulta não encontrada." };
-  if (appointment.professional_id !== session.user.id) {
-    return { error: "Você só pode registrar evolução das suas próprias consultas." };
+
+  const isPrincipal = appointment.professional_id === session.user.id;
+  let isCoTherapist = false;
+  if (!isPrincipal) {
+    const { data: link } = await supabase
+      .from("appointment_professionals")
+      .select("professional_id")
+      .eq("appointment_id", input.appointment_id)
+      .eq("professional_id", session.user.id)
+      .maybeSingle();
+    isCoTherapist = Boolean(link);
+  }
+
+  if (!isPrincipal && !isCoTherapist) {
+    return { error: "Você só pode registrar evolução das consultas às quais está vinculado." };
   }
   if (!["confirmada", "concluida"].includes(appointment.status)) {
     return { error: "Só é possível registrar evolução para consultas realizadas." };
@@ -151,4 +171,18 @@ export async function updateEvolution(
   });
 
   return { error: null };
+}
+
+/** Carrega a próxima página da timeline clínica de um paciente, chamada
+ * pelo botão "Carregar mais" no client (EvolutionTimeline). Não restringe
+ * por role além de exigir sessão — a RLS de patient_evolutions já garante
+ * que só quem tem acesso de fato recebe alguma linha. */
+export async function loadMoreEvolutionsForPatient(
+  patientId: string,
+  page: number,
+): Promise<{ items: EvolutionView[]; totalPages: number }> {
+  const session = await getCurrentUser();
+  if (!session) return { items: [], totalPages: 1 };
+
+  return getEvolutionsForPatientPage(patientId, page);
 }

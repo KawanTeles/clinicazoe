@@ -17,8 +17,35 @@ import { notify, notifyStaff } from "@/modules/notifications/services/notify";
 import { logPatientMessage } from "@/modules/patients/services/message-log";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { notifyWaitlistMatches } from "@/modules/waitlist/services/waitlist-actions";
-import { getAvailableTimes, resolveAppointmentValue } from "./booking-queries";
+import { getAvailableTimes, getCoTherapistsForAppointment, resolveAppointmentValue } from "./booking-queries";
 import type { Modality, ParticularProduct, PaymentMethod } from "@/lib/supabase/types";
+
+/** Notifica a lista de espera para cada profissional envolvido na consulta
+ * (principal + coterapeutas) — cancelar um atendimento compartilhado libera
+ * a vaga na agenda de todos eles, não só do principal. */
+async function notifyWaitlistForAllInvolved(params: {
+  appointmentId: string;
+  specialtyId: string | null;
+  principalProfessionalId: string;
+  insuranceId: string;
+  modality: Modality | null;
+  appointmentDate: string;
+  startTime: string;
+}) {
+  const coTherapists = await getCoTherapistsForAppointment(params.appointmentId);
+  const professionalIds = [params.principalProfessionalId, ...coTherapists.map((c) => c.professionalId)];
+
+  for (const professionalId of professionalIds) {
+    await notifyWaitlistMatches({
+      specialtyId: params.specialtyId,
+      professionalId,
+      insuranceId: params.insuranceId,
+      modality: params.modality,
+      appointmentDate: params.appointmentDate,
+      startTime: params.startTime,
+    });
+  }
+}
 
 async function requirePatient() {
   const session = await getCurrentUser();
@@ -198,9 +225,10 @@ export async function cancelAppointment(
   });
 
   if (appointment && !rescheduled) {
-    await notifyWaitlistMatches({
+    await notifyWaitlistForAllInvolved({
+      appointmentId,
       specialtyId: appointment.specialty_id,
-      professionalId: appointment.professional_id,
+      principalProfessionalId: appointment.professional_id,
       insuranceId: appointment.insurance_id,
       modality: appointment.modality,
       appointmentDate: appointment.appointment_date,
@@ -436,9 +464,10 @@ export async function updateAppointmentStatus(
   });
 
   if (appointment && status === "cancelada") {
-    await notifyWaitlistMatches({
+    await notifyWaitlistForAllInvolved({
+      appointmentId,
       specialtyId: appointment.specialty_id,
-      professionalId: appointment.professional_id,
+      principalProfessionalId: appointment.professional_id,
       insuranceId: appointment.insurance_id,
       modality: appointment.modality,
       appointmentDate: appointment.appointment_date,
@@ -779,5 +808,118 @@ export async function createPublicAppointment(
   await logPatientMessage({ patientId, appointmentId: appointment.id, type: "booking" });
 
   return { error: null, whatsappLink };
+}
+
+/** Admin, recepção ou o profissional principal podem adicionar um
+ * coterapeuta a uma consulta (decisão de negócio confirmada — atendimento
+ * compartilhado, Fase 2). Reaproveita getAvailableTimes para garantir que o
+ * profissional adicionado realmente tem disponibilidade nesse horário
+ * (mesma checagem usada para criar uma consulta nova). */
+export async function addCoTherapist(
+  appointmentId: string,
+  professionalId: string,
+): Promise<{ error: string | null }> {
+  const session = await getCurrentUser();
+  if (!session) return { error: "Acesso negado." };
+
+  const supabase = await createClient();
+  const { data: appointment } = await supabase
+    .from("appointments")
+    .select("id, professional_id, appointment_date, start_time, insurance_id, modality, status")
+    .eq("id", appointmentId)
+    .maybeSingle();
+
+  if (!appointment) return { error: "Consulta não encontrada." };
+
+  const isPrincipal = appointment.professional_id === session.user.id;
+  const isStaff = ["admin", "recepcionista"].includes(session.profile.role);
+  if (!isPrincipal && !isStaff) {
+    return { error: "Só o profissional principal ou a equipe podem adicionar um coterapeuta." };
+  }
+
+  if (professionalId === appointment.professional_id) {
+    return { error: "Este profissional já é o principal desta consulta." };
+  }
+
+  const availableTimes = await getAvailableTimes(
+    professionalId,
+    appointment.insurance_id,
+    appointment.appointment_date,
+    appointment.modality ?? undefined,
+  );
+  const isAvailable = availableTimes.some((t) => t.startTime === appointment.start_time.slice(0, 5));
+  if (!isAvailable) {
+    return { error: "Este profissional não tem disponibilidade nesse horário." };
+  }
+
+  const { error } = await supabase
+    .from("appointment_professionals")
+    .insert({ appointment_id: appointmentId, professional_id: professionalId, created_by: session.user.id });
+
+  if (error) {
+    const message =
+      error.code === "23505" ? "Este profissional já está vinculado a esta consulta." : "Não foi possível adicionar o coterapeuta.";
+    return { error: message };
+  }
+
+  await logAudit({
+    actorId: session.user.id,
+    action: "appointment.cotherapist.added",
+    entity: "appointment_professionals",
+    entityId: appointmentId,
+    metadata: { appointment_id: appointmentId, professional_id: professionalId },
+  });
+
+  return { error: null };
+}
+
+/** Remove um coterapeuta da consulta. A trigger
+ * appointment_professionals_prevent_delete_with_evolution (0036) bloqueia a
+ * remoção se ele já tiver registrado evolução — aqui só traduzimos a
+ * mensagem de erro do banco para algo amigável. */
+export async function removeCoTherapist(
+  appointmentId: string,
+  professionalId: string,
+): Promise<{ error: string | null }> {
+  const session = await getCurrentUser();
+  if (!session) return { error: "Acesso negado." };
+
+  const supabase = await createClient();
+  const { data: appointment } = await supabase
+    .from("appointments")
+    .select("professional_id")
+    .eq("id", appointmentId)
+    .maybeSingle();
+
+  if (!appointment) return { error: "Consulta não encontrada." };
+
+  const isPrincipal = appointment.professional_id === session.user.id;
+  const isStaff = ["admin", "recepcionista"].includes(session.profile.role);
+  if (!isPrincipal && !isStaff) {
+    return { error: "Só o profissional principal ou a equipe podem remover um coterapeuta." };
+  }
+
+  const { error } = await supabase
+    .from("appointment_professionals")
+    .delete()
+    .eq("appointment_id", appointmentId)
+    .eq("professional_id", professionalId);
+
+  if (error) {
+    const message = error.message.includes("já registrou evolução")
+      ? "Não é possível remover: este profissional já registrou evolução para esta consulta."
+      : "Não foi possível remover o coterapeuta.";
+    return { error: message };
+  }
+
+  await logAudit({
+    actorId: session.user.id,
+    action: "appointment.cotherapist.removed",
+    entity: "appointment_professionals",
+    entityId: appointmentId,
+    metadata: { appointment_id: appointmentId, professional_id: professionalId },
+  });
+
+  return { error: null };
 }
 

@@ -99,9 +99,13 @@ export async function getEvolutionForAppointment(appointmentId: string): Promise
   return view ?? null;
 }
 
-/** Timeline cronológica de um paciente. A RLS já resolve o escopo: admin vê
- * tudo, profissional só vê as evoluções que ele mesmo escreveu (que, por
- * construção, são só as de pacientes vinculados a ele). */
+/** Busca cronológica completa (sem paginação) de um paciente. A RLS já
+ * resolve o escopo: desde a migration 0031 (sigilo profissional/LGPD) só o
+ * profissional que escreveu a evolução a enxerga — admin não vê conteúdo
+ * clínico algum, nem por aqui. Usada só internamente pelo pipeline de IA
+ * (geração de relatório/assistente), que precisa do histórico completo do
+ * paciente para filtrar por período; a timeline exibida na ficha do
+ * paciente usa `getEvolutionsForPatientPage`, que é paginada. */
 export async function getEvolutionsForPatient(patientId: string): Promise<EvolutionView[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -115,6 +119,30 @@ export async function getEvolutionsForPatient(patientId: string): Promise<Evolut
 
 const PAGE_SIZE = 20;
 
+/** Timeline cronológica paginada de um paciente (mesmo PAGE_SIZE usado em
+ * `searchEvolutions`), para não carregar anos de histórico de uma vez na
+ * ficha do paciente. RLS aplica o mesmo escopo de `getEvolutionsForPatient`. */
+export async function getEvolutionsForPatientPage(
+  patientId: string,
+  page: number,
+): Promise<{ items: EvolutionView[]; totalPages: number }> {
+  const supabase = await createClient();
+  const safePage = Math.max(1, page);
+  const from = (safePage - 1) * PAGE_SIZE;
+
+  const { data, count } = await supabase
+    .from("patient_evolutions")
+    .select("*", { count: "exact" })
+    .eq("patient_id", patientId)
+    .order("created_at", { ascending: false })
+    .range(from, from + PAGE_SIZE - 1);
+
+  const items = await denormalize(supabase, data ?? []);
+  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
+
+  return { items, totalPages };
+}
+
 export interface EvolutionSearchParams {
   patientQuery?: string;
   professionalId?: string;
@@ -125,8 +153,10 @@ export interface EvolutionSearchParams {
 }
 
 /** Busca global (paciente, profissional, especialidade, período). Usada pela
- * tela /evolutions, restrita a admin na página — aqui a RLS já garante que um
- * profissional só enxergaria as próprias evoluções mesmo se chamasse isso. */
+ * tela /evolutions, restrita a profissional na própria página (admin não
+ * tem acesso a conteúdo clínico desde a 0031) — aqui a RLS reforça de novo
+ * que cada profissional só enxergaria as próprias evoluções mesmo se
+ * chamasse isso com outro filtro. */
 export async function searchEvolutions(
   params: EvolutionSearchParams,
 ): Promise<{ items: EvolutionView[]; totalPages: number }> {

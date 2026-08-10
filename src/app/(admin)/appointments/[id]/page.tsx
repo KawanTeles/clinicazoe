@@ -2,7 +2,9 @@ import { redirect, notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { getAppointmentById } from "@/modules/appointments/services/appointment-queries";
+import { getCoTherapistsForAppointment } from "@/modules/appointments/services/booking-queries";
 import { getEvolutionForAppointment } from "@/modules/evolutions/services/evolution-queries";
+import { getActiveProfessionals } from "@/modules/professionals/services/professional-queries";
 import { AppointmentDetailTabs } from "@/modules/appointments/components/AppointmentDetailTabs";
 import { getAIFeatureFlags } from "@/modules/ai/services/ai-settings-queries";
 
@@ -19,19 +21,29 @@ export default async function AppointmentDetailPage({ params }: { params: Promis
   const appointment = await getAppointmentById(id);
   if (!appointment) notFound();
 
-  const isOwnerProfessional =
+  const coTherapists = await getCoTherapistsForAppointment(appointment.id);
+
+  const isPrincipalProfessional =
     session.profile.role === "profissional" && appointment.professionalId === session.user.id;
+  const isCoTherapist =
+    session.profile.role === "profissional" &&
+    coTherapists.some((c) => c.professionalId === session.user.id);
+  // Vinculado à consulta como principal ou coterapeuta (atendimento
+  // compartilhado, Fase 2) — decide quem pode ver a página e registrar a
+  // PRÓPRIA evolução. Editar/cancelar a consulta em si continua exclusivo
+  // do principal/equipe (não afetado por isCoTherapist).
+  const isLinkedProfessional = isPrincipalProfessional || isCoTherapist;
 
-  if (session.profile.role === "profissional" && !isOwnerProfessional) notFound();
+  if (session.profile.role === "profissional" && !isLinkedProfessional) notFound();
 
-  // Evolução é prontuário clínico: acesso exclusivo do profissional
-  // responsável pela consulta (sigilo profissional / LGPD). Admin só vê os
-  // dados administrativos, já exibidos na aba "Detalhes".
-  const canViewEvolution = isOwnerProfessional;
+  // Evolução é prontuário clínico: acesso exclusivo de quem está vinculado
+  // à consulta — principal ou coterapeuta (sigilo profissional / LGPD).
+  // Admin só vê os dados administrativos, já exibidos na aba "Detalhes".
+  const canViewEvolution = isLinkedProfessional;
   const evolution = canViewEvolution ? await getEvolutionForAppointment(appointment.id) : null;
 
   let aiEnabled = false;
-  if (isOwnerProfessional) {
+  if (isLinkedProfessional) {
     const [hasPermission, flags] = await Promise.all([
       can(session.profile.role, "ai.evolution_assistant.use"),
       getAIFeatureFlags(),
@@ -39,13 +51,26 @@ export default async function AppointmentDetailPage({ params }: { params: Promis
     aiEnabled = hasPermission && flags.enabled && flags.evolutionAssistantEnabled;
   }
 
+  // Admin, recepção ou o profissional principal podem adicionar/remover
+  // coterapeuta — mesma regra de autorização aplicada em
+  // addCoTherapist/removeCoTherapist (booking-actions.ts).
+  const canManageCoTherapists = isPrincipalProfessional || ["admin", "recepcionista"].includes(session.profile.role);
+  const availableProfessionals = canManageCoTherapists
+    ? (await getActiveProfessionals())
+        .filter((p) => p.id !== appointment.professionalId)
+        .map((p) => ({ id: p.id, fullName: p.full_name }))
+    : [];
+
   return (
     <AppointmentDetailTabs
       appointment={appointment}
       canViewEvolution={canViewEvolution}
-      isOwnerProfessional={isOwnerProfessional}
+      canManageEvolution={isLinkedProfessional}
       evolution={evolution}
       aiEnabled={aiEnabled}
+      coTherapists={coTherapists}
+      availableProfessionals={availableProfessionals}
+      canManageCoTherapists={canManageCoTherapists}
     />
   );
 }

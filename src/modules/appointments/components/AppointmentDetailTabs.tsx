@@ -5,8 +5,10 @@ import { Badge } from "@/components/ui/Badge";
 import { formatCurrency } from "@/lib/whatsapp";
 import { getAttendanceInfo } from "@/lib/attendance";
 import type { AppointmentView } from "@/modules/appointments/services/appointment-queries";
+import type { CoTherapistInfo } from "@/modules/appointments/services/booking-queries";
 import type { EvolutionView } from "@/modules/evolutions/services/evolution-queries";
 import { EvolutionPanel } from "@/modules/evolutions/components/EvolutionPanel";
+import { CoTherapistManager } from "@/modules/appointments/components/CoTherapistManager";
 
 const STATUS_LABELS: Record<string, string> = {
   pendente: "Pendente",
@@ -33,17 +35,27 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 interface AppointmentDetailTabsProps {
   appointment: AppointmentView;
   canViewEvolution: boolean;
-  isOwnerProfessional: boolean;
+  /** Pode registrar/editar a PRÓPRIA evolução desta consulta — principal ou
+   * coterapeuta (atendimento compartilhado, Fase 2). Não confundir com
+   * gerenciar a consulta em si (editar/cancelar), que continua exclusivo do
+   * principal/equipe. */
+  canManageEvolution: boolean;
   evolution: EvolutionView | null;
   aiEnabled?: boolean;
+  coTherapists: CoTherapistInfo[];
+  availableProfessionals: { id: string; fullName: string }[];
+  canManageCoTherapists: boolean;
 }
 
 export function AppointmentDetailTabs({
   appointment,
   canViewEvolution,
-  isOwnerProfessional,
+  canManageEvolution,
   evolution,
   aiEnabled,
+  coTherapists,
+  availableProfessionals,
+  canManageCoTherapists,
 }: AppointmentDetailTabsProps) {
   const [tab, setTab] = useState<"Detalhes" | "Evolução">("Detalhes");
   const attendance = getAttendanceInfo(
@@ -102,6 +114,12 @@ export function AppointmentDetailTabs({
           {attendance.particularProductLabel && <Field label="Produto" value={attendance.particularProductLabel} />}
           <Field label="Valor" value={formatCurrency(appointment.value)} />
           {appointment.patientPhone && <Field label="Telefone do paciente" value={appointment.patientPhone} />}
+          <CoTherapistManager
+            appointmentId={appointment.id}
+            coTherapists={coTherapists}
+            availableProfessionals={availableProfessionals}
+            canManage={canManageCoTherapists}
+          />
         </div>
       )}
 
@@ -109,7 +127,7 @@ export function AppointmentDetailTabs({
         <EvolutionPanel
           appointmentId={appointment.id}
           appointmentStatus={appointment.status}
-          isOwnerProfessional={isOwnerProfessional}
+          canManageEvolution={canManageEvolution}
           evolution={evolution}
           aiEnabled={aiEnabled}
         />
