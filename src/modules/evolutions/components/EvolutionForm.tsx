@@ -14,6 +14,8 @@ interface EvolutionFormProps {
   onSaved: () => void;
   /** Só true quando o usuário é o profissional dono da consulta e o recurso está habilitado pelo admin. */
   aiEnabled?: boolean;
+  /** Só true quando, além do acima, o admin também habilitou a transcrição de áudio (ai_settings.transcription_enabled). */
+  transcriptionEnabled?: boolean;
   appointmentId?: string;
 }
 
@@ -46,6 +48,7 @@ export function EvolutionForm({
   onCancel,
   onSaved,
   aiEnabled,
+  transcriptionEnabled,
   appointmentId,
 }: EvolutionFormProps) {
   const [values, setValues] = useState<EvolutionContentInput>({
@@ -83,6 +86,7 @@ export function EvolutionForm({
         <AIWritingAssistant
           appointmentId={appointmentId}
           onTextReady={(text) => setValues((prev) => ({ ...prev, clinical_evolution: text }))}
+          transcriptionEnabled={transcriptionEnabled}
         />
       )}
       {FIELDS.map((field) => (

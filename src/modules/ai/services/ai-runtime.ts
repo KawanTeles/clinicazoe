@@ -37,6 +37,37 @@ export async function getActiveAIConfig(): Promise<{ error: string | null; confi
   return { error: null, config: { provider, apiKey, model: settings.model } };
 }
 
+export interface TranscriptionAIConfig {
+  apiKey: string;
+}
+
+/** Lê e descriptografa a chave de transcrição — independente da chave do
+ * provedor de texto (getActiveAIConfig, acima). Não confere
+ * transcription_enabled aqui: mesmo padrão de getActiveAIConfig não
+ * conferir ai_enabled — é responsabilidade do caller via
+ * getAIFeatureFlags(), verificado antes de chegar até aqui. */
+export async function getTranscriptionAIConfig(): Promise<{ error: string | null; config?: TranscriptionAIConfig }> {
+  const admin = createAdminClient();
+  const { data: settings } = await admin
+    .from("ai_settings")
+    .select("transcription_api_key_ciphertext")
+    .eq("id", 1)
+    .maybeSingle();
+
+  if (!settings?.transcription_api_key_ciphertext) {
+    return { error: "Nenhuma chave de API configurada para transcrição de áudio. Contate o administrador." };
+  }
+
+  let apiKey: string;
+  try {
+    apiKey = decryptSecret(settings.transcription_api_key_ciphertext);
+  } catch {
+    return { error: "Não foi possível acessar a chave de transcrição configurada. Contate o administrador." };
+  }
+
+  return { error: null, config: { apiKey } };
+}
+
 async function countAIRequests(admin: ReturnType<typeof createAdminClient>, since: string, actorId?: string) {
   let query = admin.from("audit_logs").select("id", { count: "exact", head: true }).like("action", "ai.%").gte("created_at", since);
   if (actorId) query = query.eq("actor_id", actorId);

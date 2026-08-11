@@ -14,6 +14,7 @@ import {
   testAIConnection,
   updateAIFeatureToggles,
   updateAIUsageLimits,
+  updateTranscriptionSettings,
 } from "@/modules/ai/services/ai-settings-actions";
 import { PROVIDER_LABELS, type AIProviderId } from "@/modules/ai/services/provider-types";
 import type { AISettingsForAdmin } from "@/modules/ai/services/ai-settings-queries";
@@ -41,6 +42,10 @@ export function AISettingsCard({ initial }: { initial: AISettingsForAdmin }) {
   const [showReviewNotice, setShowReviewNotice] = useState(initial.showReviewNotice);
   const [reportsEnabled, setReportsEnabled] = useState(initial.reportsEnabled);
   const [patientAssistantEnabled, setPatientAssistantEnabled] = useState(initial.patientAssistantEnabled);
+
+  const [transcriptionEnabled, setTranscriptionEnabled] = useState(initial.transcriptionEnabled);
+  const [transcriptionApiKey, setTranscriptionApiKey] = useState("");
+  const [showTranscriptionKey, setShowTranscriptionKey] = useState(false);
 
   const [monthlyLimit, setMonthlyLimit] = useState(initial.monthlyRequestLimit?.toString() ?? "");
   const [dailyLimit, setDailyLimit] = useState(initial.dailyRequestLimit?.toString() ?? "");
@@ -92,13 +97,24 @@ export function AISettingsCard({ initial }: { initial: AISettingsForAdmin }) {
       monthly_request_limit_per_user: perUserLimit,
       limit_action: limitAction,
     });
-    setSaving(false);
     if (limitsResult.error) {
+      setSaving(false);
       toast.error(limitsResult.error);
       return;
     }
 
+    const transcriptionResult = await updateTranscriptionSettings({
+      transcription_enabled: transcriptionEnabled,
+      transcription_api_key: transcriptionApiKey,
+    });
+    setSaving(false);
+    if (transcriptionResult.error) {
+      toast.error(transcriptionResult.error);
+      return;
+    }
+
     setApiKey("");
+    setTranscriptionApiKey("");
     toast.success("Configurações de IA salvas.");
     router.refresh();
   }
@@ -159,6 +175,42 @@ export function AISettingsCard({ initial }: { initial: AISettingsForAdmin }) {
         <Switch label="Exibir aviso de revisão obrigatória" checked={showReviewNotice} onChange={setShowReviewNotice} />
         <Switch label="Relatórios Inteligentes" checked={reportsEnabled} onChange={setReportsEnabled} />
         <Switch label="Assistente do Prontuário" checked={patientAssistantEnabled} onChange={setPatientAssistantEnabled} />
+      </div>
+
+      <div className="flex flex-col gap-3 border-t border-border/60 pt-4">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+          Transcrição de Áudio (Whisper/OpenAI)
+        </p>
+        <Switch
+          label="Habilitar transcrição de áudio na Evolução"
+          checked={transcriptionEnabled}
+          onChange={setTranscriptionEnabled}
+        />
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+            Chave de API da OpenAI (dedicada, independente do provedor de texto acima)
+          </label>
+          <div className="flex items-center gap-2">
+            <Input
+              type={showTranscriptionKey ? "text" : "password"}
+              placeholder={
+                initial.hasTranscriptionApiKey
+                  ? `•••• configurada (final ${initial.transcriptionApiKeyLast4})`
+                  : "Cole a chave da OpenAI usada só para transcrição"
+              }
+              value={transcriptionApiKey}
+              onChange={(e) => setTranscriptionApiKey(e.target.value)}
+              className="flex-1"
+            />
+            <Button type="button" size="sm" variant="outline" onClick={() => setShowTranscriptionKey((prev) => !prev)}>
+              {showTranscriptionKey ? "Ocultar" : "Mostrar"}
+            </Button>
+          </div>
+          <p className="text-[11px] text-text-muted">
+            Usada só para transcrever áudio (Whisper). Não precisa ser a mesma conta/chave do provedor de texto
+            configurado acima.
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 border-t border-border/60 pt-4 sm:grid-cols-2">

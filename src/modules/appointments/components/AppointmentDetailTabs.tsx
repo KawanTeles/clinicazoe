@@ -42,6 +42,7 @@ interface AppointmentDetailTabsProps {
   canManageEvolution: boolean;
   evolution: EvolutionView | null;
   aiEnabled?: boolean;
+  transcriptionEnabled?: boolean;
   coTherapists: CoTherapistInfo[];
   availableProfessionals: { id: string; fullName: string }[];
   canManageCoTherapists: boolean;
@@ -53,6 +54,7 @@ export function AppointmentDetailTabs({
   canManageEvolution,
   evolution,
   aiEnabled,
+  transcriptionEnabled,
   coTherapists,
   availableProfessionals,
   canManageCoTherapists,
@@ -130,6 +132,7 @@ export function AppointmentDetailTabs({
           canManageEvolution={canManageEvolution}
           evolution={evolution}
           aiEnabled={aiEnabled}
+          transcriptionEnabled={transcriptionEnabled}
         />
       )}
     </div>

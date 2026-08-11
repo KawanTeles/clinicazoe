@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { AIDisclaimerNotice } from "./AIDisclaimerNotice";
 import { improveEvolutionText } from "@/modules/ai/services/evolution-assistant-actions";
+import { transcribeSessionAudio } from "@/modules/ai/services/transcription-actions";
 import { IMPROVE_MODE_LABELS, type ImproveMode } from "@/modules/ai/services/provider-types";
 
 const MODES = Object.keys(IMPROVE_MODE_LABELS) as ImproveMode[];
@@ -31,6 +32,8 @@ type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 interface AIWritingAssistantProps {
   appointmentId: string;
   onTextReady: (text: string) => void;
+  /** Só true quando o admin habilitou a transcrição de áudio e configurou a chave dedicada da OpenAI. */
+  transcriptionEnabled?: boolean;
 }
 
 function getSpeechRecognitionConstructor(): SpeechRecognitionConstructor | null {
@@ -42,7 +45,7 @@ function getSpeechRecognitionConstructor(): SpeechRecognitionConstructor | null 
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
-export function AIWritingAssistant({ appointmentId, onTextReady }: AIWritingAssistantProps) {
+export function AIWritingAssistant({ appointmentId, onTextReady, transcriptionEnabled }: AIWritingAssistantProps) {
   // Lazy initializer: este componente só monta no cliente (dentro do fluxo de
   // "Adicionar Evolução", disparado por clique), então window já existe aqui.
   const [Ctor] = useState<SpeechRecognitionConstructor | null>(getSpeechRecognitionConstructor);
@@ -54,9 +57,11 @@ export function AIWritingAssistant({ appointmentId, onTextReady }: AIWritingAssi
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [improvedText, setImprovedText] = useState<string | null>(null);
+  const [transcribing, setTranscribing] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!Ctor) return;
@@ -95,6 +100,27 @@ export function AIWritingAssistant({ appointmentId, onTextReady }: AIWritingAssi
       recognitionRef.current.start();
       setRecording(true);
     }
+  }
+
+  async function handleAudioUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setError(null);
+    setTranscribing(true);
+    const formData = new FormData();
+    formData.set("file", file);
+    formData.set("appointment_id", appointmentId);
+
+    const result = await transcribeSessionAudio(formData);
+    setTranscribing(false);
+    event.target.value = "";
+
+    if (result.error || !result.text) {
+      setError(result.error ?? "Não foi possível transcrever o áudio.");
+      return;
+    }
+    setTranscript(result.text);
   }
 
   async function handleImprove(mode: ImproveMode) {
@@ -144,6 +170,27 @@ export function AIWritingAssistant({ appointmentId, onTextReady }: AIWritingAssi
           </span>
         )}
 
+        {transcriptionEnabled && (
+          <>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              isLoading={transcribing}
+              onClick={() => audioInputRef.current?.click()}
+            >
+              🎧 Transcrever áudio
+            </Button>
+            <input
+              ref={audioInputRef}
+              type="file"
+              accept="audio/mpeg,audio/mp3,audio/mp4,audio/x-m4a,audio/m4a,audio/wav,audio/x-wav,audio/webm,.mp3,.m4a,.wav,.webm,.mp4,.mpeg,.mpga"
+              className="hidden"
+              onChange={handleAudioUpload}
+            />
+          </>
+        )}
+
         <div className="relative ml-auto" ref={menuRef}>
           <Button
             type="button"
@@ -170,6 +217,13 @@ export function AIWritingAssistant({ appointmentId, onTextReady }: AIWritingAssi
           )}
         </div>
       </div>
+
+      {transcriptionEnabled && (
+        <p className="text-[11px] text-text-muted">
+          Áudio até 25MB — grave em formato comprimido (m4a/mp3, padrão de gravador de celular): cobre
+          tranquilamente 50–90min de sessão. Em WAV sem compressão o limite chega bem mais cedo (~20min).
+        </p>
+      )}
 
       <Textarea
         label="Transcrição / rascunho"

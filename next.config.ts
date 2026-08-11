@@ -48,6 +48,16 @@ const nextConfig: NextConfig = {
   // de metadata por completo garante que title/description/OG sempre
   // cheguem no primeiro payload, para qualquer visitante ou bot.
   htmlLimitedBots: /.*/,
+  experimental: {
+    serverActions: {
+      // Default do Next é 1MB — abaixo até dos uploads menores que já
+      // existiam (avatar 3MB, logo da clínica 2MB, documentos clínicos
+      // 10MB), fora o áudio de sessão (25MB, teto da própria API do
+      // Whisper). Sem isso, qualquer arquivo acima de 1MB falha ao chegar
+      // na Server Action antes mesmo da validação de tamanho no código.
+      bodySizeLimit: "30mb",
+    },
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

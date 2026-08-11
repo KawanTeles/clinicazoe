@@ -867,6 +867,78 @@ export interface Database {
         };
         Relationships: [];
       };
+      session_transcriptions: {
+        Row: {
+          id: string;
+          appointment_id: string;
+          patient_id: string;
+          professional_id: string;
+          transcribed_text: string;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          appointment_id: string;
+          patient_id: string;
+          professional_id: string;
+          transcribed_text: string;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          appointment_id?: string;
+          patient_id?: string;
+          professional_id?: string;
+          transcribed_text?: string;
+          created_by?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      clinical_documents: {
+        Row: {
+          id: string;
+          patient_id: string;
+          professional_id: string;
+          evolution_id: string | null;
+          description: string | null;
+          file_name: string;
+          file_path: string;
+          mime_type: string;
+          file_size_bytes: number;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          patient_id: string;
+          professional_id: string;
+          evolution_id?: string | null;
+          description?: string | null;
+          file_name: string;
+          file_path: string;
+          mime_type: string;
+          file_size_bytes: number;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          patient_id?: string;
+          professional_id?: string;
+          evolution_id?: string | null;
+          description?: string | null;
+          file_name?: string;
+          file_path?: string;
+          mime_type?: string;
+          file_size_bytes?: number;
+          created_by?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       appointment_professionals: {
         Row: {
           appointment_id: string;
@@ -954,6 +1026,9 @@ export interface Database {
           daily_request_limit: number | null;
           monthly_request_limit_per_user: number | null;
           limit_action: string;
+          transcription_enabled: boolean;
+          transcription_api_key_ciphertext: string | null;
+          transcription_api_key_last4: string | null;
           updated_by: string | null;
           created_at: string;
           updated_at: string;
@@ -975,6 +1050,9 @@ export interface Database {
           daily_request_limit?: number | null;
           monthly_request_limit_per_user?: number | null;
           limit_action?: string;
+          transcription_enabled?: boolean;
+          transcription_api_key_ciphertext?: string | null;
+          transcription_api_key_last4?: string | null;
           updated_by?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -996,6 +1074,9 @@ export interface Database {
           daily_request_limit?: number | null;
           monthly_request_limit_per_user?: number | null;
           limit_action?: string;
+          transcription_enabled?: boolean;
+          transcription_api_key_ciphertext?: string | null;
+          transcription_api_key_last4?: string | null;
           updated_by?: string | null;
           created_at?: string;
           updated_at?: string;

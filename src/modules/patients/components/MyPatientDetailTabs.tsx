@@ -4,7 +4,9 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { EvolutionTimeline } from "@/modules/evolutions/components/EvolutionTimeline";
 import { PatientAIAssistant } from "@/modules/ai/components/PatientAIAssistant";
+import { ClinicalDocuments, type EvolutionOption } from "@/modules/clinical-documents/components/ClinicalDocuments";
 import type { EvolutionView } from "@/modules/evolutions/services/evolution-queries";
+import type { ClinicalDocumentView } from "@/modules/clinical-documents/services/clinical-document-queries";
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 
@@ -24,9 +26,10 @@ interface MyPatientDetailTabsProps {
   evolutions: EvolutionView[];
   evolutionsTotalPages: number;
   aiAssistantEnabled: boolean;
+  documents: ClinicalDocumentView[];
 }
 
-const BASE_TABS = ["Dados", "Histórico Clínico"] as const;
+const BASE_TABS = ["Dados", "Histórico Clínico", "Documentos"] as const;
 const AI_TAB = "🤖 Assistente IA";
 type Tab = (typeof BASE_TABS)[number] | typeof AI_TAB;
 
@@ -35,9 +38,16 @@ export function MyPatientDetailTabs({
   evolutions,
   evolutionsTotalPages,
   aiAssistantEnabled,
+  documents,
 }: MyPatientDetailTabsProps) {
   const [tab, setTab] = useState<Tab>("Dados");
   const visibleTabs: Tab[] = aiAssistantEnabled ? [...BASE_TABS, AI_TAB] : [...BASE_TABS];
+  const evolutionOptions: EvolutionOption[] = evolutions.map((e) => ({
+    id: e.id,
+    label: `${e.appointmentDate ? dateFormatter.format(new Date(`${e.appointmentDate}T00:00:00`)) : "—"}${
+      e.specialtyName ? ` · ${e.specialtyName}` : ""
+    }`,
+  }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -97,6 +107,17 @@ export function MyPatientDetailTabs({
             patientId={patient.id}
             initialEvolutions={evolutions}
             initialTotalPages={evolutionsTotalPages}
+          />
+        </div>
+      )}
+
+      {tab === "Documentos" && (
+        <div>
+          <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-text-secondary">Documentos</h2>
+          <ClinicalDocuments
+            patientId={patient.id}
+            initialDocuments={documents}
+            evolutionOptions={evolutionOptions}
           />
         </div>
       )}

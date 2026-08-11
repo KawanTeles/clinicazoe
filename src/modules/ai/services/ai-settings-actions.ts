@@ -153,6 +153,41 @@ export async function updateAIFeatureToggles(input: {
   return { error: null };
 }
 
+export async function updateTranscriptionSettings(input: {
+  transcription_enabled: boolean;
+  transcription_api_key: string;
+}): Promise<ActionResult> {
+  const session = await requireAIAdmin();
+  if (!session) return { error: "Acesso negado." };
+
+  const supabase = await createClient();
+  const update: AISettingsUpdate = {
+    transcription_enabled: input.transcription_enabled,
+    updated_by: session.user.id,
+  };
+
+  // Mesmo padrão de updateAIProviderSettings: campo vazio = mantém a chave
+  // já salva (não apaga); só sobrescreve quando o admin cola uma chave nova.
+  const trimmedKey = input.transcription_api_key.trim();
+  if (trimmedKey) {
+    update.transcription_api_key_ciphertext = encryptSecret(trimmedKey);
+    update.transcription_api_key_last4 = trimmedKey.slice(-4);
+  }
+
+  const { error } = await supabase.from("ai_settings").update(update).eq("id", 1);
+  if (error) return { error: "Não foi possível salvar as configurações de transcrição." };
+
+  await logAudit({
+    actorId: session.user.id,
+    action: "ai.settings.transcription_updated",
+    entity: "ai_settings",
+    entityId: "1",
+    metadata: { transcription_enabled: input.transcription_enabled, key_changed: Boolean(trimmedKey) },
+  });
+
+  return { error: null };
+}
+
 function parseOptionalLimit(value: string): { ok: true; parsed: number | null } | { ok: false } {
   const trimmed = value.trim();
   if (!trimmed) return { ok: true, parsed: null };

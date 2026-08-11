@@ -78,6 +78,33 @@ export async function createTeamMember(
   const userId = created.user.id;
   const supabase = await createClient();
 
+  // GoTrue aplica o app_metadata passado ao admin.createUser() (acima) numa
+  // escrita separada, depois que a trigger on_auth_user_created (AFTER
+  // INSERT em auth.users) já disparou — então o profile pode nascer com o
+  // role padrão ("paciente") mesmo com app_metadata.role correto salvo em
+  // auth.users. Confere e corrige aqui: como quem chama esta action já é um
+  // admin autenticado (supabase = client desta sessão, is_admin() = true),
+  // um UPDATE direto passa pelo trigger prevent_role_self_escalation sem
+  // problema — mesmo bug e mesmo diagnóstico do create-admin.mjs, mas ali a
+  // correção precisou apagar e recriar o profile porque o script roda com a
+  // service role (sem JWT de usuário, não passa em is_admin()).
+  const { data: createdProfile, error: profileCheckError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .single();
+
+  if (profileCheckError) {
+    return { error: "Usuário criado, mas houve falha ao conferir o cargo. Edite o membro para corrigir." };
+  }
+
+  if (createdProfile.role !== input.role) {
+    const { error: roleFixError } = await supabase.from("profiles").update({ role: input.role }).eq("id", userId);
+    if (roleFixError) {
+      return { error: "Usuário criado, mas houve falha ao definir o cargo correto. Edite o membro para corrigir." };
+    }
+  }
+
   if (input.phone.trim()) {
     const { error: phoneError } = await supabase
       .from("profiles")

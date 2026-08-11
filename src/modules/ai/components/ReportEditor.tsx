@@ -124,7 +124,7 @@ export function ReportEditor({ report, canEdit }: { report: AIReportDetail; canE
         <Button type="button" size="sm" variant="outline" onClick={handleCopy}>
           Copiar
         </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => window.open(`/reports/${report.id}/print`, "_blank")}>
+        <Button type="button" size="sm" variant="outline" onClick={() => window.open(`/api/reports/${report.id}/pdf`, "_blank")}>
           Exportar PDF
         </Button>
         <Button type="button" size="sm" variant="outline" onClick={() => downloadAsWord(title, content)}>

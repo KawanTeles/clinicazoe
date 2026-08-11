@@ -43,12 +43,14 @@ export default async function AppointmentDetailPage({ params }: { params: Promis
   const evolution = canViewEvolution ? await getEvolutionForAppointment(appointment.id) : null;
 
   let aiEnabled = false;
+  let transcriptionEnabled = false;
   if (isLinkedProfessional) {
     const [hasPermission, flags] = await Promise.all([
       can(session.profile.role, "ai.evolution_assistant.use"),
       getAIFeatureFlags(),
     ]);
     aiEnabled = hasPermission && flags.enabled && flags.evolutionAssistantEnabled;
+    transcriptionEnabled = hasPermission && flags.enabled && flags.transcriptionEnabled;
   }
 
   // Admin, recepção ou o profissional principal podem adicionar/remover
@@ -68,6 +70,7 @@ export default async function AppointmentDetailPage({ params }: { params: Promis
       canManageEvolution={isLinkedProfessional}
       evolution={evolution}
       aiEnabled={aiEnabled}
+      transcriptionEnabled={transcriptionEnabled}
       coTherapists={coTherapists}
       availableProfessionals={availableProfessionals}
       canManageCoTherapists={canManageCoTherapists}
