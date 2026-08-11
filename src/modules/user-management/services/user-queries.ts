@@ -89,16 +89,27 @@ export async function countActiveAdmins(): Promise<number> {
   return count ?? 0;
 }
 
-/** Consultas vinculadas ao usuário (como paciente ou como profissional) — usado para bloquear
- * exclusões que apagariam histórico clínico, mesma cautela já aplicada ao módulo de Pacientes. */
+/** Consultas vinculadas ao usuário (como paciente, como profissional principal, ou como
+ * coterapeuta — Etapa 36) — usado para bloquear exclusões que apagariam histórico clínico,
+ * mesma cautela já aplicada ao módulo de Pacientes. Sem contar appointment_professionals, um
+ * profissional que só atuou como coterapeuta passava por aqui com "0 consultas" mesmo já tendo
+ * registrado evolução própria (Etapa 37) — achado C2 da varredura de segurança. */
 export async function countUserAppointments(id: string, role: Role): Promise<number> {
   if (role !== "paciente" && role !== "profissional") return 0;
 
   const supabase = await createClient();
-  const column = role === "paciente" ? "patient_id" : "professional_id";
-  const { count } = await supabase
-    .from("appointments")
-    .select("id", { count: "exact", head: true })
-    .eq(column, id);
-  return count ?? 0;
+
+  if (role === "paciente") {
+    const { count } = await supabase
+      .from("appointments")
+      .select("id", { count: "exact", head: true })
+      .eq("patient_id", id);
+    return count ?? 0;
+  }
+
+  const [principal, coTherapist] = await Promise.all([
+    supabase.from("appointments").select("id", { count: "exact", head: true }).eq("professional_id", id),
+    supabase.from("appointment_professionals").select("appointment_id", { count: "exact", head: true }).eq("professional_id", id),
+  ]);
+  return (principal.count ?? 0) + (coTherapist.count ?? 0);
 }
