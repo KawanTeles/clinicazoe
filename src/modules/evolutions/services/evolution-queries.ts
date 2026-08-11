@@ -143,6 +143,57 @@ export async function getEvolutionsForPatientPage(
   return { items, totalPages };
 }
 
+export interface EvolutionVersionView {
+  versionNumber: number;
+  sessionSummary: string | null;
+  clinicalEvolution: string;
+  objectives: string | null;
+  interventions: string | null;
+  patientResponse: string | null;
+  homeGuidance: string | null;
+  observations: string | null;
+  editedAt: string;
+  editedByName: string | null;
+}
+
+/** Histórico de versões anteriores de uma evolução editada, mais recente
+ * primeiro. Cada versão é o estado ANTES de uma edição — a linha atual em
+ * patient_evolutions não entra aqui. RLS (patient_evolution_versions_select_own,
+ * 0041) já restringe ao profissional dono da evolução; nenhuma checagem
+ * adicional é necessária aqui. */
+export async function getEvolutionVersions(evolutionId: string): Promise<EvolutionVersionView[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("patient_evolution_versions")
+    .select("*")
+    .eq("evolution_id", evolutionId)
+    .order("version_number", { ascending: false });
+
+  const rows = data ?? [];
+  if (rows.length === 0) return [];
+
+  const editorIds = Array.from(
+    new Set(rows.map((r) => r.edited_by).filter((id): id is string => Boolean(id))),
+  );
+  const { data: people } = editorIds.length > 0
+    ? await supabase.from("profiles").select("id, full_name").in("id", editorIds)
+    : { data: [] as { id: string; full_name: string }[] };
+  const nameById = new Map((people ?? []).map((p) => [p.id, p.full_name]));
+
+  return rows.map((row) => ({
+    versionNumber: row.version_number,
+    sessionSummary: row.session_summary,
+    clinicalEvolution: row.clinical_evolution,
+    objectives: row.objectives,
+    interventions: row.interventions,
+    patientResponse: row.patient_response,
+    homeGuidance: row.home_guidance,
+    observations: row.observations,
+    editedAt: row.edited_at,
+    editedByName: row.edited_by ? nameById.get(row.edited_by) ?? null : null,
+  }));
+}
+
 export interface EvolutionSearchParams {
   patientQuery?: string;
   professionalId?: string;

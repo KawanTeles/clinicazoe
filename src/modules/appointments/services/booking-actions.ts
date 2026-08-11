@@ -273,6 +273,16 @@ export async function cancelAppointment(
   return { error: null, whatsappLink };
 }
 
+/** Confirma uma consulta e gera o lançamento financeiro correspondente.
+ *
+ * Decisão de financeiro em atendimento compartilhado (confirmada — revisar
+ * com a clínica antes de operar com dados reais de pagamento): o lançamento
+ * é criado só para o profissional principal (`appointment.professional_id`).
+ * Um coterapeuta vinculado via `appointment_professionals` (0036) registra a
+ * própria evolução clínica (0037), mas não gera lançamento financeiro
+ * próprio — não há split de valor nem duplicação de lançamento por
+ * profissional envolvido. Esse é o comportamento já implementado desde a
+ * Fase 2 de atendimento compartilhado, mantido como está por ora. */
 export async function confirmAppointment(
   appointmentId: string,
 ): Promise<{ error: string | null; whatsappLink?: string | null }> {

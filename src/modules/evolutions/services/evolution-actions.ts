@@ -6,7 +6,9 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/modules/team/services/audit";
 import {
   getEvolutionsForPatientPage,
+  getEvolutionVersions,
   type EvolutionView,
+  type EvolutionVersionView,
 } from "@/modules/evolutions/services/evolution-queries";
 
 async function requireProfessional() {
@@ -171,6 +173,18 @@ export async function updateEvolution(
   });
 
   return { error: null };
+}
+
+/** Carrega o histórico de versões anteriores de uma evolução editada,
+ * chamado sob demanda pelo botão "Ver histórico de edições" no modal de
+ * detalhe. Não restringe por role além de exigir sessão — a RLS de
+ * patient_evolution_versions (0041) já garante que só o profissional dono
+ * da evolução recebe alguma linha. */
+export async function loadEvolutionVersions(evolutionId: string): Promise<EvolutionVersionView[]> {
+  const session = await getCurrentUser();
+  if (!session) return [];
+
+  return getEvolutionVersions(evolutionId);
 }
 
 /** Carrega a próxima página da timeline clínica de um paciente, chamada

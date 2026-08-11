@@ -1,13 +1,15 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import type { EvolutionView } from "@/modules/evolutions/services/evolution-queries";
+import { loadEvolutionVersions } from "@/modules/evolutions/services/evolution-actions";
+import type { EvolutionVersionView, EvolutionView } from "@/modules/evolutions/services/evolution-queries";
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
-const SECTIONS: { key: keyof EvolutionView; label: string }[] = [
+const SECTIONS: { key: keyof EvolutionView & keyof EvolutionVersionView; label: string }[] = [
   { key: "sessionSummary", label: "Resumo da Sessão" },
   { key: "clinicalEvolution", label: "Evolução Clínica" },
   { key: "objectives", label: "Objetivos Trabalhados" },
@@ -27,6 +29,22 @@ export function EvolutionDetailModal({
   evolution: EvolutionView | null;
   onClose: () => void;
 }) {
+  const [versions, setVersions] = useState<EvolutionVersionView[] | null>(null);
+  const [loadingVersions, setLoadingVersions] = useState(false);
+
+  useEffect(() => {
+    setVersions(null);
+    setLoadingVersions(false);
+  }, [evolution?.id]);
+
+  async function handleLoadHistory() {
+    if (!evolution) return;
+    setLoadingVersions(true);
+    const result = await loadEvolutionVersions(evolution.id);
+    setVersions(result);
+    setLoadingVersions(false);
+  }
+
   return (
     <Modal
       isOpen={evolution !== null}
@@ -91,6 +109,51 @@ export function EvolutionDetailModal({
                 </>
               )}
             </div>
+
+            {evolution.wasEdited && (
+              <div className="border-t border-border/60 pt-3 print:hidden">
+                {versions === null ? (
+                  <Button size="sm" variant="secondary" isLoading={loadingVersions} onClick={handleLoadHistory}>
+                    Ver histórico de edições
+                  </Button>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">
+                      Histórico de Edições
+                    </p>
+                    {versions.length === 0 ? (
+                      <p className="text-sm text-text-secondary">Nenhuma versão anterior encontrada.</p>
+                    ) : (
+                      versions.map((version) => (
+                        <div
+                          key={version.versionNumber}
+                          className="flex flex-col gap-3 rounded-xl border border-border bg-card-elevated/50 p-4"
+                        >
+                          <p className="text-xs font-semibold text-text-secondary">
+                            Versão {version.versionNumber} · antes da edição de{" "}
+                            {version.editedByName ?? "—"} em {dateTimeFormatter.format(new Date(version.editedAt))}
+                          </p>
+                          {SECTIONS.map((section) => {
+                            const value = version[section.key];
+                            if (!value) return null;
+                            return (
+                              <div key={section.key}>
+                                <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">
+                                  {section.label}
+                                </p>
+                                <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-text-primary">
+                                  {value}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </>
       )}

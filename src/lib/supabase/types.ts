@@ -23,6 +23,10 @@ export type WaitlistStatus =
   | "cancelado"
   | "sem_interesse";
 export type WaitlistPeriod = "manha" | "tarde" | "noite";
+export type FinancialCategoryKind = "receita" | "despesa";
+export type FinancialDirection = "entrada" | "saida";
+export type ExpenseType = "fixa" | "variavel";
+export type TransactionPaymentMethod = "pix" | "dinheiro" | "cartao" | "transferencia" | "boleto" | "outro";
 
 /** day: convenção de Date.prototype.getDay() (0 = domingo ... 6 = sábado). */
 export interface BusinessHourEntry {
@@ -512,6 +516,90 @@ export interface Database {
         };
         Relationships: [];
       };
+      financial_categories: {
+        Row: {
+          id: string;
+          name: string;
+          kind: FinancialCategoryKind;
+          status: Status;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          kind: FinancialCategoryKind;
+          status?: Status;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          kind?: FinancialCategoryKind;
+          status?: Status;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      financial_transactions: {
+        Row: {
+          id: string;
+          direction: FinancialDirection;
+          category_id: string;
+          expense_type: ExpenseType | null;
+          professional_id: string | null;
+          description: string;
+          value: number;
+          payment_method: TransactionPaymentMethod | null;
+          due_date: string;
+          status: FinancialStatus;
+          paid_at: string | null;
+          notes: string | null;
+          created_by: string;
+          updated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          direction: FinancialDirection;
+          category_id: string;
+          expense_type?: ExpenseType | null;
+          professional_id?: string | null;
+          description: string;
+          value: number;
+          payment_method?: TransactionPaymentMethod | null;
+          due_date: string;
+          status?: FinancialStatus;
+          paid_at?: string | null;
+          notes?: string | null;
+          created_by: string;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          direction?: FinancialDirection;
+          category_id?: string;
+          expense_type?: ExpenseType | null;
+          professional_id?: string | null;
+          description?: string;
+          value?: number;
+          payment_method?: TransactionPaymentMethod | null;
+          due_date?: string;
+          status?: FinancialStatus;
+          paid_at?: string | null;
+          notes?: string | null;
+          created_by?: string;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       schedule_exceptions: {
         Row: {
           id: string;
@@ -797,6 +885,54 @@ export interface Database {
           professional_id?: string;
           created_at?: string;
           created_by?: string | null;
+        };
+        Relationships: [];
+      };
+      patient_evolution_versions: {
+        Row: {
+          id: string;
+          evolution_id: string;
+          version_number: number;
+          professional_id: string;
+          session_summary: string | null;
+          clinical_evolution: string;
+          objectives: string | null;
+          interventions: string | null;
+          patient_response: string | null;
+          home_guidance: string | null;
+          observations: string | null;
+          edited_by: string | null;
+          edited_at: string;
+        };
+        Insert: {
+          id?: string;
+          evolution_id: string;
+          version_number: number;
+          professional_id: string;
+          session_summary?: string | null;
+          clinical_evolution: string;
+          objectives?: string | null;
+          interventions?: string | null;
+          patient_response?: string | null;
+          home_guidance?: string | null;
+          observations?: string | null;
+          edited_by?: string | null;
+          edited_at?: string;
+        };
+        Update: {
+          id?: string;
+          evolution_id?: string;
+          version_number?: number;
+          professional_id?: string;
+          session_summary?: string | null;
+          clinical_evolution?: string;
+          objectives?: string | null;
+          interventions?: string | null;
+          patient_response?: string | null;
+          home_guidance?: string | null;
+          observations?: string | null;
+          edited_by?: string | null;
+          edited_at?: string;
         };
         Relationships: [];
       };
