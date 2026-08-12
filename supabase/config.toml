@@ -1,0 +1,22 @@
+# Config mínima do Supabase CLI para este projeto.
+#
+# O ClinicaZoe nunca roda a stack local do Supabase via Docker (`supabase
+# start`) — todo o desenvolvimento e deploy usa `--linked` direto contra o
+# projeto remoto (`supabase db push`, `supabase db query --linked`). Por
+# isso este arquivo é propositalmente enxuto: as seções padrão geradas por
+# `supabase init` para Studio, SMTP local, Realtime, Edge Functions,
+# Analytics etc. foram omitidas por não se aplicarem a este fluxo. Se algum
+# dia a stack local via Docker passar a ser usada, rode `supabase init
+# --force` para gerar a config completa e mesclar manualmente.
+#
+# Referência completa: https://supabase.com/docs/guides/local-development/cli/config
+
+project_id = "xcwchatwspdwuktzmqtu"
+
+[db]
+# Major version do Postgres do projeto remoto (supabase/.temp/postgres-version,
+# gerado automaticamente pelo CLI ao linkar — não precisa versionar).
+major_version = 17
+
+[db.migrations]
+enabled = true
