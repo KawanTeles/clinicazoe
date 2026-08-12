@@ -30,7 +30,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   const buffer = await renderToBuffer(
     <ReportPdfDocument
-      clinicName={clinic?.name ?? "ClinicaZoe"}
+      clinicName={clinic?.name ?? "Espaço Zoe"}
       clinicLogoUrl={logoUrl}
       title={report.title}
       patientName={report.patientName}

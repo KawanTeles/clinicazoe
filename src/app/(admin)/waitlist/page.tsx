@@ -9,7 +9,7 @@ import { WaitlistTable } from "@/modules/waitlist/components/WaitlistTable";
 import type { WaitlistStatus } from "@/lib/supabase/types";
 
 export const metadata = {
-  title: "Lista de Espera — ClinicaZoe",
+  title: "Lista de Espera — Espaço Zoe",
 };
 
 interface WaitlistPageProps {

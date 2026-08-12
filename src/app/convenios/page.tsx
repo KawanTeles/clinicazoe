@@ -13,18 +13,18 @@ import { CTA_PRIMARY } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
 
 export const metadata = {
-  title: "Convênios Atendidos — Clínica Zoe",
-  description: "Veja os planos de saúde e convênios médicos aceitos pela Clínica Zoe, além das condições para atendimento particular com reembolso facilitado.",
+  title: "Convênios Atendidos — Espaço Zoe",
+  description: "Veja os planos de saúde e convênios médicos aceitos pelo Espaço Zoe, além das condições para atendimento particular com reembolso facilitado.",
   alternates: { canonical: `${SITE_URL}/convenios` },
   openGraph: {
-    title: "Convênios Atendidos — Clínica Zoe",
-    description: "Veja os planos de saúde e convênios médicos aceitos pela Clínica Zoe, além das condições para atendimento particular com reembolso facilitado.",
+    title: "Convênios Atendidos — Espaço Zoe",
+    description: "Veja os planos de saúde e convênios médicos aceitos pelo Espaço Zoe, além das condições para atendimento particular com reembolso facilitado.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Convênios Atendidos — Clínica Zoe",
-    description: "Veja os planos de saúde e convênios médicos aceitos pela Clínica Zoe, além das condições para atendimento particular com reembolso facilitado.",
+    title: "Convênios Atendidos — Espaço Zoe",
+    description: "Veja os planos de saúde e convênios médicos aceitos pelo Espaço Zoe, além das condições para atendimento particular com reembolso facilitado.",
   },
 };
 
@@ -82,7 +82,7 @@ export default async function ConveniosPage() {
                   </div>
                   <h3 className="text-lg font-bold text-text-primary font-heading">{ins.name}</h3>
                   <p className="text-xs text-text-secondary mt-2 leading-relaxed">
-                    Cobertura para consultas médicas especializadas na Clínica Zoe.
+                    Cobertura para consultas médicas especializadas no {clinic.name || "Espaço Zoe"}.
                   </p>
                 </div>
 

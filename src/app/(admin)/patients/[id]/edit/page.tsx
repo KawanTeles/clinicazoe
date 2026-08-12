@@ -6,7 +6,7 @@ import { getPatientDetail } from "@/modules/patients/services/patient-queries";
 import { PatientForm } from "@/modules/patients/components/PatientForm";
 
 export const metadata = {
-  title: "Editar Paciente — ClinicaZoe",
+  title: "Editar Paciente — Espaço Zoe",
 };
 
 export default async function EditPatientPage({ params }: { params: Promise<{ id: string }> }) {

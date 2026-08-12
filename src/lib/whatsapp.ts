@@ -53,9 +53,13 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
   convenio: "Convênio",
 };
 
-export function appendClinicFooter(message: string, clinicPhone?: string | null): string {
-  const phoneStr = clinicPhone ? clinicPhone.trim() : "(11) 99999-9999";
-  const footer = `\n\n------------------------------------\n\nEm caso de dúvidas, entre em contato com a Clínica Zoe.\n\n📞 Atendimento da Clínica Zoe:\n${phoneStr}\n\nSerá um prazer atender você!`;
+const DEFAULT_CLINIC_NAME = "Espaço Zoe";
+
+export function appendClinicFooter(message: string, clinicPhone?: string | null, clinicName?: string | null): string {
+  const name = clinicName?.trim() || DEFAULT_CLINIC_NAME;
+  const phoneStr = clinicPhone?.trim();
+  const phoneLine = phoneStr ? `\n📞 Atendimento da ${name}:\n${phoneStr}\n` : `\n📞 Atendimento da ${name}\n`;
+  const footer = `\n\n------------------------------------\n\nEm caso de dúvidas, entre em contato com a ${name}.\n${phoneLine}\nSerá um prazer atender você!`;
   return `${message}${footer}`;
 }
 
@@ -72,6 +76,7 @@ export function buildBookingMessage(params: {
   modality?: Modality | null;
   particularProduct?: ParticularProduct | null;
   clinicPhone?: string | null;
+  clinicName?: string | null;
 }) {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
   const attendance = getAttendanceInfo(params.insuranceName, params.paymentMethod, params.modality, params.particularProduct);
@@ -95,7 +100,7 @@ export function buildBookingMessage(params: {
     `💰 Valor da Consulta: ${formatCurrency(params.value)}\n` +
     attendanceLines.trim()
   );
-  return appendClinicFooter(baseMessage, params.clinicPhone);
+  return appendClinicFooter(baseMessage, params.clinicPhone, params.clinicName);
 }
 
 export function buildCancellationMessage(params: {
@@ -105,6 +110,7 @@ export function buildCancellationMessage(params: {
   startTime: string;
   rescheduled: boolean;
   clinicPhone?: string | null;
+  clinicName?: string | null;
 }) {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
   const baseMessage = (
@@ -114,7 +120,7 @@ export function buildCancellationMessage(params: {
     `Data/Hora original: ${date} às ${params.startTime.slice(0, 5)}\n` +
     `Status: ${params.rescheduled ? "paciente vai reagendar" : "cancelada pelo paciente"}`
   );
-  return appendClinicFooter(baseMessage, params.clinicPhone);
+  return appendClinicFooter(baseMessage, params.clinicPhone, params.clinicName);
 }
 
 export function buildReminderMessage(params: {
@@ -132,7 +138,7 @@ export function buildReminderMessage(params: {
     `Data/Hora: ${date} às ${params.startTime.slice(0, 5)}\n` +
     `Local: ${params.clinicName}${params.clinicAddress ? " — " + params.clinicAddress : ""}`
   );
-  return appendClinicFooter(baseMessage, params.clinicPhone);
+  return appendClinicFooter(baseMessage, params.clinicPhone, params.clinicName);
 }
 
 export function buildRescheduleMessage(params: {
@@ -141,17 +147,19 @@ export function buildRescheduleMessage(params: {
   newDate: string;
   newStartTime: string;
   clinicPhone?: string | null;
+  clinicName?: string | null;
 }) {
   const date = dateFormatter.format(new Date(`${params.newDate}T00:00:00`));
+  const name = params.clinicName?.trim() || DEFAULT_CLINIC_NAME;
   const baseMessage = (
     `Olá, ${params.patientName}.\n\n` +
     `Sua consulta foi reagendada.\n\n` +
     `📅 Nova data: ${date}\n` +
     `🕒 Novo horário: ${params.newStartTime.slice(0, 5)}\n` +
     `👨‍⚕️ Profissional: ${params.professionalName}\n\n` +
-    `Caso tenha dúvidas, entre em contato com a Clínica Zoe.`
+    `Caso tenha dúvidas, entre em contato com a ${name}.`
   );
-  return appendClinicFooter(baseMessage, params.clinicPhone);
+  return appendClinicFooter(baseMessage, params.clinicPhone, params.clinicName);
 }
 
 /** Enviada ao paciente quando a recepção/admin cria um agendamento manual
@@ -174,7 +182,7 @@ export function buildStaffBookingConfirmationMessage(params: {
     `👨‍⚕️ Profissional: ${params.professionalName}\n` +
     `📍 ${params.clinicName}`
   );
-  return appendClinicFooter(baseMessage, params.clinicPhone);
+  return appendClinicFooter(baseMessage, params.clinicPhone, params.clinicName);
 }
 
 /** Enviada ao paciente quando a equipe recusa uma solicitação de agendamento
@@ -193,7 +201,7 @@ export function buildRejectionMessage(params: {
     `Data/Hora solicitada: ${date} às ${params.startTime.slice(0, 5)}\n\n` +
     `Por favor, entre em contato com a ${params.clinicName} para mais informações.`
   );
-  return appendClinicFooter(baseMessage, params.clinicPhone);
+  return appendClinicFooter(baseMessage, params.clinicPhone, params.clinicName);
 }
 
 const WAITLIST_PERIOD_LABELS: Record<string, string> = {
@@ -227,6 +235,7 @@ export function buildWaitlistClinicNotificationMessage(params: {
   preferredDays?: number[];
   notes?: string | null;
   clinicPhone?: string | null;
+  clinicName?: string | null;
 }) {
   const daysLabel = (params.preferredDays ?? [])
     .slice()
@@ -246,7 +255,7 @@ export function buildWaitlistClinicNotificationMessage(params: {
     `Dias disponíveis: ${daysLabel || "Sem preferência"}\n` +
     `Observações: ${params.notes?.trim() || "—"}`
   );
-  return appendClinicFooter(baseMessage, params.clinicPhone);
+  return appendClinicFooter(baseMessage, params.clinicPhone, params.clinicName);
 }
 
 /** Enviada ao paciente pela recepção ao clicar em "Oferecer Vaga" numa
@@ -257,18 +266,20 @@ export function buildWaitlistOfferMessage(params: {
   appointmentDate: string;
   startTime: string;
   clinicPhone?: string | null;
+  clinicName?: string | null;
 }) {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
+  const name = params.clinicName?.trim() || DEFAULT_CLINIC_NAME;
   const baseMessage = (
     `Olá, ${params.patientName}!\n\n` +
-    `Surgiu uma vaga na Clínica Zoe para a especialidade de ${params.specialtyName}.\n\n` +
+    `Surgiu uma vaga na ${name} para a especialidade de ${params.specialtyName}.\n\n` +
     `Data: ${date}\n` +
     `Horário: ${params.startTime.slice(0, 5)}\n\n` +
     `Caso tenha interesse, responda esta mensagem para confirmarmos seu agendamento.\n\n` +
     `Qualquer dúvida, estamos à disposição.\n\n` +
-    `Atenciosamente,\nEquipe Clínica Zoe`
+    `Atenciosamente,\nEquipe ${name}`
   );
-  return appendClinicFooter(baseMessage, params.clinicPhone);
+  return appendClinicFooter(baseMessage, params.clinicPhone, params.clinicName);
 }
 
 export function buildConfirmationMessage(params: {
@@ -288,5 +299,5 @@ export function buildConfirmationMessage(params: {
     `Local: ${params.clinicName}${params.clinicAddress ? " — " + params.clinicAddress : ""}\n` +
     `Valor: ${formatCurrency(params.value)}`
   );
-  return appendClinicFooter(baseMessage, params.clinicPhone);
+  return appendClinicFooter(baseMessage, params.clinicPhone, params.clinicName);
 }

@@ -16,17 +16,17 @@ import { WEEKDAY_LABELS } from "@/modules/settings/utils/form-state";
 
 export const metadata = {
   title: "Contato e Localização",
-  description: "Fale com a Clínica Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende sua consulta com poucos cliques.",
+  description: "Fale com o Espaço Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende sua consulta com poucos cliques.",
   alternates: { canonical: `${SITE_URL}/contato` },
   openGraph: {
     title: "Contato e Localização",
-    description: "Fale com a Clínica Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende sua consulta com poucos cliques.",
+    description: "Fale com o Espaço Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende sua consulta com poucos cliques.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Contato e Localização",
-    description: "Fale com a Clínica Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende sua consulta com poucos cliques.",
+    description: "Fale com o Espaço Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende sua consulta com poucos cliques.",
   },
 };
 

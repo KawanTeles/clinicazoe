@@ -7,7 +7,7 @@ import { listPatients } from "@/modules/patients/services/patient-queries";
 import { PatientsTable } from "@/modules/patients/components/PatientsTable";
 
 export const metadata = {
-  title: "Pacientes — ClinicaZoe",
+  title: "Pacientes — Espaço Zoe",
 };
 
 export default async function PatientsPage({

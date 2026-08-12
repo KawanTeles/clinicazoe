@@ -12,7 +12,7 @@ import { getAIUsageStats } from "@/modules/ai/services/usage-stats-queries";
 import { AIUsageStatsCard } from "@/modules/ai/components/AIUsageStatsCard";
 
 export const metadata = {
-  title: "Configurações — ClinicaZoe",
+  title: "Configurações — Espaço Zoe",
 };
 
 export default async function SettingsPage() {

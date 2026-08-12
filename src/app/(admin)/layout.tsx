@@ -51,7 +51,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       unreadCount={unreadCount}
       pendingRequestsCount={pendingRequestsCount}
       waitlistCount={waitlistCount}
-      clinicName={clinicSettings?.name || "ClinicaZoe"}
+      clinicName={clinicSettings?.name || "Espaço Zoe"}
       logoUrl={logoUrl}
     >
       {children}

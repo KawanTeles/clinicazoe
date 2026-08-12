@@ -7,8 +7,8 @@ import { LoginForm } from "@/modules/auth/components/LoginForm";
 import { DeveloperSignature } from "@/components/public/DeveloperSignature";
 
 export const metadata = {
-  title: "Entrar — Clínica Zoe",
-  description: "Acesse o painel administrativo da Clínica Zoe.",
+  title: "Entrar — Espaço Zoe",
+  description: "Acesse o painel administrativo do Espaço Zoe.",
   robots: { index: false, follow: false, nocache: true },
 };
 
@@ -21,13 +21,13 @@ export default function LoginPage() {
           <div className="mb-8 text-center flex flex-col items-center">
             <Image
               src="/brand-logo.png"
-              alt="Clínica Zoe"
+              alt="Espaço Zoe"
               width={64}
               height={64}
               priority
               className="h-16 w-16 rounded-full object-cover shadow-lg border-2 border-primary/30 mb-3"
             />
-            <h1 className="text-2xl font-extrabold tracking-tight text-text-primary font-heading">Clínica Zoe</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight text-text-primary font-heading">Espaço Zoe</h1>
             <p className="mt-1.5 text-xs font-medium text-text-secondary">
               Acesse o painel administrativo da clínica
             </p>

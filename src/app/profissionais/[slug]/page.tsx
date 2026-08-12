@@ -31,10 +31,12 @@ async function findProfessional(slug: string) {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const result = await findProfessional(slug);
-  if (!result) return { title: "Profissional | Clínica Zoe" };
+  if (!result) return { title: "Profissional | Espaço Zoe" };
   const { prof, canonicalSlug } = result;
+  const { clinic: metaClinic } = await getPublicWebsiteData();
+  const clinicName = metaClinic.name || "Espaço Zoe";
 
-  const title = `${prof.fullName} — ${prof.specialtyName} | Clínica Zoe`;
+  const title = `${prof.fullName} — ${prof.specialtyName} | ${clinicName}`;
   const description = prof.bio.length > 160 ? `${prof.bio.slice(0, 157)}...` : prof.bio;
 
   return {
@@ -87,7 +89,7 @@ export default async function ProfissionalDetailPage({ params }: { params: Promi
     ...(prof.licenseNumber ? { identifier: prof.licenseNumber } : {}),
     worksFor: {
       "@type": "MedicalClinic",
-      name: clinic.name || "Clínica Zoe",
+      name: clinic.name || "Espaço Zoe",
       url: SITE_URL,
     },
   };

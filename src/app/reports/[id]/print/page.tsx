@@ -7,7 +7,7 @@ import { getClinicSettings } from "@/modules/settings/services/settings-queries"
 import { PrintOnMount } from "@/modules/ai/components/PrintOnMount";
 
 export const metadata = {
-  title: "Imprimir Relatório — Clínica Zoe",
+  title: "Imprimir Relatório — Espaço Zoe",
   robots: { index: false, follow: false, nocache: true },
 };
 
@@ -30,7 +30,7 @@ export default async function ReportPrintPage({ params }: { params: Promise<{ id
       <style>{`@media print { @page { margin: 2cm; } body { background: white; } }`}</style>
       <PrintOnMount />
       <div className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
-        <h2 className="text-lg font-bold">{clinic?.name ?? "ClinicaZoe"}</h2>
+        <h2 className="text-lg font-bold">{clinic?.name ?? "Espaço Zoe"}</h2>
         <span className="text-xs text-gray-500">Gerado em {dateFormatter.format(new Date(report.createdAt))}</span>
       </div>
 

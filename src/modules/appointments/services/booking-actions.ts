@@ -151,7 +151,7 @@ export async function createAppointment(
       supabase.from("professionals").select("id").eq("id", input.professionalId).single(),
       supabase.from("specialties").select("name").eq("id", input.specialtyId).single(),
       supabase.from("insurances").select("name").eq("id", input.insuranceId).single(),
-      supabase.from("clinic_settings").select("whatsapp_number").eq("id", 1).single(),
+      supabase.from("clinic_settings").select("name, whatsapp_number").eq("id", 1).single(),
     ]);
 
   const [{ data: professionalProfile }] = await Promise.all([
@@ -172,6 +172,7 @@ export async function createAppointment(
     paymentMethod: input.paymentMethod,
     modality: input.modality,
     particularProduct: input.particularProduct,
+    clinicName: clinic?.name,
   });
 
   const whatsappLink = buildWhatsAppLink(clinic?.whatsapp_number, message);
@@ -250,7 +251,7 @@ export async function cancelAppointment(
 
   const [{ data: professionalProfile }, { data: clinic }] = await Promise.all([
     supabase.from("profiles").select("full_name").eq("id", appointment.professional_id).single(),
-    supabase.from("clinic_settings").select("whatsapp_number").eq("id", 1).single(),
+    supabase.from("clinic_settings").select("name, whatsapp_number").eq("id", 1).single(),
   ]);
 
   const message = buildCancellationMessage({
@@ -259,6 +260,7 @@ export async function cancelAppointment(
     appointmentDate: appointment.appointment_date,
     startTime: appointment.start_time,
     rescheduled,
+    clinicName: clinic?.name,
   });
 
   const whatsappLink = buildWhatsAppLink(clinic?.whatsapp_number, message);
@@ -338,7 +340,7 @@ export async function confirmAppointment(
     professionalName: professionalProfile?.full_name ?? "",
     appointmentDate: appointment.appointment_date,
     startTime: appointment.start_time,
-    clinicName: clinic?.name ?? "Clínica",
+    clinicName: clinic?.name ?? "Espaço Zoe",
     clinicAddress: clinic?.address,
     value: appointment.value,
     clinicPhone: clinic?.whatsapp_number,
@@ -413,7 +415,7 @@ export async function rejectAppointmentRequest(
     professionalName: professionalProfile?.full_name ?? "",
     appointmentDate: appointment.appointment_date,
     startTime: appointment.start_time,
-    clinicName: clinic?.name ?? "Clínica Zoe",
+    clinicName: clinic?.name ?? "Espaço Zoe",
     clinicPhone: clinic?.whatsapp_number,
   });
 
@@ -523,7 +525,7 @@ export async function sendReminder(
     professionalName: professionalProfile?.full_name ?? "",
     appointmentDate: appointment.appointment_date,
     startTime: appointment.start_time,
-    clinicName: clinic?.name ?? "Clínica",
+    clinicName: clinic?.name ?? "Espaço Zoe",
     clinicAddress: clinic?.address,
     clinicPhone: clinic?.whatsapp_number,
   });
@@ -641,7 +643,7 @@ export async function createAppointmentForPatient(
     professionalName: professionalProfile?.full_name ?? "",
     appointmentDate: input.date,
     startTime: input.startTime,
-    clinicName: clinic?.name ?? "Clínica Zoe",
+    clinicName: clinic?.name ?? "Espaço Zoe",
     clinicPhone: clinic?.whatsapp_number,
   });
 

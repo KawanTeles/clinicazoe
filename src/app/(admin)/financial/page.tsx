@@ -14,7 +14,7 @@ import { FinancialTransactionsSection } from "@/modules/financial/components/Fin
 import type { FinancialCategoryOption } from "@/modules/financial/components/FinancialTransactionForm";
 
 export const metadata = {
-  title: "Financeiro — ClinicaZoe",
+  title: "Financeiro — Espaço Zoe",
 };
 
 const ALLOWED_ROLES = ["admin", "profissional", "recepcionista"];

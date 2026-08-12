@@ -24,13 +24,14 @@ const bricolage = Bricolage_Grotesque({
   display: "swap",
 });
 
-const FALLBACK_NAME = "Clínica Zoe";
-const DESCRIPTION =
-  "Clínica Zoe: atendimento médico humanizado com tecnologia de ponta, corpo clínico especializado e agendamento de consultas 100% online, rápido e seguro.";
+const FALLBACK_NAME = "Espaço Zoe";
+const buildDescription = (name: string) =>
+  `${name}: atendimento médico humanizado com tecnologia de ponta, corpo clínico especializado e agendamento de consultas 100% online, rápido e seguro.`;
 
 export async function generateMetadata(): Promise<Metadata> {
   const { clinic } = await getSiteMetadataForLayout();
   const name = clinic?.name || FALLBACK_NAME;
+  const DESCRIPTION = buildDescription(name);
 
   return {
     metadataBase: new URL(SITE_URL),
@@ -92,6 +93,7 @@ const SCHEMA_WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { clinic, specialtyNames } = await getSiteMetadataForLayout();
   const name = clinic?.name || FALLBACK_NAME;
+  const DESCRIPTION = buildDescription(name);
 
   const openingHours = (clinic?.business_hours ?? [])
     .filter((entry) => entry.is_open)

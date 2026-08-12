@@ -17,18 +17,18 @@ import { SITE_URL } from "@/lib/site-url";
 import { buildEntitySlug } from "@/lib/slug";
 
 export const metadata = {
-  title: "Corpo Médico e Profissionais — Clínica Zoe",
-  description: "Conheça os médicos especialistas da Clínica Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar sua consulta hoje mesmo.",
+  title: "Corpo Médico e Profissionais — Espaço Zoe",
+  description: "Conheça os médicos especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar sua consulta hoje mesmo.",
   alternates: { canonical: `${SITE_URL}/profissionais` },
   openGraph: {
-    title: "Corpo Médico e Profissionais — Clínica Zoe",
-    description: "Conheça os médicos especialistas da Clínica Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar sua consulta hoje mesmo.",
+    title: "Corpo Médico e Profissionais — Espaço Zoe",
+    description: "Conheça os médicos especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar sua consulta hoje mesmo.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Corpo Médico e Profissionais — Clínica Zoe",
-    description: "Conheça os médicos especialistas da Clínica Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar sua consulta hoje mesmo.",
+    title: "Corpo Médico e Profissionais — Espaço Zoe",
+    description: "Conheça os médicos especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar sua consulta hoje mesmo.",
   },
 };
 

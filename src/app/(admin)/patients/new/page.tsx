@@ -5,7 +5,7 @@ import { getActiveProfessionals } from "@/modules/professionals/services/profess
 import { PatientForm } from "@/modules/patients/components/PatientForm";
 
 export const metadata = {
-  title: "Novo Paciente — ClinicaZoe",
+  title: "Novo Paciente — Espaço Zoe",
 };
 
 export default async function NewPatientPage() {

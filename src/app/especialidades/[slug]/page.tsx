@@ -28,11 +28,12 @@ async function findSpecialty(slug: string) {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const result = await findSpecialty(slug);
-  if (!result) return { title: "Especialidade Médica | Clínica Zoe" };
-  const { spec, canonicalSlug } = result;
+  if (!result) return { title: "Especialidade Médica | Espaço Zoe" };
+  const { spec, canonicalSlug, clinic } = result;
+  const clinicName = clinic.name || "Espaço Zoe";
 
-  const title = `${spec.name} — Especialidade Médica | Clínica Zoe`;
-  const description = `Consultas de ${spec.name} na Clínica Zoe: diagnóstico preciso, tecnologia moderna e atendimento humanizado com especialistas qualificados. Agende online.`;
+  const title = `${spec.name} — Especialidade Médica | ${clinicName}`;
+  const description = `Consultas de ${spec.name} na ${clinicName}: diagnóstico preciso, tecnologia moderna e atendimento humanizado com especialistas qualificados. Agende online.`;
 
   return {
     title,
@@ -74,14 +75,14 @@ export default async function SpecialtyDetailPage({ params }: { params: Promise<
   const specialtyJsonLd = {
     "@context": "https://schema.org",
     "@type": "MedicalWebPage",
-    name: `${spec.name} — Clínica Zoe`,
+    name: `${spec.name} — ${clinic.name || "Espaço Zoe"}`,
     url: `${SITE_URL}/especialidades/${canonicalSlug}`,
     inLanguage: "pt-BR",
     about: { "@type": "MedicalSpecialty", name: spec.name },
     specialty: spec.name,
     mainEntity: {
       "@type": "MedicalClinic",
-      name: clinic.name || "Clínica Zoe",
+      name: clinic.name || "Espaço Zoe",
       url: SITE_URL,
     },
   };
@@ -109,7 +110,7 @@ export default async function SpecialtyDetailPage({ params }: { params: Promise<
                 Sobre a especialidade
               </h2>
               <p className="text-sm sm:text-base text-text-secondary leading-relaxed max-w-2xl">
-                A especialidade de {spec.name} na Clínica Zoe reúne diagnóstico preciso, tecnologia médica moderna e
+                A especialidade de {spec.name} na {clinic.name || "Espaço Zoe"} reúne diagnóstico preciso, tecnologia médica moderna e
                 acompanhamento contínuo, com escuta ativa e atendimento humanizado em cada consulta.
               </p>
               <p className="text-sm sm:text-base text-text-secondary leading-relaxed max-w-2xl">

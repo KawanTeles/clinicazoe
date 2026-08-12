@@ -7,7 +7,7 @@ import { Patient8StepBooking } from "@/components/patient/Patient8StepBooking";
 import { Badge } from "@/components/ui/Badge";
 
 export const metadata = {
-  title: "Agendamento de Consulta em 8 Etapas — Clínica Zoe",
+  title: "Agendamento de Consulta em 8 Etapas — Espaço Zoe",
   description: "Fluxo completo de agendamento online para pacientes.",
 };
 

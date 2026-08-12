@@ -8,7 +8,7 @@ import { getClinicalDocumentsForPatient } from "@/modules/clinical-documents/ser
 import { MyPatientDetailTabs } from "@/modules/patients/components/MyPatientDetailTabs";
 
 export const metadata = {
-  title: "Paciente — ClinicaZoe",
+  title: "Paciente — Espaço Zoe",
 };
 
 export default async function MyPatientDetailPage({ params }: { params: Promise<{ id: string }> }) {

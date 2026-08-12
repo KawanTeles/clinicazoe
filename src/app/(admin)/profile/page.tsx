@@ -6,7 +6,7 @@ import { getAvatarSignedUrl } from "@/lib/supabase/storage";
 import { ProfileForm } from "@/modules/users/components/ProfileForm";
 
 export const metadata = {
-  title: "Meu Perfil — ClinicaZoe",
+  title: "Meu Perfil — Espaço Zoe",
 };
 
 export default async function ProfilePage() {

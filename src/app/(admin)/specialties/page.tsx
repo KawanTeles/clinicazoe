@@ -4,7 +4,7 @@ import { getSpecialties } from "@/modules/specialties/services/specialty-queries
 import { SpecialtyManager } from "@/modules/specialties/components/SpecialtyManager";
 
 export const metadata = {
-  title: "Especialidades — ClinicaZoe",
+  title: "Especialidades — Espaço Zoe",
 };
 
 export default async function SpecialtiesPage() {

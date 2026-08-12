@@ -10,7 +10,7 @@ import { getActiveProfessionals } from "@/modules/professionals/services/profess
 import { getActiveSpecialties } from "@/modules/specialties/services/specialty-queries";
 
 export const metadata = {
-  title: "Evoluções — ClinicaZoe",
+  title: "Evoluções — Espaço Zoe",
 };
 
 interface SearchParams {

@@ -6,7 +6,7 @@ import { getAIReport } from "@/modules/ai/services/reports-queries";
 import { ReportEditor } from "@/modules/ai/components/ReportEditor";
 
 export const metadata = {
-  title: "Relatório IA — ClinicaZoe",
+  title: "Relatório IA — Espaço Zoe",
 };
 
 export default async function ReportDetailPage({ params }: { params: Promise<{ id: string }> }) {

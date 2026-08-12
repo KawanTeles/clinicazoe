@@ -91,7 +91,7 @@ export async function createWaitlistEntry(
         ? supabase.from("profiles").select("full_name").eq("id", input.professionalId).single()
         : Promise.resolve({ data: null as { full_name: string } | null }),
       supabase.from("insurances").select("name").eq("id", input.insuranceId).single(),
-      supabase.from("clinic_settings").select("whatsapp_number").eq("id", 1).single(),
+      supabase.from("clinic_settings").select("name, whatsapp_number").eq("id", 1).single(),
     ]);
 
   const message = buildWaitlistClinicNotificationMessage({
@@ -104,6 +104,7 @@ export async function createWaitlistEntry(
     periodPreference: input.periodPreference,
     preferredDays: input.preferredDays,
     notes: input.notes,
+    clinicName: clinic?.name,
   });
 
   const whatsappLink = buildWhatsAppLink(clinic?.whatsapp_number, message);
@@ -182,7 +183,7 @@ export async function offerSlot(
 
   const [{ data: specialty }, { data: clinic }] = await Promise.all([
     supabase.from("specialties").select("name").eq("id", entry.specialty_id).single(),
-    supabase.from("clinic_settings").select("whatsapp_number").eq("id", 1).single(),
+    supabase.from("clinic_settings").select("name, whatsapp_number").eq("id", 1).single(),
   ]);
 
   const message = buildWaitlistOfferMessage({
@@ -191,6 +192,7 @@ export async function offerSlot(
     appointmentDate: input.date,
     startTime: input.startTime,
     clinicPhone: clinic?.whatsapp_number,
+    clinicName: clinic?.name,
   });
 
   const whatsappLink = buildWhatsAppLink(entry.patient_phone, message);

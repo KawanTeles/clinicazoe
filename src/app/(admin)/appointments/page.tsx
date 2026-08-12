@@ -7,7 +7,7 @@ import { getAppointmentsForViewer } from "@/modules/appointments/services/appoin
 import { AppointmentsList } from "@/modules/appointments/components/AppointmentsList";
 
 export const metadata = {
-  title: "Consultas — ClinicaZoe",
+  title: "Consultas — Espaço Zoe",
 };
 
 const TITLES: Record<string, { title: string; subtitle: string }> = {

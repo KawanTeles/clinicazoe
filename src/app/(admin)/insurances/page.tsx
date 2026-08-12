@@ -4,7 +4,7 @@ import { getInsurances } from "@/modules/insurances/services/insurance-queries";
 import { InsuranceManager } from "@/modules/insurances/components/InsuranceManager";
 
 export const metadata = {
-  title: "Convênios — ClinicaZoe",
+  title: "Convênios — Espaço Zoe",
 };
 
 export default async function InsurancesPage() {

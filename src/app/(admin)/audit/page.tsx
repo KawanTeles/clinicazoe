@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getAuditLogs } from "@/modules/audit/services/audit-queries";
 
 export const metadata = {
-  title: "Auditoria — ClinicaZoe",
+  title: "Auditoria — Espaço Zoe",
 };
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", {

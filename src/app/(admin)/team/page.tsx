@@ -8,7 +8,7 @@ import { getTeamMembers } from "@/modules/team/services/team-queries";
 import { TeamTable } from "@/modules/team/components/TeamTable";
 
 export const metadata = {
-  title: "Equipe — ClinicaZoe",
+  title: "Equipe — Espaço Zoe",
 };
 
 const FILTER_ROLES = ["admin", "recepcionista", "profissional"] as const;

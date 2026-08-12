@@ -12,18 +12,18 @@ import { CTA_PRIMARY } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
 
 export const metadata = {
-  title: "A Clínica — História, Missão e Valores | Clínica Zoe",
-  description: "Conheça a história, missão, visão e valores da Clínica Zoe: atendimento humanizado, ética médica e padrão internacional de qualidade em saúde integrada.",
+  title: "A Clínica — História, Missão e Valores | Espaço Zoe",
+  description: "Conheça a história, missão, visão e valores do Espaço Zoe: atendimento humanizado, ética médica e padrão internacional de qualidade em saúde integrada.",
   alternates: { canonical: `${SITE_URL}/clinica` },
   openGraph: {
-    title: "A Clínica — História, Missão e Valores | Clínica Zoe",
-    description: "Conheça a história, missão, visão e valores da Clínica Zoe: atendimento humanizado, ética médica e padrão internacional de qualidade em saúde integrada.",
+    title: "A Clínica — História, Missão e Valores | Espaço Zoe",
+    description: "Conheça a história, missão, visão e valores do Espaço Zoe: atendimento humanizado, ética médica e padrão internacional de qualidade em saúde integrada.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "A Clínica — História, Missão e Valores | Clínica Zoe",
-    description: "Conheça a história, missão, visão e valores da Clínica Zoe: atendimento humanizado, ética médica e padrão internacional de qualidade em saúde integrada.",
+    title: "A Clínica — História, Missão e Valores | Espaço Zoe",
+    description: "Conheça a história, missão, visão e valores do Espaço Zoe: atendimento humanizado, ética médica e padrão internacional de qualidade em saúde integrada.",
   },
 };
 
@@ -50,7 +50,7 @@ export default async function ClinicaPage() {
           <PageEntranceItem>
             <PageHero
               breadcrumbItems={breadcrumbItems}
-              title="A Clínica Zoe"
+              title={`A ${clinic.name || "Espaço Zoe"}`}
               subtitle="Inovação, ética e o acolhimento humano no centro de tudo que fazemos."
             />
           </PageEntranceItem>
@@ -64,7 +64,7 @@ export default async function ClinicaPage() {
                   Uma trajetória construída com dedicação e rigor científico
                 </h2>
                 <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-                  Fundada com o propósito de transformar a relação entre médicos e pacientes, a Clínica Zoe nasceu para combinar a alta precisão diagnóstica ao conforto e escuta ativa que cada indivíduo merece.
+                  Fundada com o propósito de transformar a relação entre médicos e pacientes, o {clinic.name || "Espaço Zoe"} nasceu para combinar a alta precisão diagnóstica ao conforto e escuta ativa que cada indivíduo merece.
                 </p>
                 <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
                   Ao longo dos anos, expandimos nossas especialidades e investimos continuamente na modernização de equipamentos e treinamento de nossa equipe.

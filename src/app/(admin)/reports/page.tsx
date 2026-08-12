@@ -9,7 +9,7 @@ import { getAIFeatureFlags } from "@/modules/ai/services/ai-settings-queries";
 import { REPORT_TEMPLATE_LABELS } from "@/modules/ai/services/provider-types";
 
 export const metadata = {
-  title: "Relatórios IA — ClinicaZoe",
+  title: "Relatórios IA — Espaço Zoe",
 };
 
 const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });

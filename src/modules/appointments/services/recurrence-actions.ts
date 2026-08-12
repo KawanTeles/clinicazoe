@@ -301,7 +301,7 @@ export async function createRecurringAppointments(
     professionalName: professionalProfile?.full_name ?? "",
     appointmentDate: rows[0].appointment_date,
     startTime: rows[0].start_time,
-    clinicName: clinic?.name ?? "Clínica Zoe",
+    clinicName: clinic?.name ?? "Espaço Zoe",
     clinicPhone: clinic?.whatsapp_number,
   });
   const whatsappLink = buildWhatsAppLink(patient?.phone, message);
@@ -465,7 +465,7 @@ async function updateSingleOccurrence(
   const [{ data: patientProfile }, { data: professionalProfile }, { data: clinic }] = await Promise.all([
     supabase.from("profiles").select("full_name, phone").eq("id", appointment.patient_id).single(),
     supabase.from("profiles").select("full_name").eq("id", appointment.professional_id).single(),
-    supabase.from("clinic_settings").select("whatsapp_number").eq("id", 1).single(),
+    supabase.from("clinic_settings").select("name, whatsapp_number").eq("id", 1).single(),
   ]);
 
   const message = buildRescheduleMessage({
@@ -474,6 +474,7 @@ async function updateSingleOccurrence(
     newDate: input.date,
     newStartTime: input.startTime,
     clinicPhone: clinic?.whatsapp_number,
+    clinicName: clinic?.name,
   });
   const whatsappLink = buildWhatsAppLink(patientProfile?.phone, message);
 
@@ -646,7 +647,7 @@ export async function updateRecurringAppointment(
   const [{ data: patientProfile }, { data: professionalProfile }, { data: clinic }] = await Promise.all([
     supabase.from("profiles").select("full_name, phone").eq("id", series.patient_id).single(),
     supabase.from("profiles").select("full_name").eq("id", series.professional_id).single(),
-    supabase.from("clinic_settings").select("whatsapp_number").eq("id", 1).single(),
+    supabase.from("clinic_settings").select("name, whatsapp_number").eq("id", 1).single(),
   ]);
 
   const message = buildRescheduleMessage({
@@ -655,6 +656,7 @@ export async function updateRecurringAppointment(
     newDate: rows[0]?.appointment_date ?? cutoff,
     newStartTime: input.startTime,
     clinicPhone: clinic?.whatsapp_number,
+    clinicName: clinic?.name,
   });
   const whatsappLink = buildWhatsAppLink(patientProfile?.phone, message);
 

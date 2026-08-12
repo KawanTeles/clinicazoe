@@ -8,7 +8,7 @@ import {
 import { ScheduleManager } from "@/modules/schedule/components/ScheduleManager";
 
 export const metadata = {
-  title: "Minha Agenda — ClinicaZoe",
+  title: "Minha Agenda — Espaço Zoe",
 };
 
 export default async function MySchedulePage() {

@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getPatientsForProfessional } from "@/modules/appointments/services/patient-queries";
 
 export const metadata = {
-  title: "Meus Pacientes — ClinicaZoe",
+  title: "Meus Pacientes — Espaço Zoe",
 };
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });

@@ -15,18 +15,18 @@ import { SITE_URL } from "@/lib/site-url";
 import { buildEntitySlug } from "@/lib/slug";
 
 export const metadata = {
-  title: "Especialidades Médicas — Clínica Zoe",
-  description: "Conheça todas as especialidades médicas atendidas na Clínica Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada consulta.",
+  title: "Especialidades Médicas — Espaço Zoe",
+  description: "Conheça todas as especialidades médicas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada consulta.",
   alternates: { canonical: `${SITE_URL}/especialidades` },
   openGraph: {
-    title: "Especialidades Médicas — Clínica Zoe",
-    description: "Conheça todas as especialidades médicas atendidas na Clínica Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada consulta.",
+    title: "Especialidades Médicas — Espaço Zoe",
+    description: "Conheça todas as especialidades médicas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada consulta.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Especialidades Médicas — Clínica Zoe",
-    description: "Conheça todas as especialidades médicas atendidas na Clínica Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada consulta.",
+    title: "Especialidades Médicas — Espaço Zoe",
+    description: "Conheça todas as especialidades médicas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada consulta.",
   },
 };
 

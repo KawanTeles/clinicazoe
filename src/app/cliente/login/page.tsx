@@ -10,7 +10,7 @@ import { PublicFooter } from "@/components/public/PublicFooter";
 import { getPublicWebsiteData } from "@/lib/public-queries";
 
 export const metadata = {
-  title: "Acessar Área do Cliente — Clínica Zoe",
+  title: "Acessar Área do Cliente — Espaço Zoe",
   description: "Entre na sua conta para agendar e gerenciar suas consultas.",
 };
 
@@ -40,7 +40,7 @@ export default async function PatientLoginPage({
             <div className="text-center space-y-2 flex flex-col items-center">
               <Image
                 src="/brand-logo.png"
-                alt="Clínica Zoe"
+                alt={clinic.name || "Espaço Zoe"}
                 width={64}
                 height={64}
                 priority

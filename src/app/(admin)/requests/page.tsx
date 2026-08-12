@@ -4,7 +4,7 @@ import { getPendingRequests } from "@/modules/requests/services/request-queries"
 import { RequestsList } from "@/modules/requests/components/RequestsList";
 
 export const metadata = {
-  title: "Solicitações — ClinicaZoe",
+  title: "Solicitações — Espaço Zoe",
 };
 
 export default async function RequestsPage() {

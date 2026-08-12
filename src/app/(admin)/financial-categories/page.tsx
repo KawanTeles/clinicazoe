@@ -4,7 +4,7 @@ import { getFinancialCategories } from "@/modules/financial/services/financial-c
 import { FinancialCategoryManager } from "@/modules/financial/components/FinancialCategoryManager";
 
 export const metadata = {
-  title: "Categorias Financeiras — ClinicaZoe",
+  title: "Categorias Financeiras — Espaço Zoe",
 };
 
 export default async function FinancialCategoriesPage() {

@@ -7,7 +7,7 @@ export default function Loading() {
       <div className="flex flex-col items-center justify-center space-y-3 animate-pulse">
         <Image
           src="/brand-logo.png"
-          alt="Clínica Zoe"
+          alt="Espaço Zoe"
           width={64}
           height={64}
           priority

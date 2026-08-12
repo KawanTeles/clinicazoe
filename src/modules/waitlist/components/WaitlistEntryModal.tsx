@@ -148,7 +148,7 @@ export function WaitlistEntryModal({
           </div>
           <Badge tone="premium">Solicitação registrada</Badge>
           <p className="text-sm leading-relaxed text-text-secondary">
-            Você foi adicionado à Lista de Espera da Clínica Zoe. Assim que surgir uma vaga compatível com sua
+            Você foi adicionado à Lista de Espera do Espaço Zoe. Assim que surgir uma vaga compatível com sua
             solicitação, nossa equipe entrará em contato pelo WhatsApp.
           </p>
           <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">

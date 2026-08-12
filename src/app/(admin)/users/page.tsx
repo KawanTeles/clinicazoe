@@ -7,7 +7,7 @@ import { getAllUsers } from "@/modules/user-management/services/user-queries";
 import { UsersTable } from "@/modules/user-management/components/UsersTable";
 
 export const metadata = {
-  title: "Usuários — ClinicaZoe",
+  title: "Usuários — Espaço Zoe",
 };
 
 const FILTER_ROLES = ["admin", "recepcionista", "profissional", "paciente"] as const;

@@ -7,7 +7,7 @@ import { getUserDetail } from "@/modules/user-management/services/user-queries";
 import { UserEditForm } from "@/modules/user-management/components/UserEditForm";
 
 export const metadata = {
-  title: "Editar usuário — ClinicaZoe",
+  title: "Editar usuário — Espaço Zoe",
 };
 
 export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {

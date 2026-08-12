@@ -9,7 +9,7 @@ import { getScheduleForProfessional } from "@/modules/schedule/services/schedule
 import { DAY_LABELS } from "@/modules/schedule/constants";
 
 export const metadata = {
-  title: "Profissional — ClinicaZoe",
+  title: "Profissional — Espaço Zoe",
 };
 
 const STAFF_ROLES = ["admin", "recepcionista"];

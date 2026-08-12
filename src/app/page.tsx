@@ -16,9 +16,9 @@ import { CTA_PRIMARY, CTA_VIEW_ALL_PROFESSIONALS, CTA_VIEW_ALL_SPECIALTIES, CTA_
 import { SITE_URL } from "@/lib/site-url";
 import { buildEntitySlug } from "@/lib/slug";
 
-const TITLE = "Clínica Zoe — Medicina de Alta Performance e Saúde Integrada";
+const TITLE = "Espaço Zoe — Medicina de Alta Performance e Saúde Integrada";
 const DESCRIPTION =
-  "Referência em atendimento médico de excelência, corpo clínico renomado, tecnologia de ponta e agendamento 100% online. Marque sua consulta com a Clínica Zoe.";
+  "Referência em atendimento médico de excelência, corpo clínico renomado, tecnologia de ponta e agendamento 100% online. Marque sua consulta com o Espaço Zoe.";
 
 export const metadata = {
   title: TITLE,
@@ -64,7 +64,7 @@ export default async function HomePage() {
 
                 <PageEntranceItem>
                   <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-2xl font-normal">
-                    Na Clínica Zoe, aliamos a mais avançada tecnologia médica a uma equipe de
+                    Na {clinic.name || "Espaço Zoe"}, aliamos a mais avançada tecnologia médica a uma equipe de
                     especialistas de renome para oferecer diagnóstico preciso, tratamento eficaz e
                     atendimento verdadeiramente humanizado.
                   </p>

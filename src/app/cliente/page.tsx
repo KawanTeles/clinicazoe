@@ -16,8 +16,8 @@ import { getAppointmentsForPatient } from "@/modules/appointments/services/patie
 import { getAttendanceInfo } from "@/lib/attendance";
 
 export const metadata = {
-  title: "Área do Cliente — Clínica Zoe",
-  description: "Acompanhe seus agendamentos, histórico médico e consultas na Clínica Zoe.",
+  title: "Área do Cliente — Espaço Zoe",
+  description: "Acompanhe seus agendamentos, histórico médico e consultas no Espaço Zoe.",
 };
 
 export default async function ClientePublicPage({
@@ -56,7 +56,7 @@ export default async function ClientePublicPage({
                 </div>
                 <div>
                   <p className="text-sm font-bold text-text-primary">Conta confirmada com sucesso!</p>
-                  <p className="text-xs text-text-secondary">Bem-vindo(a) à Área do Cliente da Clínica Zoe.</p>
+                  <p className="text-xs text-text-secondary">Bem-vindo(a) à Área do Cliente {clinic.name ? `do ${clinic.name}` : "do Espaço Zoe"}.</p>
                 </div>
               </div>
             </PageEntranceItem>

@@ -11,18 +11,18 @@ import { CTA_PRIMARY } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
 
 export const metadata = {
-  title: "Estrutura e Tecnologia — Clínica Zoe",
-  description: "Conheça a estrutura da Clínica Zoe: consultórios climatizados, central diagnóstica integrada, biossegurança rigorosa e acessibilidade para todos os pacientes.",
+  title: "Estrutura e Tecnologia — Espaço Zoe",
+  description: "Conheça a estrutura do Espaço Zoe: consultórios climatizados, central diagnóstica integrada, biossegurança rigorosa e acessibilidade para todos os pacientes.",
   alternates: { canonical: `${SITE_URL}/estrutura` },
   openGraph: {
-    title: "Estrutura e Tecnologia — Clínica Zoe",
-    description: "Conheça a estrutura da Clínica Zoe: consultórios climatizados, central diagnóstica integrada, biossegurança rigorosa e acessibilidade para todos os pacientes.",
+    title: "Estrutura e Tecnologia — Espaço Zoe",
+    description: "Conheça a estrutura do Espaço Zoe: consultórios climatizados, central diagnóstica integrada, biossegurança rigorosa e acessibilidade para todos os pacientes.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Estrutura e Tecnologia — Clínica Zoe",
-    description: "Conheça a estrutura da Clínica Zoe: consultórios climatizados, central diagnóstica integrada, biossegurança rigorosa e acessibilidade para todos os pacientes.",
+    title: "Estrutura e Tecnologia — Espaço Zoe",
+    description: "Conheça a estrutura do Espaço Zoe: consultórios climatizados, central diagnóstica integrada, biossegurança rigorosa e acessibilidade para todos os pacientes.",
   },
 };
 

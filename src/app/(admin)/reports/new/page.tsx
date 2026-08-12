@@ -5,7 +5,7 @@ import { getAIFeatureFlags } from "@/modules/ai/services/ai-settings-queries";
 import { ReportWizard } from "@/modules/ai/components/ReportWizard";
 
 export const metadata = {
-  title: "Novo Relatório IA — ClinicaZoe",
+  title: "Novo Relatório IA — Espaço Zoe",
 };
 
 export default async function NewReportPage() {

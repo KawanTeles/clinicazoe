@@ -6,7 +6,7 @@ import { getActiveInsurances } from "@/modules/insurances/services/insurance-que
 import { ProfessionalsListClient } from "@/modules/professionals/components/ProfessionalsListClient";
 
 export const metadata = {
-  title: "Profissionais — ClinicaZoe",
+  title: "Profissionais — Espaço Zoe",
 };
 
 const STAFF_ROLES = ["admin", "recepcionista"];

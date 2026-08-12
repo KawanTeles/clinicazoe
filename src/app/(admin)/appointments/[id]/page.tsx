@@ -9,7 +9,7 @@ import { AppointmentDetailTabs } from "@/modules/appointments/components/Appoint
 import { getAIFeatureFlags } from "@/modules/ai/services/ai-settings-queries";
 
 export const metadata = {
-  title: "Detalhes da Consulta — ClinicaZoe",
+  title: "Detalhes da Consulta — Espaço Zoe",
 };
 
 export default async function AppointmentDetailPage({ params }: { params: Promise<{ id: string }> }) {

@@ -10,7 +10,7 @@ import { PatientDetailTabs } from "@/modules/patients/components/PatientDetailTa
 import { todayLocalIso } from "@/lib/date";
 
 export const metadata = {
-  title: "Paciente — ClinicaZoe",
+  title: "Paciente — Espaço Zoe",
 };
 
 export default async function PatientDetailPage({ params }: { params: Promise<{ id: string }> }) {

@@ -10,7 +10,7 @@ import {
 import { ScheduleManager } from "@/modules/schedule/components/ScheduleManager";
 
 export const metadata = {
-  title: "Agenda do profissional — ClinicaZoe",
+  title: "Agenda do profissional — Espaço Zoe",
 };
 
 export default async function ProfessionalSchedulePage({
