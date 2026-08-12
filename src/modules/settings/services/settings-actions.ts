@@ -12,6 +12,13 @@ const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
+const LOGO_EXTENSION_BY_MIME: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+  "image/svg+xml": "svg",
+};
+
 const PUBLIC_PATHS = [
   "/",
   "/contato",
@@ -459,7 +466,9 @@ export async function uploadClinicLogo(formData: FormData): Promise<ActionResult
   }
 
   const admin = createAdminClient();
-  const extension = file.name.split(".").pop() || "png";
+  // Extensão vem do MIME já validado (ALLOWED_LOGO_TYPES acima), não do
+  // nome do arquivo — file.name é controlado pelo client.
+  const extension = LOGO_EXTENSION_BY_MIME[file.type] ?? "png";
   const path = `logo.${extension}`;
 
   const { error: uploadError } = await admin.storage

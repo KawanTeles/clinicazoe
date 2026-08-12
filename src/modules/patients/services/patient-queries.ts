@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { buildIlikeFilterValue } from "@/lib/postgrest-filter";
 import type { Database } from "@/lib/supabase/types";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -30,12 +31,13 @@ export async function listPatients(params: {
   let matchingIds: string[] | null = null;
 
   if (search) {
+    const ilikeValue = buildIlikeFilterValue(search);
     const [{ data: byProfile }, { data: byCpf }] = await Promise.all([
       supabase
         .from("profiles")
         .select("id")
         .eq("role", "paciente")
-        .or(`full_name.ilike.%${search}%,phone.ilike.%${search}%`),
+        .or(`full_name.ilike.${ilikeValue},phone.ilike.${ilikeValue}`),
       supabase.from("patient_details").select("id").ilike("cpf", `%${search}%`),
     ]);
 

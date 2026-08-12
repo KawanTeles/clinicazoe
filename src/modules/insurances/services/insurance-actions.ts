@@ -2,7 +2,6 @@
 
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/modules/team/services/audit";
 
 async function requireAdmin() {
@@ -80,8 +79,10 @@ export async function updateInsurance(
 export async function deleteInsurance(id: string): Promise<{ error: string | null }> {
   const session = await requireAdmin();
 
-  const admin = createAdminClient();
-  const { error } = await admin.from("insurances").delete().eq("id", id);
+  // RLS (insurances_write_admin_only) já cobre isso — client de sessão
+  // basta, sem precisar de bypass via service role.
+  const supabase = await createClient();
+  const { error } = await supabase.from("insurances").delete().eq("id", id);
 
   if (error) {
     return { error: "Não foi possível excluir este convênio." };

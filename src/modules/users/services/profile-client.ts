@@ -2,6 +2,11 @@ import { createClient } from "@/lib/supabase/client";
 
 const MAX_AVATAR_BYTES = 3 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
+const EXTENSION_BY_MIME: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+};
 
 export async function updateOwnProfile(userId: string, values: { full_name: string; phone: string }) {
   const supabase = createClient();
@@ -20,7 +25,9 @@ export async function uploadAvatar(userId: string, file: File) {
   }
 
   const supabase = createClient();
-  const extension = file.name.split(".").pop();
+  // Extensão vem do MIME já validado (ALLOWED_TYPES acima), não do nome do
+  // arquivo — file.name é controlado pelo usuário.
+  const extension = EXTENSION_BY_MIME[file.type] ?? "jpg";
   const path = `${userId}/avatar.${extension}`;
 
   const { error: uploadError } = await supabase.storage

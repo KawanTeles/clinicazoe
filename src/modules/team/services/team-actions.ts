@@ -248,6 +248,11 @@ export async function updateTeamMember(
 
 const ALLOWED_AVATAR_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const MAX_AVATAR_BYTES = 3 * 1024 * 1024;
+const AVATAR_EXTENSION_BY_MIME: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+};
 
 export async function uploadTeamMemberAvatar(
   memberId: string,
@@ -267,7 +272,9 @@ export async function uploadTeamMemberAvatar(
   }
 
   const admin = createAdminClient();
-  const extension = file.name.split(".").pop() || "jpg";
+  // Extensão vem do MIME já validado (ALLOWED_AVATAR_TYPES acima), não do
+  // nome do arquivo — file.name é controlado pelo client.
+  const extension = AVATAR_EXTENSION_BY_MIME[file.type] ?? "jpg";
   const path = `${memberId}/avatar.${extension}`;
 
   const { error: uploadError } = await admin.storage

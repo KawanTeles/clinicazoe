@@ -90,7 +90,10 @@ export async function uploadClinicalDocument(formData: FormData): Promise<{ erro
   }
 
   const documentId = randomUUID();
-  const extension = file.name.split(".").pop()?.toLowerCase() || EXTENSION_BY_MIME[file.type] || "bin";
+  // Extensão vem do MIME já validado (ALLOWED_TYPES acima), não do nome do
+  // arquivo — file.name é controlado pelo client e não deveria decidir o
+  // path do objeto no Storage.
+  const extension = EXTENSION_BY_MIME[file.type] ?? "bin";
   const path = `${session.user.id}/${patientId}/${documentId}.${extension}`;
 
   const { error: uploadError } = await supabase.storage

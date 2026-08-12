@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { buildIlikeFilterValue } from "@/lib/postgrest-filter";
 import type { Modality, WaitlistPeriod, WaitlistStatus } from "@/lib/supabase/types";
 
 const PAGE_SIZE = 20;
@@ -122,8 +123,8 @@ export async function getWaitlistEntries(
   if (filters.insuranceId) query = query.eq("insurance_id", filters.insuranceId);
   if (filters.status) query = query.eq("status", filters.status);
   if (filters.search?.trim()) {
-    const term = filters.search.trim();
-    query = query.or(`patient_name.ilike.%${term}%,patient_phone.ilike.%${term}%`);
+    const ilikeValue = buildIlikeFilterValue(filters.search.trim());
+    query = query.or(`patient_name.ilike.${ilikeValue},patient_phone.ilike.${ilikeValue}`);
   }
   if (filters.date) {
     const start = `${filters.date}T00:00:00.000Z`;

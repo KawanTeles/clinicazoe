@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarSignedUrl } from "@/lib/supabase/storage";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { buildIlikeFilterValue } from "@/lib/postgrest-filter";
 import { logAudit } from "@/modules/team/services/audit";
 
 async function requireStaff() {
@@ -185,16 +186,17 @@ export async function searchPatientsForBooking(query: string): Promise<PatientSe
   let matchingIds: string[] | null = null;
 
   if (search.length > 0) {
+    const ilikeValue = buildIlikeFilterValue(search);
     const [{ data: byProfile }, { data: byDetails }] = await Promise.all([
       supabase
         .from("profiles")
         .select("id")
         .eq("role", "paciente")
-        .or(`full_name.ilike.%${search}%,phone.ilike.%${search}%`),
+        .or(`full_name.ilike.${ilikeValue},phone.ilike.${ilikeValue}`),
       supabase
         .from("patient_details")
         .select("id")
-        .or(`whatsapp.ilike.%${search}%,email.ilike.%${search}%`),
+        .or(`whatsapp.ilike.${ilikeValue},email.ilike.${ilikeValue}`),
     ]);
 
     const idSet = new Set<string>([
