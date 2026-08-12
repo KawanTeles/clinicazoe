@@ -7,7 +7,7 @@ import type { PatientSearchResult } from "@/modules/patients/services/patient-ac
 import type { Modality } from "@/lib/supabase/types";
 
 export const metadata = {
-  title: "Novo Agendamento — ClinicaZoe",
+  title: "Novo Agendamento — Espaço Zoe",
 };
 
 interface NewAppointmentPageProps {

@@ -10,7 +10,7 @@ import { getActiveInsurances } from "@/modules/insurances/services/insurance-que
 import { TeamMemberForm } from "@/modules/team/components/TeamMemberForm";
 
 export const metadata = {
-  title: "Editar membro — ClinicaZoe",
+  title: "Editar membro — Espaço Zoe",
 };
 
 export default async function EditTeamMemberPage({

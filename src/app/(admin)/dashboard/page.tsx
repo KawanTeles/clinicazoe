@@ -14,7 +14,7 @@ import { AppointmentsBarChart } from "@/modules/dashboard/components/Appointment
 import { RevenueBarChart } from "@/modules/dashboard/components/RevenueBarChart";
 
 export const metadata = {
-  title: "Dashboard — ClinicaZoe",
+  title: "Dashboard — Espaço Zoe",
 };
 
 function Kpi({ label, value, subtext }: { label: string; value: string; subtext?: string }) {
@@ -44,7 +44,7 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">
             Olá, {session.profile.full_name.split(" ")[0]}
           </h1>
-          <p className="mt-1 text-sm text-text-secondary">Sua visão geral na ClinicaZoe.</p>
+          <p className="mt-1 text-sm text-text-secondary">Sua visão geral na Espaço Zoe.</p>
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
