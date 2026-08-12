@@ -1,17 +1,5 @@
-import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-/** Extrai o IP do cliente a partir dos cabeçalhos da requisição (proxy/CDN à frente da app). Retorna null se indisponível — nunca vem do client. */
-async function getRequestIp(): Promise<string | null> {
-  try {
-    const hdrs = await headers();
-    const forwardedFor = hdrs.get("x-forwarded-for");
-    if (forwardedFor) return forwardedFor.split(",")[0]?.trim() || null;
-    return hdrs.get("x-real-ip");
-  } catch {
-    return null;
-  }
-}
+import { getRequestIp } from "@/lib/request-ip";
 
 export async function logAudit(params: {
   actorId: string;

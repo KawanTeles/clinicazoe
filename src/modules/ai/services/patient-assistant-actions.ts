@@ -91,8 +91,11 @@ export async function askPatientAssistant(input: {
       model: config.model,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Falha ao consultar o assistente de IA.";
-    return { error: message };
+    // Detalhe (pode incluir fragmento da chave/config do provedor em erros
+    // de autenticação) fica só no log do servidor — quem chama aqui é
+    // profissional, não admin, e não deveria ver isso.
+    console.error("[ai] answerPatientQuestion falhou:", err);
+    return { error: "Não foi possível consultar o assistente de IA. Tente novamente ou contate o administrador." };
   }
 
   await logAudit({

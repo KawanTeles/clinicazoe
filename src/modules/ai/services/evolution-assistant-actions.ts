@@ -61,8 +61,8 @@ export async function improveEvolutionText(input: {
       model: config.model,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Falha ao processar o texto com IA.";
-    return { error: message };
+    console.error("[ai] improveEvolution falhou:", err);
+    return { error: "Não foi possível processar o texto com IA. Tente novamente ou contate o administrador." };
   }
 
   await logAudit({

@@ -99,9 +99,20 @@ export async function setSlotStatus(
   const session = await requireAuthenticated();
 
   const supabase = await createClient();
-  const { error } = await supabase.from("schedule_slots").update({ status }).eq("id", slotId);
+  // .select().maybeSingle() detecta bloqueio silencioso de RLS: sem isso,
+  // um update filtrado pela policy (0 linhas afetadas) ainda retorna
+  // error: null, e a action reportaria sucesso — e gravaria audit log —
+  // de uma alteração que não aconteceu (mesmo padrão já corrigido em
+  // markAsPaid, financial-actions.ts).
+  const { data: updated, error } = await supabase
+    .from("schedule_slots")
+    .update({ status })
+    .eq("id", slotId)
+    .select("id")
+    .maybeSingle();
 
   if (error) return { error: "Não foi possível atualizar o horário." };
+  if (!updated) return { error: "Horário não encontrado ou você não tem permissão para alterá-lo." };
 
   await logAudit({
     actorId: session.user.id,
@@ -118,9 +129,15 @@ export async function deleteSlot(slotId: string): Promise<{ error: string | null
   const session = await requireAuthenticated();
 
   const supabase = await createClient();
-  const { error } = await supabase.from("schedule_slots").delete().eq("id", slotId);
+  const { data: deleted, error } = await supabase
+    .from("schedule_slots")
+    .delete()
+    .eq("id", slotId)
+    .select("id")
+    .maybeSingle();
 
   if (error) return { error: "Não foi possível excluir o horário." };
+  if (!deleted) return { error: "Horário não encontrado ou você não tem permissão para excluí-lo." };
 
   await logAudit({
     actorId: session.user.id,
@@ -184,9 +201,15 @@ export async function deleteScheduleException(id: string): Promise<{ error: stri
   const session = await requireAuthenticated();
 
   const supabase = await createClient();
-  const { error } = await supabase.from("schedule_exceptions").delete().eq("id", id);
+  const { data: deleted, error } = await supabase
+    .from("schedule_exceptions")
+    .delete()
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
 
   if (error) return { error: "Não foi possível remover o bloqueio." };
+  if (!deleted) return { error: "Bloqueio não encontrado ou você não tem permissão para removê-lo." };
 
   await logAudit({
     actorId: session.user.id,

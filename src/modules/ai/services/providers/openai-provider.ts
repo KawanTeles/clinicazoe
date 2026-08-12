@@ -21,6 +21,7 @@ export const openaiProvider: TextProvider = {
         max_tokens: input.maxTokens ?? 1200,
         temperature: 0.2,
       }),
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {

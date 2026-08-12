@@ -117,8 +117,8 @@ export async function transcribeSessionAudio(formData: FormData): Promise<{ erro
     transcribedText = result.text;
   } catch (err) {
     await supabase.storage.from(BUCKET).remove([path]);
-    const message = err instanceof Error ? err.message : "Falha ao transcrever o áudio.";
-    return { error: message };
+    console.error("[ai] transcribeAudioWithWhisper falhou:", err);
+    return { error: "Não foi possível transcrever o áudio. Tente novamente ou contate o administrador." };
   }
 
   // Sucesso: apaga o áudio do storage imediatamente — só o texto fica.

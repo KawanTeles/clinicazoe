@@ -20,6 +20,10 @@ export async function transcribeAudioWithWhisper(
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}` },
     body: formData,
+    // Timeout maior que os providers de texto: até 25MB de áudio (~50-90min
+    // de sessão em m4a/mp3) leva mais tempo pra processar do que uma
+    // chamada de chat completion comum.
+    signal: AbortSignal.timeout(120_000),
   });
 
   if (!response.ok) {

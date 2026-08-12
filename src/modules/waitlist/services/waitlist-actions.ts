@@ -138,13 +138,21 @@ export async function markContacted(id: string): Promise<{ error: string | null 
   const session = await requireStaff();
   const supabase = await createClient();
 
-  const { error } = await supabase
+  // .select().maybeSingle() detecta bloqueio silencioso (RLS ou o próprio
+  // .eq("status", "aguardando") — ex.: dois atendentes marcando a mesma
+  // entrada ao mesmo tempo): sem isso, 0 linhas afetadas ainda retorna
+  // error: null e a action reportaria sucesso do que não aconteceu (mesmo
+  // padrão já corrigido em markAsPaid, financial-actions.ts).
+  const { data: updated, error } = await supabase
     .from("waitlist_entries")
     .update({ status: "contato_realizado", contacted_by: session.user.id, contacted_at: new Date().toISOString() })
     .eq("id", id)
-    .eq("status", "aguardando");
+    .eq("status", "aguardando")
+    .select("id")
+    .maybeSingle();
 
   if (error) return { error: "Não foi possível atualizar o registro." };
+  if (!updated) return { error: "Registro não encontrado, sem permissão, ou o status já mudou." };
 
   await logAudit({ actorId: session.user.id, action: "waitlist.contacted", entity: "waitlist_entries", entityId: id });
   return { error: null };
@@ -160,12 +168,15 @@ export async function offerSlot(
   const { data: entry } = await supabase.from("waitlist_entries").select("*").eq("id", id).single();
   if (!entry) return { error: "Registro não encontrado." };
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("waitlist_entries")
     .update({ status: "vaga_oferecida", offered_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
 
   if (error) return { error: "Não foi possível registrar a oferta de vaga." };
+  if (!updated) return { error: "Registro não encontrado ou você não tem permissão para alterá-lo." };
 
   await logAudit({ actorId: session.user.id, action: "waitlist.offered", entity: "waitlist_entries", entityId: id });
 
@@ -191,12 +202,15 @@ export async function markNoInterest(id: string): Promise<{ error: string | null
   const session = await requireStaff();
   const supabase = await createClient();
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("waitlist_entries")
     .update({ status: "sem_interesse", declined_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
 
   if (error) return { error: "Não foi possível atualizar o registro." };
+  if (!updated) return { error: "Registro não encontrado ou você não tem permissão para alterá-lo." };
 
   await logAudit({ actorId: session.user.id, action: "waitlist.no_interest", entity: "waitlist_entries", entityId: id });
   return { error: null };
@@ -206,8 +220,14 @@ export async function cancelWaitlistEntry(id: string): Promise<{ error: string |
   const session = await requireStaff();
   const supabase = await createClient();
 
-  const { error } = await supabase.from("waitlist_entries").update({ status: "cancelado" }).eq("id", id);
+  const { data: updated, error } = await supabase
+    .from("waitlist_entries")
+    .update({ status: "cancelado" })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
   if (error) return { error: "Não foi possível cancelar o registro." };
+  if (!updated) return { error: "Registro não encontrado ou você não tem permissão para cancelá-lo." };
 
   await logAudit({ actorId: session.user.id, action: "waitlist.cancelled", entity: "waitlist_entries", entityId: id });
   return { error: null };
@@ -224,12 +244,15 @@ export async function convertWaitlistToAppointment(
   const session = await requireStaff();
   const supabase = await createClient();
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("waitlist_entries")
     .update({ status: "agendado", accepted_at: new Date().toISOString(), appointment_id: appointmentId })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
 
   if (error) return { error: "Não foi possível vincular o agendamento à Lista de Espera." };
+  if (!updated) return { error: "Registro não encontrado ou você não tem permissão para alterá-lo." };
 
   await logAudit({
     actorId: session.user.id,

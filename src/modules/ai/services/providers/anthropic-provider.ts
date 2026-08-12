@@ -19,6 +19,7 @@ export const anthropicProvider: TextProvider = {
         max_tokens: input.maxTokens ?? 1200,
         messages: [{ role: "user", content: input.user }],
       }),
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {

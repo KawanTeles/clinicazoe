@@ -20,6 +20,7 @@ export const geminiProvider: TextProvider = {
           temperature: 0.2,
         },
       }),
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {

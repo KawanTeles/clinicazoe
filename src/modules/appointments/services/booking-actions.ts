@@ -16,6 +16,8 @@ import { logAudit } from "@/modules/team/services/audit";
 import { notify, notifyStaff } from "@/modules/notifications/services/notify";
 import { logPatientMessage } from "@/modules/patients/services/message-log";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getRequestIp } from "@/lib/request-ip";
+import { slugify } from "@/lib/slug";
 import { notifyWaitlistMatches } from "@/modules/waitlist/services/waitlist-actions";
 import { getAvailableTimes, getCoTherapistsForAppointment, resolveAppointmentValue } from "./booking-queries";
 import type { Modality, ParticularProduct, PaymentMethod } from "@/lib/supabase/types";
@@ -671,26 +673,58 @@ export interface CreatePublicAppointmentInput {
 export async function createPublicAppointment(
   input: CreatePublicAppointmentInput,
 ): Promise<{ error: string | null; whatsappLink?: string | null }> {
-  const rateLimit = checkRateLimit(`public_booking:${input.patientPhone}`, 5, 60_000);
-  if (!rateLimit.allowed) {
-    return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente novamente.` };
+  // Chave por telefone sozinha é contornável (o atacante escolhe o valor) —
+  // IP complementa, não substitui: trocar o telefone a cada tentativa não
+  // zera mais o limite, porque o IP segue contando à parte.
+  const ip = await getRequestIp();
+  const ipLimit = checkRateLimit(`public_booking_ip:${ip ?? "unknown"}`, 10, 60_000);
+  if (!ipLimit.allowed) {
+    return { error: `Muitas tentativas. Aguarde ${ipLimit.retryAfterSeconds}s e tente novamente.` };
+  }
+  const phoneLimit = checkRateLimit(`public_booking_phone:${input.patientPhone}`, 5, 60_000);
+  if (!phoneLimit.allowed) {
+    return { error: `Muitas tentativas. Aguarde ${phoneLimit.retryAfterSeconds}s e tente novamente.` };
   }
 
   const session = await getCurrentUser();
   const admin = createAdminClient();
 
   let patientId = session?.user?.id;
+  // true quando o telefone bateu com um perfil já cadastrado e o nome
+  // informado não bate nem parcialmente com o nome já cadastrado — não
+  // bloqueia (nome digitado diferente é comum e não deve travar gente
+  // real), só vira um alerta extra pra quem revisa o agendamento pendente.
+  let nameMismatch = false;
 
   if (!patientId) {
     // Busca se existe perfil com este telefone ou nome
     const { data: existingProfile } = await admin
       .from("profiles")
-      .select("id")
+      .select("id, full_name")
       .eq("phone", input.patientPhone)
       .maybeSingle();
 
     if (existingProfile) {
       patientId = existingProfile.id;
+
+      const typedName = slugify(input.patientName);
+      const registeredName = slugify(existingProfile.full_name);
+      nameMismatch = Boolean(typedName && registeredName)
+        && !typedName.includes(registeredName)
+        && !registeredName.includes(typedName);
+
+      // Não há verificação real de posse do telefone sem enviar algo a ele
+      // (SMS/WhatsApp com OTP) — decisão de produto em aberto, fora deste
+      // escopo. Como mitigação proporcional com a infra que já existe: o
+      // dono do telefone é avisado no próprio portal, e pode contestar com
+      // a recepção se o agendamento não foi feito por ele.
+      await notify({
+        userId: patientId,
+        type: "appointment.booked_by_phone_match",
+        title: "Agendamento solicitado em seu nome",
+        message: `Um agendamento foi solicitado pelo site institucional para ${input.date} às ${input.startTime.slice(0, 5)}. Se não foi você, entre em contato com a recepção.`,
+        entity: "appointments",
+      });
     } else {
       // Cria novo usuário temporário no Auth
       const dummyEmail = input.patientEmail && input.patientEmail.includes("@")
@@ -810,7 +844,9 @@ export async function createPublicAppointment(
   await notifyStaff({
     type: "appointment.pending",
     title: "Novo agendamento via site oficial",
-    message: `${input.patientName} agendou via site com ${professionalProfile?.full_name ?? "profissional"} para ${input.date} às ${input.startTime.slice(0, 5)}.`,
+    message: `${input.patientName} agendou via site com ${professionalProfile?.full_name ?? "profissional"} para ${input.date} às ${input.startTime.slice(0, 5)}.${
+      nameMismatch ? " ⚠️ Nome informado não bate com o cadastro deste telefone — confirme a identidade antes de aprovar." : ""
+    }`,
     entity: "appointments",
     entityId: appointment.id,
   });

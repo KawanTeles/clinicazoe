@@ -162,8 +162,8 @@ export async function generateAIReport(input: {
       model: config.model,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Falha ao gerar o relatório com IA.";
-    return { error: message };
+    console.error("[ai] generateReport falhou:", err);
+    return { error: "Não foi possível gerar o relatório com IA. Tente novamente ou contate o administrador." };
   }
 
   const { data: created, error } = await supabase
