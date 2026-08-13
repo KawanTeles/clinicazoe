@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -9,6 +10,15 @@ import { logAudit } from "./audit";
 import { deleteUser } from "@/modules/user-management/services/user-actions";
 
 const TEAM_ROLES: Role[] = ["admin", "recepcionista", "profissional"];
+
+// Criar/editar um membro da equipe (sobretudo profissionais) muda o que
+// aparece publicamente em / e /profissionais — sem isso o site fica com
+// cache antigo até a próxima revalidação natural ou redeploy.
+function revalidatePublicTeamPages() {
+  revalidatePath("/");
+  revalidatePath("/profissionais");
+  revalidatePath("/equipe");
+}
 
 async function requireAdmin() {
   const session = await getCurrentUser();
@@ -144,6 +154,8 @@ export async function createTeamMember(
     }
   }
 
+  revalidatePublicTeamPages();
+
   await logAudit({
     actorId: session.user.id,
     action: "team_member.created",
@@ -235,6 +247,8 @@ export async function updateTeamMember(
     if (passwordError) return { error: "Dados salvos, mas houve falha ao alterar a senha." };
   }
 
+  revalidatePublicTeamPages();
+
   await logAudit({
     actorId: session.user.id,
     action: "team_member.updated",
@@ -293,6 +307,8 @@ export async function uploadTeamMemberAvatar(
   if (updateError) {
     return { error: "Foto enviada, mas houve falha ao salvar o perfil." };
   }
+
+  revalidatePublicTeamPages();
 
   await logAudit({
     actorId: session.user.id,

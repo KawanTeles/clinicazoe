@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -10,6 +11,15 @@ import type { Role, Status } from "@/lib/supabase/types";
 
 const ALL_ROLES: Role[] = ["admin", "recepcionista", "profissional", "paciente"];
 const LAST_ADMIN_ERROR = "Não é possível remover o último administrador ativo do sistema.";
+
+// Mudar role/status/exclusão de um usuário pode afetar public.professionals
+// (ex: excluir/desativar um profissional some da agenda dele, mas a ficha
+// pública em /profissionais fica com cache antigo até isso revalidar).
+function revalidatePublicTeamPages() {
+  revalidatePath("/");
+  revalidatePath("/profissionais");
+  revalidatePath("/equipe");
+}
 
 async function requireAdmin() {
   const session = await getCurrentUser();
@@ -103,6 +113,8 @@ export async function updateUser(input: UpdateUserInput): Promise<{ error: strin
     .eq("id", input.id);
 
   if (updateError) return { error: "Não foi possível salvar as alterações." };
+
+  revalidatePublicTeamPages();
 
   await logAudit({
     actorId: session.user.id,
@@ -228,6 +240,8 @@ export async function setUserStatus(
   const { error } = await supabase.from("profiles").update({ status }).eq("id", id);
   if (error) return { error: "Não foi possível atualizar o status do usuário." };
 
+  revalidatePublicTeamPages();
+
   await logAudit({
     actorId: session.user.id,
     action: "user.status_changed",
@@ -270,6 +284,8 @@ export async function deleteUser(id: string): Promise<{ error: string | null }> 
   const admin = createAdminClient();
   const { error } = await admin.auth.admin.deleteUser(id);
   if (error) return { error: "Não foi possível excluir este usuário." };
+
+  revalidatePublicTeamPages();
 
   await logAudit({
     actorId: session.user.id,
