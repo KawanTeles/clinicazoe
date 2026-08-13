@@ -24,8 +24,8 @@ export default async function PatientLoginPage({
   const { confirm_error } = await searchParams;
 
   const session = await getCurrentUser();
-  if (session) {
-    redirect(session.profile.role === "paciente" ? "/cliente" : "/dashboard");
+  if (session?.profile.role === "paciente") {
+    redirect("/cliente");
   }
 
   const { clinic } = await getPublicWebsiteData();
