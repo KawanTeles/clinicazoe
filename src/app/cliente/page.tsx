@@ -79,11 +79,18 @@ export default async function ClientePublicPage({
                 </div>
               </div>
 
-              <Link href="/cliente/agendar">
-                <Button size="lg" className="font-bold shadow-button">
-                  + Nova Consulta
-                </Button>
-              </Link>
+              <div className="flex items-center gap-3">
+                <Link href="/profile">
+                  <Button size="lg" variant="secondary" className="font-bold">
+                    Editar Perfil
+                  </Button>
+                </Link>
+                <Link href="/cliente/agendar">
+                  <Button size="lg" className="font-bold shadow-button">
+                    + Nova Consulta
+                  </Button>
+                </Link>
+              </div>
             </div>
           </PageEntranceItem>
 

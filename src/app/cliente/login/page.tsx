@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
 import { CardContent } from "@/components/ui/Card";
@@ -8,6 +9,7 @@ import { LoginForm } from "@/modules/auth/components/LoginForm";
 import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
 import { getPublicWebsiteData } from "@/lib/public-queries";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
   title: "Acessar Área do Cliente — Espaço Zoe",
@@ -20,6 +22,12 @@ export default async function PatientLoginPage({
   searchParams: Promise<{ confirm_error?: string }>;
 }) {
   const { confirm_error } = await searchParams;
+
+  const session = await getCurrentUser();
+  if (session) {
+    redirect(session.profile.role === "paciente" ? "/cliente" : "/dashboard");
+  }
+
   const { clinic } = await getPublicWebsiteData();
 
   return (
