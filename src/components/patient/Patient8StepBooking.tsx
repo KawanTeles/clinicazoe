@@ -142,17 +142,18 @@ export function Patient8StepBooking({
 
   // Unimed/Postal Saúde têm modalidade (ABA/Comum) e ganham uma etapa extra;
   // Particular não tem modalidade, mas ganha a etapa de Forma de Pagamento —
-  // por isso o total continua 7 etapas nos dois casos.
+  // por isso o total continua 8 etapas nos dois casos.
   const requiresModality = insuranceRequiresModality(selectedInsuranceName);
   const STEP = {
-    insurance: 1,
-    professional: 2,
-    modality: requiresModality ? 3 : -1,
-    date: requiresModality ? 4 : 3,
-    time: requiresModality ? 5 : 4,
-    patientDetails: requiresModality ? 6 : 5,
-    payment: requiresModality ? -1 : 6,
-    summary: 7,
+    specialty: 1,
+    insurance: 2,
+    professional: 3,
+    modality: requiresModality ? 4 : -1,
+    date: requiresModality ? 5 : 4,
+    time: requiresModality ? 6 : 5,
+    patientDetails: requiresModality ? 7 : 6,
+    payment: requiresModality ? -1 : 7,
+    summary: 8,
   };
   const selectedValue =
     pricing?.insuranceKind === "convenio"
@@ -179,16 +180,6 @@ export function Patient8StepBooking({
     }
   }
 
-  // Carrega os convênios da primeira especialidade assim que o wizard abre —
-  // a clínica opera numa única unidade, então não há mais etapa de cidade
-  // antes disso.
-  useEffect(() => {
-    if (specialties.length > 0) {
-      void loadInsurancesForSpecialty(specialties[0].id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // Abre automaticamente o WhatsApp da clínica ao concluir a solicitação —
   // o botão abaixo continua disponível como alternativa caso o navegador
   // bloqueie o popup automático.
@@ -198,7 +189,13 @@ export function Patient8StepBooking({
     }
   }, [successResult]);
 
-  // ETAPA 1: Selecionar Convênio
+  // ETAPA 1: Selecionar Especialidade
+  function handleSelectSpecialty(specId: string) {
+    setStep(STEP.insurance);
+    void loadInsurancesForSpecialty(specId);
+  }
+
+  // ETAPA 2: Selecionar Convênio
   async function handleSelectInsurance(insId: string, insName: string) {
     setSelectedInsuranceId(insId);
     setSelectedInsuranceName(insName);
@@ -219,7 +216,7 @@ export function Patient8StepBooking({
         avatarUrl: p.avatarUrl,
       }));
       setProfessionals(mapped.length > 0 ? mapped : initialProfessionals);
-      setStep(2);
+      setStep(STEP.professional);
     } catch {
       setErrorMsg("Falha ao carregar profissionais.");
     } finally {
@@ -227,7 +224,7 @@ export function Patient8StepBooking({
     }
   }
 
-  // ETAPA 2: Selecionar Profissional
+  // ETAPA 3: Selecionar Profissional
   async function handleSelectProfessional(profId: string) {
     setSelectedProfessionalId(profId);
     setModality(null);
@@ -255,7 +252,7 @@ export function Patient8StepBooking({
     }
   }
 
-  // ETAPA 3 (só Unimed/Postal Saúde): Escolher Modalidade
+  // ETAPA 4 (só Unimed/Postal Saúde): Escolher Modalidade
   async function handleSelectModality(m: Modality) {
     setModality(m);
     setPaymentMethod("convenio");
@@ -417,7 +414,7 @@ export function Patient8StepBooking({
               size="lg"
               onClick={() => {
                 setSuccessResult(null);
-                setStep(1);
+                setStep(STEP.specialty);
               }}
             >
               Fazer novo agendamento
@@ -435,17 +432,18 @@ export function Patient8StepBooking({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
-              Etapa {step} de 7
+              Etapa {step} de 8
             </span>
             <h3 className="text-lg font-extrabold text-text-primary font-heading">
-              {step === STEP.insurance && "1. Selecionar Convênio"}
-              {step === STEP.professional && "2. Selecionar Profissional"}
-              {step === STEP.modality && "3. Modalidade"}
+              {step === STEP.specialty && "1. Selecionar Especialidade"}
+              {step === STEP.insurance && "2. Selecionar Convênio"}
+              {step === STEP.professional && "3. Selecionar Profissional"}
+              {step === STEP.modality && "4. Modalidade"}
               {step === STEP.date && `${STEP.date}. Escolher Data`}
               {step === STEP.time && `${STEP.time}. Escolher Horário`}
               {step === STEP.patientDetails && `${STEP.patientDetails}. Confirmar Dados Pessoais`}
               {step === STEP.payment && `${STEP.payment}. Forma de Pagamento`}
-              {step === STEP.summary && "7. Resumo Final & Envio"}
+              {step === STEP.summary && "8. Resumo Final & Envio"}
             </h3>
           </div>
           {step > 1 && (
@@ -458,9 +456,9 @@ export function Patient8StepBooking({
           )}
         </div>
 
-        {/* 7 Indicator Bars */}
-        <div className="grid grid-cols-7 gap-1.5">
-          {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+        {/* 8 Indicator Bars */}
+        <div className="grid grid-cols-8 gap-1.5">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <div
               key={i}
               className={`h-2 rounded-full transition-all duration-300 ${
@@ -477,8 +475,32 @@ export function Patient8StepBooking({
         </div>
       )}
 
-      {/* ETAPA 1: SELEÇÃO DE CONVÊNIO */}
-      {step === 1 && (
+      {/* ETAPA 1: SELEÇÃO DE ESPECIALIDADE */}
+      {step === STEP.specialty && (
+        <Card className="animate-fade-up">
+          <CardContent className="p-6 space-y-4">
+            <h4 className="text-sm font-semibold text-text-secondary">Selecione a especialidade desejada:</h4>
+            {specialties.length === 0 ? (
+              <p className="text-sm text-text-muted py-4 text-center">Nenhuma especialidade disponível no momento.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {specialties.map((spec) => (
+                  <button
+                    key={spec.id}
+                    onClick={() => handleSelectSpecialty(spec.id)}
+                    className="p-5 rounded-2xl border border-border bg-card-elevated/70 text-left hover:border-primary hover:bg-card-elevated transition-all"
+                  >
+                    <h5 className="text-base font-bold text-text-primary font-heading">{spec.name}</h5>
+                  </button>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ETAPA 2: SELEÇÃO DE CONVÊNIO */}
+      {step === STEP.insurance && (
         <Card className="animate-fade-up">
           <CardContent className="p-6 space-y-4">
             <h4 className="text-sm font-semibold text-text-secondary">Selecione o plano de saúde ou atendimento particular:</h4>
@@ -508,8 +530,8 @@ export function Patient8StepBooking({
         </Card>
       )}
 
-      {/* ETAPA 2: SELEÇÃO DE PROFISSIONAL */}
-      {step === 2 && (
+      {/* ETAPA 3: SELEÇÃO DE PROFISSIONAL */}
+      {step === STEP.professional && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-up">
           {loading ? (
             <>
@@ -542,7 +564,7 @@ export function Patient8StepBooking({
         </div>
       )}
 
-      {/* ETAPA 3 (só Unimed/Postal Saúde): MODALIDADE */}
+      {/* ETAPA 4 (só Unimed/Postal Saúde): MODALIDADE */}
       {step === STEP.modality && (
         <Card className="animate-fade-up">
           <CardContent className="p-6 space-y-4">
