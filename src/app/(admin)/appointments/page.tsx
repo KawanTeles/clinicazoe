@@ -7,16 +7,16 @@ import { getAppointmentsForViewer } from "@/modules/appointments/services/appoin
 import { AppointmentsList } from "@/modules/appointments/components/AppointmentsList";
 
 export const metadata = {
-  title: "Consultas — Espaço Zoe",
+  title: "Atendimentos — Espaço Zoe",
 };
 
 const TITLES: Record<string, { title: string; subtitle: string }> = {
-  paciente: { title: "Minhas Consultas", subtitle: "Suas consultas agendadas e o histórico." },
-  profissional: { title: "Minha Agenda", subtitle: "Consultas marcadas com você." },
-  admin: { title: "Consultas", subtitle: "Fila de consultas de todos os pacientes e profissionais." },
+  paciente: { title: "Meus Atendimentos", subtitle: "Seus atendimentos agendados e o histórico." },
+  profissional: { title: "Minha Agenda", subtitle: "Atendimentos marcados com você." },
+  admin: { title: "Atendimentos", subtitle: "Fila de atendimentos de todos os pacientes e profissionais." },
   recepcionista: {
-    title: "Consultas",
-    subtitle: "Fila de consultas de todos os pacientes e profissionais.",
+    title: "Atendimentos",
+    subtitle: "Fila de atendimentos de todos os pacientes e profissionais.",
   },
 };
 

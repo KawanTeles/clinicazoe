@@ -30,7 +30,7 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
         <div className="flex items-center gap-2">
           <Badge tone="neutral">{ROLE_LABELS[profile.role] ?? profile.role}</Badge>
           {appointmentsCount > 0 && (
-            <Badge tone="warning">{appointmentsCount} consulta(s) vinculada(s)</Badge>
+            <Badge tone="warning">{appointmentsCount} atendimento(s) vinculado(s)</Badge>
           )}
         </div>
       </div>

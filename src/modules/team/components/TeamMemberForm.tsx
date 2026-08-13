@@ -384,7 +384,7 @@ export function TeamMemberForm({
               onChange={(e) => setLicenseNumber(e.target.value)}
             />
             <Input
-              label="Duração da Consulta (min)"
+              label="Duração do Atendimento (min)"
               name="consultation_duration_minutes"
               type="number"
               min={5}

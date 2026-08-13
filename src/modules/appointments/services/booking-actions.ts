@@ -96,7 +96,7 @@ export async function createAppointment(
     input.particularProduct,
   );
   if (pricing.value == null) {
-    return { error: pricing.error ?? "Não foi possível calcular o valor da consulta." };
+    return { error: pricing.error ?? "Não foi possível calcular o valor do atendimento." };
   }
 
   // Revalida a disponibilidade no servidor antes de gravar (evita duplo agendamento).
@@ -179,7 +179,7 @@ export async function createAppointment(
 
   await notifyStaff({
     type: "appointment.pending",
-    title: "Nova consulta pendente",
+    title: "Novo atendimento pendente",
     message: `${session.profile.full_name} agendou com ${professionalProfile?.full_name ?? "um profissional"} para ${input.date} às ${input.startTime.slice(0, 5)}.`,
     entity: "appointments",
     entityId: appointment.id,
@@ -216,7 +216,7 @@ export async function cancelAppointment(
     .update({ status: rescheduled ? "remarcada" : "cancelada" })
     .eq("id", appointmentId);
 
-  if (error) return { error: "Não foi possível cancelar a consulta." };
+  if (error) return { error: "Não foi possível cancelar o atendimento." };
 
   await logAudit({
     actorId: session.user.id,
@@ -243,8 +243,8 @@ export async function cancelAppointment(
 
   await notifyStaff({
     type: rescheduled ? "appointment.rescheduled" : "appointment.cancelled",
-    title: rescheduled ? "Consulta será remarcada pelo paciente" : "Consulta cancelada pelo paciente",
-    message: `${session.profile.full_name} — consulta de ${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)}.`,
+    title: rescheduled ? "Atendimento será remarcado pelo paciente" : "Atendimento cancelado pelo paciente",
+    message: `${session.profile.full_name} — atendimento de ${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)}.`,
     entity: "appointments",
     entityId: appointmentId,
   });
@@ -297,14 +297,14 @@ export async function confirmAppointment(
     .eq("id", appointmentId)
     .single();
 
-  if (!appointment) return { error: "Consulta não encontrada." };
+  if (!appointment) return { error: "Atendimento não encontrado." };
 
   const { error: updateError } = await supabase
     .from("appointments")
     .update({ status: "confirmada" })
     .eq("id", appointmentId);
 
-  if (updateError) return { error: "Não foi possível confirmar a consulta." };
+  if (updateError) return { error: "Não foi possível confirmar o atendimento." };
 
   const admin = createAdminClient();
   const { error: financialError } = await admin.from("financial_entries").insert({
@@ -320,7 +320,7 @@ export async function confirmAppointment(
   });
 
   if (financialError && !financialError.message.includes("duplicate")) {
-    return { error: "Consulta confirmada, mas houve falha ao gerar o lançamento financeiro." };
+    return { error: "Atendimento confirmado, mas houve falha ao gerar o lançamento financeiro." };
   }
 
   await logAudit({
@@ -352,15 +352,15 @@ export async function confirmAppointment(
     notify({
       userId: appointment.patient_id,
       type: "appointment.confirmed",
-      title: "Consulta confirmada",
-      message: `Sua consulta com ${professionalProfile?.full_name ?? "o profissional"} em ${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)} foi confirmada.`,
+      title: "Atendimento confirmado",
+      message: `Seu atendimento com ${professionalProfile?.full_name ?? "o profissional"} em ${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)} foi confirmado.`,
       entity: "appointments",
       entityId: appointmentId,
     }),
     notify({
       userId: appointment.professional_id,
       type: "appointment.confirmed",
-      title: "Nova consulta confirmada na sua agenda",
+      title: "Novo atendimento confirmado na sua agenda",
       message: `${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)}.`,
       entity: "appointments",
       entityId: appointmentId,
@@ -425,7 +425,7 @@ export async function rejectAppointmentRequest(
     userId: appointment.patient_id,
     type: "appointment.rejected",
     title: "Solicitação não aprovada",
-    message: `Sua solicitação de consulta com ${professionalProfile?.full_name ?? "o profissional"} em ${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)} não foi aprovada. Entre em contato com a clínica para mais informações.`,
+    message: `Sua solicitação de atendimento com ${professionalProfile?.full_name ?? "o profissional"} em ${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)} não foi aprovada. Entre em contato com a clínica para mais informações.`,
     entity: "appointments",
     entityId: appointmentId,
   });
@@ -441,10 +441,10 @@ export async function rejectAppointmentRequest(
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  cancelada: "cancelada",
-  remarcada: "remarcada",
-  concluida: "concluída",
-  faltou: "marcada como falta",
+  cancelada: "cancelado",
+  remarcada: "remarcado",
+  concluida: "concluído",
+  faltou: "marcado como falta",
 };
 
 export async function updateAppointmentStatus(
@@ -465,7 +465,7 @@ export async function updateAppointmentStatus(
     .update({ status })
     .eq("id", appointmentId);
 
-  if (error) return { error: "Não foi possível atualizar a consulta." };
+  if (error) return { error: "Não foi possível atualizar o atendimento." };
 
   await logAudit({
     actorId: session.user.id,
@@ -491,8 +491,8 @@ export async function updateAppointmentStatus(
     await notify({
       userId: appointment.patient_id,
       type: `appointment.${status}`,
-      title: `Consulta ${STATUS_LABELS[status]}`,
-      message: `Sua consulta de ${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)} foi ${STATUS_LABELS[status]} pela clínica.`,
+      title: `Atendimento ${STATUS_LABELS[status]}`,
+      message: `Seu atendimento de ${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)} foi ${STATUS_LABELS[status]} pela clínica.`,
       entity: "appointments",
       entityId: appointmentId,
     });
@@ -513,7 +513,7 @@ export async function sendReminder(
     .eq("id", appointmentId)
     .single();
 
-  if (!appointment) return { error: "Consulta não encontrada." };
+  if (!appointment) return { error: "Atendimento não encontrado." };
 
   const [{ data: patient }, { data: professionalProfile }, { data: clinic }] = await Promise.all([
     supabase.from("profiles").select("phone").eq("id", appointment.patient_id).single(),
@@ -580,7 +580,7 @@ export async function createAppointmentForPatient(
     input.particularProduct,
   );
   if (pricing.value == null) {
-    return { error: pricing.error ?? "Não foi possível calcular o valor da consulta." };
+    return { error: pricing.error ?? "Não foi possível calcular o valor do atendimento." };
   }
 
   const availableTimes = await getAvailableTimes(
@@ -673,7 +673,7 @@ export async function addCoTherapist(
     .eq("id", appointmentId)
     .maybeSingle();
 
-  if (!appointment) return { error: "Consulta não encontrada." };
+  if (!appointment) return { error: "Atendimento não encontrado." };
 
   const isPrincipal = appointment.professional_id === session.user.id;
   const isStaff = ["admin", "recepcionista"].includes(session.profile.role);
@@ -682,7 +682,7 @@ export async function addCoTherapist(
   }
 
   if (professionalId === appointment.professional_id) {
-    return { error: "Este profissional já é o principal desta consulta." };
+    return { error: "Este profissional já é o principal deste atendimento." };
   }
 
   const availableTimes = await getAvailableTimes(
@@ -702,7 +702,7 @@ export async function addCoTherapist(
 
   if (error) {
     const message =
-      error.code === "23505" ? "Este profissional já está vinculado a esta consulta." : "Não foi possível adicionar o coterapeuta.";
+      error.code === "23505" ? "Este profissional já está vinculado a este atendimento." : "Não foi possível adicionar o coterapeuta.";
     return { error: message };
   }
 
@@ -735,7 +735,7 @@ export async function removeCoTherapist(
     .eq("id", appointmentId)
     .maybeSingle();
 
-  if (!appointment) return { error: "Consulta não encontrada." };
+  if (!appointment) return { error: "Atendimento não encontrado." };
 
   const isPrincipal = appointment.professional_id === session.user.id;
   const isStaff = ["admin", "recepcionista"].includes(session.profile.role);
@@ -751,7 +751,7 @@ export async function removeCoTherapist(
 
   if (error) {
     const message = error.message.includes("já registrou evolução")
-      ? "Não é possível remover: este profissional já registrou evolução para esta consulta."
+      ? "Não é possível remover: este profissional já registrou evolução para este atendimento."
       : "Não foi possível remover o coterapeuta.";
     return { error: message };
   }

@@ -97,7 +97,7 @@ export function buildBookingMessage(params: {
     `Especialidade: ${params.specialtyName}\n` +
     `Profissional: ${params.professionalName}\n` +
     `Data/Hora: ${date} às ${params.startTime.slice(0, 5)}\n` +
-    `💰 Valor da Consulta: ${formatCurrency(params.value)}\n` +
+    `💰 Valor do Atendimento: ${formatCurrency(params.value)}\n` +
     attendanceLines.trim()
   );
   return appendClinicFooter(baseMessage, params.clinicPhone, params.clinicName);
@@ -114,11 +114,11 @@ export function buildCancellationMessage(params: {
 }) {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
   const baseMessage = (
-    `${params.rescheduled ? "Remarcação" : "Cancelamento"} de consulta\n` +
+    `${params.rescheduled ? "Remarcação" : "Cancelamento"} de atendimento\n` +
     `Paciente: ${params.patientName}\n` +
     `Profissional: ${params.professionalName}\n` +
     `Data/Hora original: ${date} às ${params.startTime.slice(0, 5)}\n` +
-    `Status: ${params.rescheduled ? "paciente vai reagendar" : "cancelada pelo paciente"}`
+    `Status: ${params.rescheduled ? "paciente vai reagendar" : "cancelado pelo paciente"}`
   );
   return appendClinicFooter(baseMessage, params.clinicPhone, params.clinicName);
 }
@@ -133,7 +133,7 @@ export function buildReminderMessage(params: {
 }) {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
   const baseMessage = (
-    `Lembrete de consulta\n` +
+    `Lembrete de atendimento\n` +
     `Profissional: ${params.professionalName}\n` +
     `Data/Hora: ${date} às ${params.startTime.slice(0, 5)}\n` +
     `Local: ${params.clinicName}${params.clinicAddress ? " — " + params.clinicAddress : ""}`
@@ -153,7 +153,7 @@ export function buildRescheduleMessage(params: {
   const name = params.clinicName?.trim() || DEFAULT_CLINIC_NAME;
   const baseMessage = (
     `Olá, ${params.patientName}.\n\n` +
-    `Sua consulta foi reagendada.\n\n` +
+    `Seu atendimento foi reagendado.\n\n` +
     `📅 Nova data: ${date}\n` +
     `🕒 Novo horário: ${params.newStartTime.slice(0, 5)}\n` +
     `👨‍⚕️ Profissional: ${params.professionalName}\n\n` +
@@ -176,7 +176,7 @@ export function buildStaffBookingConfirmationMessage(params: {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
   const baseMessage = (
     `Olá, ${params.patientName}.\n\n` +
-    `Sua consulta foi agendada com sucesso.\n\n` +
+    `Seu atendimento foi agendado com sucesso.\n\n` +
     `📅 Data: ${date}\n` +
     `🕒 Horário: ${params.startTime.slice(0, 5)}\n` +
     `👨‍⚕️ Profissional: ${params.professionalName}\n` +
@@ -196,7 +196,7 @@ export function buildRejectionMessage(params: {
 }) {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
   const baseMessage = (
-    `Olá, sua solicitação de consulta não foi aprovada.\n\n` +
+    `Olá, sua solicitação de atendimento não foi aprovada.\n\n` +
     `Profissional: ${params.professionalName}\n` +
     `Data/Hora solicitada: ${date} às ${params.startTime.slice(0, 5)}\n\n` +
     `Por favor, entre em contato com a ${params.clinicName} para mais informações.`
@@ -293,7 +293,7 @@ export function buildConfirmationMessage(params: {
 }) {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
   const baseMessage = (
-    `Olá, sua consulta foi aprovada.\n\n` +
+    `Olá, seu atendimento foi aprovado.\n\n` +
     `Profissional: ${params.professionalName}\n` +
     `Data/Hora: ${date} às ${params.startTime.slice(0, 5)}\n` +
     `Local: ${params.clinicName}${params.clinicAddress ? " — " + params.clinicAddress : ""}\n` +

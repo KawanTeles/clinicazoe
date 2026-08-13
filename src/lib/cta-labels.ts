@@ -5,7 +5,7 @@
  * etc). Centralizar aqui garante que a ação principal seja sempre
  * reconhecível pelo mesmo rótulo em qualquer página.
  */
-export const CTA_PRIMARY = "Agendar Consulta";
+export const CTA_PRIMARY = "Agendar Atendimento";
 export const CTA_WHATSAPP = "Falar no WhatsApp";
 export const CTA_CLIENT_AREA = "Área do Cliente";
 export const CTA_TEAM_AREA = "Área da Equipe";

@@ -33,8 +33,8 @@ export default async function MyPatientsPage() {
               <tr>
                 <th className="px-5 py-4 font-bold">Nome</th>
                 <th className="px-5 py-4 font-bold">Telefone</th>
-                <th className="px-5 py-4 font-bold">Última consulta</th>
-                <th className="px-5 py-4 font-bold">Total de consultas</th>
+                <th className="px-5 py-4 font-bold">Último atendimento</th>
+                <th className="px-5 py-4 font-bold">Total de atendimentos</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40">

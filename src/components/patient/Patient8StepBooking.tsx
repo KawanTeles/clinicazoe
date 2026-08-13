@@ -314,7 +314,7 @@ export function Patient8StepBooking({
 
   function handleConfirmPayment() {
     if (!particularProduct) {
-      setErrorMsg("Selecione Consulta Particular ou Pacote Particular.");
+      setErrorMsg("Selecione Atendimento Particular ou Pacote Particular.");
       return;
     }
     setErrorMsg(null);
@@ -358,7 +358,7 @@ export function Patient8StepBooking({
         if (attendance.particularProductLabel) detailsText += `📦 ${attendance.particularProductLabel}\n`;
       }
 
-      const msg = `Nova solicitação de consulta:\n\nPaciente: ${patientName}\nWhatsApp: ${patientPhone}\nProfissional: ${currentProf?.fullName}\nEspecialidade: ${currentSpec?.name}\nData: ${selectedDate.split("-").reverse().join("/")}\nHorário: ${selectedSlot.startTime.slice(0, 5)}\n💰 Valor da Consulta: ${selectedValue != null ? formatCurrency(selectedValue) : "A combinar"}\n${detailsText.trim()}`;
+      const msg = `Nova solicitação de atendimento:\n\nPaciente: ${patientName}\nWhatsApp: ${patientPhone}\nProfissional: ${currentProf?.fullName}\nEspecialidade: ${currentSpec?.name}\nData: ${selectedDate.split("-").reverse().join("/")}\nHorário: ${selectedSlot.startTime.slice(0, 5)}\n💰 Valor do Atendimento: ${selectedValue != null ? formatCurrency(selectedValue) : "A combinar"}\n${detailsText.trim()}`;
 
       const link = buildWhatsAppLink(whatsappNumber, msg);
       setSuccessResult({ whatsappLink: link });
@@ -774,7 +774,7 @@ export function Patient8StepBooking({
               </div>
               {selectedValue != null && (
                 <div>
-                  <span className="text-text-muted">Valor da consulta:</span>
+                  <span className="text-text-muted">Valor do atendimento:</span>
                   <p className="text-sm font-black text-[var(--primary)] mt-0.5">{formatCurrency(selectedValue)}</p>
                 </div>
               )}

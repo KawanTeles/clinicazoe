@@ -7,11 +7,11 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", permission: "dashboard.view", icon: "dashboard" },
-  { label: "Agendar Consulta", href: "/book", permission: "appointments.book", icon: "calendar-plus" },
+  { label: "Agendar Atendimento", href: "/book", permission: "appointments.book", icon: "calendar-plus" },
   { label: "Solicitações", href: "/requests", permission: "requests.manage", icon: "bell" },
   { label: "Lista de Espera", href: "/waitlist", permission: "waitlist.manage", icon: "waitlist" },
-  { label: "Minhas Consultas", href: "/appointments", permission: "appointments.view.own", icon: "calendar" },
-  { label: "Consultas", href: "/appointments", permission: "appointments.manage", icon: "calendar" },
+  { label: "Meus Atendimentos", href: "/appointments", permission: "appointments.view.own", icon: "calendar" },
+  { label: "Atendimentos", href: "/appointments", permission: "appointments.manage", icon: "calendar" },
   { label: "Financeiro", href: "/financial", permission: "financial.view.own", icon: "dollar-sign" },
   { label: "Financeiro", href: "/financial", permission: "financial.manage", icon: "dollar-sign" },
   { label: "Minha Agenda", href: "/my-schedule", permission: "schedule.manage.own", icon: "clock" },

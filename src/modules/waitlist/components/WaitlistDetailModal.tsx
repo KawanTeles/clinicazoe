@@ -209,7 +209,7 @@ export function WaitlistDetailModal({ entry, onClose, canManage }: WaitlistDetai
                 </Button>
                 <Link href={scheduleHref}>
                   <Button size="sm" className="font-bold">
-                    Agendar Consulta
+                    Agendar Atendimento
                   </Button>
                 </Link>
                 <Button variant="ghost" size="sm" onClick={handleNoInterest} isLoading={busy}>

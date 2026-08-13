@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const clinicName = clinic.name || "Espaço Zoe";
 
   const title = `${spec.name} — Especialidade Médica | ${clinicName}`;
-  const description = `Consultas de ${spec.name} na ${clinicName}: diagnóstico preciso, tecnologia moderna e atendimento humanizado com especialistas qualificados. Agende online.`;
+  const description = `Atendimentos de ${spec.name} na ${clinicName}: diagnóstico preciso, tecnologia moderna e atendimento humanizado com especialistas qualificados. Agende online.`;
 
   return {
     title,
@@ -111,10 +111,10 @@ export default async function SpecialtyDetailPage({ params }: { params: Promise<
               </h2>
               <p className="text-sm sm:text-base text-text-secondary leading-relaxed max-w-2xl">
                 A especialidade de {spec.name} na {clinic.name || "Espaço Zoe"} reúne diagnóstico preciso, tecnologia médica moderna e
-                acompanhamento contínuo, com escuta ativa e atendimento humanizado em cada consulta.
+                acompanhamento contínuo, com escuta ativa e cuidado humanizado em cada atendimento.
               </p>
               <p className="text-sm sm:text-base text-text-secondary leading-relaxed max-w-2xl">
-                Agende sua consulta em {spec.name} pela área do cliente e escolha o melhor dia e horário, com
+                Agende seu atendimento em {spec.name} pela área do cliente e escolha o melhor dia e horário, com
                 confirmação rápida e suporte da nossa equipe em todas as etapas do atendimento.
               </p>
             </div>

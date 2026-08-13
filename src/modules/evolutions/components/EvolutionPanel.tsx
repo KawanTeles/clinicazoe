@@ -86,8 +86,8 @@ export function EvolutionPanel({
       <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border bg-card p-10 text-center">
         <p className="text-sm font-medium text-text-secondary">
           {canCreate
-            ? "Nenhuma evolução registrada para esta consulta ainda."
-            : "Esta consulta ainda não tem evolução registrada pelo profissional responsável."}
+            ? "Nenhuma evolução registrada para este atendimento ainda."
+            : "Este atendimento ainda não tem evolução registrada pelo profissional responsável."}
         </p>
         {canCreate && <Button onClick={() => setShowForm(true)}>Adicionar Evolução</Button>}
       </div>

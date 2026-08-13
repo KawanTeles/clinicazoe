@@ -61,7 +61,7 @@ export function CoTherapistManager({
   async function handleRemove(professionalId: string, fullName: string) {
     const confirmed = await confirm({
       title: `Remover ${fullName}?`,
-      description: "Ele deixará de ter acesso a esta consulta. Se já tiver registrado evolução, a remoção não é permitida.",
+      description: "Ele deixará de ter acesso a este atendimento. Se já tiver registrado evolução, a remoção não é permitida.",
       confirmLabel: "Remover",
       tone: "danger",
     });

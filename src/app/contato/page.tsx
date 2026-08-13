@@ -16,17 +16,17 @@ import { WEEKDAY_LABELS } from "@/modules/settings/utils/form-state";
 
 export const metadata = {
   title: "Contato e Localização",
-  description: "Fale com o Espaço Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende sua consulta com poucos cliques.",
+  description: "Fale com o Espaço Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende seu atendimento com poucos cliques.",
   alternates: { canonical: `${SITE_URL}/contato` },
   openGraph: {
     title: "Contato e Localização",
-    description: "Fale com o Espaço Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende sua consulta com poucos cliques.",
+    description: "Fale com o Espaço Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende seu atendimento com poucos cliques.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Contato e Localização",
-    description: "Fale com o Espaço Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende sua consulta com poucos cliques.",
+    description: "Fale com o Espaço Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende seu atendimento com poucos cliques.",
   },
 };
 
@@ -131,7 +131,7 @@ export default async function ContatoPage() {
                 <Badge tone="success">Agendamento 100% Online</Badge>
                 <h3 className="text-2xl font-black text-text-primary font-heading">Prefere agendar diretamente?</h3>
                 <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-                  Acesse a área do cliente para visualizar os horários em tempo real e agendar sua consulta sem espera telefônica.
+                  Acesse a área do cliente para visualizar os horários em tempo real e agendar seu atendimento sem espera telefônica.
                 </p>
                 <div className="pt-4">
                   <Link href="/cliente/login">

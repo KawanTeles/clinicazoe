@@ -65,7 +65,7 @@ export function RecurrenceFields({
         onChange={(e) => onChange({ ...value, startDate: e.target.value })}
       />
       {lockStartDate && (
-        <p className="-mt-2.5 text-xs text-text-secondary">A data desta consulta define o dia da semana da recorrência.</p>
+        <p className="-mt-2.5 text-xs text-text-secondary">A data deste atendimento define o dia da semana da recorrência.</p>
       )}
 
       {weekdayLabel && (
@@ -92,7 +92,7 @@ export function RecurrenceFields({
 
       {!value.endDate && !value.maxOccurrences && (
         <p className="text-xs text-text-secondary">
-          Sem data final: geramos até 12 meses de consultas de uma vez. Depois disso, é possível gerar mais
+          Sem data final: geramos até 12 meses de atendimentos de uma vez. Depois disso, é possível gerar mais
           ocorrências a partir da tela da recorrência.
         </p>
       )}

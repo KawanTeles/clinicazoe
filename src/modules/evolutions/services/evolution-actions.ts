@@ -73,7 +73,7 @@ export async function createEvolution(
     .eq("id", input.appointment_id)
     .maybeSingle();
 
-  if (!appointment) return { error: "Consulta não encontrada." };
+  if (!appointment) return { error: "Atendimento não encontrado." };
 
   const isPrincipal = appointment.professional_id === session.user.id;
   let isCoTherapist = false;
@@ -88,10 +88,10 @@ export async function createEvolution(
   }
 
   if (!isPrincipal && !isCoTherapist) {
-    return { error: "Você só pode registrar evolução das consultas às quais está vinculado." };
+    return { error: "Você só pode registrar evolução dos atendimentos aos quais está vinculado." };
   }
   if (!["confirmada", "concluida"].includes(appointment.status)) {
-    return { error: "Só é possível registrar evolução para consultas realizadas." };
+    return { error: "Só é possível registrar evolução para atendimentos realizados." };
   }
 
   let specialtyId = appointment.specialty_id;
@@ -119,7 +119,7 @@ export async function createEvolution(
 
   if (error) {
     const message =
-      error.code === "23505" ? "Essa consulta já tem uma evolução registrada." : "Não foi possível salvar a evolução.";
+      error.code === "23505" ? "Esse atendimento já tem uma evolução registrada." : "Não foi possível salvar a evolução.";
     return { error: message };
   }
 

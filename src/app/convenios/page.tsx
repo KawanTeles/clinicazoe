@@ -82,7 +82,7 @@ export default async function ConveniosPage() {
                   </div>
                   <h3 className="text-lg font-bold text-text-primary font-heading">{ins.name}</h3>
                   <p className="text-xs text-text-secondary mt-2 leading-relaxed">
-                    Cobertura para consultas médicas especializadas no {clinic.name || "Espaço Zoe"}.
+                    Cobertura para atendimentos médicos especializados no {clinic.name || "Espaço Zoe"}.
                   </p>
                 </div>
 

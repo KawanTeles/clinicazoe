@@ -196,7 +196,7 @@ export async function createRecurringAppointments(
     input.particularProduct,
   );
   if (pricing.value == null) {
-    return { error: pricing.error ?? "Não foi possível calcular o valor da consulta." };
+    return { error: pricing.error ?? "Não foi possível calcular o valor do atendimento." };
   }
   const appointmentValue = pricing.value;
 
@@ -267,7 +267,7 @@ export async function createRecurringAppointments(
   }));
 
   const { error: insertError } = await supabase.from("appointments").insert(rows);
-  if (insertError) return { error: "Recorrência criada, mas houve falha ao gerar as consultas." };
+  if (insertError) return { error: "Recorrência criada, mas houve falha ao gerar os atendimentos." };
 
   await logAudit({
     actorId: session.user.id,
@@ -284,8 +284,8 @@ export async function createRecurringAppointments(
 
   await notifyStaff({
     type: "appointment_series.created",
-    title: "Nova consulta recorrente criada",
-    message: `${rows.length} consultas geradas.`,
+    title: "Novo atendimento recorrente criado",
+    message: `${rows.length} atendimentos gerados.`,
     entity: "appointment_series",
     entityId: series.id,
   });
@@ -339,7 +339,7 @@ export async function previewRecurrenceUpdate(
     .select("*")
     .eq("id", input.appointmentId)
     .single();
-  if (!appointment || !appointment.series_id) return { error: "Consulta não faz parte de uma recorrência." };
+  if (!appointment || !appointment.series_id) return { error: "Atendimento não faz parte de uma recorrência." };
 
   await requireCanManageSeries(appointment.series_id);
 
@@ -445,7 +445,7 @@ async function updateSingleOccurrence(
     })
     .eq("id", appointment.id);
 
-  if (error) return { error: "Não foi possível reagendar esta consulta." };
+  if (error) return { error: "Não foi possível reagendar este atendimento." };
 
   await logAudit({
     actorId: session.user.id,
@@ -497,13 +497,13 @@ export async function updateRecurringAppointment(
     .select("*")
     .eq("id", input.appointmentId)
     .single();
-  if (!appointment) return { error: "Consulta não encontrada." };
+  if (!appointment) return { error: "Atendimento não encontrado." };
 
   if (input.scope === "only") {
     return updateSingleOccurrence(appointment, input);
   }
 
-  if (!appointment.series_id) return { error: "Consulta não faz parte de uma recorrência." };
+  if (!appointment.series_id) return { error: "Atendimento não faz parte de uma recorrência." };
   const session = await requireCanManageSeries(appointment.series_id);
 
   if (input.dayOfWeek === undefined || !input.startTime) {
@@ -573,7 +573,7 @@ export async function updateRecurringAppointment(
     series.particular_product ?? undefined,
   );
   if (pricing.value == null) {
-    return { error: pricing.error ?? "Não foi possível calcular o valor da consulta." };
+    return { error: pricing.error ?? "Não foi possível calcular o valor do atendimento." };
   }
   const appointmentValue = pricing.value;
 
@@ -669,7 +669,7 @@ export async function updateRecurringAppointment(
   await notify({
     userId: series.patient_id,
     type: "appointment_series.rescheduled",
-    title: "Sua consulta recorrente foi reagendada",
+    title: "Seu atendimento recorrente foi reagendado",
     message: `Novo horário: ${WEEKDAY_LABELS[input.dayOfWeek]} às ${input.startTime}.`,
     entity: "appointment_series",
     entityId: series.id,
@@ -686,7 +686,7 @@ async function cancelRecurringAppointmentCore(
   const supabase = await createClient();
 
   const { data: appointment } = await supabase.from("appointments").select("*").eq("id", appointmentId).single();
-  if (!appointment) return { error: "Consulta não encontrada." };
+  if (!appointment) return { error: "Atendimento não encontrado." };
 
   if (scope === "only" || !appointment.series_id) {
     const { error } = await supabase.from("appointments").update({ status: "cancelada" }).eq("id", appointmentId);
@@ -799,7 +799,7 @@ export async function extendSeries(
     series.particular_product ?? undefined,
   );
   if (pricing.value == null) {
-    return { error: pricing.error ?? "Não foi possível calcular o valor da consulta." };
+    return { error: pricing.error ?? "Não foi possível calcular o valor do atendimento." };
   }
   const appointmentValue = pricing.value;
 
@@ -860,8 +860,8 @@ export async function previewAttachRecurrence(
 
   const supabase = await createClient();
   const { data: appointment } = await supabase.from("appointments").select("*").eq("id", appointmentId).single();
-  if (!appointment) return { error: "Consulta não encontrada." };
-  if (appointment.series_id) return { error: "Esta consulta já faz parte de uma recorrência." };
+  if (!appointment) return { error: "Atendimento não encontrado." };
+  if (appointment.series_id) return { error: "Este atendimento já faz parte de uma recorrência." };
 
   const dayOfWeek = new Date(`${input.startDate}T00:00:00`).getDay();
   const dates = generateOccurrenceDates({
@@ -903,10 +903,10 @@ export async function attachRecurrenceToAppointment(
 
   const supabase = await createClient();
   const { data: appointment } = await supabase.from("appointments").select("*").eq("id", appointmentId).single();
-  if (!appointment) return { error: "Consulta não encontrada." };
-  if (appointment.series_id) return { error: "Esta consulta já faz parte de uma recorrência." };
+  if (!appointment) return { error: "Atendimento não encontrado." };
+  if (appointment.series_id) return { error: "Este atendimento já faz parte de uma recorrência." };
   if (!["pendente", "confirmada"].includes(appointment.status)) {
-    return { error: "Só é possível tornar recorrente uma consulta pendente ou confirmada." };
+    return { error: "Só é possível tornar recorrente um atendimento pendente ou confirmado." };
   }
 
   const dayOfWeek = new Date(`${input.startDate}T00:00:00`).getDay();
@@ -975,7 +975,7 @@ export async function attachRecurrenceToAppointment(
     .from("appointments")
     .update({ series_id: series.id })
     .eq("id", appointmentId);
-  if (linkError) return { error: "Recorrência criada, mas não foi possível vincular a consulta original." };
+  if (linkError) return { error: "Recorrência criada, mas não foi possível vincular o atendimento original." };
 
   if (toCreate.length > 0) {
     const rows = toCreate.map((occ) => ({
@@ -996,7 +996,7 @@ export async function attachRecurrenceToAppointment(
       notes: input.notes?.trim() || null,
     }));
     const { error: insertError } = await admin.from("appointments").insert(rows);
-    if (insertError) return { error: "Recorrência criada, mas houve falha ao gerar as próximas consultas." };
+    if (insertError) return { error: "Recorrência criada, mas houve falha ao gerar os próximos atendimentos." };
   }
 
   await logAudit({

@@ -18,7 +18,7 @@ import { buildEntitySlug } from "@/lib/slug";
 
 const TITLE = "Espaço Zoe — Medicina de Alta Performance e Saúde Integrada";
 const DESCRIPTION =
-  "Referência em atendimento médico de excelência, corpo clínico renomado, tecnologia de ponta e agendamento 100% online. Marque sua consulta com o Espaço Zoe.";
+  "Referência em atendimento médico de excelência, corpo clínico renomado, tecnologia de ponta e agendamento 100% online. Marque seu atendimento com o Espaço Zoe.";
 
 export const metadata = {
   title: TITLE,
@@ -139,7 +139,7 @@ export default async function HomePage() {
 
                       <div className="space-y-3.5">
                         <div className="group/item rounded-xl border border-[rgba(110,231,183,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(110,231,183,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
-                          <p className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Consultas Presenciais & Telemedicina</p>
+                          <p className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Atendimentos Presenciais & Telemedicina</p>
                           <p className="text-xs text-text-secondary mt-1 leading-relaxed">Flexibilidade e comodidade com suporte completo.</p>
                         </div>
                         <div className="group/item rounded-xl border border-[rgba(110,231,183,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(110,231,183,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
@@ -194,7 +194,7 @@ export default async function HomePage() {
                     </div>
                     <h3 className="text-2xl font-bold text-text-primary font-heading">Atendimento Humanizado</h3>
                     <p className="mt-3 text-sm text-text-secondary leading-relaxed max-w-md">
-                      Consultas individuais estendidas, sem correria, focadas no histórico biológico, estilo de vida e necessidades do paciente. Uma experiência de cuidado pensada em cada detalhe.
+                      Atendimentos individuais estendidos, sem correria, focados no histórico biológico, estilo de vida e necessidades do paciente. Uma experiência de cuidado pensada em cada detalhe.
                     </p>
                   </div>
                   <Link href="/clinica" className="mt-8 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
@@ -381,7 +381,7 @@ export default async function HomePage() {
           <ScrollReveal animation="scale-up">
             <Badge tone="premium" className="border border-[rgba(110,231,183,0.3)] shadow-[0_0_15px_rgba(46,139,87,0.2)]">Atendimento Prioritário</Badge>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-text-primary mt-2 font-heading">
-              Pronto para agendar sua consulta?
+              Pronto para agendar seu atendimento?
             </h2>
             <p className="text-sm sm:text-base text-text-secondary max-w-xl mx-auto">
               Acesse a área do cliente em poucos segundos para escolher o melhor dia e horário para o seu atendimento.

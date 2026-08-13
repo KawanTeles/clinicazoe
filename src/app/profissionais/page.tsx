@@ -18,17 +18,17 @@ import { buildEntitySlug } from "@/lib/slug";
 
 export const metadata = {
   title: "Corpo Médico e Profissionais — Espaço Zoe",
-  description: "Conheça os médicos especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar sua consulta hoje mesmo.",
+  description: "Conheça os médicos especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar seu atendimento hoje mesmo.",
   alternates: { canonical: `${SITE_URL}/profissionais` },
   openGraph: {
     title: "Corpo Médico e Profissionais — Espaço Zoe",
-    description: "Conheça os médicos especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar sua consulta hoje mesmo.",
+    description: "Conheça os médicos especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar seu atendimento hoje mesmo.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Corpo Médico e Profissionais — Espaço Zoe",
-    description: "Conheça os médicos especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar sua consulta hoje mesmo.",
+    description: "Conheça os médicos especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar seu atendimento hoje mesmo.",
   },
 };
 
@@ -93,12 +93,12 @@ export default async function ProfissionaisPage() {
 
                   <div className="p-4 rounded-2xl bg-card-elevated/70 border border-border/60 space-y-2 text-xs">
                     <div className="flex justify-between items-center text-text-secondary">
-                      <span>Duração da consulta:</span>
+                      <span>Duração do atendimento:</span>
                       <span className="font-bold text-text-primary">{prof.consultationDuration} minutos</span>
                     </div>
                     {clinic.price_particular_consultation != null && (
                       <div className="flex justify-between items-center text-text-secondary">
-                        <span>Consulta Particular:</span>
+                        <span>Atendimento Particular:</span>
                         <span className="font-bold text-[var(--link)]">{formatCurrency(clinic.price_particular_consultation)}</span>
                       </div>
                     )}

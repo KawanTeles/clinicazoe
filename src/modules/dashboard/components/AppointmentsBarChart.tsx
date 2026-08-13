@@ -18,7 +18,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
 
   return (
     <div className="relative">
-      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full" role="img" aria-label="Consultas por dia, últimos 7 dias">
+      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full" role="img" aria-label="Atendimentos por dia, últimos 7 dias">
         <line
           x1={0}
           y1={HEIGHT - PADDING_BOTTOM}
@@ -90,7 +90,7 @@ export function AppointmentsBarChart({ data }: { data: DailyStat[] }) {
             transform: "translate(-50%, -110%)",
           }}
         >
-          {data[hovered].appointments} consulta{data[hovered].appointments === 1 ? "" : "s"}
+          {data[hovered].appointments} atendimento{data[hovered].appointments === 1 ? "" : "s"}
         </div>
       )}
     </div>

@@ -26,7 +26,7 @@ const bricolage = Bricolage_Grotesque({
 
 const FALLBACK_NAME = "Espaço Zoe";
 const buildDescription = (name: string) =>
-  `${name}: atendimento médico humanizado com tecnologia de ponta, corpo clínico especializado e agendamento de consultas 100% online, rápido e seguro.`;
+  `${name}: atendimento médico humanizado com tecnologia de ponta, corpo clínico especializado e agendamento de atendimentos 100% online, rápido e seguro.`;
 
 export async function generateMetadata(): Promise<Metadata> {
   const { clinic } = await getSiteMetadataForLayout();
@@ -40,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${name}`,
     },
     description: DESCRIPTION,
-    keywords: ["clínica médica", "agendamento médico", "consultas online", "especialistas de saúde", name],
+    keywords: ["clínica médica", "agendamento médico", "atendimentos online", "especialistas de saúde", name],
     authors: [{ name }],
     creator: name,
     publisher: name,
@@ -143,7 +143,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     medicalSpecialty: specialtyNames.length > 0 ? specialtyNames : ["GeneralPractice"],
     availableService: {
       "@type": "MedicalProcedure",
-      name: "Consultas Médicas Especializadas",
+      name: "Atendimentos Médicos Especializados",
     },
     sameAs: [clinic?.instagram_url, clinic?.facebook_url, clinic?.linkedin_url, clinic?.youtube_url].filter(
       (url): url is string => Boolean(url),

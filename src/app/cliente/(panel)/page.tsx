@@ -12,7 +12,7 @@ import { getAttendanceInfo } from "@/lib/attendance";
 
 export const metadata = {
   title: "Área do Cliente — Espaço Zoe",
-  description: "Acompanhe seus agendamentos, histórico médico e consultas no Espaço Zoe.",
+  description: "Acompanhe seus agendamentos, histórico médico e atendimentos no Espaço Zoe.",
 };
 
 export default async function ClientePainelPage({
@@ -52,12 +52,12 @@ export default async function ClientePainelPage({
             <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary font-heading">
               Olá, {session.profile.full_name.split(" ")[0]}
             </h1>
-            <p className="text-xs text-text-secondary mt-0.5">Acompanhe seus agendamentos e consultas.</p>
+            <p className="text-xs text-text-secondary mt-0.5">Acompanhe seus agendamentos e atendimentos.</p>
           </div>
 
           <Link href="/cliente/agendar">
             <Button size="lg" className="font-bold shadow-button">
-              + Nova Consulta
+              + Novo Atendimento
             </Button>
           </Link>
         </div>
@@ -70,10 +70,10 @@ export default async function ClientePainelPage({
             <p className="text-4xl font-black text-text-primary mt-2 font-heading">
               <AnimatedCounter value={patientData.upcoming} />
             </p>
-            <p className="text-xs text-text-muted mt-1">Consultas pendentes de aprovação ou confirmadas</p>
+            <p className="text-xs text-text-muted mt-1">Atendimentos pendentes de aprovação ou confirmados</p>
           </AnimatedCard>
           <AnimatedCard delayMs={200} className="p-6 rounded-3xl">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--link)] font-heading">Consultas Concluídas</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--link)] font-heading">Atendimentos Concluídos</span>
             <p className="text-4xl font-black text-text-primary mt-2 font-heading">
               <AnimatedCounter value={patientData.completed} />
             </p>
@@ -86,13 +86,13 @@ export default async function ClientePainelPage({
         <AnimatedCard className="rounded-3xl p-0 overflow-hidden">
           <CardContent className="p-6 sm:p-8 space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-text-primary font-heading">Minhas Consultas</h3>
+              <h3 className="text-lg font-bold text-text-primary font-heading">Meus Atendimentos</h3>
               <span className="text-xs text-text-muted">{appointments.length} registros</span>
             </div>
 
             {appointments.length === 0 ? (
               <div className="py-12 text-center space-y-4 rounded-2xl border border-dashed border-border bg-card-elevated/40">
-                <p className="text-sm text-text-secondary">Você ainda não possui consultas agendadas.</p>
+                <p className="text-sm text-text-secondary">Você ainda não possui atendimentos agendados.</p>
                 <Link href="/cliente/agendar">
                   <Button size="sm">Fazer meu primeiro agendamento</Button>
                 </Link>

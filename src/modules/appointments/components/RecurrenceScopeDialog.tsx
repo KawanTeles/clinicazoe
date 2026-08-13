@@ -35,9 +35,9 @@ interface RecurrenceScopeDialogProps {
 }
 
 const SCOPE_OPTIONS: { value: RecurrenceScope; label: string; description: string }[] = [
-  { value: "only", label: "Apenas esta consulta", description: "Só essa ocorrência muda; o resto da recorrência continua igual." },
-  { value: "following", label: "Esta consulta e todas as próximas", description: "As consultas já realizadas ficam como estão." },
-  { value: "all", label: "Toda a sequência de consultas", description: "Todas as ocorrências futuras da recorrência mudam." },
+  { value: "only", label: "Apenas este atendimento", description: "Só essa ocorrência muda; o resto da recorrência continua igual." },
+  { value: "following", label: "Este atendimento e todos os próximos", description: "Os atendimentos já realizados ficam como estão." },
+  { value: "all", label: "Toda a sequência de atendimentos", description: "Todas as ocorrências futuras da recorrência mudam." },
 ];
 
 const EMPTY_RECURRENCE: RecurrenceValue = { frequency: "weekly", startDate: "", endDate: "", maxOccurrences: "", notes: "" };
@@ -303,7 +303,7 @@ export function RecurrenceScopeDialog({
                     onChange={(e) => setStopRecurrence(e.target.checked)}
                     className="h-3.5 w-3.5 rounded accent-primary"
                   />
-                  Parar a repetição a partir daqui (virar consulta única)
+                  Parar a repetição a partir daqui (virar atendimento único)
                 </label>
 
                 {!stopRecurrence && (

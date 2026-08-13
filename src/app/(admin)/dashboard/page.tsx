@@ -48,13 +48,13 @@ export default async function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <Kpi label="Próximas consultas" value={String(data.upcoming)} subtext="Agendamentos confirmados ou pendentes" />
-          <Kpi label="Consultas concluídas" value={String(data.completed)} subtext="Histórico completo de atendimentos" />
+          <Kpi label="Próximos atendimentos" value={String(data.upcoming)} subtext="Agendamentos confirmados ou pendentes" />
+          <Kpi label="Atendimentos concluídos" value={String(data.completed)} subtext="Histórico completo de atendimentos" />
         </div>
 
         <div>
           <Link href="/book">
-            <Button size="lg" className="shadow-button font-bold">Agendar nova consulta</Button>
+            <Button size="lg" className="shadow-button font-bold">Agendar novo atendimento</Button>
           </Link>
         </div>
       </div>
@@ -79,14 +79,14 @@ export default async function DashboardPage() {
 
         <Link href="/appointments">
           <Button variant="secondary" size="sm">
-            Ver todas consultas
+            Ver todos atendimentos
           </Button>
         </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi label="Consultas hoje" value={String(data.todayCount)} subtext="Agendadas para a data atual" />
-        <Kpi label="Consultas esta semana" value={String(data.weekCount)} subtext="Últimos 7 dias em atividade" />
+        <Kpi label="Atendimentos hoje" value={String(data.todayCount)} subtext="Agendados para a data atual" />
+        <Kpi label="Atendimentos esta semana" value={String(data.weekCount)} subtext="Últimos 7 dias em atividade" />
         <Kpi label="Receita prevista" value={formatCurrency(data.receitaPrevista)} subtext="Previsão de recebimento" />
         <Kpi label="Receita recebida" value={formatCurrency(data.receitaRecebida)} subtext="Confirmados e baixados" />
         {data.activeProfessionals !== null && (
@@ -115,16 +115,16 @@ export default async function DashboardPage() {
           <Kpi label="Faturamento do dia" value={formatCurrency(data.billingToday)} subtext="Pagamentos recebidos hoje" />
           <Kpi label="Faturamento da semana" value={formatCurrency(data.billingWeek)} subtext="Pagamentos recebidos na semana" />
           <Kpi label="Faturamento do mês" value={formatCurrency(data.billingMonth)} subtext="Pagamentos recebidos no mês" />
-          <Kpi label="Consultas realizadas" value={String(data.completedCount)} subtext="Atendimentos concluídos" />
-          <Kpi label="Consultas pendentes" value={String(data.pendingCount)} subtext="Aguardando confirmação" />
-          <Kpi label="Consultas confirmadas" value={String(data.confirmedCount)} subtext="Confirmadas e agendadas" />
+          <Kpi label="Atendimentos realizados" value={String(data.completedCount)} subtext="Atendimentos concluídos" />
+          <Kpi label="Atendimentos pendentes" value={String(data.pendingCount)} subtext="Aguardando confirmação" />
+          <Kpi label="Atendimentos confirmados" value={String(data.confirmedCount)} subtext="Confirmados e agendados" />
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card className="overflow-hidden">
           <CardHeader>
-            <CardTitle>Consultas por Dia (Últimos 7 Dias)</CardTitle>
+            <CardTitle>Atendimentos por Dia (Últimos 7 Dias)</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             <AppointmentsBarChart data={weekly} />

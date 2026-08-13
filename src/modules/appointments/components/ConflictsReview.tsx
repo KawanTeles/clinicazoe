@@ -80,7 +80,7 @@ export function ConflictsReview({
     <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-card">
       <div>
         <p className="text-base font-bold text-text-primary">
-          {resolvedCount} consulta(s) serão criadas
+          {resolvedCount} atendimento(s) serão criados
           {ignoredCount > 0 ? ` — ${ignoredCount} data(s) com conflito serão ignoradas` : ""}
         </p>
         <p className="mt-1 text-sm text-text-secondary">

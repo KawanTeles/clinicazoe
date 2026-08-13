@@ -21,7 +21,7 @@ interface PatientShellProps {
 
 const NAV_ITEMS = [
   { href: "/cliente", label: "Dashboard", icon: "dashboard" },
-  { href: "/cliente/agendar", label: "Agendar Consulta", icon: "calendar-plus" },
+  { href: "/cliente/agendar", label: "Agendar Atendimento", icon: "calendar-plus" },
   { href: "/cliente/perfil", label: "Meu Perfil", icon: "user" },
 ] as const;
 

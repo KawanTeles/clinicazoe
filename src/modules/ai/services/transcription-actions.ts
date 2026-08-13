@@ -38,7 +38,7 @@ export async function transcribeSessionAudio(formData: FormData): Promise<{ erro
   }
 
   const appointmentId = String(formData.get("appointment_id") ?? "").trim();
-  if (!appointmentId) return { error: "Consulta não informada." };
+  if (!appointmentId) return { error: "Atendimento não informado." };
 
   // Mesmo padrão de improveEvolutionText: confere o toggle global (ai_enabled)
   // e o toggle específico do recurso (aqui, transcriptionEnabled) antes de
@@ -84,7 +84,7 @@ export async function transcribeSessionAudio(formData: FormData): Promise<{ erro
     .select("id, patient_id, professional_id, status")
     .eq("id", appointmentId)
     .maybeSingle();
-  if (!appointment) return { error: "Consulta não encontrada." };
+  if (!appointment) return { error: "Atendimento não encontrado." };
 
   const isPrincipal = appointment.professional_id === session.user.id;
   let isCoTherapist = false;
@@ -98,10 +98,10 @@ export async function transcribeSessionAudio(formData: FormData): Promise<{ erro
     isCoTherapist = Boolean(link);
   }
   if (!isPrincipal && !isCoTherapist) {
-    return { error: "Você só pode transcrever áudio das consultas às quais está vinculado." };
+    return { error: "Você só pode transcrever áudio dos atendimentos aos quais está vinculado." };
   }
   if (!["confirmada", "concluida"].includes(appointment.status)) {
-    return { error: "Só é possível transcrever áudio de consultas realizadas." };
+    return { error: "Só é possível transcrever áudio de atendimentos realizados." };
   }
 
   const path = `${session.user.id}/${appointmentId}/${randomUUID()}.${extension}`;

@@ -52,7 +52,7 @@ export default async function FinancialPage({
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">Financeiro</h1>
         <p className="mt-1 text-sm text-text-secondary">
-          Lançamentos gerados automaticamente na confirmação de cada consulta.
+          Lançamentos gerados automaticamente na confirmação de cada atendimento.
         </p>
       </div>
 

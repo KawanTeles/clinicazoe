@@ -129,7 +129,7 @@ export function FinancialTransactionForm({
       isOpen={isOpen}
       onClose={resetAndClose}
       title={isEditing ? "Editar Lançamento" : "Novo Lançamento Manual"}
-      subtitle="Entrada ou saída não ligada a uma consulta"
+      subtitle="Entrada ou saída não ligada a um atendimento"
       size="md"
       footer={
         <>

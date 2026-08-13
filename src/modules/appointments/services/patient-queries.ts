@@ -84,7 +84,7 @@ export async function getAppointmentsForPatient(patientId: string) {
   return appointments.map((appt) => ({
     ...appt,
     professionalName: profMap.get(appt.professional_id) ?? "Profissional",
-    specialtyName: appt.specialty_id ? specMap.get(appt.specialty_id) ?? "Consulta" : "Consulta",
+    specialtyName: appt.specialty_id ? specMap.get(appt.specialty_id) ?? "Atendimento" : "Atendimento",
     insuranceName: insMap.get(appt.insurance_id) ?? "Particular",
   }));
 }

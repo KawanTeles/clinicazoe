@@ -4,7 +4,7 @@ import { Patient8StepBooking } from "@/components/patient/Patient8StepBooking";
 import { Badge } from "@/components/ui/Badge";
 
 export const metadata = {
-  title: "Agendamento de Consulta em 8 Etapas — Espaço Zoe",
+  title: "Agendamento de Atendimento em 8 Etapas — Espaço Zoe",
   description: "Fluxo completo de agendamento online para pacientes.",
 };
 
@@ -18,7 +18,7 @@ export default async function PatientAgendarPage() {
     <div className="space-y-8">
       <div className="text-center max-w-2xl mx-auto space-y-2">
         <Badge tone="premium">Novo Agendamento</Badge>
-        <h1 className="text-3xl font-extrabold text-text-primary font-heading">Solicitar Consulta Médica</h1>
+        <h1 className="text-3xl font-extrabold text-text-primary font-heading">Solicitar Atendimento Médico</h1>
         <p className="text-xs sm:text-sm text-text-secondary">
           Siga as 8 etapas para escolher a cidade, convênio, médico, data e horário ideal.
         </p>

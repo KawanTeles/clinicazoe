@@ -16,17 +16,17 @@ import { buildEntitySlug } from "@/lib/slug";
 
 export const metadata = {
   title: "Especialidades Médicas — Espaço Zoe",
-  description: "Conheça todas as especialidades médicas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada consulta.",
+  description: "Conheça todas as especialidades médicas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada atendimento.",
   alternates: { canonical: `${SITE_URL}/especialidades` },
   openGraph: {
     title: "Especialidades Médicas — Espaço Zoe",
-    description: "Conheça todas as especialidades médicas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada consulta.",
+    description: "Conheça todas as especialidades médicas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada atendimento.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Especialidades Médicas — Espaço Zoe",
-    description: "Conheça todas as especialidades médicas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada consulta.",
+    description: "Conheça todas as especialidades médicas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada atendimento.",
   },
 };
 

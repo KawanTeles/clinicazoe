@@ -15,6 +15,6 @@ export const MODALITY_LABELS: Record<Modality, string> = {
 };
 
 export const PARTICULAR_PRODUCT_LABELS: Record<ParticularProduct, string> = {
-  consulta: "Consulta Particular",
+  consulta: "Atendimento Particular",
   pacote: "Pacote Particular (1 mês)",
 };

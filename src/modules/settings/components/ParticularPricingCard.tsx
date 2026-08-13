@@ -50,7 +50,7 @@ export function ParticularPricingCard({ data, onChange, readOnly }: ParticularPr
           </p>
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <Input
-              label="Consulta Particular (R$) *"
+              label="Atendimento Particular (R$) *"
               type="number"
               min={0}
               step="0.01"

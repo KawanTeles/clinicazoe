@@ -101,9 +101,9 @@ export function AppointmentsList({
 
   async function handleCancel(id: string) {
     const confirmed = await confirm({
-      title: "Cancelar esta consulta?",
+      title: "Cancelar este atendimento?",
       description: "O horário será liberado e o paciente poderá agendar novamente.",
-      confirmLabel: "Cancelar consulta",
+      confirmLabel: "Cancelar atendimento",
       tone: "danger",
     });
     if (!confirmed) return;
@@ -114,15 +114,15 @@ export function AppointmentsList({
       toast.error(result.error);
       return;
     }
-    toast.success("Consulta cancelada com sucesso.");
+    toast.success("Atendimento cancelado com sucesso.");
     if (result.whatsappLink) window.open(result.whatsappLink, "_blank");
     router.refresh();
   }
 
   async function handleReschedule(id: string) {
     const confirmed = await confirm({
-      title: "Remarcar esta consulta?",
-      description: "A consulta atual será cancelada e você escolherá um novo horário.",
+      title: "Remarcar este atendimento?",
+      description: "O atendimento atual será cancelado e você escolherá um novo horário.",
       confirmLabel: "Continuar",
     });
     if (!confirmed) return;
@@ -158,7 +158,7 @@ export function AppointmentsList({
       toast.error(result.error);
       return;
     }
-    toast.success("Consulta confirmada com sucesso.");
+    toast.success("Atendimento confirmado com sucesso.");
     if (result.whatsappLink) {
       window.open(result.whatsappLink, "_blank");
     }
@@ -167,9 +167,9 @@ export function AppointmentsList({
 
   async function handleStaffCancel(id: string) {
     const confirmed = await confirm({
-      title: "Cancelar esta consulta?",
+      title: "Cancelar este atendimento?",
       description: "O horário será liberado na agenda do profissional.",
-      confirmLabel: "Cancelar consulta",
+      confirmLabel: "Cancelar atendimento",
       tone: "danger",
     });
     if (!confirmed) return;
@@ -180,13 +180,13 @@ export function AppointmentsList({
       toast.error(result.error);
       return;
     }
-    toast.success("Consulta cancelada com sucesso.");
+    toast.success("Atendimento cancelado com sucesso.");
     router.refresh();
   }
 
   function handleScopeDialogDone(whatsappLink?: string | null) {
     setScopeDialog(null);
-    toast.success(scopeDialog?.mode === "edit" ? "Consulta reagendada com sucesso." : "Consulta excluída com sucesso.");
+    toast.success(scopeDialog?.mode === "edit" ? "Atendimento reagendado com sucesso." : "Atendimento excluído com sucesso.");
     if (whatsappLink) window.open(whatsappLink, "_blank");
     router.refresh();
   }
@@ -194,7 +194,7 @@ export function AppointmentsList({
   function handleAttachDialogDone(createdCount: number) {
     setAttachDialog(null);
     toast.success(
-      createdCount > 1 ? `Recorrência criada: ${createdCount} consultas.` : "Consulta transformada em recorrente.",
+      createdCount > 1 ? `Recorrência criada: ${createdCount} atendimentos.` : "Atendimento transformado em recorrente.",
     );
     router.refresh();
   }
@@ -214,11 +214,11 @@ export function AppointmentsList({
 
         <div className="flex flex-wrap gap-1.5 text-xs">
           {[
-            { id: "todos", label: "Todas" },
+            { id: "todos", label: "Todos" },
             { id: "pendente", label: "Pendentes" },
-            { id: "confirmada", label: "Confirmadas" },
-            { id: "concluida", label: "Concluídas" },
-            { id: "cancelada", label: "Canceladas" },
+            { id: "confirmada", label: "Confirmados" },
+            { id: "concluida", label: "Concluídos" },
+            { id: "cancelada", label: "Cancelados" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -238,7 +238,7 @@ export function AppointmentsList({
 
       {filteredAppointments.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center text-sm font-medium text-text-secondary">
-          Nenhuma consulta encontrada com esses filtros.
+          Nenhum atendimento encontrado com esses filtros.
         </div>
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">

@@ -133,12 +133,12 @@ export default async function ProfissionalDetailPage({ params }: { params: Promi
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border/60">
                   <div className="p-4 rounded-2xl bg-card-elevated/70 border border-border/60">
-                    <span className="text-xs text-text-muted">Duração Média da Consulta</span>
+                    <span className="text-xs text-text-muted">Duração Média do Atendimento</span>
                     <p className="text-base font-bold text-text-primary mt-1 font-heading">{prof.consultationDuration} minutos</p>
                   </div>
                   {clinic.price_particular_consultation != null && (
                     <div className="p-4 rounded-2xl bg-card-elevated/70 border border-border/60">
-                      <span className="text-xs text-text-muted">Consulta Particular</span>
+                      <span className="text-xs text-text-muted">Atendimento Particular</span>
                       <p className="text-base font-bold text-[var(--link)] mt-1 font-heading">{formatCurrency(clinic.price_particular_consultation)}</p>
                     </div>
                   )}

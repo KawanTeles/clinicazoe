@@ -277,7 +277,7 @@ export async function deleteUser(id: string): Promise<{ error: string | null }> 
   if (appointmentsCount > 0) {
     return {
       error:
-        "Este usuário possui consultas/histórico vinculado. Para preservar os dados, desative a conta em vez de excluí-la.",
+        "Este usuário possui atendimentos/histórico vinculado. Para preservar os dados, desative a conta em vez de excluí-la.",
     };
   }
 

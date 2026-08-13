@@ -71,7 +71,7 @@ interface PatientDetailTabsProps {
   evolutionsTotalPages?: number;
 }
 
-const BASE_TABS = ["Dados", "Próximas consultas", "Histórico", "Recorrências", "Mensagens"] as const;
+const BASE_TABS = ["Dados", "Próximos atendimentos", "Histórico", "Recorrências", "Mensagens"] as const;
 const CLINICAL_TAB = "Histórico Clínico";
 type Tab = (typeof BASE_TABS)[number] | typeof CLINICAL_TAB;
 
@@ -86,9 +86,9 @@ const STATUS_LABELS: Record<string, string> = {
 
 const MESSAGE_LABELS: Record<string, string> = {
   booking: "Confirmação de agendamento",
-  confirmation: "Consulta confirmada",
+  confirmation: "Atendimento confirmado",
   cancellation: "Cancelamento/remarcação",
-  reminder: "Lembrete de consulta",
+  reminder: "Lembrete de atendimento",
 };
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
@@ -129,7 +129,7 @@ export function PatientDetailTabs({
     const confirmed = await confirm({
       title: `Excluir "${patient.fullName}"?`,
       description:
-        "Para preservar consultas e histórico clínico já registrados, o cadastro será desativado em vez de apagado permanentemente. Essa ação pode ser revertida reativando o paciente.",
+        "Para preservar atendimentos e histórico clínico já registrados, o cadastro será desativado em vez de apagado permanentemente. Essa ação pode ser revertida reativando o paciente.",
       confirmLabel: "Excluir",
       tone: "danger",
     });
@@ -222,8 +222,8 @@ export function PatientDetailTabs({
         </div>
       )}
 
-      {tab === "Próximas consultas" && <AppointmentsTable rows={upcoming} empty="Nenhuma consulta futura." />}
-      {tab === "Histórico" && <AppointmentsTable rows={history} empty="Nenhuma consulta anterior." />}
+      {tab === "Próximos atendimentos" && <AppointmentsTable rows={upcoming} empty="Nenhum atendimento futuro." />}
+      {tab === "Histórico" && <AppointmentsTable rows={history} empty="Nenhum atendimento anterior." />}
       {tab === CLINICAL_TAB && (
         <EvolutionTimeline
           patientId={patient.id}
@@ -235,7 +235,7 @@ export function PatientDetailTabs({
       {tab === "Recorrências" && (
         <div className="flex flex-col gap-3">
           {series.length === 0 ? (
-            <EmptyState text="Nenhuma consulta recorrente." />
+            <EmptyState text="Nenhum atendimento recorrente." />
           ) : (
             series.map((s) => (
               <div key={s.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-4">

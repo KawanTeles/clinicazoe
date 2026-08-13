@@ -294,7 +294,7 @@ export function StaffAppointmentForm({
       return;
     }
     if (!requiresModality && !particularProduct) {
-      setError("Selecione Consulta Particular ou Pacote Particular.");
+      setError("Selecione Atendimento Particular ou Pacote Particular.");
       return;
     }
 
@@ -412,7 +412,7 @@ export function StaffAppointmentForm({
           </div>
           <Badge tone="premium">Agendamento Realizado!</Badge>
           <h2 className="text-2xl font-black text-text-primary tracking-tight font-heading">
-            {successResult.count > 1 ? `${successResult.count} consultas criadas` : "Consulta criada com sucesso"}
+            {successResult.count > 1 ? `${successResult.count} atendimentos criados` : "Atendimento criado com sucesso"}
           </h2>
           <p className="max-w-lg text-sm text-text-secondary">
             Paciente: <strong className="text-text-primary">{patient?.fullName}</strong>
@@ -427,7 +427,7 @@ export function StaffAppointmentForm({
               Novo agendamento
             </Button>
             <Button type="button" variant="ghost" onClick={() => router.push("/appointments")}>
-              Ver lista de consultas
+              Ver lista de atendimentos
             </Button>
           </div>
         </CardContent>
@@ -618,7 +618,7 @@ export function StaffAppointmentForm({
                 <div className="flex items-center gap-2 flex-wrap">
                   {duration && (
                     <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-card-elevated px-2 py-0.5 text-xs font-semibold text-text-secondary border border-border">
-                      ⏱ Duração da consulta: <strong className="text-text-primary">{duration} min</strong>
+                      ⏱ Duração do atendimento: <strong className="text-text-primary">{duration} min</strong>
                     </span>
                   )}
                   {requiresModality && modality && (

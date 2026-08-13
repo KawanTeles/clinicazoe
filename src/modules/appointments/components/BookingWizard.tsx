@@ -169,7 +169,7 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
       return;
     }
     if (!requiresModality && !particularProduct) {
-      setError("Selecione Consulta Particular ou Pacote Particular.");
+      setError("Selecione Atendimento Particular ou Pacote Particular.");
       return;
     }
 
@@ -213,7 +213,7 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
           <div>
             <h2 className="text-xl font-bold text-text-primary font-heading">Agendamento enviado!</h2>
             <p className="mt-2 text-xs text-text-secondary leading-relaxed max-w-md">
-              Sua consulta está pendente de confirmação pela recepção. Você pode acompanhar o status na aba &quot;Minhas Consultas&quot;.
+              Seu atendimento está pendente de confirmação pela recepção. Você pode acompanhar o status na aba &quot;Meus Atendimentos&quot;.
             </p>
           </div>
           {result.whatsappLink && (
@@ -222,7 +222,7 @@ export function BookingWizard({ specialties }: { specialties: Option[] }) {
             </a>
           )}
           <Button type="button" variant="secondary" onClick={() => router.push("/appointments")}>
-            Ver minhas consultas
+            Ver meus atendimentos
           </Button>
         </CardContent>
       </Card>

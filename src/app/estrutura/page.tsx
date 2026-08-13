@@ -49,7 +49,7 @@ export default async function EstruturaPage() {
             <PageHero
               breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Estrutura" }]}
               title="Estrutura & Tecnologia"
-              subtitle="Ambientes projetados para garantir segurança sanitária, privacidade e o máximo conforto durante a sua consulta."
+              subtitle="Ambientes projetados para garantir segurança sanitária, privacidade e o máximo conforto durante o seu atendimento."
             />
           </PageEntranceItem>
 

@@ -11,7 +11,7 @@ import { getPublicWebsiteData } from "@/lib/public-queries";
 
 export const metadata = {
   title: "Cadastro de Paciente — Espaço Zoe",
-  description: "Crie sua conta de paciente em instantes para agendar consultas.",
+  description: "Crie sua conta de paciente em instantes para agendar atendimentos.",
 };
 
 export default async function PatientSignUpPage() {

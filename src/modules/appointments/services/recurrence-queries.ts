@@ -105,8 +105,8 @@ const FREQUENCY_LABELS: Record<string, string> = {
 };
 
 const SCOPE_LABELS: Record<string, string> = {
-  only: "apenas esta consulta",
-  following: "esta consulta e as próximas",
+  only: "apenas este atendimento",
+  following: "este atendimento e os próximos",
   all: "toda a sequência",
 };
 
@@ -130,7 +130,7 @@ function translateAuditEntry(action: string, metadata: Record<string, unknown>):
       const attached = Boolean(metadata.attachedFromAppointmentId);
       const dayLabel = dayOfWeek !== undefined ? WEEKDAY_LABELS[dayOfWeek] : "—";
       const timeLabel = startTime ? formatHm(startTime) : "—";
-      return `${attached ? "Consulta avulsa transformada em recorrência" : "Recorrência criada"}: toda ${dayLabel} às ${timeLabel}${count ? ` (${count} consulta${count > 1 ? "s" : ""})` : ""}.`;
+      return `${attached ? "Atendimento avulso transformado em recorrência" : "Recorrência criada"}: toda ${dayLabel} às ${timeLabel}${count ? ` (${count} atendimento${count > 1 ? "s" : ""})` : ""}.`;
     }
     case "appointment.rescheduled_occurrence": {
       const previousDate = metadata.previousDate as string | undefined;
@@ -140,7 +140,7 @@ function translateAuditEntry(action: string, metadata: Record<string, unknown>):
       const reason = metadata.reason as string | null | undefined;
       const from = previousDate ? `${formatIsoDate(previousDate)} ${formatHm(previousTime ?? "")}` : "—";
       const to = newDate ? `${formatIsoDate(newDate)} ${formatHm(newTime ?? "")}` : "—";
-      return `Reagendou esta consulta de ${from} para ${to}${reason ? ` — motivo: ${reason}` : ""}.`;
+      return `Reagendou este atendimento de ${from} para ${to}${reason ? ` — motivo: ${reason}` : ""}.`;
     }
     case "appointment_series.rescheduled": {
       const scope = metadata.scope as string | undefined;
@@ -160,17 +160,17 @@ function translateAuditEntry(action: string, metadata: Record<string, unknown>):
           ? `, frequência ${FREQUENCY_LABELS[prevFreq] ?? prevFreq} → ${FREQUENCY_LABELS[newFreq] ?? newFreq}`
           : "";
       const scopeLabel = scope ? SCOPE_LABELS[scope] ?? scope : "";
-      return `Alterou a recorrência (${scopeLabel}): de ${from} para ${to}${freqChange} — ${replaced ?? 0} consulta(s) substituída(s), ${created ?? 0} nova(s)${reason ? ` — motivo: ${reason}` : ""}.`;
+      return `Alterou a recorrência (${scopeLabel}): de ${from} para ${to}${freqChange} — ${replaced ?? 0} atendimento(s) substituído(s), ${created ?? 0} novo(s)${reason ? ` — motivo: ${reason}` : ""}.`;
     }
     case "appointment_series.cancelled": {
       const scope = metadata.scope as string | undefined;
       const cancelledCount = metadata.cancelledCount as number | undefined;
       const scopeLabel = scope ? SCOPE_LABELS[scope] ?? scope : "";
-      return `Cancelou a recorrência (${scopeLabel}) — ${cancelledCount ?? 0} consulta(s) cancelada(s).`;
+      return `Cancelou a recorrência (${scopeLabel}) — ${cancelledCount ?? 0} atendimento(s) cancelado(s).`;
     }
     case "appointment_series.extended": {
       const createdCount = metadata.createdCount as number | undefined;
-      return `Estendeu a recorrência — ${createdCount ?? 0} nova(s) consulta(s) geradas.`;
+      return `Estendeu a recorrência — ${createdCount ?? 0} novo(s) atendimento(s) gerados.`;
     }
     default:
       return action;

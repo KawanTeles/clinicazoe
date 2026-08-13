@@ -26,7 +26,7 @@ export function RequestsList({ requests }: { requests: RequestView[] }) {
   async function handleApprove(id: string) {
     const confirmed = await confirm({
       title: "Aprovar esta solicitação?",
-      description: "A consulta será criada na Agenda com status Confirmada e o paciente será notificado.",
+      description: "O atendimento será criado na Agenda com status Confirmada e o paciente será notificado.",
       confirmLabel: "Aprovar",
     });
     if (!confirmed) return;
@@ -37,7 +37,7 @@ export function RequestsList({ requests }: { requests: RequestView[] }) {
       toast.error(result.error);
       return;
     }
-    toast.success("Solicitação aprovada e consulta confirmada.");
+    toast.success("Solicitação aprovada e atendimento confirmado.");
     if (result.whatsappLink) window.open(result.whatsappLink, "_blank");
     setViewing(null);
     router.refresh();
@@ -214,7 +214,7 @@ export function RequestsList({ requests }: { requests: RequestView[] }) {
                 </p>
               </div>
               <div>
-                <span className="text-xs text-text-muted">Valor da consulta</span>
+                <span className="text-xs text-text-muted">Valor do atendimento</span>
                 <p className="font-black text-text-primary">{formatCurrency(viewing.value)}</p>
               </div>
               <div>

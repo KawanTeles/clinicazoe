@@ -4,7 +4,7 @@ import { getBookableSpecialties } from "@/modules/appointments/services/booking-
 import { BookingWizard } from "@/modules/appointments/components/BookingWizard";
 
 export const metadata = {
-  title: "Agendar consulta — Espaço Zoe",
+  title: "Agendar atendimento — Espaço Zoe",
 };
 
 export default async function BookPage() {
@@ -16,7 +16,7 @@ export default async function BookPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">Agendar consulta</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">Agendar atendimento</h1>
         <p className="mt-1 text-sm text-text-secondary">
           Escolha a especialidade, o convênio, o profissional e o horário.
         </p>

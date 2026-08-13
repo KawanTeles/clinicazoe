@@ -106,9 +106,9 @@ export function AttachRecurrenceDialog({
           />
         ) : (
           <>
-            <h2 className="text-lg font-bold text-text-primary">Tornar esta consulta recorrente</h2>
+            <h2 className="text-lg font-bold text-text-primary">Tornar este atendimento recorrente</h2>
             <p className="text-xs text-text-secondary">
-              A consulta atual vira a primeira ocorrência da recorrência — mesmo paciente, profissional, convênio,
+              O atendimento atual vira a primeira ocorrência da recorrência — mesmo paciente, profissional, convênio,
               valor e duração se repetem automaticamente.
             </p>
 

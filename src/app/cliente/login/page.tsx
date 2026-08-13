@@ -13,7 +13,7 @@ import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
   title: "Acessar Área do Cliente — Espaço Zoe",
-  description: "Entre na sua conta para agendar e gerenciar suas consultas.",
+  description: "Entre na sua conta para agendar e gerenciar seus atendimentos.",
 };
 
 export default async function PatientLoginPage({
@@ -56,7 +56,7 @@ export default async function PatientLoginPage({
               />
               <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary font-heading">Área do Paciente</h1>
               <p className="text-xs sm:text-sm text-text-secondary">
-                Acesse sua conta para agendar ou acompanhar suas consultas.
+                Acesse sua conta para agendar ou acompanhar seus atendimentos.
               </p>
             </div>
           </PageEntranceItem>
