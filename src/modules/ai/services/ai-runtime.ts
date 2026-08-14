@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { decryptSecret } from "@/lib/crypto";
+import { notifyStaff } from "@/modules/notifications/services/notify";
 import type { AIProviderId } from "./provider-types";
 
 export interface ActiveAIConfig {
@@ -77,6 +78,39 @@ async function countAIRequests(admin: ReturnType<typeof createAdminClient>, sinc
 
 type UsageLimitCheck = { blocked: false } | { blocked: true; reason: string };
 
+/** Em modo "warn", garante no máximo uma notificação por período (mês/dia)
+ * para cada tipo de limite, checando se já existe uma notificação desse
+ * tipo (e, para o limite por usuário, desse usuário) criada dentro do
+ * período atual antes de gravar outra — evita spammar o admin a cada
+ * requisição de IA feita depois que o limite já foi cruzado. Assim como
+ * notify()/notifyStaff(), nunca deve lançar: em modo "warn" a IA precisa
+ * continuar liberada mesmo que essa checagem de duplicidade falhe. */
+async function warnLimitReachedOnce(
+  admin: ReturnType<typeof createAdminClient>,
+  params: { type: string; since: string; title: string; message: string; entityId?: string },
+) {
+  try {
+    let query = admin
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("type", params.type)
+      .gte("created_at", params.since);
+    if (params.entityId) query = query.eq("entity_id", params.entityId);
+    const { count } = await query;
+    if ((count ?? 0) > 0) return;
+
+    await notifyStaff({
+      type: params.type,
+      title: params.title,
+      message: params.message,
+      entity: "profiles",
+      entityId: params.entityId,
+    });
+  } catch (err) {
+    console.error("[checkAIUsageLimits] falha ao notificar limite atingido:", err);
+  }
+}
+
 /** Checa os três limites de uso de IA configurados (mensal por clínica, diário, mensal por usuário) contra o uso já registrado em audit_logs. */
 export async function checkAIUsageLimits(actorId: string): Promise<UsageLimitCheck> {
   const admin = createAdminClient();
@@ -86,7 +120,9 @@ export async function checkAIUsageLimits(actorId: string): Promise<UsageLimitChe
     .eq("id", 1)
     .maybeSingle();
 
-  if (!settings || settings.limit_action !== "block") return { blocked: false };
+  if (!settings || settings.limit_action === "allow") return { blocked: false };
+
+  const shouldBlock = settings.limit_action === "block";
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
@@ -95,21 +131,47 @@ export async function checkAIUsageLimits(actorId: string): Promise<UsageLimitChe
   if (settings.monthly_request_limit) {
     const count = await countAIRequests(admin, startOfMonth);
     if (count >= settings.monthly_request_limit) {
-      return { blocked: true, reason: "Limite mensal de uso de IA da clínica foi atingido. Contate o administrador." };
+      if (shouldBlock) {
+        return { blocked: true, reason: "Limite mensal de uso de IA da clínica foi atingido. Contate o administrador." };
+      }
+      await warnLimitReachedOnce(admin, {
+        type: "ai_usage_limit.monthly_clinic",
+        since: startOfMonth,
+        title: "Limite mensal de IA atingido",
+        message: `O limite mensal de uso de IA da clínica (${settings.monthly_request_limit} requisições) foi atingido. Como o modo está configurado como "Avisar apenas", a IA continua liberada para a equipe.`,
+      });
     }
   }
 
   if (settings.daily_request_limit) {
     const count = await countAIRequests(admin, startOfDay);
     if (count >= settings.daily_request_limit) {
-      return { blocked: true, reason: "Limite diário de uso de IA da clínica foi atingido. Tente novamente amanhã." };
+      if (shouldBlock) {
+        return { blocked: true, reason: "Limite diário de uso de IA da clínica foi atingido. Tente novamente amanhã." };
+      }
+      await warnLimitReachedOnce(admin, {
+        type: "ai_usage_limit.daily_clinic",
+        since: startOfDay,
+        title: "Limite diário de IA atingido",
+        message: `O limite diário de uso de IA da clínica (${settings.daily_request_limit} requisições) foi atingido hoje. Como o modo está configurado como "Avisar apenas", a IA continua liberada para a equipe.`,
+      });
     }
   }
 
   if (settings.monthly_request_limit_per_user) {
     const count = await countAIRequests(admin, startOfMonth, actorId);
     if (count >= settings.monthly_request_limit_per_user) {
-      return { blocked: true, reason: "Você atingiu seu limite mensal individual de uso de IA. Contate o administrador." };
+      if (shouldBlock) {
+        return { blocked: true, reason: "Você atingiu seu limite mensal individual de uso de IA. Contate o administrador." };
+      }
+      const { data: actorProfile } = await admin.from("profiles").select("full_name").eq("id", actorId).maybeSingle();
+      await warnLimitReachedOnce(admin, {
+        type: "ai_usage_limit.monthly_user",
+        since: startOfMonth,
+        entityId: actorId,
+        title: "Limite individual de IA atingido",
+        message: `${actorProfile?.full_name ?? "Um usuário"} atingiu o limite mensal individual de uso de IA (${settings.monthly_request_limit_per_user} requisições). Como o modo está configurado como "Avisar apenas", a IA continua liberada.`,
+      });
     }
   }
 
