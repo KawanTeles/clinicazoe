@@ -13,6 +13,7 @@ import { formatCurrency } from "@/lib/whatsapp";
 import { CTA_PRIMARY } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
 import { buildEntitySlug } from "@/lib/slug";
+import { safeJsonLd } from "@/lib/json-ld";
 
 async function findProfessional(slug: string) {
   const { professionals } = await getPublicWebsiteData();
@@ -98,11 +99,11 @@ export default async function ProfissionalDetailPage({ params }: { params: Promi
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(physicianJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(physicianJsonLd) }}
       />
 
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
