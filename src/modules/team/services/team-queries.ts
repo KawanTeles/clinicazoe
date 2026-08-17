@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarSignedUrl } from "@/lib/supabase/storage";
+import { requireAdmin } from "@/lib/auth";
 import type { Modality } from "@/lib/supabase/types";
 
 export async function getTeamMembers() {
@@ -24,6 +25,7 @@ export async function getTeamMembers() {
 }
 
 export async function getTeamMember(id: string) {
+  await requireAdmin();
   const supabase = await createClient();
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", id).single();
 

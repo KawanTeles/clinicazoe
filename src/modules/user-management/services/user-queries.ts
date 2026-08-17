@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarSignedUrl } from "@/lib/supabase/storage";
+import { requireAdmin } from "@/lib/auth";
 import type { Database, Role } from "@/lib/supabase/types";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -34,6 +35,7 @@ export async function listAllAuthEmails(): Promise<Map<string, string>> {
 }
 
 export async function getAllUsers(): Promise<UserListItem[]> {
+  await requireAdmin();
   const supabase = await createClient();
   const [{ data }, emailById] = await Promise.all([
     supabase.from("profiles").select("*").order("created_at", { ascending: false }),
@@ -59,6 +61,7 @@ export interface UserDetail {
 }
 
 export async function getUserDetail(id: string): Promise<UserDetail | null> {
+  await requireAdmin();
   const supabase = await createClient();
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", id).single();
   if (!profile) return null;

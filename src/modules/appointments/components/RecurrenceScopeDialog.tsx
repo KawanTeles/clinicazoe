@@ -6,20 +6,18 @@ import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { ConflictsReview } from "@/modules/appointments/components/ConflictsReview";
 import { RecurrenceFields, type RecurrenceValue } from "@/modules/appointments/components/RecurrenceFields";
-import {
-  getSeriesDetail,
-  getSeriesHistory,
-  type SeriesDetail,
-  type SeriesHistoryEntry,
-} from "@/modules/appointments/services/recurrence-queries";
 import type { RecurrenceFrequency } from "@/lib/supabase/types";
 import {
   cancelRecurringAppointment,
   deleteRecurringAppointment,
+  getSeriesDetail,
+  getSeriesHistory,
   previewRecurrenceUpdate,
   updateRecurringAppointment,
   type OccurrencePreview,
   type RecurrenceScope,
+  type SeriesDetail,
+  type SeriesHistoryEntry,
 } from "@/modules/appointments/services/recurrence-actions";
 
 interface RecurrenceScopeDialogProps {

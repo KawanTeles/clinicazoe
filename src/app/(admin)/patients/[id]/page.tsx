@@ -4,7 +4,7 @@ import { getInsurances } from "@/modules/insurances/services/insurance-queries";
 import { getActiveProfessionals } from "@/modules/professionals/services/professional-queries";
 import { getPatientDetail, getPatientMessages } from "@/modules/patients/services/patient-queries";
 import { getAppointmentsForPatient } from "@/modules/appointments/services/patient-queries";
-import { listSeriesForPatient } from "@/modules/appointments/services/recurrence-queries";
+import { listSeriesForPatient } from "@/modules/appointments/services/recurrence-actions";
 import { getEvolutionsForPatientPage } from "@/modules/evolutions/services/evolution-queries";
 import { PatientDetailTabs } from "@/modules/patients/components/PatientDetailTabs";
 import { todayLocalIso } from "@/lib/date";
