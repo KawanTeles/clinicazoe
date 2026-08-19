@@ -17,6 +17,9 @@ interface SpeechRecognitionResultLike {
 interface SpeechRecognitionEventLike {
   results: ArrayLike<SpeechRecognitionResultLike>;
 }
+interface SpeechRecognitionErrorEventLike {
+  error: string;
+}
 interface SpeechRecognitionLike {
   lang: string;
   continuous: boolean;
@@ -24,14 +27,25 @@ interface SpeechRecognitionLike {
   start: () => void;
   stop: () => void;
   onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onerror: (() => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
   onend: (() => void) | null;
 }
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 
+export const EVOLUTION_TARGET_FIELDS = [
+  { value: "clinical_evolution", label: "Evolução Clínica" },
+  { value: "objectives", label: "Objetivos Trabalhados" },
+  { value: "interventions", label: "Intervenções Realizadas" },
+  { value: "patient_response", label: "Resposta do Paciente" },
+  { value: "home_guidance", label: "Orientações para Casa" },
+  { value: "observations", label: "Observações" },
+] as const;
+
+export type EvolutionTargetField = (typeof EVOLUTION_TARGET_FIELDS)[number]["value"];
+
 interface AIWritingAssistantProps {
   appointmentId: string;
-  onTextReady: (text: string) => void;
+  onTextReady: (text: string, field: EvolutionTargetField) => void;
   /** Só true quando o admin habilitou a transcrição de áudio e configurou a chave dedicada da OpenAI. */
   transcriptionEnabled?: boolean;
 }
@@ -58,6 +72,7 @@ export function AIWritingAssistant({ appointmentId, onTextReady, transcriptionEn
   const [error, setError] = useState<string | null>(null);
   const [improvedText, setImprovedText] = useState<string | null>(null);
   const [transcribing, setTranscribing] = useState(false);
+  const [targetField, setTargetField] = useState<EvolutionTargetField>("clinical_evolution");
 
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -77,7 +92,20 @@ export function AIWritingAssistant({ appointmentId, onTextReady, transcriptionEn
       }
       setTranscript(text);
     };
-    recognition.onerror = () => setRecording(false);
+    recognition.onerror = (event) => {
+      console.error("[AIWritingAssistant] Erro no reconhecimento de voz:", event.error);
+      if (event.error === "no-speech") {
+        // Nenhuma fala detectada num intervalo — não é um erro real, o navegador
+        // já reemite onend em seguida para permitir reiniciar a gravação.
+        return;
+      }
+      setError(
+        event.error === "not-allowed" || event.error === "service-not-allowed"
+          ? "Permissão de microfone negada pelo navegador. Verifique as permissões do site."
+          : `Erro no reconhecimento de voz: ${event.error}`,
+      );
+      setRecording(false);
+    };
     recognition.onend = () => setRecording(false);
     recognitionRef.current = recognition;
   }, [Ctor]);
@@ -91,14 +119,27 @@ export function AIWritingAssistant({ appointmentId, onTextReady, transcriptionEn
   }, []);
 
   function toggleRecording() {
-    if (!recognitionRef.current) return;
+    if (!recognitionRef.current) {
+      setError("Reconhecimento de voz ainda não está pronto. Aguarde um instante e tente novamente.");
+      console.error("[AIWritingAssistant] toggleRecording chamado antes da instância de SpeechRecognition existir.");
+      return;
+    }
     if (recording) {
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch (err) {
+        console.error("[AIWritingAssistant] Erro ao parar gravação:", err);
+      }
       setRecording(false);
     } else {
       setError(null);
-      recognitionRef.current.start();
-      setRecording(true);
+      try {
+        recognitionRef.current.start();
+        setRecording(true);
+      } catch (err) {
+        console.error("[AIWritingAssistant] Erro ao iniciar gravação:", err);
+        setError("Não foi possível iniciar a gravação de voz. Recarregue a página e tente novamente.");
+      }
     }
   }
 
@@ -235,7 +276,12 @@ export function AIWritingAssistant({ appointmentId, onTextReady, transcriptionEn
 
       {transcript.trim() && (
         <div>
-          <Button type="button" size="sm" variant="outline" onClick={() => onTextReady(transcript.trim())}>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => onTextReady(transcript.trim(), "clinical_evolution")}
+          >
             Usar texto sem alterações
           </Button>
         </div>
@@ -249,7 +295,21 @@ export function AIWritingAssistant({ appointmentId, onTextReady, transcriptionEn
             Texto melhorado pela IA — revise antes de usar
           </p>
           <p className="whitespace-pre-wrap text-xs leading-relaxed text-text-primary">{improvedText}</p>
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <label className="flex items-center gap-1.5 text-[11px] font-medium text-text-secondary">
+              Destino:
+              <select
+                value={targetField}
+                onChange={(e) => setTargetField(e.target.value as EvolutionTargetField)}
+                className="h-8 rounded-lg border border-border bg-card-elevated px-2 text-xs font-medium text-text-primary transition-all duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 [&>option]:bg-card-elevated [&>option]:text-text-primary"
+              >
+                {EVOLUTION_TARGET_FIELDS.map((field) => (
+                  <option key={field.value} value={field.value}>
+                    {field.label}
+                  </option>
+                ))}
+              </select>
+            </label>
             <Button type="button" size="sm" variant="secondary" onClick={() => setImprovedText(null)}>
               Descartar
             </Button>
@@ -257,7 +317,7 @@ export function AIWritingAssistant({ appointmentId, onTextReady, transcriptionEn
               type="button"
               size="sm"
               onClick={() => {
-                onTextReady(improvedText);
+                onTextReady(improvedText, targetField);
                 setImprovedText(null);
               }}
             >

@@ -85,7 +85,7 @@ export function EvolutionForm({
       {aiEnabled && appointmentId && (
         <AIWritingAssistant
           appointmentId={appointmentId}
-          onTextReady={(text) => setValues((prev) => ({ ...prev, clinical_evolution: text }))}
+          onTextReady={(text, field) => setValues((prev) => ({ ...prev, [field]: text }))}
           transcriptionEnabled={transcriptionEnabled}
         />
       )}
