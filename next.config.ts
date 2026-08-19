@@ -78,6 +78,21 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // www.espacozoeoficial.com.br respondia 200 duplicado, sem redirecionar
+  // para o apex — mesmo conteúdo em dois hosts, o que o Search Console pode
+  // tratar como URL fora do domínio verificado ("URL não permitido") quando
+  // a propriedade cobre só um host. Canonical/sitemap já usam o apex sem
+  // www (src/lib/site-url.ts), então força esse mesmo host aqui.
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.espacozoeoficial.com.br" }],
+        destination: "https://espacozoeoficial.com.br/:path*",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
