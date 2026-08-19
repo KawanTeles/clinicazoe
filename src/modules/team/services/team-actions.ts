@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -8,17 +7,10 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import type { Modality, Role } from "@/lib/supabase/types";
 import { logAudit } from "./audit";
 import { deleteUser } from "@/modules/user-management/services/user-actions";
+import { revalidatePublicSite } from "@/lib/revalidate-public-site";
+import { syncProfessionalStatus } from "@/modules/professionals/services/professional-actions";
 
 const TEAM_ROLES: Role[] = ["admin", "recepcionista", "profissional"];
-
-// Criar/editar um membro da equipe (sobretudo profissionais) muda o que
-// aparece publicamente em / e /profissionais — sem isso o site fica com
-// cache antigo até a próxima revalidação natural ou redeploy.
-function revalidatePublicTeamPages() {
-  revalidatePath("/");
-  revalidatePath("/profissionais");
-  revalidatePath("/equipe");
-}
 
 async function requireAdmin() {
   const session = await getCurrentUser();
@@ -154,7 +146,7 @@ export async function createTeamMember(
     }
   }
 
-  revalidatePublicTeamPages();
+  revalidatePublicSite();
 
   await logAudit({
     actorId: session.user.id,
@@ -222,6 +214,10 @@ export async function updateTeamMember(
       bio: input.bio?.trim() || null,
       agenda_color: input.agenda_color || "#2F8F83",
       consultation_duration_minutes: input.consultation_duration_minutes || 30,
+      // professionals.status é o que controla se o profissional aparece no
+      // site público (getPublicWebsiteData não olha profiles.status) —
+      // sem isto aqui, desativar um profissional nesta tela não o esconde.
+      status: input.status,
     });
 
     await supabase.from("professional_insurances").delete().eq("professional_id", input.id);
@@ -236,6 +232,10 @@ export async function updateTeamMember(
         })),
       );
     }
+  } else {
+    // Deixou de ser profissional (ex: promovido a admin) — esconde do site
+    // público mesmo que a linha antiga em professionals ainda exista.
+    await syncProfessionalStatus(supabase, input.id, input.role, input.status);
   }
 
   const admin = createAdminClient();
@@ -247,7 +247,7 @@ export async function updateTeamMember(
     if (passwordError) return { error: "Dados salvos, mas houve falha ao alterar a senha." };
   }
 
-  revalidatePublicTeamPages();
+  revalidatePublicSite();
 
   await logAudit({
     actorId: session.user.id,
@@ -308,7 +308,7 @@ export async function uploadTeamMemberAvatar(
     return { error: "Foto enviada, mas houve falha ao salvar o perfil." };
   }
 
-  revalidatePublicTeamPages();
+  revalidatePublicSite();
 
   await logAudit({
     actorId: session.user.id,

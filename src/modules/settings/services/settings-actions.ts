@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/modules/team/services/audit";
 import { buildFullAddress } from "@/modules/settings/utils/address";
+import { revalidatePublicSite as revalidatePublicSiteShared } from "@/lib/revalidate-public-site";
 import type { BusinessHourEntry } from "@/lib/supabase/types";
 
 const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
@@ -19,20 +20,12 @@ const LOGO_EXTENSION_BY_MIME: Record<string, string> = {
   "image/svg+xml": "svg",
 };
 
-const PUBLIC_PATHS = [
-  "/",
-  "/contato",
-  "/clinica",
-  "/especialidades",
-  "/convenios",
-  "/profissionais",
-  "/estrutura",
-  "/equipe",
-  "/settings",
-];
-
+// Reaproveita o conjunto amplo de páginas públicas (src/lib/revalidate-public-site.ts)
+// e soma /settings, que é só a própria tela admin (não faz parte do "site
+// público", mas precisa refletir a mudança que acabou de ser salva).
 function revalidatePublicSite() {
-  for (const path of PUBLIC_PATHS) revalidatePath(path);
+  revalidatePublicSiteShared();
+  revalidatePath("/settings");
 }
 
 function nullIfEmpty(value: string | undefined | null): string | null {

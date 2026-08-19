@@ -3,6 +3,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/modules/team/services/audit";
+import { revalidatePublicInsurancePages } from "@/lib/revalidate-public-site";
 
 async function requireAdmin() {
   const session = await getCurrentUser();
@@ -29,6 +30,8 @@ export async function createInsurance(name: string): Promise<{ error: string | n
     const message = error.code === "23505" ? "Já existe um convênio com esse nome." : "Não foi possível criar o convênio.";
     return { error: message };
   }
+
+  revalidatePublicInsurancePages();
 
   await logAudit({
     actorId: session.user.id,
@@ -65,6 +68,8 @@ export async function updateInsurance(
     return { error: message };
   }
 
+  revalidatePublicInsurancePages();
+
   await logAudit({
     actorId: session.user.id,
     action: "insurance.updated",
@@ -87,6 +92,8 @@ export async function deleteInsurance(id: string): Promise<{ error: string | nul
   if (error) {
     return { error: "Não foi possível excluir este convênio." };
   }
+
+  revalidatePublicInsurancePages();
 
   await logAudit({
     actorId: session.user.id,

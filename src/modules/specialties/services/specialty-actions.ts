@@ -3,6 +3,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/modules/team/services/audit";
+import { revalidatePublicSite } from "@/lib/revalidate-public-site";
 
 async function requireAdmin() {
   const session = await getCurrentUser();
@@ -30,6 +31,8 @@ export async function createSpecialty(name: string): Promise<{ error: string | n
       error.code === "23505" ? "Já existe uma especialidade com esse nome." : "Não foi possível criar a especialidade.";
     return { error: message };
   }
+
+  revalidatePublicSite();
 
   await logAudit({
     actorId: session.user.id,
@@ -67,6 +70,8 @@ export async function updateSpecialty(
     return { error: message };
   }
 
+  revalidatePublicSite();
+
   await logAudit({
     actorId: session.user.id,
     action: "specialty.updated",
@@ -89,6 +94,8 @@ export async function deleteSpecialty(id: string): Promise<{ error: string | nul
   if (error) {
     return { error: "Não foi possível excluir esta especialidade." };
   }
+
+  revalidatePublicSite();
 
   await logAudit({
     actorId: session.user.id,

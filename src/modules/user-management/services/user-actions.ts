@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -8,18 +7,11 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/modules/team/services/audit";
 import { countActiveAdmins, countUserAppointments } from "./user-queries";
 import type { Role, Status } from "@/lib/supabase/types";
+import { revalidatePublicSite } from "@/lib/revalidate-public-site";
+import { syncProfessionalStatus } from "@/modules/professionals/services/professional-actions";
 
 const ALL_ROLES: Role[] = ["admin", "recepcionista", "profissional", "paciente"];
 const LAST_ADMIN_ERROR = "Não é possível remover o último administrador ativo do sistema.";
-
-// Mudar role/status/exclusão de um usuário pode afetar public.professionals
-// (ex: excluir/desativar um profissional some da agenda dele, mas a ficha
-// pública em /profissionais fica com cache antigo até isso revalidar).
-function revalidatePublicTeamPages() {
-  revalidatePath("/");
-  revalidatePath("/profissionais");
-  revalidatePath("/equipe");
-}
 
 async function requireAdmin() {
   const session = await getCurrentUser();
@@ -114,7 +106,14 @@ export async function updateUser(input: UpdateUserInput): Promise<{ error: strin
 
   if (updateError) return { error: "Não foi possível salvar as alterações." };
 
-  revalidatePublicTeamPages();
+  // professionals.status é o que controla se o profissional aparece no site
+  // público (getPublicWebsiteData não olha profiles.status/role) — sem isto,
+  // mudar o cargo/status por aqui (em vez da tela de Equipe) não reflete lá.
+  if (current.role === "profissional" || input.role === "profissional") {
+    await syncProfessionalStatus(supabase, input.id, input.role, input.status);
+  }
+
+  revalidatePublicSite();
 
   await logAudit({
     actorId: session.user.id,
@@ -203,6 +202,10 @@ export async function uploadUserAvatar(
     .eq("id", userId);
   if (updateError) return { error: "Foto enviada, mas houve falha ao salvar o perfil." };
 
+  // A foto pode ser de um profissional (avatar aparece publicamente em
+  // /profissionais) mesmo trocada por esta tela genérica de Usuários.
+  revalidatePublicSite();
+
   await logAudit({
     actorId: session.user.id,
     action: "user.photo_updated",
@@ -240,7 +243,11 @@ export async function setUserStatus(
   const { error } = await supabase.from("profiles").update({ status }).eq("id", id);
   if (error) return { error: "Não foi possível atualizar o status do usuário." };
 
-  revalidatePublicTeamPages();
+  if (current.role === "profissional") {
+    await syncProfessionalStatus(supabase, id, current.role, status);
+  }
+
+  revalidatePublicSite();
 
   await logAudit({
     actorId: session.user.id,
@@ -285,7 +292,7 @@ export async function deleteUser(id: string): Promise<{ error: string | null }> 
   const { error } = await admin.auth.admin.deleteUser(id);
   if (error) return { error: "Não foi possível excluir este usuário." };
 
-  revalidatePublicTeamPages();
+  revalidatePublicSite();
 
   await logAudit({
     actorId: session.user.id,
