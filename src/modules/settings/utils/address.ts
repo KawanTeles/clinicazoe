@@ -42,3 +42,21 @@ export function buildFullAddress(parts: AddressParts): string | null {
   if (segments.length === 0) return null;
   return segments.join(" - ");
 }
+
+/**
+ * Versão resumida do endereço, para espaços compactos (rodapé de PDF, por
+ * exemplo): "Rua, Número - Cidade - UF", sem bairro/complemento/CEP/país.
+ */
+export function buildShortAddress(parts: AddressParts): string | null {
+  const street = parts.address_street?.trim();
+  const number = parts.address_number?.trim();
+  const city = parts.address_city?.trim();
+  const state = parts.address_state?.trim();
+
+  const streetLine = [street, number].filter(Boolean).join(", ");
+  const cityState = [city, state].filter(Boolean).join(" - ");
+
+  const segments = [streetLine, cityState].filter(Boolean);
+  if (segments.length === 0) return null;
+  return segments.join(" - ");
+}

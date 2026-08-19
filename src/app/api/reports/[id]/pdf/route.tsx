@@ -5,6 +5,7 @@ import { can } from "@/lib/permissions";
 import { getAIFeatureFlags } from "@/modules/ai/services/ai-settings-queries";
 import { getAIReport } from "@/modules/ai/services/reports-queries";
 import { getClinicSettings, getClinicLogoUrl } from "@/modules/settings/services/settings-queries";
+import { buildFullAddress, buildShortAddress } from "@/modules/settings/utils/address";
 import { ReportPdfDocument } from "@/modules/ai/components/ReportPdfDocument";
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
@@ -28,13 +29,27 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   const logoUrl = await getClinicLogoUrl(clinic?.logo_path ?? null);
 
+  const clinicName = clinic?.name ?? "Espaço Zoe";
+  const legalName = clinic?.legal_name?.trim() || null;
+  const clinicLegalName = legalName && legalName !== clinicName ? legalName : null;
+
+  const phone = clinic?.phone_primary?.trim() || null;
+  const fullAddress = clinic ? buildFullAddress(clinic) : null;
+  const shortAddress = clinic ? buildShortAddress(clinic) : null;
+
+  const headerContactLine = [fullAddress, phone ? `Tel: ${phone}` : null].filter(Boolean).join("  •  ") || null;
+  const footerContactLine =
+    [clinicName, phone ? `Tel: ${phone}` : null, shortAddress].filter(Boolean).join("  •  ") || null;
+
   const buffer = await renderToBuffer(
     <ReportPdfDocument
-      clinicName={clinic?.name ?? "Espaço Zoe"}
+      clinicName={clinicName}
+      clinicLegalName={clinicLegalName}
       clinicLogoUrl={logoUrl}
+      headerContactLine={headerContactLine}
+      footerContactLine={footerContactLine}
       title={report.title}
       patientName={report.patientName}
-      professionalName={report.professionalName}
       content={report.content}
       generatedAt={dateFormatter.format(new Date(report.createdAt))}
     />,
