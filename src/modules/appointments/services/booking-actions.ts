@@ -17,6 +17,7 @@ import { notify, notifyStaff } from "@/modules/notifications/services/notify";
 import { logPatientMessage } from "@/modules/patients/services/message-log";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { notifyWaitlistMatches } from "@/modules/waitlist/services/waitlist-actions";
+import { cancelFinancialEntryForAppointment } from "@/modules/financial/services/financial-actions";
 import { getAvailableTimes, getCoTherapistsForAppointment, resolveAppointmentValue } from "./booking-queries";
 import type { Modality, ParticularProduct, PaymentMethod } from "@/lib/supabase/types";
 
@@ -217,6 +218,10 @@ export async function cancelAppointment(
     .eq("id", appointmentId);
 
   if (error) return { error: "Não foi possível cancelar o atendimento." };
+
+  if (!rescheduled) {
+    await cancelFinancialEntryForAppointment(appointmentId);
+  }
 
   await logAudit({
     actorId: session.user.id,
@@ -466,6 +471,10 @@ export async function updateAppointmentStatus(
     .eq("id", appointmentId);
 
   if (error) return { error: "Não foi possível atualizar o atendimento." };
+
+  if (status === "cancelada") {
+    await cancelFinancialEntryForAppointment(appointmentId);
+  }
 
   await logAudit({
     actorId: session.user.id,

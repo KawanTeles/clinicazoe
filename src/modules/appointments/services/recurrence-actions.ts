@@ -8,6 +8,10 @@ import { buildRescheduleMessage, buildStaffBookingConfirmationMessage, buildWhat
 import { logAudit } from "@/modules/team/services/audit";
 import { notify, notifyStaff } from "@/modules/notifications/services/notify";
 import { logPatientMessage } from "@/modules/patients/services/message-log";
+import {
+  cancelFinancialEntryForAppointment,
+  cancelFinancialEntriesForAppointments,
+} from "@/modules/financial/services/financial-actions";
 import type { Database, Modality, ParticularProduct, PaymentMethod, RecurrenceFrequency } from "@/lib/supabase/types";
 import { toLocalIsoDate, todayLocalIso } from "@/lib/date";
 import { getAvailableTimes, resolveAppointmentValue } from "./booking-queries";
@@ -691,6 +695,7 @@ async function cancelRecurringAppointmentCore(
   if (scope === "only" || !appointment.series_id) {
     const { error } = await supabase.from("appointments").update({ status: "cancelada" }).eq("id", appointmentId);
     if (error) return { error: "Não foi possível cancelar." };
+    await cancelFinancialEntryForAppointment(appointmentId);
     await logAudit({
       actorId: session.user.id,
       action: "appointment.cancelled",
@@ -713,6 +718,7 @@ async function cancelRecurringAppointmentCore(
   const ids = (toCancel ?? []).map((a) => a.id);
   if (ids.length > 0) {
     await supabase.from("appointments").update({ status: "cancelada" }).in("id", ids);
+    await cancelFinancialEntriesForAppointments(ids);
   }
 
   await supabase

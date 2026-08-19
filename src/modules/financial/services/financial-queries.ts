@@ -27,6 +27,7 @@ export async function getFinancialEntries(
   let query = supabase
     .from("financial_entries")
     .select("*", { count: "exact" })
+    .neq("status", "cancelado")
     .order("due_date", { ascending: false });
 
   if (role === "profissional") {
@@ -76,7 +77,7 @@ export async function getFinancialEntries(
 export async function getFinancialSummary(role: Role, userId: string) {
   const supabase = await createClient();
 
-  let query = supabase.from("financial_entries").select("value, status");
+  let query = supabase.from("financial_entries").select("value, status").neq("status", "cancelado");
   if (role === "profissional") {
     query = query.eq("professional_id", userId);
   }

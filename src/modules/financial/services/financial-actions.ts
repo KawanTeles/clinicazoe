@@ -2,6 +2,7 @@
 
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/modules/team/services/audit";
 import { notifyStaff } from "@/modules/notifications/services/notify";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -62,4 +63,37 @@ export async function markAsPaid(entryId: string): Promise<{ error: string | nul
   }
 
   return { error: null };
+}
+
+/** Cancelar um atendimento não desfazia o lançamento financeiro gerado na
+ * confirmação (financial_entries) — o registro ficava órfão em 'em_aberto'
+ * pra sempre, continuando a pedir "Marcar como pago" por um atendimento que
+ * não vai mais acontecer (booking-actions.ts e recurrence-actions.ts, que
+ * chamam esta função, cobrem os 3 fluxos de cancelamento: avulso, avulso
+ * dentro de série recorrente, e série inteira). Só cancela quem ainda está
+ * em_aberto: se já foi pago antes do cancelamento, o dinheiro foi mesmo
+ * recebido — mexer nisso automaticamente apagaria um registro de receita
+ * real; um eventual reembolso é decisão manual, fora deste fluxo. Usa o
+ * client admin (mesmo padrão do insert em confirmAppointment) porque quem
+ * cancela pode ser o próprio paciente, que não tem permissão de RLS para
+ * editar financial_entries. */
+export async function cancelFinancialEntryForAppointment(appointmentId: string) {
+  const admin = createAdminClient();
+  await admin
+    .from("financial_entries")
+    .update({ status: "cancelado" })
+    .eq("appointment_id", appointmentId)
+    .eq("status", "em_aberto");
+}
+
+/** Mesma coisa, em lote — usado no cancelamento de uma série recorrente
+ * inteira (vários appointment_id de uma vez). */
+export async function cancelFinancialEntriesForAppointments(appointmentIds: string[]) {
+  if (appointmentIds.length === 0) return;
+  const admin = createAdminClient();
+  await admin
+    .from("financial_entries")
+    .update({ status: "cancelado" })
+    .in("appointment_id", appointmentIds)
+    .eq("status", "em_aberto");
 }
