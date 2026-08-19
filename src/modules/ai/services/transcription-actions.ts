@@ -14,6 +14,21 @@ const BUCKET = "session-audio";
 const MAX_BYTES = 25 * 1024 * 1024; // teto rígido da própria API do Whisper — não configurável
 const ALLOWED_EXTENSIONS = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
 
+// O `File.type` do navegador não é confiável (em vários dispositivos, sobretudo
+// mobile, vem vazio para .m4a/.wav) — nesse caso o upload caía no fallback
+// "application/octet-stream", que o bucket `session-audio` rejeita (não está
+// em allowed_mime_types) com um 415 silencioso. Mapear pela extensão, que já
+// foi validada acima, garante uma MIME sempre aceita pelo bucket.
+const EXTENSION_CONTENT_TYPES: Record<string, string> = {
+  mp3: "audio/mpeg",
+  mpeg: "audio/mpeg",
+  mpga: "audio/mpeg",
+  mp4: "audio/mp4",
+  m4a: "audio/m4a",
+  wav: "audio/wav",
+  webm: "audio/webm",
+};
+
 async function requireProfessionalWithAIAccess() {
   const session = await getCurrentUser();
   if (!session || session.profile.role !== "profissional") {
@@ -108,8 +123,11 @@ export async function transcribeSessionAudio(formData: FormData): Promise<{ erro
 
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)
-    .upload(path, file, { upsert: false, contentType: file.type || "application/octet-stream" });
-  if (uploadError) return { error: "Falha ao enviar o áudio. Tente novamente." };
+    .upload(path, file, { upsert: false, contentType: EXTENSION_CONTENT_TYPES[extension] ?? file.type });
+  if (uploadError) {
+    console.error("[ai] Falha ao subir áudio para o bucket session-audio:", uploadError);
+    return { error: "Falha ao enviar o áudio. Tente novamente." };
+  }
 
   let transcribedText: string;
   try {
