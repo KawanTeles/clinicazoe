@@ -4,11 +4,13 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { formatCurrency } from "@/lib/whatsapp";
 import type { FinancialTransactionView } from "@/modules/financial/services/financial-transaction-queries";
 import {
   loadMoreFinancialTransactions,
   markTransactionAsPaid,
+  cancelFinancialTransaction,
 } from "@/modules/financial/services/financial-transaction-actions";
 import {
   FinancialTransactionForm,
@@ -33,6 +35,7 @@ export function FinancialTransactionsSection({
   professionals: { id: string; full_name: string }[];
 }) {
   const toast = useToast();
+  const confirm = useConfirm();
   const [items, setItems] = useState(initialItems);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
@@ -76,6 +79,27 @@ export function FinancialTransactionsSection({
       return;
     }
     toast.success("Lançamento marcado como pago.");
+    await refresh();
+  }
+
+  async function handleCancel(item: FinancialTransactionView) {
+    const confirmed = await confirm({
+      title: `Excluir "${item.description}"?`,
+      description:
+        "Para preservar a auditoria financeira, o lançamento será cancelado/ocultado em vez de apagado permanentemente.",
+      confirmLabel: "Excluir",
+      tone: "danger",
+    });
+    if (!confirmed) return;
+
+    setBusyId(item.id);
+    const result = await cancelFinancialTransaction(item.id);
+    setBusyId(null);
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Lançamento excluído com sucesso.");
     await refresh();
   }
 
@@ -193,6 +217,15 @@ export function FinancialTransactionsSection({
                           Marcar como pago
                         </Button>
                       )}
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        isLoading={busyId === item.id}
+                        className="h-7 text-[11px] px-2.5"
+                        onClick={() => handleCancel(item)}
+                      >
+                        Excluir
+                      </Button>
                     </div>
                   </td>
                 </tr>

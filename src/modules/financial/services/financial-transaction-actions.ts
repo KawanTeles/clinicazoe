@@ -171,6 +171,40 @@ export async function markTransactionAsPaid(id: string): Promise<{ error: string
   return { error: null };
 }
 
+/** Cancela um lançamento manual — não apaga de verdade (auditoria financeira
+ * exige manter o registro), só marca status='cancelado' para sumir da
+ * listagem principal e do saldo/totais (mesmo princípio de "inativar" já
+ * usado em pacientes). Mesmo padrão de markTransactionAsPaid: `.select().
+ * maybeSingle()` para detectar se a RLS de fato afetou alguma linha. */
+export async function cancelFinancialTransaction(id: string): Promise<{ error: string | null }> {
+  const session = await requireFinancialStaff();
+
+  const rateLimit = checkRateLimit(`cancel-financial-transaction:${session.user.id}`, 30, 60_000);
+  if (!rateLimit.allowed) {
+    return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente de novo.` };
+  }
+
+  const supabase = await createClient();
+  const { data: updated, error } = await supabase
+    .from("financial_transactions")
+    .update({ status: "cancelado" })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) return { error: "Não foi possível excluir o lançamento." };
+  if (!updated) return { error: "Lançamento não encontrado ou você não tem permissão para alterá-lo." };
+
+  await logAudit({
+    actorId: session.user.id,
+    action: "financial_transaction.cancelled",
+    entity: "financial_transactions",
+    entityId: id,
+  });
+
+  return { error: null };
+}
+
 /** Carrega a próxima página de lançamentos manuais, chamada pelo botão
  * "Carregar mais" no client (FinancialTransactionsSection) — paginação
  * client-side em vez de ?page= na URL, para não colidir com a paginação de
@@ -178,11 +212,12 @@ export async function markTransactionAsPaid(id: string): Promise<{ error: string
 export async function loadMoreFinancialTransactions(
   direction: "entrada" | "saida" | undefined,
   page: number,
+  showCancelled = false,
 ): Promise<{ items: FinancialTransactionView[]; totalPages: number }> {
   const session = await getCurrentUser();
   if (!session || !["admin", "recepcionista"].includes(session.profile.role)) {
     return { items: [], totalPages: 1 };
   }
 
-  return getFinancialTransactions({ direction, page });
+  return getFinancialTransactions({ direction, page, showCancelled });
 }

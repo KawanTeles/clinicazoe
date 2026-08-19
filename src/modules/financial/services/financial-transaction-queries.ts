@@ -64,6 +64,10 @@ async function denormalize(
 export interface FinancialTransactionFilters {
   direction?: "entrada" | "saida";
   page?: number;
+  /** Por padrão (false/undefined), a listagem principal esconde lançamentos
+   * cancelados — mesmo padrão do filtro Ativo/Inativo de Pacientes: são duas
+   * visões que não se misturam, então true mostra só os cancelados. */
+  showCancelled?: boolean;
 }
 
 export async function getFinancialTransactions(
@@ -77,6 +81,11 @@ export async function getFinancialTransactions(
     .select("*", { count: "exact" })
     .order("due_date", { ascending: false });
 
+  if (filters.showCancelled) {
+    query = query.eq("status", "cancelado");
+  } else {
+    query = query.neq("status", "cancelado");
+  }
   if (filters.direction) query = query.eq("direction", filters.direction);
 
   const from = (page - 1) * PAGE_SIZE;
@@ -104,10 +113,14 @@ export async function getActiveProfessionalsForSelect() {
 
 /** Resumo simples por direção/status — RLS já restringe a admin/recepcionista,
  * então não há filtro adicional por usuário aqui (diferente de
- * getFinancialSummary de financial_entries, que filtra por profissional). */
+ * getFinancialSummary de financial_entries, que filtra por profissional).
+ * Lançamentos cancelados nunca entram nesses totais. */
 export async function getFinancialTransactionsSummary() {
   const supabase = await createClient();
-  const { data } = await supabase.from("financial_transactions").select("direction, value, status");
+  const { data } = await supabase
+    .from("financial_transactions")
+    .select("direction, value, status")
+    .neq("status", "cancelado");
   const rows = data ?? [];
 
   const entradas = rows.filter((r) => r.direction === "entrada").reduce((sum, r) => sum + r.value, 0);

@@ -10,7 +10,7 @@ export type AppointmentStatus =
   | "faltou"
   | "recusada";
 export type AppointmentSource = "paciente" | "site_publico" | "staff";
-export type FinancialStatus = "em_aberto" | "pago";
+export type FinancialStatus = "em_aberto" | "pago" | "cancelado";
 export type RecurrenceFrequency = "weekly" | "biweekly" | "monthly";
 export type SeriesStatus = "active" | "cancelled";
 export type Modality = "aba" | "comum";
