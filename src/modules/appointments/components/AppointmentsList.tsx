@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { Fragment, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
@@ -79,6 +79,7 @@ export function AppointmentsList({
   const [attachDialog, setAttachDialog] = useState<AttachDialogState | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [expandedSeries, setExpandedSeries] = useState<Set<string>>(new Set());
 
   const isStaff = viewerRole === "admin" || viewerRole === "recepcionista";
   const isAdmin = viewerRole === "admin";
@@ -98,6 +99,62 @@ export function AppointmentsList({
       return matchesSearch && matchesStatus;
     });
   }, [appointments, search, statusFilter]);
+
+  const appointmentGroups = useMemo(() => {
+    const map = new Map<string, AppointmentView[]>();
+    const order: string[] = [];
+
+    for (const appt of filteredAppointments) {
+      const key = appt.seriesId ?? `single-${appt.id}`;
+      if (!map.has(key)) {
+        map.set(key, []);
+        order.push(key);
+      }
+      map.get(key)!.push(appt);
+    }
+
+    const todayTime = new Date(`${new Date().toISOString().slice(0, 10)}T00:00:00`).getTime();
+    const sortByDateTime = (a: AppointmentView, b: AppointmentView) =>
+      `${a.date}T${a.startTime}`.localeCompare(`${b.date}T${b.startTime}`);
+
+    return order.map((key) => {
+      const items = map.get(key)!;
+      const seriesId = items[0].seriesId ?? null;
+
+      if (!seriesId || items.length === 1) {
+        return { key, seriesId, primary: items[0], others: [] as AppointmentView[] };
+      }
+
+      const sorted = [...items].sort(sortByDateTime);
+      const candidates = sorted.filter((item) => item.status === "pendente" || item.status === "confirmada");
+      const pool = candidates.length > 0 ? candidates : sorted;
+
+      let primary = pool[0];
+      let bestDiff = Math.abs(new Date(`${primary.date}T00:00:00`).getTime() - todayTime);
+      for (const item of pool) {
+        const diff = Math.abs(new Date(`${item.date}T00:00:00`).getTime() - todayTime);
+        if (diff < bestDiff) {
+          primary = item;
+          bestDiff = diff;
+        }
+      }
+
+      const others = sorted.filter((item) => item.id !== primary.id);
+      return { key, seriesId, primary, others };
+    });
+  }, [filteredAppointments]);
+
+  function toggleSeriesExpanded(seriesId: string) {
+    setExpandedSeries((prev) => {
+      const next = new Set(prev);
+      if (next.has(seriesId)) {
+        next.delete(seriesId);
+      } else {
+        next.add(seriesId);
+      }
+      return next;
+    });
+  }
 
   async function handleCancel(id: string) {
     const confirmed = await confirm({
@@ -199,6 +256,212 @@ export function AppointmentsList({
     router.refresh();
   }
 
+  function renderAppointmentRow(
+    appt: AppointmentView,
+    opts: {
+      otherCount?: number;
+      isExpanded?: boolean;
+      onToggleExpand?: () => void;
+      isSub?: boolean;
+    } = {},
+  ) {
+    const { otherCount = 0, isExpanded = false, onToggleExpand, isSub = false } = opts;
+    const isOwnProfessional = isProfessional && appt.professionalId === viewerId;
+    const canManageRecurrence = isStaff || isOwnProfessional;
+    const attendance = getAttendanceInfo(appt.insuranceName, appt.paymentMethod, appt.modality, appt.particularProduct);
+
+    return (
+      <tr
+        key={appt.id}
+        className={`transition-colors hover:bg-card-elevated/40 ${
+          isSub ? "bg-card-elevated/20" : ""
+        }`}
+      >
+        {isStaff && (
+          <td className={`px-5 py-4 font-bold text-text-primary ${isSub ? "border-l-2 border-[var(--primary)]/30 pl-4" : ""}`}>
+            {isSub && <span className="mr-1.5 text-text-muted">↳</span>}
+            {appt.patientName}
+          </td>
+        )}
+        <td className="px-5 py-4 font-semibold text-text-primary">{appt.professionalName}</td>
+        <td className="px-5 py-4 text-text-secondary">
+          <span className="font-semibold text-text-primary">{attendance.attendanceType}</span>
+          {attendance.isConvenio ? (
+            <>
+              <span className="block text-xs text-text-muted">{attendance.insuranceName}</span>
+              {attendance.modalityLabel && (
+                <span className="block text-[10px] text-text-muted">Modalidade: {attendance.modalityLabel}</span>
+              )}
+            </>
+          ) : (
+            <>
+              <span className="block text-xs text-text-muted">{attendance.paymentMethodLabel}</span>
+              {attendance.particularProductLabel && (
+                <span className="block text-[10px] text-text-muted">{attendance.particularProductLabel}</span>
+              )}
+            </>
+          )}
+        </td>
+        <td className="px-5 py-4 text-text-secondary">
+          {dateFormatter.format(new Date(`${appt.date}T00:00:00`))}{" "}
+          <span className="font-semibold text-text-primary">{appt.startTime.slice(0, 5)}</span>
+          {appt.seriesId && (
+            <Badge tone="premium" className="ml-2 text-[10px]">
+              Recorrente
+            </Badge>
+          )}
+          {onToggleExpand && otherCount > 0 && (
+            <button
+              type="button"
+              onClick={onToggleExpand}
+              className="ml-2 inline-flex items-center gap-1 rounded-lg px-1.5 py-0.5 text-[10px] font-semibold text-[var(--primary)] hover:bg-[var(--primary)]/10"
+            >
+              {isExpanded ? "▲" : "▼"} +{otherCount} outra{otherCount > 1 ? "s" : ""} data{otherCount > 1 ? "s" : ""}
+            </button>
+          )}
+        </td>
+        <td className="px-5 py-4 font-medium text-text-secondary">{formatCurrency(appt.value)}</td>
+        <td className="px-5 py-4">
+          <Badge tone={STATUS_TONE[appt.status] ?? "neutral"}>{STATUS_LABELS[appt.status] ?? appt.status}</Badge>
+        </td>
+        {isStaff && (
+          <td className="px-5 py-4">
+            {appt.reminderSentAt ? (
+              <Badge tone="success" className="text-[10px]">Enviado</Badge>
+            ) : (
+              <Badge tone="neutral" className="text-[10px]">—</Badge>
+            )}
+          </td>
+        )}
+        <td className="px-5 py-4">
+          <div className="flex flex-wrap justify-end gap-1.5">
+            {(isStaff || isProfessional) && (
+              <Link href={`/appointments/${appt.id}`}>
+                <Button size="sm" variant="outline">
+                  Detalhes
+                </Button>
+              </Link>
+            )}
+            {isStaff && appt.status === "pendente" && (
+              <>
+                <Button size="sm" isLoading={busyId === appt.id} onClick={() => handleConfirm(appt.id)}>
+                  Confirmar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  isLoading={busyId === appt.id}
+                  onClick={() => handleStaffCancel(appt.id)}
+                >
+                  Cancelar
+                </Button>
+              </>
+            )}
+            {isStaff && appt.status === "confirmada" && (
+              <>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  isLoading={busyId === appt.id}
+                  onClick={() => handleSendReminder(appt.id)}
+                >
+                  Lembrete
+                </Button>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  isLoading={busyId === appt.id}
+                  onClick={() => handleStaffCancel(appt.id)}
+                >
+                  Cancelar
+                </Button>
+              </>
+            )}
+            {canManageRecurrence &&
+              appt.seriesId &&
+              (appt.status === "pendente" || appt.status === "confirmada") && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() =>
+                    setScopeDialog({
+                      mode: "edit",
+                      appointmentId: appt.id,
+                      seriesId: appt.seriesId!,
+                      date: appt.date,
+                      startTime: appt.startTime,
+                      professionalId: appt.professionalId,
+                      insuranceId: appt.insuranceId,
+                    })
+                  }
+                >
+                  Recorrência
+                </Button>
+              )}
+            {isStaff &&
+              !appt.seriesId &&
+              (appt.status === "pendente" || appt.status === "confirmada") && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() =>
+                    setAttachDialog({
+                      appointmentId: appt.id,
+                      date: appt.date,
+                      professionalId: appt.professionalId,
+                      insuranceId: appt.insuranceId,
+                      modality: appt.modality,
+                    })
+                  }
+                >
+                  Recorrência
+                </Button>
+              )}
+            {isAdmin && appt.seriesId && (appt.status === "pendente" || appt.status === "confirmada") && (
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={() =>
+                  setScopeDialog({
+                    mode: "delete",
+                    appointmentId: appt.id,
+                    seriesId: appt.seriesId!,
+                    date: appt.date,
+                    startTime: appt.startTime,
+                    professionalId: appt.professionalId,
+                    insuranceId: appt.insuranceId,
+                  })
+                }
+              >
+                Excluir
+              </Button>
+            )}
+            {isPatient && (appt.status === "pendente" || appt.status === "confirmada") && (
+              <>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  isLoading={busyId === appt.id}
+                  onClick={() => handleReschedule(appt.id)}
+                >
+                  Remarcar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  isLoading={busyId === appt.id}
+                  onClick={() => handleCancel(appt.id)}
+                >
+                  Cancelar
+                </Button>
+              </>
+            )}
+          </div>
+        </td>
+      </tr>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {/* Control Bar: Search & Status Filters */}
@@ -256,181 +519,19 @@ export function AppointmentsList({
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40">
-              {filteredAppointments.map((appt) => {
-                const isOwnProfessional = isProfessional && appt.professionalId === viewerId;
-                const canManageRecurrence = isStaff || isOwnProfessional;
-                const attendance = getAttendanceInfo(appt.insuranceName, appt.paymentMethod, appt.modality, appt.particularProduct);
+              {appointmentGroups.map((group) => {
+                const isExpanded = group.seriesId ? expandedSeries.has(group.seriesId) : false;
 
                 return (
-                  <tr key={appt.id} className="transition-colors hover:bg-card-elevated/40">
-                    {isStaff && <td className="px-5 py-4 font-bold text-text-primary">{appt.patientName}</td>}
-                    <td className="px-5 py-4 font-semibold text-text-primary">{appt.professionalName}</td>
-                    <td className="px-5 py-4 text-text-secondary">
-                      <span className="font-semibold text-text-primary">{attendance.attendanceType}</span>
-                      {attendance.isConvenio ? (
-                        <>
-                          <span className="block text-xs text-text-muted">{attendance.insuranceName}</span>
-                          {attendance.modalityLabel && (
-                            <span className="block text-[10px] text-text-muted">Modalidade: {attendance.modalityLabel}</span>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <span className="block text-xs text-text-muted">{attendance.paymentMethodLabel}</span>
-                          {attendance.particularProductLabel && (
-                            <span className="block text-[10px] text-text-muted">{attendance.particularProductLabel}</span>
-                          )}
-                        </>
-                      )}
-                    </td>
-                    <td className="px-5 py-4 text-text-secondary">
-                      {dateFormatter.format(new Date(`${appt.date}T00:00:00`))}{" "}
-                      <span className="font-semibold text-text-primary">{appt.startTime.slice(0, 5)}</span>
-                      {appt.seriesId && (
-                        <Badge tone="premium" className="ml-2 text-[10px]">
-                          Recorrente
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="px-5 py-4 font-medium text-text-secondary">{formatCurrency(appt.value)}</td>
-                    <td className="px-5 py-4">
-                      <Badge tone={STATUS_TONE[appt.status] ?? "neutral"}>{STATUS_LABELS[appt.status] ?? appt.status}</Badge>
-                    </td>
-                    {isStaff && (
-                      <td className="px-5 py-4">
-                        {appt.reminderSentAt ? (
-                          <Badge tone="success" className="text-[10px]">Enviado</Badge>
-                        ) : (
-                          <Badge tone="neutral" className="text-[10px]">—</Badge>
-                        )}
-                      </td>
-                    )}
-                    <td className="px-5 py-4">
-                      <div className="flex flex-wrap justify-end gap-1.5">
-                        {(isStaff || isProfessional) && (
-                          <Link href={`/appointments/${appt.id}`}>
-                            <Button size="sm" variant="outline">
-                              Detalhes
-                            </Button>
-                          </Link>
-                        )}
-                        {isStaff && appt.status === "pendente" && (
-                          <>
-                            <Button size="sm" isLoading={busyId === appt.id} onClick={() => handleConfirm(appt.id)}>
-                              Confirmar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="danger"
-                              isLoading={busyId === appt.id}
-                              onClick={() => handleStaffCancel(appt.id)}
-                            >
-                              Cancelar
-                            </Button>
-                          </>
-                        )}
-                        {isStaff && appt.status === "confirmada" && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              isLoading={busyId === appt.id}
-                              onClick={() => handleSendReminder(appt.id)}
-                            >
-                              Lembrete
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="danger"
-                              isLoading={busyId === appt.id}
-                              onClick={() => handleStaffCancel(appt.id)}
-                            >
-                              Cancelar
-                            </Button>
-                          </>
-                        )}
-                        {canManageRecurrence &&
-                          appt.seriesId &&
-                          (appt.status === "pendente" || appt.status === "confirmada") && (
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={() =>
-                                setScopeDialog({
-                                  mode: "edit",
-                                  appointmentId: appt.id,
-                                  seriesId: appt.seriesId!,
-                                  date: appt.date,
-                                  startTime: appt.startTime,
-                                  professionalId: appt.professionalId,
-                                  insuranceId: appt.insuranceId,
-                                })
-                              }
-                            >
-                              Recorrência
-                            </Button>
-                          )}
-                        {isStaff &&
-                          !appt.seriesId &&
-                          (appt.status === "pendente" || appt.status === "confirmada") && (
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={() =>
-                                setAttachDialog({
-                                  appointmentId: appt.id,
-                                  date: appt.date,
-                                  professionalId: appt.professionalId,
-                                  insuranceId: appt.insuranceId,
-                                  modality: appt.modality,
-                                })
-                              }
-                            >
-                              Recorrência
-                            </Button>
-                          )}
-                        {isAdmin && appt.seriesId && (appt.status === "pendente" || appt.status === "confirmada") && (
-                          <Button
-                            size="sm"
-                            variant="danger"
-                            onClick={() =>
-                              setScopeDialog({
-                                mode: "delete",
-                                appointmentId: appt.id,
-                                seriesId: appt.seriesId!,
-                                date: appt.date,
-                                startTime: appt.startTime,
-                                professionalId: appt.professionalId,
-                                insuranceId: appt.insuranceId,
-                              })
-                            }
-                          >
-                            Excluir
-                          </Button>
-                        )}
-                        {isPatient && (appt.status === "pendente" || appt.status === "confirmada") && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              isLoading={busyId === appt.id}
-                              onClick={() => handleReschedule(appt.id)}
-                            >
-                              Remarcar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="danger"
-                              isLoading={busyId === appt.id}
-                              onClick={() => handleCancel(appt.id)}
-                            >
-                              Cancelar
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+                  <Fragment key={group.key}>
+                    {renderAppointmentRow(group.primary, {
+                      otherCount: group.others.length,
+                      isExpanded,
+                      onToggleExpand: group.seriesId ? () => toggleSeriesExpanded(group.seriesId!) : undefined,
+                    })}
+                    {isExpanded &&
+                      group.others.map((appt) => renderAppointmentRow(appt, { isSub: true }))}
+                  </Fragment>
                 );
               })}
             </tbody>
