@@ -113,7 +113,7 @@ export function AppointmentsList({
       map.get(key)!.push(appt);
     }
 
-    const todayTime = new Date(`${new Date().toISOString().slice(0, 10)}T00:00:00`).getTime();
+    const todayStr = new Date().toISOString().slice(0, 10);
     const sortByDateTime = (a: AppointmentView, b: AppointmentView) =>
       `${a.date}T${a.startTime}`.localeCompare(`${b.date}T${b.startTime}`);
 
@@ -129,15 +129,8 @@ export function AppointmentsList({
       const candidates = sorted.filter((item) => item.status === "pendente" || item.status === "confirmada");
       const pool = candidates.length > 0 ? candidates : sorted;
 
-      let primary = pool[0];
-      let bestDiff = Math.abs(new Date(`${primary.date}T00:00:00`).getTime() - todayTime);
-      for (const item of pool) {
-        const diff = Math.abs(new Date(`${item.date}T00:00:00`).getTime() - todayTime);
-        if (diff < bestDiff) {
-          primary = item;
-          bestDiff = diff;
-        }
-      }
+      // Prioriza a próxima ocorrência futura (>= hoje); se não houver, cai para a mais recente do passado.
+      const primary = pool.find((item) => item.date >= todayStr) ?? pool[pool.length - 1];
 
       const others = sorted.filter((item) => item.id !== primary.id);
       return { key, seriesId, primary, others };
