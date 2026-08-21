@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { getInsurances } from "@/modules/insurances/services/insurance-queries";
+import { getInsurances, getActiveInsurances } from "@/modules/insurances/services/insurance-queries";
 import { getActiveProfessionals } from "@/modules/professionals/services/professional-queries";
 import { getPatientDetail, getPatientMessages } from "@/modules/patients/services/patient-queries";
 import { getAppointmentsForPatient } from "@/modules/appointments/services/patient-queries";
@@ -20,15 +20,17 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const isAdmin = session.profile.role === "admin";
 
-  const [patient, appointments, messages, insurances, professionals, series, evolutionsPage] = await Promise.all([
-    getPatientDetail(id),
-    getAppointmentsForPatient(id),
-    getPatientMessages(id),
-    getInsurances(),
-    getActiveProfessionals(),
-    listSeriesForPatient(id),
-    isAdmin ? getEvolutionsForPatientPage(id, 1) : Promise.resolve({ items: [], totalPages: 1 }),
-  ]);
+  const [patient, appointments, messages, insurances, activeInsurances, professionals, series, evolutionsPage] =
+    await Promise.all([
+      getPatientDetail(id),
+      getAppointmentsForPatient(id),
+      getPatientMessages(id),
+      getInsurances(),
+      getActiveInsurances(),
+      getActiveProfessionals(),
+      listSeriesForPatient(id),
+      isAdmin ? getEvolutionsForPatientPage(id, 1) : Promise.resolve({ items: [], totalPages: 1 }),
+    ]);
 
   if (!patient) notFound();
 
@@ -60,6 +62,7 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
       history={history}
       series={series}
       messages={messages}
+      insurances={activeInsurances}
       canManage
       canChangeStatus={isAdmin}
       canViewClinical={isAdmin}

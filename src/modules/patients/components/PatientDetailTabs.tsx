@@ -11,6 +11,7 @@ import { formatCurrency } from "@/lib/whatsapp";
 import { setPatientStatus } from "@/modules/patients/services/patient-actions";
 import { EvolutionTimeline } from "@/modules/evolutions/components/EvolutionTimeline";
 import type { EvolutionView } from "@/modules/evolutions/services/evolution-queries";
+import { NewRecurrenceDialog } from "@/modules/appointments/components/NewRecurrenceDialog";
 
 interface AppointmentRow {
   id: string;
@@ -63,6 +64,7 @@ interface PatientDetailTabsProps {
   history: AppointmentRow[];
   series: SeriesRow[];
   messages: MessageRow[];
+  insurances: { id: string; name: string }[];
   canManage: boolean;
   canChangeStatus: boolean;
   /** Só true para admin — recepcionista nunca recebe a aba de prontuário. */
@@ -100,6 +102,7 @@ export function PatientDetailTabs({
   history,
   series,
   messages,
+  insurances,
   canManage,
   canChangeStatus,
   canViewClinical = false,
@@ -109,9 +112,18 @@ export function PatientDetailTabs({
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
-  const [tab, setTab] = useState<Tab>("Dados");
+  const [tab, setTab] = useState<Tab>("Próximos atendimentos");
   const [togglingStatus, setTogglingStatus] = useState(false);
+  const [showNewRecurrence, setShowNewRecurrence] = useState(false);
   const visibleTabs: Tab[] = canViewClinical ? [...BASE_TABS, CLINICAL_TAB] : [...BASE_TABS];
+
+  function handleRecurrenceCreated(createdCount: number) {
+    setShowNewRecurrence(false);
+    toast.success(
+      createdCount > 1 ? `${createdCount} atendimentos criados na nova recorrência.` : "Recorrência criada com sucesso.",
+    );
+    router.refresh();
+  }
 
   async function handleReactivate() {
     setTogglingStatus(true);
@@ -234,6 +246,11 @@ export function PatientDetailTabs({
 
       {tab === "Recorrências" && (
         <div className="flex flex-col gap-3">
+          <div className="flex justify-end">
+            <Button size="sm" onClick={() => setShowNewRecurrence(true)}>
+              + Nova recorrência
+            </Button>
+          </div>
           {series.length === 0 ? (
             <EmptyState text="Nenhum atendimento recorrente." />
           ) : (
@@ -272,6 +289,16 @@ export function PatientDetailTabs({
             ))
           )}
         </div>
+      )}
+
+      {showNewRecurrence && (
+        <NewRecurrenceDialog
+          patientId={patient.id}
+          patientName={patient.fullName}
+          insurances={insurances}
+          onClose={() => setShowNewRecurrence(false)}
+          onDone={handleRecurrenceCreated}
+        />
       )}
     </div>
   );
