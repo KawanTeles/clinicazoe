@@ -95,7 +95,11 @@ export function AppointmentsList({
         item.insuranceName.toLowerCase().includes(search.toLowerCase());
 
       const matchesStatus =
-        statusFilter === "todos" ? item.status !== "cancelada" : item.status === statusFilter;
+        statusFilter === "todos"
+          ? item.status !== "cancelada" && item.status !== "remarcada"
+          : statusFilter === "cancelada"
+            ? item.status === "cancelada" || item.status === "remarcada"
+            : item.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
