@@ -78,6 +78,8 @@ async function denormalize(
 
 const PAGE_SIZE = 20;
 
+export type AppointmentStatusFilter = "todos" | "pendente" | "confirmada" | "concluida" | "cancelada";
+
 /** Ids das consultas onde o profissional é coterapeuta (atendimento
  * compartilhado, Fase 2) — sem isso, a própria agenda dele nunca mostraria
  * uma consulta compartilhada da qual ele participa mas não é o principal. */
@@ -96,6 +98,7 @@ export async function getAppointmentsForViewer(
   role: Role,
   userId: string,
   page = 1,
+  statusFilter: AppointmentStatusFilter = "todos",
 ): Promise<{ items: AppointmentView[]; totalPages: number }> {
   const supabase = await createClient();
 
@@ -118,6 +121,17 @@ export async function getAppointmentsForViewer(
     // serem aprovadas/recusadas. Agendamento manual da recepção
     // (source='staff') continua aparecendo normalmente aqui, como sempre.
     query = query.or("status.neq.pendente,source.eq.staff");
+  }
+
+  // Filtro de status aplicado no banco (antes do .range()) para que o count/
+  // total de páginas reflita o conjunto já filtrado — caso contrário uma
+  // página pode vir vazia no client mesmo com "Página X de Y" > 1.
+  if (statusFilter === "todos") {
+    query = query.not("status", "in", '("cancelada","remarcada")');
+  } else if (statusFilter === "cancelada") {
+    query = query.in("status", ["cancelada", "remarcada"]);
+  } else {
+    query = query.eq("status", statusFilter);
   }
 
   const from = (page - 1) * PAGE_SIZE;

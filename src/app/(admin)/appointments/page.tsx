@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { Pagination } from "@/components/ui/Pagination";
 import { getCurrentUser } from "@/lib/auth";
 import { getAppointmentsForViewer } from "@/modules/appointments/services/appointment-queries";
 import { AppointmentsList } from "@/modules/appointments/components/AppointmentsList";
@@ -20,21 +19,15 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
   },
 };
 
-export default async function AppointmentsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string }>;
-}) {
+export default async function AppointmentsPage() {
   const session = await getCurrentUser();
   if (!session) redirect("/login");
-
-  const { page: pageParam } = await searchParams;
-  const page = Math.max(1, Number(pageParam) || 1);
 
   const { items, totalPages } = await getAppointmentsForViewer(
     session.profile.role,
     session.user.id,
-    page,
+    1,
+    "todos",
   );
   const copy = TITLES[session.profile.role] ?? TITLES.paciente;
 
@@ -54,9 +47,12 @@ export default async function AppointmentsPage({
         )}
       </div>
 
-      <AppointmentsList viewerRole={session.profile.role} viewerId={session.user.id} appointments={items} />
-      <Pagination page={page} totalPages={totalPages} basePath="/appointments" />
+      <AppointmentsList
+        viewerRole={session.profile.role}
+        viewerId={session.user.id}
+        initialAppointments={items}
+        initialTotalPages={totalPages}
+      />
     </div>
   );
 }
-

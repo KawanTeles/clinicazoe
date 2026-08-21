@@ -10,10 +10,11 @@ import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency } from "@/lib/whatsapp";
 import type { Modality, Role } from "@/lib/supabase/types";
-import type { AppointmentView } from "@/modules/appointments/services/appointment-queries";
+import type { AppointmentStatusFilter, AppointmentView } from "@/modules/appointments/services/appointment-queries";
 import {
   cancelAppointment,
   confirmAppointment,
+  getAppointmentsPage,
   sendReminder,
   updateAppointmentStatus,
 } from "@/modules/appointments/services/booking-actions";
@@ -65,11 +66,13 @@ interface AttachDialogState {
 export function AppointmentsList({
   viewerRole,
   viewerId,
-  appointments,
+  initialAppointments,
+  initialTotalPages,
 }: {
   viewerRole: Role;
   viewerId: string;
-  appointments: AppointmentView[];
+  initialAppointments: AppointmentView[];
+  initialTotalPages: number;
 }) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -78,32 +81,53 @@ export function AppointmentsList({
   const [scopeDialog, setScopeDialog] = useState<ScopeDialogState | null>(null);
   const [attachDialog, setAttachDialog] = useState<AttachDialogState | null>(null);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [statusFilter, setStatusFilter] = useState<AppointmentStatusFilter>("todos");
   const [expandedSeries, setExpandedSeries] = useState<Set<string>>(new Set());
+
+  const [appointments, setAppointments] = useState(initialAppointments);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const isStaff = viewerRole === "admin" || viewerRole === "recepcionista";
   const isAdmin = viewerRole === "admin";
   const isPatient = viewerRole === "paciente";
   const isProfessional = viewerRole === "profissional";
 
+  // Filtro de status roda no servidor (getAppointmentsPage), já refletido no
+  // total de páginas — aqui só sobra a busca por texto, client-side, porque
+  // nome de paciente/profissional/convênio já vêm denormalizados na página.
+  async function refresh(filter: AppointmentStatusFilter = statusFilter) {
+    const result = await getAppointmentsPage(1, filter);
+    setAppointments(result.items);
+    setTotalPages(result.totalPages);
+    setPage(1);
+  }
+
+  async function handleFilterChange(filter: AppointmentStatusFilter) {
+    setStatusFilter(filter);
+    await refresh(filter);
+  }
+
+  async function handleLoadMore() {
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    const result = await getAppointmentsPage(nextPage, statusFilter);
+    setAppointments((prev) => [...prev, ...result.items]);
+    setTotalPages(result.totalPages);
+    setPage(nextPage);
+    setLoadingMore(false);
+  }
+
   const filteredAppointments = useMemo(() => {
-    return appointments.filter((item) => {
-      const matchesSearch =
-        search === "" ||
+    if (search === "") return appointments;
+    return appointments.filter(
+      (item) =>
         item.patientName.toLowerCase().includes(search.toLowerCase()) ||
         item.professionalName.toLowerCase().includes(search.toLowerCase()) ||
-        item.insuranceName.toLowerCase().includes(search.toLowerCase());
-
-      const matchesStatus =
-        statusFilter === "todos"
-          ? item.status !== "cancelada" && item.status !== "remarcada"
-          : statusFilter === "cancelada"
-            ? item.status === "cancelada" || item.status === "remarcada"
-            : item.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [appointments, search, statusFilter]);
+        item.insuranceName.toLowerCase().includes(search.toLowerCase()),
+    );
+  }, [appointments, search]);
 
   const appointmentGroups = useMemo(() => {
     const map = new Map<string, AppointmentView[]>();
@@ -171,7 +195,7 @@ export function AppointmentsList({
     }
     toast.success("Atendimento cancelado com sucesso.");
     if (result.whatsappLink) window.open(result.whatsappLink, "_blank");
-    router.refresh();
+    await refresh();
   }
 
   async function handleReschedule(id: string) {
@@ -202,7 +226,7 @@ export function AppointmentsList({
     }
     toast.success("Lembrete enviado com sucesso.");
     if (result.whatsappLink) window.open(result.whatsappLink, "_blank");
-    router.refresh();
+    await refresh();
   }
 
   async function handleConfirm(id: string) {
@@ -217,7 +241,7 @@ export function AppointmentsList({
     if (result.whatsappLink) {
       window.open(result.whatsappLink, "_blank");
     }
-    router.refresh();
+    await refresh();
   }
 
   async function handleStaffCancel(id: string) {
@@ -236,22 +260,22 @@ export function AppointmentsList({
       return;
     }
     toast.success("Atendimento cancelado com sucesso.");
-    router.refresh();
+    await refresh();
   }
 
-  function handleScopeDialogDone(whatsappLink?: string | null) {
+  async function handleScopeDialogDone(whatsappLink?: string | null) {
     setScopeDialog(null);
     toast.success(scopeDialog?.mode === "edit" ? "Atendimento reagendado com sucesso." : "Atendimento excluído com sucesso.");
     if (whatsappLink) window.open(whatsappLink, "_blank");
-    router.refresh();
+    await refresh();
   }
 
-  function handleAttachDialogDone(createdCount: number) {
+  async function handleAttachDialogDone(createdCount: number) {
     setAttachDialog(null);
     toast.success(
       createdCount > 1 ? `Recorrência criada: ${createdCount} atendimentos.` : "Atendimento transformado em recorrente.",
     );
-    router.refresh();
+    await refresh();
   }
 
   function renderAppointmentRow(
@@ -484,7 +508,7 @@ export function AppointmentsList({
             <button
               key={tab.id}
               type="button"
-              onClick={() => setStatusFilter(tab.id)}
+              onClick={() => handleFilterChange(tab.id as AppointmentStatusFilter)}
               className={`rounded-xl px-3 py-1.5 font-semibold transition-all ${
                 statusFilter === tab.id
                   ? "bg-[var(--primary)] text-white shadow-sm"
@@ -534,6 +558,14 @@ export function AppointmentsList({
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {page < totalPages && (
+        <div className="flex justify-center pt-1">
+          <Button size="sm" variant="secondary" isLoading={loadingMore} onClick={handleLoadMore}>
+            Carregar mais
+          </Button>
         </div>
       )}
 

@@ -19,6 +19,11 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { notifyWaitlistMatches } from "@/modules/waitlist/services/waitlist-actions";
 import { cancelFinancialEntryForAppointment } from "@/modules/financial/services/financial-actions";
 import { getAvailableTimes, getCoTherapistsForAppointment, resolveAppointmentValue } from "./booking-queries";
+import {
+  getAppointmentsForViewer,
+  type AppointmentStatusFilter,
+  type AppointmentView,
+} from "./appointment-queries";
 import type { Modality, ParticularProduct, PaymentMethod } from "@/lib/supabase/types";
 
 /** Notifica a lista de espera para cada profissional envolvido na consulta
@@ -774,5 +779,20 @@ export async function removeCoTherapist(
   });
 
   return { error: null };
+}
+
+/** Busca uma página de atendimentos já filtrada por status no banco, chamada
+ * pelas abas de status em AppointmentsList — sem isso, a paginação era
+ * calculada sobre o total bruto (sem filtro) e o filtro de status rodava só
+ * no client em cima da página recebida, podendo mostrar "Nenhum atendimento
+ * encontrado" mesmo com mais páginas disponíveis. */
+export async function getAppointmentsPage(
+  page: number,
+  statusFilter: AppointmentStatusFilter,
+): Promise<{ items: AppointmentView[]; totalPages: number }> {
+  const session = await getCurrentUser();
+  if (!session) return { items: [], totalPages: 1 };
+
+  return getAppointmentsForViewer(session.profile.role, session.user.id, page, statusFilter);
 }
 
