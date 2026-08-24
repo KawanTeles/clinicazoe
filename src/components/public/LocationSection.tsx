@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
+import { LazyMapEmbed } from "@/components/public/LazyMapEmbed";
 import { formatWhatsAppDisplay } from "@/lib/whatsapp";
 import { buildMapsEmbedUrl, buildMapsViewUrl } from "@/lib/maps";
 import { WEEKDAY_LABELS } from "@/modules/settings/utils/form-state";
@@ -112,16 +113,7 @@ export function LocationSection({
           {/* Right Map Embed */}
           <div className="lg:col-span-7 rounded-3xl border border-[rgba(110,231,183,0.18)] overflow-hidden min-h-[350px] lg:min-h-[450px] relative shadow-lg">
             {embedUrl && (
-              <iframe
-                title={`Mapa de localização da ${clinicName}`}
-                src={embedUrl}
-                width="100%"
-                height="100%"
-                style={{ border: 0, minHeight: "350px", filter: "invert(90%) hue-rotate(180deg) brightness(95%) contrast(90%)" }}
-                allowFullScreen={false}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
+              <LazyMapEmbed src={embedUrl} title={`Mapa de localização da ${clinicName}`} />
             )}
           </div>
         </div>
