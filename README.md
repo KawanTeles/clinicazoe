@@ -107,6 +107,16 @@ requisito: rate-limit e outros caches do processo (`src/lib/rate-limit.ts`)
 são em memória e por processo, então rodar em modo cluster multiplicaria os
 limites reais por instância sem nenhum aviso.
 
+**Depois de todo deploy, purgue o cache da CDN da Hostinger** — hPanel →
+site → **Desempenho → CDN → "Limpar cache"**. O domínio fica atrás da hCDN
+da própria Hostinger, que respeita o `Cache-Control: s-maxage=31536000` das
+rotas estáticas do Next literalmente (sem entender `stale-while-revalidate`).
+Sem o purge manual, o `pm2 restart` atualiza o servidor de origem mas
+visitantes continuam recebendo a resposta em cache antiga por até 1 ano —
+já aconteceu (24/08/2026): produção com o build novo no ar, mas mobile no
+PageSpeed Insights continuava refletindo a versão anterior até a CDN ser
+purgada.
+
 ## CI/CD
 
 Não há workflow de CI configurado hoje (`.github/workflows` não existe).
