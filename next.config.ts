@@ -57,6 +57,15 @@ const nextConfig: NextConfig = {
       // na Server Action antes mesmo da validação de tamanho no código.
       bodySizeLimit: "30mb",
     },
+    // O PageSpeed apontava ~900ms de CSS bloqueando a renderização (2 <link>
+    // do Tailwind) antes do LCP do hero conseguir pintar. Com CSS atômico
+    // (Tailwind) o total é pequeno (~23 KiB), então inlinar no <head> troca
+    // essa espera de rede por bytes que já chegam junto do HTML — recurso
+    // nativo do Next, não precisa de ferramenta externa de "critical CSS".
+    // CSP já libera 'unsafe-inline' em style-src, então o <style> inline não
+    // é bloqueado. Só produção (build local confirmou o HTML sem <link>
+    // bloqueante antes de ir pro ar).
+    inlineCss: true,
   },
   images: {
     formats: ["image/avif", "image/webp"],
