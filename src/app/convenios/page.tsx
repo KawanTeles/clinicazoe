@@ -51,7 +51,7 @@ export default async function ConveniosPage() {
           <PageEntranceItem>
             <PageHero
               breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Convênios" }]}
-              title="Convênios Aceitos"
+              title="Convênios"
               subtitle="Trabalhamos com os principais planos de saúde do país e também atendimento particular com facilidades."
             />
           </PageEntranceItem>

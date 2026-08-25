@@ -58,9 +58,7 @@ export default async function HomePage() {
 
                 <PageEntranceItem>
                   <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-2xl font-normal">
-                    Na {clinic.name || "Espaço Zoe"}, aliamos a mais avançada tecnologia médica a uma equipe de
-                    especialistas de renome para oferecer diagnóstico preciso, tratamento eficaz e
-                    atendimento verdadeiramente humanizado.
+                    No {clinic.name || "Espaço Zoe"}, possuímos uma equipe terapêutica especializada para oferecer um atendimento verdadeiramente humanizado.
                   </p>
                 </PageEntranceItem>
 
@@ -141,7 +139,7 @@ export default async function HomePage() {
                           <p className="text-xs text-text-secondary mt-1 leading-relaxed">Segurança de dados e acesso instantâneo ao seu histórico.</p>
                         </div>
                         <div className="group/item rounded-xl border border-[rgba(110,231,183,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(110,231,183,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
-                          <p className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Principais Convênios Aceitos</p>
+                          <p className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Principais Convênios</p>
                           <p className="text-xs text-text-secondary mt-1 leading-relaxed">Ampla cobertura e facilidades para plano e particular.</p>
                         </div>
                       </div>
@@ -207,7 +205,7 @@ export default async function HomePage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-text-primary font-heading">Convênios Aceitos</h3>
+                    <h3 className="text-base font-bold text-text-primary font-heading">Convênios</h3>
                     <p className="mt-1.5 text-xs text-text-secondary leading-relaxed">
                       Ampla cobertura de planos de saúde e atendimento particular com facilidades.
                     </p>
