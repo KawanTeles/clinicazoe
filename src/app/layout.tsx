@@ -27,7 +27,7 @@ const bricolage = Bricolage_Grotesque({
 
 const FALLBACK_NAME = "Espaço Zoe";
 const buildDescription = (name: string) =>
-  `${name}: atendimento médico humanizado com tecnologia de ponta, corpo clínico especializado e agendamento de atendimentos 100% online, rápido e seguro.`;
+  `${name}: atendimento clínico humanizado com tecnologia de ponta, corpo clínico especializado e agendamento de atendimentos 100% online, rápido e seguro.`;
 
 export async function generateMetadata(): Promise<Metadata> {
   const { clinic } = await getSiteMetadataForLayout();

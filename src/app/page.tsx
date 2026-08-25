@@ -18,7 +18,7 @@ import { buildEntitySlug } from "@/lib/slug";
 
 const TITLE = "Espaço Zoe — Medicina de Alta Performance e Saúde Integrada";
 const DESCRIPTION =
-  "Referência em atendimento médico de excelência, corpo clínico renomado, tecnologia de ponta e agendamento 100% online. Marque seu atendimento com o Espaço Zoe.";
+  "Referência em atendimento clínico de excelência, corpo clínico renomado, tecnologia de ponta e agendamento 100% online. Marque seu atendimento com o Espaço Zoe.";
 
 export const metadata = {
   title: TITLE,
@@ -87,7 +87,7 @@ export default async function HomePage() {
                         size="lg"
                         className="w-full sm:w-auto font-bold border border-border/80 hover:border-primary/60"
                       >
-                        Conhecer corpo médico
+                        Conhecer corpo clínico
                       </Button>
                     </Link>
                   </div>
@@ -132,7 +132,7 @@ export default async function HomePage() {
                           </svg>
                         </div>
                         <div>
-                          <span className="text-xs font-bold uppercase tracking-wider text-[var(--link)]">Centro Médico Integrado</span>
+                          <span className="text-xs font-bold uppercase tracking-wider text-[var(--link)]">Centro Clínico Integrado</span>
                           <p className="text-xl font-extrabold text-text-primary font-heading mt-0.5">Padrão Internacional</p>
                         </div>
                       </div>
@@ -213,12 +213,12 @@ export default async function HomePage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-text-primary font-heading">Tecnologia Diagnóstica</h3>
+                    <h3 className="text-base font-bold text-text-primary font-heading">Convênios Aceitos</h3>
                     <p className="mt-1.5 text-xs text-text-secondary leading-relaxed">
-                      Equipamentos modernos e laboratórios de ponta para respostas rápidas.
+                      Ampla cobertura de planos de saúde e atendimento particular com facilidades.
                     </p>
-                    <Link href="/estrutura" className="mt-3 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
-                      Conhecer estrutura →
+                    <Link href="/convenios" className="mt-3 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
+                      Ver convênios →
                     </Link>
                   </div>
                 </div>
@@ -239,7 +239,7 @@ export default async function HomePage() {
                       Especialistas com atuação em hospitais renomados.
                     </p>
                     <Link href="/profissionais" className="mt-3 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
-                      Ver corpo médico →
+                      Ver corpo clínico →
                     </Link>
                   </div>
                 </div>
@@ -311,9 +311,9 @@ export default async function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <ScrollReveal animation="fade-up">
-              <Badge tone="success" className="border border-[rgba(110,231,183,0.25)]">Corpo Médico</Badge>
+              <Badge tone="success" className="border border-[rgba(110,231,183,0.25)]">Corpo Clínico</Badge>
               <h2 className="text-3xl font-extrabold text-text-primary font-heading">
-                Conheça nossos médicos
+                Conheça nosso corpo clínico
               </h2>
               <p className="text-sm text-text-secondary">
                 Profissionais qualificados prontos para acolher você e sua família.

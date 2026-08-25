@@ -18,9 +18,9 @@ export default async function PatientAgendarPage() {
     <div className="space-y-8">
       <div className="text-center max-w-2xl mx-auto space-y-2">
         <Badge tone="premium">Novo Agendamento</Badge>
-        <h1 className="text-3xl font-extrabold text-text-primary font-heading">Solicitar Atendimento Médico</h1>
+        <h1 className="text-3xl font-extrabold text-text-primary font-heading">Solicitar Atendimento</h1>
         <p className="text-xs sm:text-sm text-text-secondary">
-          Siga as 8 etapas para escolher a cidade, convênio, médico, data e horário ideal.
+          Siga as 8 etapas para escolher a cidade, convênio, profissional, data e horário ideal.
         </p>
       </div>
 

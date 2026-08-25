@@ -107,7 +107,7 @@ export default async function EspecialidadesPage() {
                     {relatedProfs.length > 0 && (
                       <div className="pt-3 border-t border-border/60">
                         <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
-                          Médicos desta área:
+                          Profissionais desta área:
                         </span>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {relatedProfs.map((p) => (

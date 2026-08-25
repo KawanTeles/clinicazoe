@@ -68,7 +68,7 @@ export default async function EstruturaPage() {
                 </div>
                 <h3 className="text-xl font-bold text-text-primary font-heading">Consultórios Climatizados & Acústicos</h3>
                 <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-                  Salas amplas com isolamento acústico total para sigilo e conforto do diálogo entre médico e paciente.
+                  Salas amplas com isolamento acústico total para sigilo e conforto do diálogo entre profissional e paciente.
                 </p>
               </AnimatedCard>
             </ScrollReveal>

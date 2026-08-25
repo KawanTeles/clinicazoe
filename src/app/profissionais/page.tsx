@@ -18,18 +18,18 @@ import { buildEntitySlug } from "@/lib/slug";
 import { safeJsonLd } from "@/lib/json-ld";
 
 export const metadata = {
-  title: "Corpo Médico e Profissionais — Espaço Zoe",
-  description: "Conheça os médicos especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar seu atendimento hoje mesmo.",
+  title: "Corpo Clínico — Espaço Zoe",
+  description: "Conheça os profissionais especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar seu atendimento hoje mesmo.",
   alternates: { canonical: `${SITE_URL}/profissionais` },
   openGraph: {
-    title: "Corpo Médico e Profissionais — Espaço Zoe",
-    description: "Conheça os médicos especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar seu atendimento hoje mesmo.",
+    title: "Corpo Clínico — Espaço Zoe",
+    description: "Conheça os profissionais especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar seu atendimento hoje mesmo.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Corpo Médico e Profissionais — Espaço Zoe",
-    description: "Conheça os médicos especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar seu atendimento hoje mesmo.",
+    title: "Corpo Clínico — Espaço Zoe",
+    description: "Conheça os profissionais especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar seu atendimento hoje mesmo.",
   },
 };
 
@@ -56,7 +56,7 @@ export default async function ProfissionaisPage() {
             <PageHero
               breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Profissionais" }]}
               title="Nossos Profissionais"
-              subtitle="Médicos experientes e dedicados a oferecer a melhor assistência à sua saúde."
+              subtitle="Profissionais experientes e dedicados a oferecer a melhor assistência à sua saúde."
             />
           </PageEntranceItem>
 

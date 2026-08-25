@@ -65,10 +65,10 @@ export default async function ClinicaPage() {
                   Uma trajetória construída com dedicação e rigor científico
                 </h2>
                 <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-                  Fundada com o propósito de transformar a relação entre médicos e pacientes, o {clinic.name || "Espaço Zoe"} nasceu para combinar a alta precisão diagnóstica ao conforto e escuta ativa que cada indivíduo merece.
+                  {clinic.name || "Espaço Zoe"} nasceu em 2025 com o propósito de criar um espaço dedicado ao desenvolvimento humano e acolhimento de famílias.
                 </p>
                 <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-                  Ao longo dos anos, expandimos nossas especialidades e investimos continuamente na modernização de equipamentos e treinamento de nossa equipe.
+                  O nome Zoe, que significa &quot;vida&quot; em grego, representa nossa essência: valorizar cada pessoa em sua individualidade, respeitando sua história, suas necessidades e seu processo de desenvolvimento.
                 </p>
               </div>
             </ScrollReveal>
@@ -78,20 +78,26 @@ export default async function ClinicaPage() {
                 <div className="p-4 rounded-2xl bg-card-elevated border border-border/60">
                   <h3 className="text-base font-bold text-[var(--link)] font-heading">Missão</h3>
                   <p className="text-xs text-text-secondary mt-1 leading-relaxed">
-                    Promover a saúde integral e prevenção personalizada através de condutas baseadas em evidências e atendimento humanizado.
+                    Acolher, cuidar e desenvolver crianças, promovendo seu bem-estar emocional, cognitivo e social através de um olhar humano, sensível e interdisciplinar. Cuidar de quem cuida, fortalecer famílias, e inspirar transformação por meio do afeto, da escuta e do respeito à individualidade de cada ser.
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-card-elevated border border-border/60">
                   <h3 className="text-base font-bold text-[var(--link)] font-heading">Visão</h3>
                   <p className="text-xs text-text-secondary mt-1 leading-relaxed">
-                    Ser reconhecida como o centro médico modelo em inovação, satisfação do paciente e segurança clínica na região.
+                    Construir um espaço de referência em desenvolvimento humano, onde o cuidado seja integral, e cada profissional atue com propósito e verdade. Ser um núcleo que transforma vidas com empatia e excelência, gerando impacto positivo na comunidade e liberdade para quem sonha grande.
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-card-elevated border border-border/60">
                   <h3 className="text-base font-bold text-[var(--link)] font-heading">Valores</h3>
-                  <p className="text-xs text-text-secondary mt-1 leading-relaxed">
-                    Ética inabalável, respeito à vida, transparência total e constante evolução técnica.
-                  </p>
+                  <ul className="text-xs text-text-secondary mt-1 leading-relaxed space-y-1.5 list-disc list-inside">
+                    <li><span className="font-bold text-text-primary">Acolhimento:</span> Cada pessoa é recebida com empatia, escuta e amor.</li>
+                    <li><span className="font-bold text-text-primary">Verdade:</span> Agir com autenticidade, integridade e coerência.</li>
+                    <li><span className="font-bold text-text-primary">Afetividade:</span> Relações humanas estão no centro de tudo que fazemos.</li>
+                    <li><span className="font-bold text-text-primary">Respeito à infância:</span> Acreditamos no tempo, no ritmo e na singularidade de cada criança.</li>
+                    <li><span className="font-bold text-text-primary">Cuidado com quem cuida:</span> Fortalecer profissionais e famílias com suporte e carinho.</li>
+                    <li><span className="font-bold text-text-primary">Excelência com leveza:</span> Oferecer qualidade sem perder a humanidade.</li>
+                    <li><span className="font-bold text-text-primary">Transformação:</span> Trabalhar para que cada atendimento seja um passo de mudança real.</li>
+                  </ul>
                 </div>
               </AnimatedCard>
             </ScrollReveal>
