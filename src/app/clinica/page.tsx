@@ -85,7 +85,7 @@ export default async function ClinicaPage() {
               </div>
               <h3 className="text-xl sm:text-2xl font-extrabold text-primary font-heading mb-4">Missão</h3>
               <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-                Acolher, cuidar e desenvolver crianças, promovendo seu bem-estar emocional, cognitivo e social através de um olhar humano, sensível e interdisciplinar. Cuidar de quem cuida, fortalecer famílias, e inspirar transformação por meio do afeto, da escuta e do respeito à individualidade de cada ser.
+                Acolher, cuidar e desenvolver crianças e adultos, promovendo o bem-estar emocional, cognitivo e social em cada fase da vida, através de um olhar humano, sensível e interdisciplinar. Cuidar de quem cuida, fortalecer famílias, e inspirar transformação por meio do afeto, da escuta e do respeito à individualidade de cada ser.
               </p>
             </AnimatedCard>
 
