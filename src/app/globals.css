@@ -70,10 +70,10 @@
   --danger: #DC2626;
 
   /* Shadows */
-  --shadow-button: 0 10px 25px rgba(15, 118, 110, 0.35);
-  --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.35);
-  --shadow-card-hover: 0 16px 45px rgba(20, 184, 166, 0.2);
-  --shadow-glow: 0 0 35px rgba(20, 184, 166, 0.15);
+  --shadow-button: 0 8px 20px rgba(15, 118, 110, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-card-hover: 0 20px 50px rgba(20, 184, 166, 0.15), 0 10px 20px rgba(20, 184, 166, 0.1);
+  --shadow-glow: 0 0 35px rgba(20, 184, 166, 0.15), inset 0 0 15px rgba(20, 184, 166, 0.1);
 
   /* Scrollbar Tokens */
   --scrollbar-track: #0F172A;
@@ -139,10 +139,10 @@
   --danger: #DC2626;
 
   /* Shadows */
-  --shadow-button: 0 10px 25px rgba(15, 118, 110, 0.18);
-  --shadow-card: 0 4px 20px rgba(15, 23, 42, 0.04);
-  --shadow-card-hover: 0 12px 35px rgba(15, 118, 110, 0.12);
-  --shadow-glow: 0 0 30px rgba(15, 118, 110, 0.08);
+  --shadow-button: 0 8px 20px rgba(15, 118, 110, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+  --shadow-card: 0 6px 24px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.03);
+  --shadow-card-hover: 0 20px 40px rgba(15, 118, 110, 0.12), 0 8px 16px rgba(15, 118, 110, 0.08);
+  --shadow-glow: 0 0 30px rgba(15, 118, 110, 0.08), inset 0 0 10px rgba(255, 255, 255, 0.5);
 
   /* Scrollbar Tokens */
   --scrollbar-track: #F1F5F9;

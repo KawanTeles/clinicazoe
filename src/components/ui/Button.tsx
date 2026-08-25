@@ -23,7 +23,7 @@ const arrowCircleSize: Record<Size, string> = {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-[#0F766E] text-white hover:bg-[#115E59] active:bg-[#0D9488] shadow-[0_10px_25px_rgba(15,118,110,0.22)] border border-[#0F766E]/40 hover:border-[#14B8A6]/60",
+    "bg-gradient-to-b from-[#14B8A6] to-[#0F766E] text-white hover:from-[#2DD4BF] hover:to-[#0D9488] active:from-[#0D9488] active:to-[#0B665E] border border-[#0F766E]/40 hover:border-[#14B8A6]/60 shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-card-hover)]",
   secondary:
     "bg-white text-[#0F766E] border border-[#CBD5E1] hover:bg-[#F8FAFC] hover:border-[#0F766E] dark:bg-[#1E293B] dark:text-[#2DD4BF] dark:border-border dark:hover:bg-[#334155] dark:hover:border-[#2DD4BF] shadow-xs",
   outline:

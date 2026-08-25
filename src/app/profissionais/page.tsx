@@ -82,24 +82,24 @@ export default async function ProfissionaisPage() {
               <AnimatedCard key={prof.id} delayMs={index * 120} className="p-8 flex flex-col justify-between h-full rounded-3xl">
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <Avatar src={prof.avatarUrl} name={prof.fullName} size={80} rounded="2xl" className="shadow-md" />
+                    <Avatar src={prof.avatarUrl} name={prof.fullName} size={80} rounded="2xl" className="shadow-[0_4px_12px_rgba(15,118,110,0.15)] ring-2 ring-primary/10" />
                     <div>
-                      <h3 className="text-lg font-bold text-text-primary font-heading">{prof.fullName}</h3>
-                      <Badge tone="success" className="mt-1 text-xs">{prof.specialtyName}</Badge>
-                      <p className="text-xs text-text-muted mt-1 font-mono">{prof.licenseNumber}</p>
+                      <h3 className="text-xl font-bold text-text-primary font-heading">{prof.fullName}</h3>
+                      <Badge tone="success" className="mt-2 text-xs border border-[rgba(110,231,183,0.3)]">{prof.specialtyName}</Badge>
+                      <p className="text-xs text-text-muted mt-2 font-mono">{prof.licenseNumber}</p>
                     </div>
                   </div>
 
-                  <p className="text-xs text-text-secondary leading-relaxed">{prof.bio}</p>
+                  <p className="text-sm text-text-secondary leading-relaxed line-clamp-4">{prof.bio}</p>
 
-                  <div className="p-4 rounded-2xl bg-card-elevated/70 border border-border/60 space-y-2 text-xs">
+                  <div className="p-5 rounded-2xl bg-card-elevated/50 border border-border/60 space-y-3 text-sm">
                     <div className="flex justify-between items-center text-text-secondary">
-                      <span>Duração do atendimento:</span>
-                      <span className="font-bold text-text-primary">{prof.consultationDuration} minutos</span>
+                      <span>Duração da consulta:</span>
+                      <span className="font-bold text-text-primary">{prof.consultationDuration} min</span>
                     </div>
                     {clinic.price_particular_consultation != null && (
                       <div className="flex justify-between items-center text-text-secondary">
-                        <span>Atendimento Particular:</span>
+                        <span>Valor Particular:</span>
                         <span className="font-bold text-[var(--link)]">{formatCurrency(clinic.price_particular_consultation)}</span>
                       </div>
                     )}

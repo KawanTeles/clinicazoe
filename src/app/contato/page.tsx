@@ -67,14 +67,14 @@ export default async function ContatoPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {clinic.address && (
                 <ScrollReveal animation="slide-left">
-                  <AnimatedCard delayMs={100} className="rounded-3xl p-8 space-y-4 h-full">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <AnimatedCard delayMs={100} className="rounded-[2rem] p-8 space-y-4 h-full">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(15,118,110,0.15)] mb-6">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                         <circle cx="12" cy="10" r="3" />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-bold text-text-primary font-heading">Endereço</h3>
+                    <h3 className="text-xl font-bold text-text-primary font-heading">Endereço</h3>
                     <p className="text-sm text-text-secondary leading-relaxed">{clinic.address}</p>
                     {clinic.email && <p className="text-sm text-text-secondary leading-relaxed">{clinic.email}</p>}
                   </AnimatedCard>
@@ -82,46 +82,48 @@ export default async function ContatoPage() {
               )}
 
               <ScrollReveal animation="fade-up">
-                <AnimatedCard delayMs={200} className="rounded-3xl p-8 space-y-4 h-full">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <AnimatedCard delayMs={200} className="rounded-[2rem] p-8 space-y-4 h-full">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(15,118,110,0.15)] mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
                       <line x1="16" x2="16" y1="2" y2="6" />
                       <line x1="8" x2="8" y1="2" y2="6" />
                       <line x1="3" x2="21" y1="10" y2="10" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-bold text-text-primary font-heading">Horário de Atendimento</h3>
-                  <div className="space-y-1 text-xs text-text-secondary">
+                  <h3 className="text-xl font-bold text-text-primary font-heading">Horário de Atendimento</h3>
+                  <div className="space-y-2 text-sm text-text-secondary">
                     {sortedHours.map((entry) => (
-                      <p key={entry.day}>
-                        <strong className="text-text-primary">{WEEKDAY_LABELS[entry.day]}:</strong>{" "}
-                        {entry.is_open ? `${entry.open_time} às ${entry.close_time}` : "Fechado"}
-                      </p>
+                      <div key={entry.day} className="flex justify-between">
+                        <strong className="text-text-primary font-medium">{WEEKDAY_LABELS[entry.day]}:</strong>
+                        <span>{entry.is_open ? `${entry.open_time} às ${entry.close_time}` : "Fechado"}</span>
+                      </div>
                     ))}
-                    <p>
-                      <strong className="text-text-primary">Feriados:</strong>{" "}
-                      {clinic.holiday_open ? `${clinic.holiday_open_time} às ${clinic.holiday_close_time}` : "Fechado"}
-                    </p>
+                    <div className="flex justify-between pt-2 border-t border-border/60">
+                      <strong className="text-text-primary font-medium">Feriados:</strong>
+                      <span>{clinic.holiday_open ? `${clinic.holiday_open_time} às ${clinic.holiday_close_time}` : "Fechado"}</span>
+                    </div>
                   </div>
                 </AnimatedCard>
               </ScrollReveal>
 
               {whatsappLink && (
                 <ScrollReveal animation="slide-right">
-                  <AnimatedCard delayMs={300} className="rounded-3xl border-[#25D366]/40 p-8 space-y-4 h-full">
-                    <h3 className="text-lg font-bold text-text-primary font-heading">Central de WhatsApp</h3>
-                    <p className="text-xs text-text-secondary">
-                      Tire suas dúvidas ou solicite informações diretamente no nosso canal oficial{whatsappDisplay ? ` — ${whatsappDisplay}` : ""}.
-                    </p>
+                  <AnimatedCard delayMs={300} className="rounded-[2rem] border-[rgba(37,211,102,0.3)] bg-gradient-to-b from-[rgba(37,211,102,0.05)] to-transparent p-8 space-y-4 h-full flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-text-primary font-heading">Central de WhatsApp</h3>
+                      <p className="text-sm text-text-secondary mt-3">
+                        Tire suas dúvidas ou solicite informações diretamente no nosso canal oficial{whatsappDisplay ? ` — ${whatsappDisplay}` : ""}.
+                      </p>
+                    </div>
                     <a
                       href={whatsappLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0F7A3D] px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-[#0C6432] shadow-[0_10px_30px_rgba(37,211,102,0.3)] w-full active:scale-98"
+                      className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#25D366] to-[#1DA851] px-6 py-4 text-sm font-bold text-white transition-all hover:from-[#1DA851] hover:to-[#128C43] shadow-[0_10px_25px_rgba(37,211,102,0.3)] w-full active:scale-98"
                     >
                       <span>{CTA_WHATSAPP}</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                       </svg>
                     </a>

@@ -57,7 +57,8 @@ export const AnimatedCard = memo(function AnimatedCard({
       }}
       onClick={onClick}
       className={cn(
-        "transform-gpu will-change-transform rounded-2xl border border-border bg-card shadow-card hover:shadow-card-hover hover:border-primary/50 transition-colors",
+        "transform-gpu will-change-transform rounded-2xl border border-border/80 bg-card/95 bg-gradient-to-br from-card to-card-elevated/30 backdrop-blur-sm shadow-[var(--shadow-card)] transition-colors relative overflow-hidden group",
+        "hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)] hover:bg-gradient-to-br hover:from-card hover:to-primary/5",
         className,
       )}
     >
