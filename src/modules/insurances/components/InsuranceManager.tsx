@@ -11,6 +11,7 @@ import type { Database } from "@/lib/supabase/types";
 import {
   createInsurance,
   deleteInsurance,
+  reorderInsurances,
   updateInsurance,
 } from "@/modules/insurances/services/insurance-actions";
 
@@ -26,6 +27,25 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [reordering, setReordering] = useState(false);
+
+  async function handleMove(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= insurances.length || reordering) return;
+
+    const reordered = [...insurances];
+    [reordered[index], reordered[targetIndex]] = [reordered[targetIndex], reordered[index]];
+
+    setReordering(true);
+    const result = await reorderInsurances(reordered.map((insurance) => insurance.id));
+    setReordering(false);
+
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
+    router.refresh();
+  }
 
   async function handleCreate(event: FormEvent) {
     event.preventDefault();
@@ -117,14 +137,39 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
         <table className="w-full min-w-[500px] text-left text-xs">
           <thead className="border-b border-border/80 bg-card-elevated/70 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
             <tr>
+              <th className="px-4 py-2.5 font-bold">Ordem</th>
               <th className="px-4 py-2.5 font-bold">Nome do Convênio</th>
               <th className="px-4 py-2.5 font-bold">Status</th>
               <th className="px-4 py-2.5 font-bold text-right">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/40">
-            {insurances.map((insurance) => (
+            {insurances.map((insurance, index) => (
               <tr key={insurance.id} className="transition-colors hover:bg-card-elevated/40">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0"
+                      disabled={index === 0 || reordering}
+                      onClick={() => handleMove(index, -1)}
+                      aria-label={`Mover ${insurance.name} para cima`}
+                    >
+                      ▲
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0"
+                      disabled={index === insurances.length - 1 || reordering}
+                      onClick={() => handleMove(index, 1)}
+                      aria-label={`Mover ${insurance.name} para baixo`}
+                    >
+                      ▼
+                    </Button>
+                  </div>
+                </td>
                 <td className="px-4 py-3">
                   {editingId === insurance.id ? (
                     <div className="flex items-center gap-2">

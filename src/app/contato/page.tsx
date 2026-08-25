@@ -62,12 +62,12 @@ export default async function ContatoPage() {
           </PageEntranceItem>
 
           <h2 className="sr-only">Formas de Contato</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          <div className="space-y-12">
             {/* Info Cards */}
-            <ScrollReveal animation="slide-left">
-              <div className="space-y-6">
-                {clinic.address && (
-                  <AnimatedCard delayMs={100} className="rounded-3xl p-8 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {clinic.address && (
+                <ScrollReveal animation="slide-left">
+                  <AnimatedCard delayMs={100} className="rounded-3xl p-8 space-y-4 h-full">
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -78,9 +78,11 @@ export default async function ContatoPage() {
                     <p className="text-sm text-text-secondary leading-relaxed">{clinic.address}</p>
                     {clinic.email && <p className="text-sm text-text-secondary leading-relaxed">{clinic.email}</p>}
                   </AnimatedCard>
-                )}
+                </ScrollReveal>
+              )}
 
-                <AnimatedCard delayMs={200} className="rounded-3xl p-8 space-y-4">
+              <ScrollReveal animation="fade-up">
+                <AnimatedCard delayMs={200} className="rounded-3xl p-8 space-y-4 h-full">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
@@ -103,9 +105,11 @@ export default async function ContatoPage() {
                     </p>
                   </div>
                 </AnimatedCard>
+              </ScrollReveal>
 
-                {whatsappLink && (
-                  <AnimatedCard delayMs={300} className="rounded-3xl border-[#25D366]/40 p-8 space-y-4">
+              {whatsappLink && (
+                <ScrollReveal animation="slide-right">
+                  <AnimatedCard delayMs={300} className="rounded-3xl border-[#25D366]/40 p-8 space-y-4 h-full">
                     <h3 className="text-lg font-bold text-text-primary font-heading">Central de WhatsApp</h3>
                     <p className="text-xs text-text-secondary">
                       Tire suas dúvidas ou solicite informações diretamente no nosso canal oficial{whatsappDisplay ? ` — ${whatsappDisplay}` : ""}.
@@ -122,13 +126,13 @@ export default async function ContatoPage() {
                       </svg>
                     </a>
                   </AnimatedCard>
-                )}
-              </div>
-            </ScrollReveal>
+                </ScrollReveal>
+              )}
+            </div>
 
             {/* Direct Booking CTA */}
-            <ScrollReveal animation="slide-right">
-              <AnimatedCard className="rounded-3xl p-8 sm:p-10 text-center space-y-6">
+            <ScrollReveal animation="fade-up">
+              <AnimatedCard className="rounded-3xl p-8 sm:p-10 text-center space-y-6 max-w-2xl mx-auto">
                 <Badge tone="success">Agendamento 100% Online</Badge>
                 <h3 className="text-2xl font-black text-text-primary font-heading">Prefere agendar diretamente?</h3>
                 <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
@@ -136,7 +140,7 @@ export default async function ContatoPage() {
                 </p>
                 <div className="pt-4">
                   <Link href="/cliente/login">
-                    <Button size="lg" withArrow className="w-full font-bold py-4">
+                    <Button size="lg" withArrow className="w-full sm:w-auto font-bold py-4 px-10">
                       {CTA_PRIMARY}
                     </Button>
                   </Link>

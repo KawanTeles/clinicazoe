@@ -16,7 +16,7 @@ export async function getPublicWebsiteData() {
     admin.from("clinic_settings").select("*").eq("id", 1).single(),
     admin.from("specialties").select("*").eq("status", "active").order("name"),
     admin.from("professionals").select("*").eq("status", "active"),
-    admin.from("insurances").select("*").eq("status", "active").order("name"),
+    admin.from("insurances").select("*").eq("status", "active").order("display_order"),
   ]);
 
   const profIds = (professionals ?? []).map((p) => p.id);

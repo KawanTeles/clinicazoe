@@ -51,18 +51,18 @@ export default async function ClinicaPage() {
           <PageEntranceItem>
             <PageHero
               breadcrumbItems={breadcrumbItems}
-              title={`A ${clinic.name || "Espaço Zoe"}`}
+              title={clinic.name || "Espaço Zoe"}
               subtitle="Inovação, ética e o acolhimento humano no centro de tudo que fazemos."
             />
           </PageEntranceItem>
 
           {/* History & Mission */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <ScrollReveal animation="slide-left">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
+            <ScrollReveal animation="slide-left" className="h-full flex flex-col justify-center">
               <div className="space-y-6">
                 <Badge tone="success">Nossa História</Badge>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-text-primary font-heading">
-                  Uma trajetória construída com dedicação e rigor científico
+                  Uma trajetória construída com dedicação
                 </h2>
                 <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
                   {clinic.name || "Espaço Zoe"} nasceu em 2025 com o propósito de criar um espaço dedicado ao desenvolvimento humano e acolhimento de famílias.

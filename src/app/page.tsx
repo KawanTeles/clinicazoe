@@ -47,16 +47,10 @@ export default async function HomePage() {
               {/* Left Column Content - Staggered entrance */}
               <div className="lg:col-span-7 space-y-6">
                 <PageEntranceItem>
-                  <Badge tone="premium" className="px-4 py-1.5 text-xs font-bold border border-[rgba(110,231,183,0.3)] shadow-[0_0_15px_rgba(46,139,87,0.2)]">
-                    ✦ Referência em Medicina Integrada e Alta Complexidade
-                  </Badge>
-                </PageEntranceItem>
-
-                <PageEntranceItem>
                   <h1 className="tracking-hero text-4xl sm:text-5xl lg:text-6xl font-black text-text-primary leading-[1.12] font-heading">
                     Cuidados de saúde com{" "}
                     <span className="bg-gradient-to-r from-[#6EE7B7] via-[#5ED39D] to-[#2E8B57] bg-clip-text text-transparent drop-shadow-sm">
-                      tecnologia, excelência
+                      excelência
                     </span>{" "}
                     e acolhimento.
                   </h1>
@@ -254,7 +248,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
             <ScrollReveal animation="slide-left">
-              <Badge tone="premium" className="border border-[rgba(110,231,183,0.3)]">Especialidades Médicas</Badge>
+              <Badge tone="premium" className="border border-[rgba(110,231,183,0.3)]">Especialidades Terapêuticas</Badge>
               <h2 className="text-3xl font-extrabold text-text-primary mt-2 font-heading">
                 Atendimento integral para todas as idades
               </h2>

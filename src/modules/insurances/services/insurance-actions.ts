@@ -20,9 +20,17 @@ export async function createInsurance(name: string): Promise<{ error: string | n
   if (!trimmed) return { error: "Informe o nome do convênio." };
 
   const supabase = await createClient();
+  const { data: last } = await supabase
+    .from("insurances")
+    .select("display_order")
+    .order("display_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const nextOrder = (last?.display_order ?? -1) + 1;
+
   const { data, error } = await supabase
     .from("insurances")
-    .insert({ name: trimmed })
+    .insert({ name: trimmed, display_order: nextOrder })
     .select("id")
     .single();
 
@@ -76,6 +84,31 @@ export async function updateInsurance(
     entity: "insurances",
     entityId: id,
     metadata: input,
+  });
+
+  return { error: null };
+}
+
+export async function reorderInsurances(orderedIds: string[]): Promise<{ error: string | null }> {
+  const session = await requireAdmin();
+
+  const supabase = await createClient();
+  const results = await Promise.all(
+    orderedIds.map((id, index) => supabase.from("insurances").update({ display_order: index }).eq("id", id)),
+  );
+
+  const failed = results.find((result) => result.error);
+  if (failed?.error) {
+    return { error: "Não foi possível reordenar os convênios." };
+  }
+
+  revalidatePublicInsurancePages();
+
+  await logAudit({
+    actorId: session.user.id,
+    action: "insurance.reordered",
+    entity: "insurances",
+    metadata: { order: orderedIds },
   });
 
   return { error: null };
