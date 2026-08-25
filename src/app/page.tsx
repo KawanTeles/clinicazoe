@@ -96,7 +96,7 @@ export default async function HomePage() {
                     </div>
                     <div>
                       <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(110,231,183,0.2)]">
-                        <AnimatedCounter value="+20k" />
+                        <AnimatedCounter value="+15k" />
                       </p>
                       <p className="text-xs text-text-secondary mt-1 font-medium">Atendimentos realizados</p>
                     </div>
