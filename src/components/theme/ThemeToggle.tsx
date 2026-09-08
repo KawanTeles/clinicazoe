@@ -67,7 +67,7 @@ export function ThemeToggle({ className, showLabel = false }: ThemeToggleProps) 
           strokeLinecap="round"
           strokeLinejoin="round"
           className={cn(
-            "absolute transition-all duration-500 ease-[var(--ease-premium)] text-[#82A9A0]",
+            "absolute transition-all duration-500 ease-[var(--ease-premium)] text-[var(--primary)]",
             isDark
               ? "rotate-0 scale-100 opacity-100"
               : "-rotate-90 scale-0 opacity-0",

@@ -17,141 +17,143 @@
    ---------------------------------------------------------------------- */
 
 :root {
-  /* Default Dark Mode Palette */
-  --primary: #82A9A0;
-  --primary-hover: #98BCBD;
-  --primary-light: #A4C9C0;
-  --primary-dark: #6A8F87;
-  --primary-active: #6A8F87;
+  /* Default Dark Mode Palette (Zoe Identity) */
+  --primary: #70A99A; /* Green Zoe */
+  --primary-hover: #84b7a9;
+  --primary-light: #2b453e;
+  --primary-dark: #eef5f3;
+  --primary-active: #84b7a9;
 
-  --secondary: #1E685A;
-  --accent: #B8856A;
-  --accent-light: #ADA7B1;
+  --secondary: #8C83A6; /* Purple Zoe */
+  --accent: #339BAA; /* Teal */
+  --accent-light: #1d5059;
 
   /* Backgrounds & Surfaces */
-  --background: #111E1C;
-  --surface: #1E685A;
-  --card: #182B27;
-  --card-elevated: #213934;
-  --bg-header: rgba(17, 30, 28, 0.85);
-  --bg-footer: #0D1615;
+  --background: #121212;
+  --surface: #1a1a1a;
+  --card: #161616;
+  --card-elevated: #242424;
+  --bg-header: rgba(18, 18, 18, 0.85);
+  --bg-footer: #0d0d0d;
 
   /* Borders & Dividers */
-  --border: #213934;
-  --divider: rgba(249, 249, 247, 0.1);
+  --border: #2a2a2a;
+  --divider: rgba(255, 255, 255, 0.05);
 
   /* Typography Colors */
-  --text-primary: #F9F9F7;
-  --text-secondary: #C2D6D1;
-  --text-muted: #95B3AC;
-  --text-disabled: #637F7A;
+  --text-primary: #F5F5F5;
+  --text-secondary: #98999A; /* Gray */
+  --text-muted: #7a7a7a;
+  --text-disabled: #555555;
 
   /* Links & Badges */
-  --link: #82A9A0;
-  --link-hover: #A4C9C0;
-  --link-subtle: #95B3AC;
-  --badge-bg: rgba(130, 169, 160, 0.2);
-  --badge-text: #82A9A0;
-  --badge-neutral-bg: #213934;
-  --badge-neutral-text: #C2D6D1;
-  --badge-neutral-border: #314D47;
+  --link: #8C83A6;
+  --link-hover: #9c94b5;
+  --link-subtle: #70A99A;
+  --badge-bg: rgba(140, 131, 166, 0.2);
+  --badge-text: #8C83A6;
+  --badge-neutral-bg: #242424;
+  --badge-neutral-text: #98999A;
+  --badge-neutral-border: #333333;
 
   /* CTA hierarchy */
-  --cta-secondary-bg: #213934;
-  --cta-secondary-bg-hover: #314D47;
-  --cta-secondary-text: #82A9A0;
+  --cta-secondary-bg: #8C83A6;
+  --cta-secondary-bg-hover: #9c94b5;
+  --cta-secondary-text: #FFFFFF;
 
   /* Informative icons */
-  --icon-informative: #82A9A0;
+  --icon-informative: #70A99A;
 
   /* Status Colors */
-  --success: #82A9A0;
+  --success: #70A99A;
   --warning: #E0B221;
-  --danger: #B8856A;
+  --danger: #E06666;
 
   /* Shadows */
-  --shadow-button: 0 8px 20px rgba(30, 104, 90, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  --shadow-button: 0 8px 20px rgba(112, 169, 154, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.1);
   --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.25);
-  --shadow-card-hover: 0 20px 50px rgba(130, 169, 160, 0.15), 0 10px 20px rgba(130, 169, 160, 0.1);
-  --shadow-glow: 0 0 35px rgba(130, 169, 160, 0.15), inset 0 0 15px rgba(130, 169, 160, 0.1);
+  --shadow-card-hover: 0 20px 50px rgba(140, 131, 166, 0.15), 0 10px 20px rgba(140, 131, 166, 0.1);
+  --shadow-glow: 0 0 35px rgba(112, 169, 154, 0.15), inset 0 0 15px rgba(112, 169, 154, 0.1);
 
   /* Scrollbar Tokens */
-  --scrollbar-track: #111E1C;
-  --scrollbar-thumb: #213934;
-  --scrollbar-hover: #82A9A0;
+  --scrollbar-track: #121212;
+  --scrollbar-thumb: #2a2a2a;
+  --scrollbar-hover: #8C83A6;
 
   /* Selection Tokens */
-  --selection-bg: #82A9A0;
-  --selection-text: #111E1C;
+  --selection-bg: #8C83A6;
+  --selection-text: #FFFFFF;
 }
 
 /* Light Theme Variables (Espaço Zoe Premium Visual Hierarchy) */
 .light, [data-theme='light'] {
-  --primary: #1E685A;
-  --primary-hover: #154D42;
-  --primary-light: #82A9A0;
-  --primary-dark: #113F36;
-  --primary-active: #154D42;
+  /* Green Zoe */
+  --primary: #70A99A;
+  --primary-hover: #5d9283;
+  --primary-light: #eef5f3;
+  --primary-dark: #2b453e;
+  --primary-active: #5d9283;
 
-  --secondary: #82A9A0;
-  --accent: #B8856A;
-  --accent-light: #ADA7B1;
+  /* Purple Zoe */
+  --secondary: #8C83A6;
+  --accent: #339BAA; /* Teal */
+  --accent-light: #e6f3f5;
 
   /* Backgrounds & Surfaces */
-  --background: #F9F9F7;
+  --background: #FFFFFF;
   --surface: #FFFFFF;
   --card: #FFFFFF;
-  --card-elevated: #F2F2EF;
-  --bg-header: rgba(249, 249, 247, 0.90);
-  --bg-footer: #F2F2EF;
+  --card-elevated: #Fcfcfc;
+  --bg-header: rgba(255, 255, 255, 0.90);
+  --bg-footer: #Fcfcfc;
 
   /* Borders & Dividers */
-  --border: #E6E6E2;
-  --divider: rgba(68, 53, 44, 0.08);
+  --border: #E8E8E8;
+  --divider: rgba(152, 153, 154, 0.15);
 
   /* Typography Colors */
-  --text-primary: #1E685A; /* Verde Escuro for headings */
-  --text-secondary: #44352C; /* Marrom Terroso for body text */
-  --text-muted: #7A6960; /* Lighter brown/gray */
-  --text-disabled: #ADA7B1; /* Lilás */
+  --text-primary: #2C423C; /* Very Dark Green Zoe */
+  --text-secondary: #98999A; /* Gray */
+  --text-muted: #B0B0B0;
+  --text-disabled: #D1D1D1;
 
   /* Links & Badges */
-  --link: #1E685A;
-  --link-hover: #154D42;
-  --link-subtle: #82A9A0;
-  --badge-bg: rgba(130, 169, 160, 0.2);
-  --badge-text: #1E685A;
-  --badge-neutral-bg: #F2F2EF;
-  --badge-neutral-text: #44352C;
-  --badge-neutral-border: #E6E6E2;
+  --link: #8C83A6; /* Purple */
+  --link-hover: #756D8D;
+  --link-subtle: #70A99A; /* Green */
+  --badge-bg: #f2f1f5; /* Light purple */
+  --badge-text: #8C83A6;
+  --badge-neutral-bg: #F9F9F9;
+  --badge-neutral-text: #98999A;
+  --badge-neutral-border: #E8E8E8;
 
   /* CTA hierarchy */
-  --cta-secondary-bg: #82A9A0;
-  --cta-secondary-bg-hover: #72968E;
-  --cta-secondary-text: #1E685A;
+  --cta-secondary-bg: #8C83A6;
+  --cta-secondary-bg-hover: #756D8D;
+  --cta-secondary-text: #FFFFFF;
 
   /* Informative icons */
-  --icon-informative: #82A9A0;
+  --icon-informative: #70A99A;
 
   /* Status Colors */
-  --success: #82A9A0;
+  --success: #70A99A;
   --warning: #E0B221;
-  --danger: #B8856A;
+  --danger: #E06666;
 
   /* Shadows */
-  --shadow-button: 0 8px 20px rgba(30, 104, 90, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.5);
-  --shadow-card: 0 6px 24px rgba(68, 53, 44, 0.06), 0 2px 8px rgba(68, 53, 44, 0.03);
-  --shadow-card-hover: 0 20px 40px rgba(30, 104, 90, 0.12), 0 8px 16px rgba(30, 104, 90, 0.08);
-  --shadow-glow: 0 0 30px rgba(30, 104, 90, 0.08), inset 0 0 10px rgba(255, 255, 255, 0.5);
+  --shadow-button: 0 8px 20px rgba(112, 169, 154, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+  --shadow-card: 0 6px 24px rgba(152, 153, 154, 0.08), 0 2px 8px rgba(152, 153, 154, 0.04);
+  --shadow-card-hover: 0 20px 40px rgba(140, 131, 166, 0.12), 0 8px 16px rgba(140, 131, 166, 0.08);
+  --shadow-glow: 0 0 30px rgba(112, 169, 154, 0.12), inset 0 0 10px rgba(255, 255, 255, 0.5);
 
   /* Scrollbar Tokens */
-  --scrollbar-track: #F2F2EF;
-  --scrollbar-thumb: #ADA7B1;
-  --scrollbar-hover: #1E685A;
+  --scrollbar-track: #F9F9F9;
+  --scrollbar-thumb: #D1D1D1;
+  --scrollbar-hover: #98999A;
 
   /* Selection Tokens */
-  --selection-bg: #1E685A;
-  --selection-text: #F9F9F7;
+  --selection-bg: #eef5f3;
+  --selection-text: #2b453e;
 }
 
 /* Framer Motion já respeita prefers-reduced-motion via MotionConfig
@@ -336,7 +338,7 @@ body {
 
 /* Custom Gradients & Glassmorphism */
 .bg-gradient-forest {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
 }
 
 .bg-gradient-forest-subtle {

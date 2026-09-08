@@ -314,11 +314,11 @@ export function AdminShell({
                       className={cn(
                         "group relative flex h-8.5 items-center gap-2.5 rounded-lg px-2.5 text-xs font-semibold transition-all duration-150",
                         active
-                          ? "bg-[#1E685A]/10 text-[#154D42] dark:bg-[#82A9A0]/12 dark:text-[#A4C9C0] font-bold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-r-full before:bg-[#1E685A] dark:before:bg-[#82A9A0]"
+                          ? "bg-[var(--primary)]/10 text-[var(--primary-dark)] dark:bg-[var(--primary)]/12 dark:text-[var(--primary-light)] font-bold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-r-full before:bg-[var(--primary)] dark:before:bg-[var(--primary)]"
                           : "text-text-secondary hover:bg-card-elevated/60 hover:text-text-primary font-medium"
                       )}
                     >
-                      <span className={cn("relative shrink-0 flex items-center justify-center w-4 h-4 transition-transform group-hover:scale-105", active ? "text-[#1E685A] dark:text-[#82A9A0]" : "text-text-muted group-hover:text-text-primary")}>
+                      <span className={cn("relative shrink-0 flex items-center justify-center w-4 h-4 transition-transform group-hover:scale-105", active ? "text-[var(--primary)] dark:text-[var(--primary)]" : "text-text-muted group-hover:text-text-primary")}>
                         {renderNavIcon(item.icon)}
                         {item.href === "/requests" && pendingRequestsCount > 0 && (
                           <span className="absolute -right-1.5 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold text-white shadow-[0_0_6px_var(--danger)]">

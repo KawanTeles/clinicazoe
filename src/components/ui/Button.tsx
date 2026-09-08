@@ -23,15 +23,15 @@ const arrowCircleSize: Record<Size, string> = {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-gradient-to-b from-[#1E685A] to-[#154D42] text-[#F9F9F7] hover:from-[#154D42] hover:to-[#113F36] active:from-[#113F36] active:to-[#0C2D26] border border-[#1E685A]/40 shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-card-hover)]",
+    "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] border border-[var(--primary-hover)]/50 shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-card-hover)]",
   secondary:
-    "bg-[#82A9A0] text-[#1E685A] border border-[#82A9A0]/80 hover:bg-[#72968E] hover:border-[#72968E] dark:bg-[#213934] dark:text-[#82A9A0] dark:border-[#314D47] dark:hover:bg-[#314D47] shadow-xs",
+    "bg-[var(--secondary)] text-white border border-[var(--secondary)]/80 hover:bg-[#756D8D] hover:border-[#756D8D] dark:bg-[var(--secondary)] dark:text-white dark:border-[var(--secondary)] dark:hover:bg-[#756D8D] shadow-xs",
   outline:
-    "bg-transparent text-[#44352C] border border-[#E6E6E2] hover:bg-[#F2F2EF] hover:border-[#ADA7B1] dark:text-[#C2D6D1] dark:border-[#213934] dark:hover:bg-[#213934]",
+    "bg-transparent text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--card-elevated)] hover:border-[var(--text-muted)] dark:text-[var(--text-primary)] dark:border-[var(--border)] dark:hover:bg-[var(--card-elevated)]",
   ghost:
-    "bg-transparent text-[#5E4C41] border-0 hover:bg-[rgba(130,169,160,0.15)] hover:text-[#1E685A] dark:text-[#95B3AC] dark:hover:bg-[rgba(130,169,160,0.15)] dark:hover:text-[#82A9A0] active:bg-[rgba(130,169,160,0.25)]",
+    "bg-transparent text-[var(--text-secondary)] border-0 hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] dark:text-[var(--text-secondary)] dark:hover:bg-[var(--primary)]/10 dark:hover:text-[var(--primary)] active:bg-[var(--primary)]/20",
   danger:
-    "bg-[#B8856A]/10 text-[#B8856A] dark:text-[#D19B80] border border-[#B8856A]/30 hover:bg-[#B8856A] hover:text-[#F9F9F7] hover:border-[#B8856A] active:bg-[#A3735B]",
+    "bg-[var(--danger)]/10 text-[var(--danger)] dark:text-[var(--danger)] border border-[var(--danger)]/30 hover:bg-[var(--danger)] hover:text-white hover:border-[var(--danger)] active:bg-[var(--danger)]/80",
 };
 
 const sizeClasses: Record<Size, string> = {
@@ -57,7 +57,7 @@ export const Button = memo(
           transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
           onClick={onClick}
           className={cn(
-            "group inline-flex items-center justify-center text-center gap-2 font-semibold transition-colors duration-200 cursor-pointer transform-gpu will-change-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E685A] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none",
+            "group inline-flex items-center justify-center text-center gap-2 font-semibold transition-colors duration-200 cursor-pointer transform-gpu will-change-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none",
             variantClasses[variant],
             sizeClasses[size],
             className,

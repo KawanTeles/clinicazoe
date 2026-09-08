@@ -124,7 +124,7 @@ export default async function HomePage() {
                 <PageEntranceItem>
                   <h1 className="tracking-hero text-4xl sm:text-5xl lg:text-6xl font-black text-text-primary leading-[1.12] font-heading">
                     Cuidados de saúde com{" "}
-                    <span className="bg-gradient-to-r from-[#82A9A0] to-[#1E685A] bg-clip-text text-transparent drop-shadow-sm">
+                    <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent drop-shadow-sm">
                       excelência
                     </span>{" "}
                     e acolhimento.
