@@ -6,6 +6,8 @@ import { LocationSection } from "@/components/public/LocationSection";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
 import { EmptyState } from "@/components/public/EmptyState";
 import { SmartGrid } from "@/components/public/SmartGrid";
+import { Carousel, type CarouselSlide } from "@/components/public/Carousel";
+import { PhotoCarousel, type PhotoCarouselSlide } from "@/components/public/PhotoCarousel";
 import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
 import { AnimatedCounter } from "@/components/animation/AnimatedCounter";
 import { AnimatedCard } from "@/components/animation/AnimatedCard";
@@ -15,6 +17,7 @@ import { Button } from "@/components/ui/Button";
 import { CTA_PRIMARY, CTA_VIEW_ALL_PROFESSIONALS, CTA_VIEW_ALL_SPECIALTIES, CTA_VIEW_PROFILE } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
 import { buildEntitySlug } from "@/lib/slug";
+import { chunk } from "@/lib/utils/chunk";
 
 const TITLE = "Espaço Zoe — Medicina de Alta Performance e Saúde Integrada";
 const DESCRIPTION =
@@ -28,8 +31,80 @@ export const metadata = {
   twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
 
+const HOME_GALLERY_SLIDES: PhotoCarouselSlide[] = [
+  { id: "recepcao", caption: "Recepção" },
+  { id: "consultorios", caption: "Consultórios" },
+  { id: "sala-espera", caption: "Sala de Espera" },
+  { id: "area-externa", caption: "Área Externa" },
+];
+
 export default async function HomePage() {
   const { clinic, specialties, professionals } = await getPublicWebsiteData();
+
+  const specialtySlides: CarouselSlide[] = chunk(specialties, 4).map((group, pageIndex) => ({
+    id: `specialties-page-${pageIndex}`,
+    content: (
+      <SmartGrid
+        items={group}
+        minColumns={4}
+        gridClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+        emptyState={null}
+        renderItem={(spec, index) => (
+          <AnimatedCard key={spec.id} delayMs={index * 100} className="p-6 h-full flex flex-col justify-between">
+            <div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(110,231,183,0.25)] mb-4 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+              </div>
+              <h3 className="text-base font-bold text-text-primary font-heading">
+                {spec.name}
+              </h3>
+              <p className="mt-1 text-xs text-text-secondary">Atendimento presencial e online</p>
+            </div>
+            <Link href={`/especialidades/${buildEntitySlug(spec.name, spec.id)}`} className="mt-6 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
+              Ver detalhes →
+            </Link>
+          </AnimatedCard>
+        )}
+      />
+    ),
+  }));
+
+  const professionalSlides: CarouselSlide[] = chunk(professionals, 3).map((group, pageIndex) => ({
+    id: `professionals-page-${pageIndex}`,
+    content: (
+      <SmartGrid
+        items={group}
+        minColumns={3}
+        gridClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+        emptyState={null}
+        renderItem={(prof, index) => (
+          <AnimatedCard key={prof.id} delayMs={index * 150} className="p-6 h-full flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-4 mb-4">
+                <Avatar src={prof.avatarUrl} name={prof.fullName} size={64} rounded="2xl" />
+                <div>
+                  <h3 className="text-base font-bold text-text-primary font-heading">{prof.fullName}</h3>
+                  <Badge tone="premium" className="mt-1 text-[11px] border border-[rgba(110,231,183,0.25)]">{prof.specialtyName}</Badge>
+                  <p className="text-[11px] text-text-muted mt-1 font-mono">{prof.licenseNumber}</p>
+                </div>
+              </div>
+              <p className="text-xs text-text-secondary leading-relaxed line-clamp-3">{prof.bio}</p>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-border/70">
+              <Link href={`/profissionais/${buildEntitySlug(prof.fullName, prof.id)}`} className="block w-full">
+                <Button variant="secondary" size="sm" className="w-full font-bold border border-border/80 hover:border-primary/60">
+                  {CTA_VIEW_PROFILE}
+                </Button>
+              </Link>
+            </div>
+          </AnimatedCard>
+        )}
+      />
+    ),
+  }));
 
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
@@ -241,6 +316,27 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* SEÇÃO GALERIA DO ESPAÇO */}
+      <section className="py-24 border-t border-border/70 bg-surface/40">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <ScrollReveal animation="fade-up">
+              <Badge tone="premium" className="border border-[rgba(110,231,183,0.3)]">Nosso Espaço</Badge>
+              <h2 className="text-3xl font-extrabold text-text-primary mt-2 font-heading">
+                Conheça o Espaço Zoe
+              </h2>
+              <p className="text-sm text-text-secondary">
+                Ambientes pensados para o seu conforto e acolhimento em cada visita.
+              </p>
+            </ScrollReveal>
+          </div>
+
+          <ScrollReveal animation="scale-up">
+            <PhotoCarousel slides={HOME_GALLERY_SLIDES} className="max-w-4xl mx-auto" />
+          </ScrollReveal>
+        </div>
+      </section>
+
       {/* SEÇÃO PREVIEW ESPECIALIDADES */}
       <section className="py-24 border-t border-border/70 bg-surface/40">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
@@ -260,41 +356,20 @@ export default async function HomePage() {
             </ScrollReveal>
           </div>
 
-          <SmartGrid
-            items={specialties.slice(0, 4)}
-            minColumns={4}
-            gridClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-            emptyState={
-              <EmptyState
-                icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                  </svg>
-                }
-                title="Especialidades em cadastro"
-                description="Nosso quadro de especialidades está sendo atualizado. Entre em contato para saber mais."
-                action={{ label: "Falar com nossa equipe", href: "/contato" }}
-              />
-            }
-            renderItem={(spec, index) => (
-              <AnimatedCard key={spec.id} delayMs={index * 100} className="p-6 h-full flex flex-col justify-between">
-                <div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(110,231,183,0.25)] mb-4 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                    </svg>
-                  </div>
-                  <h3 className="text-base font-bold text-text-primary font-heading">
-                    {spec.name}
-                  </h3>
-                  <p className="mt-1 text-xs text-text-secondary">Atendimento presencial e online</p>
-                </div>
-                <Link href={`/especialidades/${buildEntitySlug(spec.name, spec.id)}`} className="mt-6 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
-                  Ver detalhes →
-                </Link>
-              </AnimatedCard>
-            )}
-          />
+          {specialties.length === 0 ? (
+            <EmptyState
+              icon={
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+              }
+              title="Especialidades em cadastro"
+              description="Nosso quadro de especialidades está sendo atualizado. Entre em contato para saber mais."
+              action={{ label: "Falar com nossa equipe", href: "/contato" }}
+            />
+          ) : (
+            <Carousel slides={specialtySlides} stageClassName="px-2 sm:px-12 py-4" ariaLabel="Especialidades em destaque" />
+          )}
         </div>
       </section>
 
@@ -313,47 +388,21 @@ export default async function HomePage() {
             </ScrollReveal>
           </div>
 
-          <SmartGrid
-            items={professionals.slice(0, 3)}
-            minColumns={3}
-            gridClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-            emptyState={
-              <EmptyState
-                icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                }
-                title="Equipe em formação"
-                description="Estamos ampliando nosso corpo clínico. Entre em contato para saber mais."
-                action={{ label: "Falar com nossa equipe", href: "/contato" }}
-              />
-            }
-            renderItem={(prof, index) => (
-              <AnimatedCard key={prof.id} delayMs={index * 150} className="p-6 h-full flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-4 mb-4">
-                    <Avatar src={prof.avatarUrl} name={prof.fullName} size={64} rounded="2xl" />
-                    <div>
-                      <h3 className="text-base font-bold text-text-primary font-heading">{prof.fullName}</h3>
-                      <Badge tone="premium" className="mt-1 text-[11px] border border-[rgba(110,231,183,0.25)]">{prof.specialtyName}</Badge>
-                      <p className="text-[11px] text-text-muted mt-1 font-mono">{prof.licenseNumber}</p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-text-secondary leading-relaxed line-clamp-3">{prof.bio}</p>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-border/70">
-                  <Link href={`/profissionais/${buildEntitySlug(prof.fullName, prof.id)}`} className="block w-full">
-                    <Button variant="secondary" size="sm" className="w-full font-bold border border-border/80 hover:border-primary/60">
-                      {CTA_VIEW_PROFILE}
-                    </Button>
-                  </Link>
-                </div>
-              </AnimatedCard>
-            )}
-          />
+          {professionals.length === 0 ? (
+            <EmptyState
+              icon={
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              }
+              title="Equipe em formação"
+              description="Estamos ampliando nosso corpo clínico. Entre em contato para saber mais."
+              action={{ label: "Falar com nossa equipe", href: "/contato" }}
+            />
+          ) : (
+            <Carousel slides={professionalSlides} stageClassName="px-2 sm:px-12 py-4" ariaLabel="Corpo clínico em destaque" />
+          )}
 
           <div className="text-center pt-4">
             <ScrollReveal animation="fade-up">

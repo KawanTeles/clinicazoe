@@ -6,10 +6,19 @@ import { PageHero } from "@/components/public/PageHero";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
 import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
 import { AnimatedCard } from "@/components/animation/AnimatedCard";
+import { PhotoCarousel, type PhotoCarouselSlide } from "@/components/public/PhotoCarousel";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { CTA_PRIMARY } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
 import { safeJsonLd } from "@/lib/json-ld";
+
+const ESTRUTURA_GALLERY_SLIDES: PhotoCarouselSlide[] = [
+  { id: "consultorio", caption: "Consultório Climatizado" },
+  { id: "central-diagnostica", caption: "Central Diagnóstica" },
+  { id: "esterilizacao", caption: "Sala de Esterilização" },
+  { id: "recepcao", caption: "Recepção Premium" },
+];
 
 export const metadata = {
   title: "Estrutura e Tecnologia — Espaço Zoe",
@@ -114,6 +123,25 @@ export default async function EstruturaPage() {
                   Ambiente receptivo, serviço de valete e acessibilidade universal para pessoas com mobilidade reduzida.
                 </p>
               </AnimatedCard>
+            </ScrollReveal>
+          </div>
+
+          {/* Galeria do Espaço */}
+          <div className="space-y-8">
+            <div className="text-center max-w-2xl mx-auto space-y-3">
+              <ScrollReveal animation="fade-up">
+                <Badge tone="premium" className="border border-[rgba(110,231,183,0.3)]">Galeria</Badge>
+                <h2 className="text-3xl font-extrabold text-text-primary mt-2 font-heading">
+                  Conheça nosso espaço físico
+                </h2>
+                <p className="text-sm text-text-secondary">
+                  Um passeio visual pelos ambientes projetados para o seu bem-estar.
+                </p>
+              </ScrollReveal>
+            </div>
+
+            <ScrollReveal animation="scale-up">
+              <PhotoCarousel slides={ESTRUTURA_GALLERY_SLIDES} className="max-w-4xl mx-auto" />
             </ScrollReveal>
           </div>
 
