@@ -1,20 +1,12 @@
-import Link from "next/link";
 import { getPublicWebsiteData } from "@/lib/public-queries";
 import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
 import { PageHero } from "@/components/public/PageHero";
-import { ScrollReveal } from "@/components/public/ScrollReveal";
 import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
-import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { EmptyState } from "@/components/public/EmptyState";
 import { SmartGrid } from "@/components/public/SmartGrid";
-import { Avatar } from "@/components/ui/Avatar";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { formatCurrency } from "@/lib/whatsapp";
-import { CTA_PRIMARY, CTA_VIEW_PROFILE } from "@/lib/cta-labels";
+import { ProfessionalCard } from "@/components/public/ProfessionalCard";
 import { SITE_URL } from "@/lib/site-url";
-import { buildEntitySlug } from "@/lib/slug";
 import { safeJsonLd } from "@/lib/json-ld";
 
 export const metadata = {
@@ -79,46 +71,7 @@ export default async function ProfissionaisPage() {
               />
             }
             renderItem={(prof, index) => (
-              <AnimatedCard key={prof.id} delayMs={index * 120} className="p-8 flex flex-col justify-between h-full rounded-3xl">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar src={prof.avatarUrl} name={prof.fullName} size={80} rounded="2xl" className="shadow-[0_4px_12px_rgba(54,99,84,0.15)] ring-2 ring-primary/10" />
-                    <div>
-                      <h3 className="text-xl font-bold text-text-primary font-heading">{prof.fullName}</h3>
-                      <Badge tone="success" className="mt-2 text-xs border border-[rgba(135,201,179,0.3)]">{prof.specialtyName}</Badge>
-                      <p className="text-xs text-text-muted mt-2 font-mono">{prof.licenseNumber}</p>
-                    </div>
-                  </div>
-
-                  <p className="text-sm text-text-secondary leading-relaxed line-clamp-4">{prof.bio}</p>
-
-                  <div className="p-5 rounded-2xl bg-card-elevated/50 border border-border/60 space-y-3 text-sm">
-                    <div className="flex justify-between items-center text-text-secondary">
-                      <span>Duração da consulta:</span>
-                      <span className="font-bold text-text-primary">{prof.consultationDuration} min</span>
-                    </div>
-                    {clinic.price_particular_consultation != null && (
-                      <div className="flex justify-between items-center text-text-secondary">
-                        <span>Valor Particular:</span>
-                        <span className="font-bold text-[var(--link)]">{formatCurrency(clinic.price_particular_consultation)}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-8 pt-4 border-t border-border/60 space-y-3">
-                  <Link href={`/profissionais/${buildEntitySlug(prof.fullName, prof.id)}`} className="block w-full">
-                    <Button variant="secondary" className="w-full font-bold" size="sm">
-                      {CTA_VIEW_PROFILE}
-                    </Button>
-                  </Link>
-                  <Link href="/agendar" className="block w-full">
-                    <Button variant="outline" className="w-full font-bold" size="sm" withArrow>
-                      {CTA_PRIMARY}
-                    </Button>
-                  </Link>
-                </div>
-              </AnimatedCard>
+              <ProfessionalCard key={prof.id} professional={prof} delayMs={index * 120} avatarSize={112} showBookCta />
             )}
           />
         </PageEntrance>

@@ -8,6 +8,8 @@ import { getHolidays } from "@/modules/holidays/services/holiday-queries";
 import { HolidayManager } from "@/modules/holidays/components/HolidayManager";
 import { getGalleryImages } from "@/modules/gallery/services/gallery-queries";
 import { GalleryManager } from "@/modules/gallery/components/GalleryManager";
+import { getProfessionalsForHomeFeature } from "@/modules/professionals/services/professional-queries";
+import { HomeFeaturedProfessionalsManager } from "@/modules/professionals/components/HomeFeaturedProfessionalsManager";
 import { getAISettingsForAdmin } from "@/modules/ai/services/ai-settings-queries";
 import { AISettingsCard } from "@/modules/ai/components/AISettingsCard";
 import { getAIUsageStats } from "@/modules/ai/services/usage-stats-queries";
@@ -27,10 +29,11 @@ export default async function SettingsPage() {
 
   const canManageAI = await can(session.profile.role, "ai.settings.manage");
 
-  const [settings, holidays, galleryImages, aiSettings, aiUsageStats] = await Promise.all([
+  const [settings, holidays, galleryImages, homeFeaturedProfessionals, aiSettings, aiUsageStats] = await Promise.all([
     getClinicSettings(),
     getHolidays(),
     getGalleryImages(),
+    getProfessionalsForHomeFeature(),
     canManageAI ? getAISettingsForAdmin() : Promise.resolve(null),
     canManageAI ? getAIUsageStats() : Promise.resolve(null),
   ]);
@@ -75,6 +78,22 @@ export default async function SettingsPage() {
               As fotos adicionadas aqui aparecem automaticamente no carrossel do site público (home e Estrutura).
             </p>
             <GalleryManager images={galleryImages} />
+          </CardContent>
+        </Card>
+      )}
+
+      {canManage && (
+        <Card className="mt-2">
+          <CardHeader className="py-3.5 px-5">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
+              ⭐ Profissionais em Destaque (Home)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-5 flex flex-col gap-4">
+            <p className="text-xs text-text-secondary">
+              Escolha quem aparece na seção de corpo clínico da home e em que ordem. Os demais continuam listados normalmente em /profissionais.
+            </p>
+            <HomeFeaturedProfessionalsManager professionals={homeFeaturedProfessionals} />
           </CardContent>
         </Card>
       )}

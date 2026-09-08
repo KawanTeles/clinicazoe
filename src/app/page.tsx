@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { getPublicWebsiteData } from "@/lib/public-queries";
 import { PublicHeader } from "@/components/public/PublicHeader";
@@ -5,19 +6,17 @@ import { PublicFooter } from "@/components/public/PublicFooter";
 import { LocationSection } from "@/components/public/LocationSection";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
 import { EmptyState } from "@/components/public/EmptyState";
-import { SmartGrid } from "@/components/public/SmartGrid";
-import { Carousel, type CarouselSlide } from "@/components/public/Carousel";
 import { PhotoCarousel, type PhotoCarouselSlide } from "@/components/public/PhotoCarousel";
+import { MarqueeCarousel, type MarqueeSlide } from "@/components/public/MarqueeCarousel";
 import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
 import { AnimatedCounter } from "@/components/animation/AnimatedCounter";
 import { AnimatedCard } from "@/components/animation/AnimatedCard";
-import { Avatar } from "@/components/ui/Avatar";
+import { FeaturedProfessionalCard } from "@/components/public/FeaturedProfessionalCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { CTA_PRIMARY, CTA_VIEW_ALL_PROFESSIONALS, CTA_VIEW_ALL_SPECIALTIES, CTA_VIEW_PROFILE } from "@/lib/cta-labels";
+import { CTA_PRIMARY, CTA_VIEW_ALL_PROFESSIONALS, CTA_VIEW_ALL_SPECIALTIES } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
 import { buildEntitySlug } from "@/lib/slug";
-import { chunk } from "@/lib/utils/chunk";
 
 const TITLE = "Espaço Zoe — Medicina de Alta Performance e Saúde Integrada";
 const DESCRIPTION =
@@ -40,8 +39,102 @@ const HOME_GALLERY_PLACEHOLDER_SLIDES: PhotoCarouselSlide[] = [
   { id: "area-externa", caption: "Área Externa" },
 ];
 
+// Texto placeholder da Jornada do Paciente — estrutura aprovada, mas a
+// redação ainda deve ser revisada/ajustada pelo Espaço Zoe antes de publicar.
+const PATIENT_JOURNEY_STEPS: { title: string; description: string; note: string }[] = [
+  {
+    title: "Contato inicial e acolhimento",
+    description:
+      "Você entra em contato pelo WhatsApp ou telefone. Nossa equipe tira as primeiras dúvidas e agenda uma conversa inicial de escuta.",
+    note: "Um espaço aberto para ouvir a família e entender as necessidades da criança.",
+  },
+  {
+    title: "Avaliação multidisciplinar",
+    description:
+      "Nossa equipe realiza uma avaliação inicial para compreender o perfil de desenvolvimento e as demandas específicas da criança.",
+    note: "Um olhar integrado sobre comunicação, comportamento e desenvolvimento.",
+  },
+  {
+    title: "Plano terapêutico individualizado",
+    description:
+      "Construímos um plano de atendimento sob medida, alinhando especialidades, frequência e metas terapêuticas com a família.",
+    note: "Planejamento pensado para a realidade e o ritmo de cada família.",
+  },
+  {
+    title: "Acompanhamento contínuo",
+    description:
+      "Início dos atendimentos com acompanhamento constante da evolução, em parceria com a família e, quando necessário, com a escola.",
+    note: "Evolução acompanhada de perto, com comunicação transparente.",
+  },
+];
+
+// "Por que escolher" — condensado a partir dos Valores já publicados em
+// /clinica (mesmo conteúdo, redação mais curta para o formato de card).
+const WHY_CHOOSE_ZOE_ITEMS: { title: string; description: string; icon: ReactNode }[] = [
+  {
+    title: "Acolhimento",
+    description: "Cada família é recebida com empatia, escuta e cuidado, desde o primeiro contato.",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+        <line x1="9" y1="9" x2="9.01" y2="9" />
+        <line x1="15" y1="9" x2="15.01" y2="9" />
+      </svg>
+    ),
+  },
+  {
+    title: "Respeito ao ritmo da criança",
+    description: "Acreditamos no tempo, no ritmo e na singularidade de cada criança — sem fórmulas prontas.",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 7V4a1 1 0 0 1 1-1h4a2 2 0 1 0 4 0h4a1 1 0 0 1 1 1v4a2 2 0 1 1 0 4v4a1 1 0 0 1-1 1h-4a2 2 0 1 0-4 0H5a1 1 0 0 1-1-1v-4a2 2 0 1 1 0-4Z" />
+      </svg>
+    ),
+  },
+  {
+    title: "Cuidado com quem cuida",
+    description: "Fortalecemos profissionais e famílias com suporte contínuo, não só a criança.",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  {
+    title: "Excelência com leveza",
+    description: "Qualidade técnica e científica, sem perder a humanidade no dia a dia do atendimento.",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3v18" />
+        <path d="M5 8l-3 5a5 5 0 0 0 6 0l-3-5" />
+        <path d="M19 8l-3 5a5 5 0 0 0 6 0l-3-5" />
+        <path d="M5 8h14" />
+      </svg>
+    ),
+  },
+  {
+    title: "Compromisso com a transformação",
+    description: "Cada atendimento é pensado como um passo real na evolução e autonomia da criança.",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M23 6l-9.5 9.5-5-5L1 18" />
+        <path d="M17 6h6v6" />
+      </svg>
+    ),
+  },
+];
+
 export default async function HomePage() {
-  const { clinic, specialties, professionals, galleryImages } = await getPublicWebsiteData();
+  const { clinic, specialties, professionals, featuredProfessionals, galleryImages } = await getPublicWebsiteData();
+
+  // Sem curadoria manual ainda (Configurações → Profissionais em Destaque),
+  // cai para os primeiros por ordem alfabética — a seção nunca fica vazia
+  // só porque ninguém configurou o destaque.
+  const homeProfessionals = featuredProfessionals.length > 0 ? featuredProfessionals : professionals.slice(0, 4);
 
   const gallerySlides: PhotoCarouselSlide[] =
     galleryImages.length > 0
@@ -53,70 +146,84 @@ export default async function HomePage() {
         }))
       : HOME_GALLERY_PLACEHOLDER_SLIDES;
 
-  const specialtySlides: CarouselSlide[] = chunk(specialties, 4).map((group, pageIndex) => ({
-    id: `specialties-page-${pageIndex}`,
+  const specialtySlides: MarqueeSlide[] = specialties.map((spec) => ({
+    id: spec.id,
     content: (
-      <SmartGrid
-        items={group}
-        minColumns={4}
-        gridClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-        emptyState={null}
-        renderItem={(spec, index) => (
-          <AnimatedCard key={spec.id} delayMs={index * 100} className="p-6 h-full flex flex-col justify-between">
-            <div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(130,169,160,0.25)] mb-4 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                </svg>
-              </div>
-              <h3 className="text-base font-bold text-text-primary font-heading">
-                {spec.name}
-              </h3>
-              <p className="mt-1 text-xs text-text-secondary">Atendimento presencial e online</p>
-            </div>
-            <Link href={`/especialidades/${buildEntitySlug(spec.name, spec.id)}`} className="mt-6 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
-              Ver detalhes →
-            </Link>
-          </AnimatedCard>
-        )}
-      />
+      <AnimatedCard className="p-6 h-full flex flex-col justify-between">
+        <div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(130,169,160,0.25)] mb-4 shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+            </svg>
+          </div>
+          <h3 className="text-base font-bold text-text-primary font-heading">
+            {spec.name}
+          </h3>
+          {spec.description && (
+            <p className="mt-1 text-xs text-text-secondary leading-relaxed line-clamp-3">{spec.description}</p>
+          )}
+        </div>
+        <Link href={`/especialidades/${buildEntitySlug(spec.name, spec.id)}`} className="mt-6 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
+          Ver detalhes →
+        </Link>
+      </AnimatedCard>
     ),
   }));
 
-  const professionalSlides: CarouselSlide[] = chunk(professionals, 3).map((group, pageIndex) => ({
-    id: `professionals-page-${pageIndex}`,
-    content: (
-      <SmartGrid
-        items={group}
-        minColumns={3}
-        gridClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-        emptyState={null}
-        renderItem={(prof, index) => (
-          <AnimatedCard key={prof.id} delayMs={index * 150} className="p-6 h-full flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-4 mb-4">
-                <Avatar src={prof.avatarUrl} name={prof.fullName} size={64} rounded="2xl" />
-                <div>
-                  <h3 className="text-base font-bold text-text-primary font-heading">{prof.fullName}</h3>
-                  <Badge tone="premium" className="mt-1 text-[11px] border border-[rgba(130,169,160,0.25)]">{prof.specialtyName}</Badge>
-                  <p className="text-[11px] text-text-muted mt-1 font-mono">{prof.licenseNumber}</p>
-                </div>
-              </div>
-              <p className="text-xs text-text-secondary leading-relaxed line-clamp-3">{prof.bio}</p>
-            </div>
+  const locationChipLabel = [
+    clinic.address_neighborhood,
+    [clinic.address_city, clinic.address_state].filter(Boolean).join("/"),
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
-            <div className="mt-6 pt-4 border-t border-border/70">
-              <Link href={`/profissionais/${buildEntitySlug(prof.fullName, prof.id)}`} className="block w-full">
-                <Button variant="secondary" size="sm" className="w-full font-bold border border-border/80 hover:border-primary/60">
-                  {CTA_VIEW_PROFILE}
-                </Button>
-              </Link>
-            </div>
-          </AnimatedCard>
-        )}
-      />
-    ),
-  }));
+  // FAQ — conjunto fixo revisável no código (sem admin nesta primeira
+  // versão). Respostas com dado real (especialidades, endereço) puxam de
+  // getPublicWebsiteData() ou linkam para a página com a informação completa,
+  // em vez de duplicar texto fixo.
+  const specialtyNamesList = specialties.length > 0 ? specialties.map((s) => s.name).join(", ") : null;
+
+  const faqItems: { question: string; answer: ReactNode }[] = [
+    {
+      question: "Quais especialidades a Espaço Zoe oferece?",
+      answer: specialtyNamesList
+        ? `Nosso corpo clínico multidisciplinar atua em: ${specialtyNamesList}. Veja detalhes de cada especialidade na página de Especialidades.`
+        : "Nosso quadro de especialidades está sendo atualizado. Entre em contato para saber mais.",
+    },
+    {
+      question: "Como faço para agendar minha primeira consulta?",
+      answer:
+        "Você pode agendar diretamente pelo botão \"Agendar Atendimento\" no site, ou falar com nossa equipe pelo WhatsApp para tirar dúvidas antes de marcar.",
+    },
+    {
+      question: "A Espaço Zoe atende por convênio?",
+      answer: (
+        <>
+          Trabalhamos com convênios e também atendimento particular.{" "}
+          <Link href="/convenios" className="font-bold text-[var(--link)] hover:underline">
+            Veja a lista completa de convênios aceitos →
+          </Link>
+        </>
+      ),
+    },
+    {
+      question: "Qual o endereço e horário de funcionamento?",
+      answer: (
+        <>
+          {clinic.address ? `Estamos localizados em ${clinic.address}. ` : ""}
+          Confira o mapa, os horários detalhados e como chegar na página de{" "}
+          <Link href="/contato" className="font-bold text-[var(--link)] hover:underline">
+            Contato →
+          </Link>
+        </>
+      ),
+    },
+    {
+      question: "Como funciona o acompanhamento da evolução da criança?",
+      answer:
+        "Após o início dos atendimentos, a equipe acompanha a evolução de perto, com comunicação transparente com a família e, quando necessário, articulação com a escola.",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
@@ -202,6 +309,54 @@ export default async function HomePage() {
                       </p>
                       <p className="text-xs text-text-secondary mt-1 font-medium">Especialistas certificados</p>
                     </div>
+                  </div>
+                </PageEntranceItem>
+
+                {/* Highlight Chips */}
+                <PageEntranceItem>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-3 rounded-2xl border border-[rgba(130,169,160,0.25)] bg-card/70 px-4 py-2.5">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card text-[var(--link)] border border-[rgba(130,169,160,0.3)]">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 9.5 12 3l9 6.5" />
+                          <path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-text-primary leading-tight">Ambiente adaptado</p>
+                        <p className="text-[11px] text-text-secondary leading-tight">Salas terapêuticas</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 rounded-2xl border border-[rgba(130,169,160,0.25)] bg-card/70 px-4 py-2.5">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card text-[var(--link)] border border-[rgba(130,169,160,0.3)]">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="9" cy="7" r="3.5" />
+                          <path d="M16.5 7.5a3 3 0 1 0 0-6" />
+                          <path d="M2 20v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1" />
+                          <path d="M17 14.5A5 5 0 0 1 21 19v1" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-text-primary leading-tight">Visão multidisciplinar</p>
+                        <p className="text-[11px] text-text-secondary leading-tight">Atendimento integrado</p>
+                      </div>
+                    </div>
+
+                    {locationChipLabel && (
+                      <div className="flex items-center gap-3 rounded-2xl border border-[rgba(130,169,160,0.25)] bg-card/70 px-4 py-2.5">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card text-[var(--link)] border border-[rgba(130,169,160,0.3)]">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 10c0 6.5-9 12-9 12s-9-5.5-9-12a9 9 0 0 1 18 0Z" />
+                            <circle cx="12" cy="10" r="3" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-text-primary leading-tight">Onde estamos</p>
+                          <p className="text-[11px] text-text-secondary leading-tight">{locationChipLabel}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </PageEntranceItem>
               </div>
@@ -357,6 +512,33 @@ export default async function HomePage() {
           <ScrollReveal animation="scale-up">
             <PhotoCarousel slides={gallerySlides} className="max-w-4xl mx-auto" />
           </ScrollReveal>
+
+          <ScrollReveal animation="fade-up">
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <div className="flex items-center gap-2.5 rounded-full border border-[rgba(130,169,160,0.25)] bg-card px-4 py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--link)]">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                <span className="text-xs font-bold text-text-primary">Segurança sensorial</span>
+              </div>
+
+              <div className="flex items-center gap-2.5 rounded-full border border-[rgba(130,169,160,0.25)] bg-card px-4 py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--link)]">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                <span className="text-xs font-bold text-text-primary">Materiais certificados</span>
+              </div>
+
+              <div className="flex items-center gap-2.5 rounded-full border border-[rgba(130,169,160,0.25)] bg-card px-4 py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--link)]">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9 12l2 2 4-4" />
+                </svg>
+                <span className="text-xs font-bold text-text-primary">Fácil acesso</span>
+              </div>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -393,7 +575,7 @@ export default async function HomePage() {
               action={{ label: "Falar com nossa equipe", href: "/contato" }}
             />
           ) : (
-            <Carousel slides={specialtySlides} stageClassName="px-2 sm:px-12 py-4" ariaLabel="Especialidades em destaque" />
+            <MarqueeCarousel slides={specialtySlides} cardClassName="w-64 sm:w-72" ariaLabel="Especialidades em destaque" />
           )}
         </div>
       </section>
@@ -428,7 +610,13 @@ export default async function HomePage() {
               action={{ label: "Falar com nossa equipe", href: "/contato" }}
             />
           ) : (
-            <Carousel slides={professionalSlides} stageClassName="px-2 sm:px-12 py-4" ariaLabel="Corpo clínico em destaque" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {homeProfessionals.map((prof, index) => (
+                <ScrollReveal key={prof.id} animation="fade-up" delayMs={index * 100}>
+                  <FeaturedProfessionalCard professional={prof} />
+                </ScrollReveal>
+              ))}
+            </div>
           )}
 
           <div className="text-center pt-4">
@@ -440,6 +628,135 @@ export default async function HomePage() {
               </Link>
             </ScrollReveal>
           </div>
+        </div>
+      </section>
+
+      {/* SEÇÃO JORNADA DO PACIENTE */}
+      <section className="py-24 border-t border-border/70 bg-background relative overflow-hidden">
+        {/* Soft floating organic shape in background */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[350px] w-[600px] rounded-full bg-[var(--primary)]/5 blur-[100px] animate-float-organic-slow pointer-events-none" />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16 relative z-10">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <ScrollReveal animation="fade-up">
+              <Badge tone="premium" className="border border-[var(--border)]">Jornada do Paciente</Badge>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--primary)] mt-2 font-heading">
+                Como funciona o atendimento
+              </h2>
+              <p className="text-sm sm:text-base text-text-secondary">
+                Um processo estruturado, com transparência em cada etapa, desde o primeiro contato até o acompanhamento contínuo.
+              </p>
+            </ScrollReveal>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {PATIENT_JOURNEY_STEPS.map((step, index) => (
+              <AnimatedCard key={step.title} delayMs={index * 120} className="p-6 sm:p-7 h-full flex flex-col">
+                <span className="text-3xl font-black text-[var(--primary)]/25 font-heading">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <h3 className="mt-3 text-base font-bold text-text-primary font-heading">{step.title}</h3>
+                <p className="mt-2 text-xs text-text-secondary leading-relaxed flex-1">{step.description}</p>
+                <p className="mt-4 pt-4 border-t border-border/60 text-[11px] text-[var(--link)] font-medium leading-relaxed">
+                  {step.note}
+                </p>
+              </AnimatedCard>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SEÇÃO POR QUE ESCOLHER */}
+      <section className="py-24 border-t border-border/70 bg-[var(--secondary-light)] relative overflow-hidden">
+        {/* Soft floating organic shape in background */}
+        <div className="absolute bottom-0 left-[10%] h-[350px] w-[350px] rounded-full bg-[var(--secondary)]/5 blur-[80px] animate-float-organic-slow pointer-events-none" />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16 relative z-10">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <ScrollReveal animation="fade-up">
+              <Badge tone="success" className="border border-[var(--border)] bg-white/50">Nossos Valores</Badge>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--primary)] mt-2 font-heading">
+                Por que escolher a Espaço Zoe
+              </h2>
+              <p className="text-sm sm:text-base text-text-secondary">
+                Princípios que guiam cada atendimento, do primeiro contato ao acompanhamento contínuo.
+              </p>
+            </ScrollReveal>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {WHY_CHOOSE_ZOE_ITEMS.map((item, index) => (
+              <AnimatedCard key={item.title} delayMs={index * 100} className="p-6 sm:p-7 h-full">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(130,169,160,0.3)] shadow-[0_0_15px_rgba(130,169,160,0.15)] mb-5">
+                  {item.icon}
+                </div>
+                <h3 className="text-base font-bold text-[var(--primary)] font-heading">{item.title}</h3>
+                <p className="mt-2 text-xs text-text-secondary leading-relaxed">{item.description}</p>
+              </AnimatedCard>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SEÇÃO COMO CHEGAR / LOCALIZAÇÃO */}
+      <LocationSection
+        clinicName={clinic.name}
+        address={clinic.address}
+        whatsappNumber={clinic.whatsapp_number}
+        email={clinic.email}
+        businessHours={clinic.business_hours}
+        holidayOpen={clinic.holiday_open}
+        holidayOpenTime={clinic.holiday_open_time}
+        holidayCloseTime={clinic.holiday_close_time}
+        mapsUrl={clinic.maps_url}
+        latitude={clinic.latitude}
+        longitude={clinic.longitude}
+      />
+
+      {/* SEÇÃO FAQ */}
+      <section className="py-24 border-t border-border/70 bg-surface/40">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <ScrollReveal animation="fade-up">
+              <Badge tone="premium" className="border border-[var(--border)]">Dúvidas Frequentes</Badge>
+              <h2 className="text-3xl font-extrabold text-[var(--primary)] mt-2 font-heading">
+                Perguntas & Respostas
+              </h2>
+              <p className="text-sm text-text-secondary">
+                Respostas claras para as principais dúvidas sobre o atendimento na Espaço Zoe.
+              </p>
+            </ScrollReveal>
+          </div>
+
+          <ScrollReveal animation="fade-up">
+            <div className="space-y-4">
+              {faqItems.map((item) => (
+                <details
+                  key={item.question}
+                  className="group rounded-2xl border border-border/70 bg-card px-6 py-5 open:shadow-card transition-shadow"
+                >
+                  <summary className="flex items-center justify-between gap-4 cursor-pointer list-none font-bold text-sm text-text-primary [&::-webkit-details-marker]:hidden">
+                    {item.question}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="shrink-0 text-[var(--link)] transition-transform duration-300 group-open:rotate-180"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </summary>
+                  <div className="mt-4 pt-4 border-t border-border/60 text-xs sm:text-sm text-text-secondary leading-relaxed">
+                    {item.answer}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -469,21 +786,6 @@ export default async function HomePage() {
           </ScrollReveal>
         </div>
       </section>
-
-      {/* SEÇÃO COMO CHEGAR / LOCALIZAÇÃO */}
-      <LocationSection
-        clinicName={clinic.name}
-        address={clinic.address}
-        whatsappNumber={clinic.whatsapp_number}
-        email={clinic.email}
-        businessHours={clinic.business_hours}
-        holidayOpen={clinic.holiday_open}
-        holidayOpenTime={clinic.holiday_open_time}
-        holidayCloseTime={clinic.holiday_close_time}
-        mapsUrl={clinic.maps_url}
-        latitude={clinic.latitude}
-        longitude={clinic.longitude}
-      />
       </main>
 
       <PublicFooter

@@ -32,23 +32,43 @@ export async function getPublicWebsiteData() {
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
 
-  const fullProfessionals = await Promise.all(
-    (professionals ?? []).map(async (prof) => {
-      const profile = profileMap.get(prof.id);
-      const avatarUrl = profile ? await getAvatarSignedUrl(admin, profile.avatar_path) : null;
-      const spec = (specialties ?? []).find((s) => s.id === prof.specialty_id);
+  const homeOrderById = new Map((professionals ?? []).map((p) => [p.id, p.home_display_order]));
 
-      return {
-        id: prof.id,
-        fullName: profile?.full_name ?? "Profissional de Saúde",
-        specialtyName: spec?.name ?? "Clínica Geral",
-        licenseNumber: prof.license_number ?? "CRM/Registro Ativo",
-        bio: prof.bio || "Especialista qualificado comprometido com a excelência no atendimento e saúde do paciente.",
-        avatarUrl,
-        consultationDuration: prof.consultation_duration_minutes,
-      };
-    })
-  );
+  const fullProfessionals = (
+    await Promise.all(
+      (professionals ?? []).map(async (prof) => {
+        const profile = profileMap.get(prof.id);
+        // Defesa em profundidade: professionals.status=active não garante
+        // que o profile por trás ainda seja um profissional ativo (ex:
+        // promovido a admin sem passar por syncProfessionalStatus, ou role
+        // alterada direto no banco). Sem isso, um recepcionista/admin com
+        // linha residual em professionals apareceria no site público.
+        if (!profile || profile.role !== "profissional" || profile.status !== "active") {
+          return null;
+        }
+
+        const avatarUrl = await getAvatarSignedUrl(admin, profile.avatar_path);
+        const spec = (specialties ?? []).find((s) => s.id === prof.specialty_id);
+
+        return {
+          id: prof.id,
+          fullName: profile.full_name ?? "Profissional de Saúde",
+          specialtyName: spec?.name ?? "Clínica Geral",
+          licenseNumber: prof.license_number ?? "CRM/Registro Ativo",
+          bio: prof.bio || "Especialista qualificado comprometido com a excelência no atendimento e saúde do paciente.",
+          avatarUrl,
+        };
+      })
+    )
+  ).filter((prof): prof is NonNullable<typeof prof> => prof !== null);
+
+  // Curadoria manual (Configurações → Profissionais em Destaque) de quem
+  // aparece na home — subconjunto de fullProfessionals, ordenado por
+  // home_display_order. A home cai para os primeiros N por nome quando não
+  // há curadoria ainda (ver src/app/page.tsx), então essa lista pode vir vazia.
+  const featuredProfessionals = fullProfessionals
+    .filter((prof) => homeOrderById.get(prof.id) != null)
+    .sort((a, b) => (homeOrderById.get(a.id) as number) - (homeOrderById.get(b.id) as number));
 
   return {
     clinic: clinic
@@ -92,6 +112,7 @@ export async function getPublicWebsiteData() {
         },
     specialties: specialties ?? [],
     professionals: fullProfessionals,
+    featuredProfessionals,
     insurances: insurances ?? [],
     galleryImages: (galleryImages ?? []).map((image) => ({
       id: image.id,

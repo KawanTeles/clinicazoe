@@ -97,6 +97,18 @@ export default async function EspecialidadesPage() {
                     <p className="text-xs text-text-secondary leading-relaxed">
                       Atendimento preventivo, diagnóstico avançado e acompanhamento personalizado nesta especialidade.
                     </p>
+                    {spec.highlights && spec.highlights.length > 0 && (
+                      <ul className="space-y-1.5">
+                        {spec.highlights.map((item) => (
+                          <li key={item} className="flex items-start gap-1.5 text-xs text-text-secondary leading-snug">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5 text-[var(--link)]">
+                              <path d="M20 6 9 17l-5-5" />
+                            </svg>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     <Link
                       href={`/especialidades/${buildEntitySlug(spec.name, spec.id)}`}
                       className="inline-flex items-center gap-1 text-xs font-bold text-[var(--link)] hover:underline"

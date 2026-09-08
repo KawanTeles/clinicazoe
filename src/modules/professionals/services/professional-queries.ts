@@ -48,6 +48,50 @@ export async function getActiveProfessionals() {
   );
 }
 
+/** Para o gerenciador de "Profissionais em Destaque" na home (Configurações). */
+export async function getProfessionalsForHomeFeature() {
+  const supabase = await createClient();
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, full_name")
+    .eq("role", "profissional")
+    .eq("status", "active")
+    .order("full_name");
+
+  if (!profiles || profiles.length === 0) return [];
+
+  const ids = profiles.map((p) => p.id);
+  const { data: professionals } = await supabase
+    .from("professionals")
+    .select("id, specialty_id, home_display_order")
+    .in("id", ids)
+    .eq("status", "active");
+
+  const specialtyIds = Array.from(
+    new Set((professionals ?? []).map((p) => p.specialty_id).filter((id): id is string => Boolean(id))),
+  );
+  const { data: specialties } =
+    specialtyIds.length > 0
+      ? await supabase.from("specialties").select("id, name").in("id", specialtyIds)
+      : { data: [] as { id: string; name: string }[] };
+  const specialtyNameById = new Map((specialties ?? []).map((s) => [s.id, s.name]));
+
+  const professionalById = new Map((professionals ?? []).map((p) => [p.id, p]));
+
+  return profiles
+    .filter((profile) => professionalById.has(profile.id))
+    .map((profile) => {
+      const professional = professionalById.get(profile.id)!;
+      return {
+        id: profile.id,
+        fullName: profile.full_name,
+        specialtyName: professional.specialty_id ? specialtyNameById.get(professional.specialty_id) ?? null : null,
+        homeDisplayOrder: professional.home_display_order,
+      };
+    });
+}
+
 export async function getActiveProfessional(id: string) {
   const supabase = await createClient();
 

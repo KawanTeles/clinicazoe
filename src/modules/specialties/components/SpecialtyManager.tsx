@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import type { Database } from "@/lib/supabase/types";
@@ -21,10 +22,13 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
   const confirm = useConfirm();
   const toast = useToast();
   const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [editingHighlights, setEditingHighlights] = useState("");
+  const [editingDescription, setEditingDescription] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
 
   async function handleCreate(event: FormEvent) {
@@ -33,7 +37,7 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
     setError(null);
     setCreating(true);
 
-    const result = await createSpecialty(newName);
+    const result = await createSpecialty(newName, newDescription);
     setCreating(false);
 
     if (result.error) {
@@ -42,6 +46,7 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
     }
 
     setNewName("");
+    setNewDescription("");
     toast.success("Especialidade adicionada com sucesso.");
     router.refresh();
   }
@@ -60,10 +65,18 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
     router.refresh();
   }
 
-  async function handleSaveName(id: string) {
+  async function handleSaveEdit(id: string) {
     setBusyId(id);
     setError(null);
-    const result = await updateSpecialty(id, { name: editingName });
+    const highlights = editingHighlights
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const result = await updateSpecialty(id, {
+      name: editingName,
+      highlights: highlights.length > 0 ? highlights : null,
+      description: editingDescription,
+    });
     setBusyId(null);
     if (result.error) {
       toast.error(result.error);
@@ -106,6 +119,18 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
             onChange={(e) => setNewName(e.target.value)}
           />
         </div>
+        <div className="flex-1 min-w-[240px]">
+          <label className="text-[11px] font-bold uppercase tracking-wider text-text-secondary mb-1 block">
+            Descrição curta (opcional)
+          </label>
+          <Textarea
+            rows={1}
+            value={newDescription}
+            onChange={(e) => setNewDescription(e.target.value)}
+            placeholder="Ex: Cuida da saúde emocional e do desenvolvimento infantil."
+            className="text-xs"
+          />
+        </div>
         <Button type="submit" size="sm" isLoading={creating} className="h-9 text-xs font-bold px-4">
           + Adicionar Especialidade
         </Button>
@@ -118,6 +143,8 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
           <thead className="border-b border-border/80 bg-card-elevated/70 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
             <tr>
               <th className="px-4 py-2.5 font-bold">Nome da Especialidade</th>
+              <th className="px-4 py-2.5 font-bold">Descrição Curta</th>
+              <th className="px-4 py-2.5 font-bold">Destaques</th>
               <th className="px-4 py-2.5 font-bold">Status</th>
               <th className="px-4 py-2.5 font-bold text-right">Ações</th>
             </tr>
@@ -125,39 +152,74 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
           <tbody className="divide-y divide-border/40">
             {specialties.map((specialty) => (
               <tr key={specialty.id} className="transition-colors hover:bg-card-elevated/40">
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 align-top">
                   {editingId === specialty.id ? (
-                    <div className="flex items-center gap-2">
-                      <input
-                        autoFocus
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        className="h-8 rounded-md border border-border bg-card-elevated px-2.5 text-xs text-text-primary focus:border-primary focus:outline-none"
-                      />
-                      <Button
-                        size="sm"
-                        isLoading={busyId === specialty.id}
-                        onClick={() => handleSaveName(specialty.id)}
-                        className="h-7 text-[11px] px-2.5"
-                      >
-                        Salvar
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setEditingId(null)} className="h-7 text-[11px] px-2.5">
-                        Cancelar
-                      </Button>
-                    </div>
+                    <input
+                      autoFocus
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      className="h-8 w-full min-w-[160px] rounded-md border border-border bg-card-elevated px-2.5 text-xs text-text-primary focus:border-primary focus:outline-none"
+                    />
                   ) : (
                     <span className="font-bold text-text-primary">{specialty.name}</span>
                   )}
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 align-top">
+                  {editingId === specialty.id ? (
+                    <Textarea
+                      rows={2}
+                      value={editingDescription}
+                      onChange={(e) => setEditingDescription(e.target.value)}
+                      placeholder="Resumo curto do que a especialidade faz, exibido no carrossel da home."
+                      className="min-w-[200px] text-[11px]"
+                    />
+                  ) : specialty.description ? (
+                    <span className="text-[11px] text-text-secondary">{specialty.description}</span>
+                  ) : (
+                    <span className="text-[11px] text-text-muted">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 align-top">
+                  {editingId === specialty.id ? (
+                    <Textarea
+                      rows={3}
+                      value={editingHighlights}
+                      onChange={(e) => setEditingHighlights(e.target.value)}
+                      placeholder={"Um destaque por linha, ex:\nAvaliação inicial gratuita\nAtendimento presencial e online"}
+                      className="min-w-[220px] text-[11px]"
+                    />
+                  ) : specialty.highlights && specialty.highlights.length > 0 ? (
+                    <ul className="space-y-0.5 text-[11px] text-text-secondary">
+                      {specialty.highlights.map((item) => (
+                        <li key={item}>• {item}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="text-[11px] text-text-muted">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 align-top">
                   <Badge tone={specialty.status === "active" ? "success" : "neutral"} className="text-[10px]">
                     {specialty.status === "active" ? "Ativo" : "Inativo"}
                   </Badge>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 align-top">
                   <div className="flex justify-end gap-1">
-                    {editingId !== specialty.id && (
+                    {editingId === specialty.id ? (
+                      <>
+                        <Button
+                          size="sm"
+                          isLoading={busyId === specialty.id}
+                          onClick={() => handleSaveEdit(specialty.id)}
+                          className="h-7 text-[11px] px-2.5"
+                        >
+                          Salvar
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setEditingId(null)} className="h-7 text-[11px] px-2.5">
+                          Cancelar
+                        </Button>
+                      </>
+                    ) : (
                       <Button
                         size="sm"
                         variant="secondary"
@@ -165,29 +227,35 @@ export function SpecialtyManager({ specialties }: { specialties: Specialty[] }) 
                         onClick={() => {
                           setEditingId(specialty.id);
                           setEditingName(specialty.name);
+                          setEditingHighlights((specialty.highlights ?? []).join("\n"));
+                          setEditingDescription(specialty.description ?? "");
                         }}
                       >
                         Editar
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="h-7 text-[11px] px-2.5"
-                      isLoading={busyId === specialty.id}
-                      onClick={() => handleToggleStatus(specialty)}
-                    >
-                      {specialty.status === "active" ? "Desativar" : "Ativar"}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      className="h-7 text-[11px] px-2.5"
-                      isLoading={busyId === specialty.id}
-                      onClick={() => handleDelete(specialty)}
-                    >
-                      Excluir
-                    </Button>
+                    {editingId !== specialty.id && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="h-7 text-[11px] px-2.5"
+                          isLoading={busyId === specialty.id}
+                          onClick={() => handleToggleStatus(specialty)}
+                        >
+                          {specialty.status === "active" ? "Desativar" : "Ativar"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          className="h-7 text-[11px] px-2.5"
+                          isLoading={busyId === specialty.id}
+                          onClick={() => handleDelete(specialty)}
+                        >
+                          Excluir
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>

@@ -9,9 +9,14 @@ export interface CarouselSlide {
   content: ReactNode;
 }
 
+// Duração da transição entre slides — deliberadamente lenta e suave (não um
+// "swipe" rápido). autoPlayMs é o tempo parado em cada slide e não inclui
+// esse valor: o ciclo total visto pelo usuário é autoPlayMs + TRANSITION_MS.
+const TRANSITION_MS = 700;
+
 interface CarouselProps {
   slides: CarouselSlide[];
-  /** Intervalo do autoplay em ms. */
+  /** Tempo (ms) que cada slide fica parado e visível antes de avançar para o próximo. Não inclui a duração da transição. */
   autoPlayMs?: number;
   /** Classes do wrapper externo (layout: largura máxima, margem). */
   className?: string;
@@ -31,6 +36,12 @@ interface CarouselProps {
  * no DOM: manter o avanço fora do ciclo de render evita que um re-render do
  * React (disparado por outro estado, como o dot ativo) reaplique um estilo
  * "congelado" por cima da transição em andamento e quebre a animação.
+ *
+ * Autoplay via setTimeout (não setInterval): o próximo avanço só é agendado
+ * depois que a transição atual termina (handleTransitionEnd), garantindo que
+ * cada slide fique parado pelo autoPlayMs "cheio" — sem a transição "roubar"
+ * parte desse tempo, o que faria o carrossel parecer uma faixa passando
+ * continuamente em vez de pausar em cada slide.
  */
 export function Carousel({ slides, autoPlayMs = 4500, className, stageClassName, ariaLabel = "Carrossel" }: CarouselProps) {
   const slideCount = slides.length;
@@ -47,7 +58,7 @@ export function Carousel({ slides, autoPlayMs = 4500, className, stageClassName,
   const applyTransform = useCallback((pos: number, animate: boolean) => {
     const track = trackRef.current;
     if (!track) return;
-    track.style.transition = animate ? "transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)" : "none";
+    track.style.transition = animate ? `transform ${TRANSITION_MS}ms cubic-bezier(0.65, 0, 0.35, 1)` : "none";
     track.style.transform = `translateX(-${pos * 100}%)`;
   }, []);
 
@@ -77,6 +88,21 @@ export function Carousel({ slides, autoPlayMs = 4500, className, stageClassName,
     [loop, activeIndex, applyTransform],
   );
 
+  const autoplayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearAutoplayTimer = useCallback(() => {
+    if (autoplayTimerRef.current) {
+      clearTimeout(autoplayTimerRef.current);
+      autoplayTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleAutoplay = useCallback(() => {
+    clearAutoplayTimer();
+    if (!loop || isPaused) return;
+    autoplayTimerRef.current = setTimeout(() => step(1), autoPlayMs);
+  }, [loop, isPaused, autoPlayMs, step, clearAutoplayTimer]);
+
   const handleTransitionEnd = useCallback(
     (e: React.TransitionEvent<HTMLDivElement>) => {
       if (e.propertyName !== "transform") return;
@@ -89,15 +115,17 @@ export function Carousel({ slides, autoPlayMs = 4500, className, stageClassName,
         positionRef.current = slideCount;
         applyTransform(slideCount, false);
       }
+      // Só agenda o próximo avanço depois que o slide atual "assentou" —
+      // é isso que garante o tempo parado cheio (autoPlayMs) em cada slide.
+      scheduleAutoplay();
     },
-    [extended.length, slideCount, applyTransform],
+    [extended.length, slideCount, applyTransform, scheduleAutoplay],
   );
 
   useEffect(() => {
-    if (!loop || isPaused) return;
-    const timer = setInterval(() => step(1), autoPlayMs);
-    return () => clearInterval(timer);
-  }, [loop, isPaused, autoPlayMs, step]);
+    scheduleAutoplay();
+    return clearAutoplayTimer;
+  }, [scheduleAutoplay, clearAutoplayTimer]);
 
   if (slideCount === 0) return null;
 

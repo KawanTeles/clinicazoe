@@ -16,6 +16,17 @@ export default async function ProfilePage() {
   const supabase = await createClient();
   const avatarUrl = await getAvatarSignedUrl(supabase, session.profile.avatar_path, session.profile.avatar_url);
 
+  const isProfessional = session.profile.role === "profissional";
+  let initialBio = "";
+  if (isProfessional) {
+    const { data: professional } = await supabase
+      .from("professionals")
+      .select("bio")
+      .eq("id", session.user.id)
+      .maybeSingle();
+    initialBio = professional?.bio ?? "";
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -33,6 +44,8 @@ export default async function ProfilePage() {
             initialFullName={session.profile.full_name}
             initialPhone={session.profile.phone ?? ""}
             avatarUrl={avatarUrl}
+            isProfessional={isProfessional}
+            initialBio={initialBio}
           />
         </CardContent>
       </Card>

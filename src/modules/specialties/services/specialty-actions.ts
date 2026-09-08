@@ -13,7 +13,7 @@ async function requireAdmin() {
   return session;
 }
 
-export async function createSpecialty(name: string): Promise<{ error: string | null }> {
+export async function createSpecialty(name: string, description?: string): Promise<{ error: string | null }> {
   const session = await requireAdmin();
 
   const trimmed = name.trim();
@@ -22,7 +22,7 @@ export async function createSpecialty(name: string): Promise<{ error: string | n
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("specialties")
-    .insert({ name: trimmed })
+    .insert({ name: trimmed, description: description?.trim() || null })
     .select("id")
     .single();
 
@@ -47,7 +47,7 @@ export async function createSpecialty(name: string): Promise<{ error: string | n
 
 export async function updateSpecialty(
   id: string,
-  input: { name?: string; status?: "active" | "inactive" },
+  input: { name?: string; status?: "active" | "inactive"; highlights?: string[] | null; description?: string | null },
 ): Promise<{ error: string | null }> {
   const session = await requireAdmin();
 
@@ -61,6 +61,8 @@ export async function updateSpecialty(
     .update({
       ...(input.name !== undefined ? { name: input.name.trim() } : {}),
       ...(input.status !== undefined ? { status: input.status } : {}),
+      ...(input.highlights !== undefined ? { highlights: input.highlights } : {}),
+      ...(input.description !== undefined ? { description: input.description?.trim() || null } : {}),
     })
     .eq("id", id);
 

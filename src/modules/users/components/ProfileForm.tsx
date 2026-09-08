@@ -6,20 +6,27 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { updateOwnProfile, uploadAvatar } from "@/modules/users/services/profile-client";
+import { updateOwnProfessionalBio } from "@/modules/professionals/services/professional-profile-actions";
+
+const MAX_BIO_LENGTH = 500;
 
 interface ProfileFormProps {
   userId: string;
   initialFullName: string;
   initialPhone: string;
   avatarUrl: string | null;
+  /** Só profissionais têm biografia própria — especialidade, convênios e status continuam exclusivos da administradora. */
+  isProfessional?: boolean;
+  initialBio?: string;
 }
 
-export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl }: ProfileFormProps) {
+export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl, isProfessional = false, initialBio = "" }: ProfileFormProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [fullName, setFullName] = useState(initialFullName);
   const [phone, setPhone] = useState(initialPhone);
+  const [bio, setBio] = useState(initialBio);
   const [preview, setPreview] = useState<string | null>(avatarUrl);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -33,11 +40,21 @@ export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl }
     setMessage(null);
 
     const { error } = await updateOwnProfile(userId, { full_name: fullName, phone });
-
-    setSaving(false);
     if (error) {
+      setSaving(false);
       setMessage({ type: "error", text: "Não foi possível salvar as alterações." });
       return;
+    }
+
+    if (isProfessional) {
+      const bioResult = await updateOwnProfessionalBio(bio);
+      setSaving(false);
+      if (bioResult.error) {
+        setMessage({ type: "error", text: bioResult.error });
+        return;
+      }
+    } else {
+      setSaving(false);
     }
 
     setMessage({ type: "success", text: "Perfil atualizado com sucesso." });
@@ -120,6 +137,30 @@ export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl }
           />
         </div>
       </div>
+
+      {isProfessional && (
+        <div className="rounded-xl border border-border/80 bg-card p-4 flex flex-col gap-2.5 shadow-xs">
+          <div className="flex items-center justify-between border-b border-border/60 pb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
+              Biografia / Apresentação
+            </span>
+            <span className="text-[11px] text-text-muted">{bio.length}/{MAX_BIO_LENGTH}</span>
+          </div>
+          <p className="text-xs text-text-secondary">
+            Esse texto aparece no seu perfil público no site da clínica.
+          </p>
+          <textarea
+            id="bio"
+            name="bio"
+            rows={4}
+            maxLength={MAX_BIO_LENGTH}
+            placeholder="Resumo de experiência, especializações e atendimento ao público..."
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            className="w-full rounded-lg border border-border bg-card-elevated px-3 py-2 text-xs text-text-primary placeholder:text-text-muted transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 resize-none"
+          />
+        </div>
+      )}
 
       {message && (
         <p className={message.type === "success" ? "text-xs font-semibold text-success" : "text-xs font-semibold text-danger"}>

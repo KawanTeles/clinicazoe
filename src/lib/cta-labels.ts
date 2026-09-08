@@ -11,4 +11,4 @@ export const CTA_CLIENT_AREA = "Área do Cliente";
 export const CTA_TEAM_AREA = "Área da Equipe";
 export const CTA_VIEW_PROFILE = "Ver Perfil";
 export const CTA_VIEW_ALL_SPECIALTIES = "Ver Todas as Especialidades";
-export const CTA_VIEW_ALL_PROFESSIONALS = "Ver Todos os Profissionais";
+export const CTA_VIEW_ALL_PROFESSIONALS = "Ver Toda a Equipe";

@@ -9,7 +9,6 @@ import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { formatCurrency } from "@/lib/whatsapp";
 import { CTA_PRIMARY } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
 import { buildEntitySlug } from "@/lib/slug";
@@ -130,19 +129,6 @@ export default async function ProfissionalDetailPage({ params }: { params: Promi
                 <div>
                   <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider mb-2 font-heading">Sobre o Profissional</h2>
                   <p className="text-sm text-text-secondary leading-relaxed">{prof.bio}</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border/60">
-                  <div className="p-4 rounded-2xl bg-card-elevated/70 border border-border/60">
-                    <span className="text-xs text-text-muted">Duração Média do Atendimento</span>
-                    <p className="text-base font-bold text-text-primary mt-1 font-heading">{prof.consultationDuration} minutos</p>
-                  </div>
-                  {clinic.price_particular_consultation != null && (
-                    <div className="p-4 rounded-2xl bg-card-elevated/70 border border-border/60">
-                      <span className="text-xs text-text-muted">Atendimento Particular</span>
-                      <p className="text-base font-bold text-[var(--link)] mt-1 font-heading">{formatCurrency(clinic.price_particular_consultation)}</p>
-                    </div>
-                  )}
                 </div>
               </div>
 

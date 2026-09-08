@@ -117,6 +117,7 @@ export interface Database {
           agenda_color: string;
           status: Status;
           consultation_duration_minutes: number;
+          home_display_order: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -128,6 +129,7 @@ export interface Database {
           agenda_color?: string;
           status?: Status;
           consultation_duration_minutes?: number;
+          home_display_order?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -139,6 +141,7 @@ export interface Database {
           agenda_color?: string;
           status?: Status;
           consultation_duration_minutes?: number;
+          home_display_order?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -416,6 +419,8 @@ export interface Database {
           id: string;
           name: string;
           status: Status;
+          highlights: string[] | null;
+          description: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -423,6 +428,8 @@ export interface Database {
           id?: string;
           name: string;
           status?: Status;
+          highlights?: string[] | null;
+          description?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -430,6 +437,8 @@ export interface Database {
           id?: string;
           name?: string;
           status?: Status;
+          highlights?: string[] | null;
+          description?: string | null;
           created_at?: string;
           updated_at?: string;
         };
