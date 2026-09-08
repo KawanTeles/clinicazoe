@@ -52,7 +52,7 @@ export default async function HomePage() {
         renderItem={(spec, index) => (
           <AnimatedCard key={spec.id} delayMs={index * 100} className="p-6 h-full flex flex-col justify-between">
             <div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(135,201,179,0.25)] mb-4 shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(130,169,160,0.25)] mb-4 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
                 </svg>
@@ -86,7 +86,7 @@ export default async function HomePage() {
                 <Avatar src={prof.avatarUrl} name={prof.fullName} size={64} rounded="2xl" />
                 <div>
                   <h3 className="text-base font-bold text-text-primary font-heading">{prof.fullName}</h3>
-                  <Badge tone="premium" className="mt-1 text-[11px] border border-[rgba(135,201,179,0.25)]">{prof.specialtyName}</Badge>
+                  <Badge tone="premium" className="mt-1 text-[11px] border border-[rgba(130,169,160,0.25)]">{prof.specialtyName}</Badge>
                   <p className="text-[11px] text-text-muted mt-1 font-mono">{prof.licenseNumber}</p>
                 </div>
               </div>
@@ -124,7 +124,7 @@ export default async function HomePage() {
                 <PageEntranceItem>
                   <h1 className="tracking-hero text-4xl sm:text-5xl lg:text-6xl font-black text-text-primary leading-[1.12] font-heading">
                     Cuidados de saúde com{" "}
-                    <span className="bg-gradient-to-r from-[#87C9B3] via-[#5D9D85] to-[#337157] bg-clip-text text-transparent drop-shadow-sm">
+                    <span className="bg-gradient-to-r from-[#82A9A0] to-[#1E685A] bg-clip-text text-transparent drop-shadow-sm">
                       excelência
                     </span>{" "}
                     e acolhimento.
@@ -143,7 +143,7 @@ export default async function HomePage() {
                       <Button
                         size="lg"
                         withArrow
-                        className="w-full sm:w-auto font-bold shadow-[0_12px_35px_rgba(51,113,87,0.35)]"
+                        className="w-full sm:w-auto font-bold shadow-[0_12px_35px_rgba(30,104,90,0.35)]"
                       >
                         {CTA_PRIMARY}
                       </Button>
@@ -164,19 +164,19 @@ export default async function HomePage() {
                 <PageEntranceItem>
                   <div className="pt-10 border-t border-border/70 grid grid-cols-3 gap-6">
                     <div>
-                      <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(135,201,179,0.2)]">
+                      <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
                         <AnimatedCounter value="99.8%" />
                       </p>
                       <p className="text-xs text-text-secondary mt-1 font-medium">Satisfação dos pacientes</p>
                     </div>
                     <div>
-                      <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(135,201,179,0.2)]">
+                      <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
                         <AnimatedCounter value="+15k" />
                       </p>
                       <p className="text-xs text-text-secondary mt-1 font-medium">Atendimentos realizados</p>
                     </div>
                     <div>
-                      <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(135,201,179,0.2)]">
+                      <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
                         <AnimatedCounter value="100%" />
                       </p>
                       <p className="text-xs text-text-secondary mt-1 font-medium">Especialistas certificados</p>
@@ -189,11 +189,11 @@ export default async function HomePage() {
               <div className="lg:col-span-5 relative">
                 <PageEntranceItem>
                   {/* Outer shell */}
-                  <div className="relative mx-auto max-w-md rounded-[2rem] border border-[rgba(135,201,179,0.18)] bg-card/80 p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all duration-300 hover:border-[rgba(135,201,179,0.35)] hover:shadow-card-hover group">
+                  <div className="relative mx-auto max-w-md rounded-[2rem] border border-[rgba(130,169,160,0.18)] bg-card/80 p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all duration-300 hover:border-[rgba(130,169,160,0.35)] hover:shadow-card-hover group">
                     {/* Inner core */}
                     <div className="rounded-[calc(2rem-0.5rem)] border border-border/80 bg-card-elevated/90 p-7 shadow-inner space-y-6">
                       <div className="flex items-center gap-4 border-b border-border/70 pb-6">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-card text-[var(--link)] border border-[rgba(135,201,179,0.3)] shadow-[0_0_20px_rgba(135,201,179,0.2)] transition-transform duration-300 group-hover:scale-105">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-card text-[var(--link)] border border-[rgba(130,169,160,0.3)] shadow-[0_0_20px_rgba(130,169,160,0.2)] transition-transform duration-300 group-hover:scale-105">
                           <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
                           </svg>
@@ -205,15 +205,15 @@ export default async function HomePage() {
                       </div>
 
                       <div className="space-y-3.5">
-                        <div className="group/item rounded-xl border border-[rgba(135,201,179,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(135,201,179,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
+                        <div className="group/item rounded-xl border border-[rgba(130,169,160,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(130,169,160,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
                           <p className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Atendimentos Presenciais & Telemedicina</p>
                           <p className="text-xs text-text-secondary mt-1 leading-relaxed">Flexibilidade e comodidade com suporte completo.</p>
                         </div>
-                        <div className="group/item rounded-xl border border-[rgba(135,201,179,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(135,201,179,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
+                        <div className="group/item rounded-xl border border-[rgba(130,169,160,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(130,169,160,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
                           <p className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Prontuário Digital Criptografado</p>
                           <p className="text-xs text-text-secondary mt-1 leading-relaxed">Segurança de dados e acesso instantâneo ao seu histórico.</p>
                         </div>
-                        <div className="group/item rounded-xl border border-[rgba(135,201,179,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(135,201,179,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
+                        <div className="group/item rounded-xl border border-[rgba(130,169,160,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(130,169,160,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
                           <p className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Principais Convênios</p>
                           <p className="text-xs text-text-secondary mt-1 leading-relaxed">Ampla cobertura e facilidades para plano e particular.</p>
                         </div>
@@ -238,7 +238,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
           <div className="text-center max-w-3xl mx-auto space-y-4">
             <ScrollReveal animation="fade-up">
-              <Badge tone="success" className="border border-[rgba(135,201,179,0.25)] shadow-sm">Excelência Médica</Badge>
+              <Badge tone="success" className="border border-[rgba(130,169,160,0.25)] shadow-sm">Excelência Médica</Badge>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-text-primary mt-2 font-heading">
                 Diferenciais que garantem sua tranquilidade
               </h2>
@@ -254,7 +254,7 @@ export default async function HomePage() {
               <AnimatedCard delayMs={100} className="h-full rounded-[1.75rem] p-2">
                 <div className="rounded-[calc(1.75rem-0.375rem)] border border-border/80 bg-card-elevated/90 p-8 lg:p-10 shadow-inner h-full flex flex-col justify-between group">
                   <div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card text-[var(--icon-informative)] border border-[rgba(135,201,179,0.3)] shadow-[0_0_15px_rgba(135,201,179,0.18)] mb-6 transition-transform duration-300 group-hover:scale-110">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card text-[var(--icon-informative)] border border-[rgba(130,169,160,0.3)] shadow-[0_0_15px_rgba(130,169,160,0.18)] mb-6 transition-transform duration-300 group-hover:scale-110">
                       <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
                       </svg>
@@ -274,7 +274,7 @@ export default async function HomePage() {
             <div className="lg:col-span-5">
               <AnimatedCard delayMs={200} className="p-6 sm:p-7 h-full">
                 <div className="flex items-center gap-5 group">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(135,201,179,0.3)] shadow-[0_0_15px_rgba(135,201,179,0.15)] group-hover:scale-105 transition-transform">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(130,169,160,0.3)] shadow-[0_0_15px_rgba(130,169,160,0.15)] group-hover:scale-105 transition-transform">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>
@@ -295,7 +295,7 @@ export default async function HomePage() {
             <div className="lg:col-span-5">
               <AnimatedCard delayMs={300} className="p-6 sm:p-7 h-full">
                 <div className="flex items-center gap-5 group">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(135,201,179,0.3)] shadow-[0_0_15px_rgba(135,201,179,0.15)] group-hover:scale-105 transition-transform">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(130,169,160,0.3)] shadow-[0_0_15px_rgba(130,169,160,0.15)] group-hover:scale-105 transition-transform">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                     </svg>
@@ -321,7 +321,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <ScrollReveal animation="fade-up">
-              <Badge tone="premium" className="border border-[rgba(135,201,179,0.3)]">Nosso Espaço</Badge>
+              <Badge tone="premium" className="border border-[rgba(130,169,160,0.3)]">Nosso Espaço</Badge>
               <h2 className="text-3xl font-extrabold text-text-primary mt-2 font-heading">
                 Conheça o Espaço Zoe
               </h2>
@@ -342,7 +342,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
             <ScrollReveal animation="slide-left">
-              <Badge tone="premium" className="border border-[rgba(135,201,179,0.3)]">Especialidades Terapêuticas</Badge>
+              <Badge tone="premium" className="border border-[rgba(130,169,160,0.3)]">Especialidades Terapêuticas</Badge>
               <h2 className="text-3xl font-extrabold text-text-primary mt-2 font-heading">
                 Atendimento integral para todas as idades
               </h2>
@@ -378,7 +378,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <ScrollReveal animation="fade-up">
-              <Badge tone="success" className="border border-[rgba(135,201,179,0.25)]">Corpo Clínico</Badge>
+              <Badge tone="success" className="border border-[rgba(130,169,160,0.25)]">Corpo Clínico</Badge>
               <h2 className="text-3xl font-extrabold text-text-primary font-heading">
                 Conheça nosso corpo clínico
               </h2>
@@ -420,7 +420,7 @@ export default async function HomePage() {
       <section className="py-20 border-t border-border/70 bg-gradient-forest-subtle relative overflow-hidden">
         <div className="mx-auto max-w-5xl px-4 text-center space-y-6 relative z-10">
           <ScrollReveal animation="scale-up">
-            <Badge tone="premium" className="border border-[rgba(135,201,179,0.3)] shadow-[0_0_15px_rgba(51,113,87,0.2)]">Atendimento Prioritário</Badge>
+            <Badge tone="premium" className="border border-[rgba(130,169,160,0.3)] shadow-[0_0_15px_rgba(30,104,90,0.2)]">Atendimento Prioritário</Badge>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-text-primary mt-2 font-heading">
               Pronto para agendar seu atendimento?
             </h2>
@@ -429,7 +429,7 @@ export default async function HomePage() {
             </p>
             <div className="pt-6">
               <Link href="/agendar">
-                <Button size="lg" withArrow className="px-8 py-4 text-base font-bold shadow-[0_12px_35px_rgba(51,113,87,0.35)]">
+                <Button size="lg" withArrow className="px-8 py-4 text-base font-bold shadow-[0_12px_35px_rgba(30,104,90,0.35)]">
                   {CTA_PRIMARY}
                 </Button>
               </Link>

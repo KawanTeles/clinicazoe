@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Geist, Manrope } from "next/font/google";
+import { Nunito, Geist, Manrope } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ConfirmDialogProvider } from "@/components/ui/ConfirmDialog";
@@ -19,9 +19,9 @@ const manrope = Manrope({
   display: "swap",
 });
 
-const bricolage = Bricolage_Grotesque({
+const nunito = Nunito({
   subsets: ["latin"],
-  variable: "--font-bricolage",
+  variable: "--font-nunito",
   display: "swap",
 });
 
@@ -161,7 +161,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="pt-BR"
-      className={`h-full antialiased scroll-smooth ${geist.variable} ${manrope.variable} ${bricolage.variable}`}
+      className={`h-full antialiased scroll-smooth ${geist.variable} ${manrope.variable} ${nunito.variable}`}
       suppressHydrationWarning
     >
       <head>

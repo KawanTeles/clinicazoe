@@ -117,7 +117,7 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                   className={cn(
                     "relative px-4 py-2 rounded-full font-bold transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     isActive
-                      ? "bg-primary/10 text-primary border border-[#366354]/20 shadow-xs dark:bg-primary/25 dark:text-text-primary"
+                      ? "bg-primary/10 text-primary border border-[#1E685A]/20 shadow-xs dark:bg-primary/25 dark:text-text-primary"
                       : "text-text-secondary hover:text-text-primary hover:bg-black/5 dark:hover:bg-white/5",
                   )}
                 >
@@ -146,7 +146,7 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.97 }}
                   transition={{ duration: 0.18 }}
-                  className="rounded-full border border-border bg-white text-text-secondary hover:bg-[#F8FAFC] hover:text-text-primary hover:border-[#366354]/50 dark:bg-card-elevated dark:text-text-secondary dark:hover:bg-card transition-colors duration-200 px-4 py-2 text-xs font-bold cursor-pointer"
+                  className="rounded-full border border-border bg-white text-text-secondary hover:bg-[#F9F9F7] hover:text-text-primary hover:border-[#1E685A]/50 dark:bg-card-elevated dark:text-text-secondary dark:hover:bg-card transition-colors duration-200 px-4 py-2 text-xs font-bold cursor-pointer"
                 >
                   {CTA_TEAM_AREA}
                 </m.button>
@@ -158,7 +158,7 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.97 }}
                   transition={{ duration: 0.18 }}
-                  className="group inline-flex items-center gap-2 rounded-full bg-[#366354] hover:bg-[#2A5144] px-5 py-2.5 text-xs font-bold text-white shadow-[0_10px_25px_rgba(54,99,84,0.18)] border border-[#366354]/30 cursor-pointer"
+                  className="group inline-flex items-center gap-2 rounded-full bg-[#1E685A] hover:bg-[#154D42] px-5 py-2.5 text-xs font-bold text-[#F9F9F7] shadow-[0_10px_25px_rgba(30,104,90,0.18)] border border-[#1E685A]/30 cursor-pointer"
                 >
                   <span>{CTA_CLIENT_AREA}</span>
                   <svg
@@ -327,7 +327,7 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                   <button
                     type="button"
                     tabIndex={-1}
-                    className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#1F5141] via-[#337157] to-[#1F5141] py-3.5 text-sm font-bold text-white shadow-[0_10px_30px_rgba(51,113,87,0.35)] border border-[rgba(135,201,179,0.3)] transition-transform duration-200 active:scale-98 cursor-pointer"
+                    className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#1E685A] to-[#154D42] py-3.5 text-sm font-bold text-[#F9F9F7] shadow-[0_10px_30px_rgba(30,104,90,0.35)] border border-[rgba(130,169,160,0.3)] transition-transform duration-200 active:scale-98 cursor-pointer"
                   >
                     <span>{CTA_CLIENT_AREA}</span>
                     <svg
