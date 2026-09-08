@@ -9,6 +9,9 @@ export async function GET(request: NextRequest) {
   if (code) {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      console.error("[auth/confirm] exchangeCodeForSession falhou:", error.message);
+    }
     if (!error && data.user) {
       const { data: profile } = await supabase
         .from("profiles")
@@ -23,10 +26,14 @@ export async function GET(request: NextRequest) {
       // profile de equipe chegando aqui só pode ser o Supabase vinculando
       // automaticamente a conta Google a uma conta de senha existente com o
       // mesmo e-mail. Encerra a sessão em vez de deixar a pessoa entrar.
+      // "from" só é enviado pelo fluxo de login com Google (signInWithGoogle);
+      // hoje só /cliente/login usa esse botão, então esse é o default real —
+      // /login e /equipe ficam como exceção explícita para uma futura tela de
+      // login da equipe com Google.
       if (profile && profile.role !== "paciente") {
         await supabase.auth.signOut();
         const blockedRedirect =
-          from === "/equipe" ? `${origin}/equipe?oauth_error=1` : `${origin}/login?oauth_error=1`;
+          from === "/equipe" ? `${origin}/equipe?oauth_error=1` : `${origin}/cliente/login?oauth_error=1`;
         return NextResponse.redirect(blockedRedirect);
       }
 
@@ -34,13 +41,15 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // "from" só é enviado pelo fluxo de login com Google (signInWithGoogle),
-  // para devolver o erro à mesma tela em que o login foi iniciado
-  // (/login ou /equipe para equipe, /cliente/login para paciente).
+  // "from" indica qual fluxo originou o código: /login ou /equipe (equipe) ou
+  // /cliente/login (paciente, inclusive Google — que é o caso mais comum
+  // aqui). Só a confirmação de e-mail do autocadastro chega sem "from".
   const errorRedirect =
     from === "/login" || from === "/equipe"
       ? `${origin}${from}?oauth_error=1`
-      : `${origin}/cliente/login?confirm_error=1`;
+      : from
+        ? `${origin}/cliente/login?oauth_error=1`
+        : `${origin}/cliente/login?confirm_error=1`;
 
   return NextResponse.redirect(errorRedirect);
 }

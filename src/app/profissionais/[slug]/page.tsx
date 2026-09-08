@@ -147,7 +147,7 @@ export default async function ProfissionalDetailPage({ params }: { params: Promi
               </div>
 
               <div className="pt-6 border-t border-border/60 text-center">
-                <Link href="/cliente/login">
+                <Link href="/agendar">
                   <Button size="lg" withArrow className="w-full sm:w-auto font-bold px-8 py-4">
                     {CTA_PRIMARY}
                   </Button>

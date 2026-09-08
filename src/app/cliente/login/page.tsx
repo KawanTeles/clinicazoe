@@ -19,9 +19,9 @@ export const metadata = {
 export default async function PatientLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ confirm_error?: string }>;
+  searchParams: Promise<{ confirm_error?: string; oauth_error?: string }>;
 }) {
-  const { confirm_error } = await searchParams;
+  const { confirm_error, oauth_error } = await searchParams;
 
   const session = await getCurrentUser();
   if (session?.profile.role === "paciente") {
@@ -40,6 +40,14 @@ export default async function PatientLoginPage({
             <PageEntranceItem>
               <div className="rounded-2xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-text-primary">
                 Não foi possível confirmar sua conta automaticamente. Faça login para continuar.
+              </div>
+            </PageEntranceItem>
+          )}
+
+          {oauth_error === "1" && (
+            <PageEntranceItem>
+              <div className="rounded-2xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-text-primary">
+                Não foi possível continuar com o login do Google. Tente novamente ou entre com e-mail e senha.
               </div>
             </PageEntranceItem>
           )}

@@ -141,7 +141,7 @@ export default async function ContatoPage() {
                   Acesse a área do cliente para visualizar os horários em tempo real e agendar seu atendimento sem espera telefônica.
                 </p>
                 <div className="pt-4">
-                  <Link href="/cliente/login">
+                  <Link href="/agendar">
                     <Button size="lg" withArrow className="w-full sm:w-auto font-bold py-4 px-10">
                       {CTA_PRIMARY}
                     </Button>

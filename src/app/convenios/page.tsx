@@ -88,7 +88,7 @@ export default async function ConveniosPage() {
                 </div>
 
                 <div className="mt-8 pt-5 border-t border-border/60">
-                  <Link href="/cliente/login" className="block w-full">
+                  <Link href="/agendar" className="block w-full">
                     <Button variant="secondary" size="sm" className="w-full font-bold">
                       {CTA_PRIMARY}
                     </Button>

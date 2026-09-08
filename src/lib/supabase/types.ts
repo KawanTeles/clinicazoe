@@ -49,6 +49,8 @@ export interface Database {
           role: Role;
           status: Status;
           last_sign_in_at: string | null;
+          account_claimed_at: string | null;
+          password_pending: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -61,6 +63,8 @@ export interface Database {
           role?: Role;
           status?: Status;
           last_sign_in_at?: string | null;
+          account_claimed_at?: string | null;
+          password_pending?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -73,6 +77,8 @@ export interface Database {
           role?: Role;
           status?: Status;
           last_sign_in_at?: string | null;
+          account_claimed_at?: string | null;
+          password_pending?: boolean;
           created_at?: string;
           updated_at?: string;
         };

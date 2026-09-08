@@ -153,7 +153,7 @@ export default async function SpecialtyDetailPage({ params }: { params: Promise<
 
           <PageEntranceItem>
             <div className="text-center pt-4 border-t border-border/60">
-              <Link href="/cliente/login">
+              <Link href="/agendar">
                 <Button size="lg" withArrow className="font-bold">
                   {CTA_PRIMARY}
                 </Button>

@@ -64,7 +64,7 @@ export default async function HomePage() {
 
                 <PageEntranceItem>
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
-                    <Link href="/cliente/login">
+                    <Link href="/agendar">
                       <Button
                         size="lg"
                         withArrow
@@ -145,7 +145,7 @@ export default async function HomePage() {
                       </div>
 
                       <div className="pt-2">
-                        <Link href="/cliente/login" className="block w-full">
+                        <Link href="/agendar" className="block w-full">
                           <Button variant="secondary" withArrow className="w-full font-bold shadow-xs">{CTA_PRIMARY}</Button>
                         </Link>
                       </div>
@@ -376,10 +376,10 @@ export default async function HomePage() {
               Pronto para agendar seu atendimento?
             </h2>
             <p className="text-sm sm:text-base text-text-secondary max-w-xl mx-auto">
-              Acesse a área do cliente em poucos segundos para escolher o melhor dia e horário para o seu atendimento.
+              Marque em poucos minutos, sem precisar criar conta agora, e escolha o melhor dia e horário para o seu atendimento.
             </p>
             <div className="pt-6">
-              <Link href="/cliente/login">
+              <Link href="/agendar">
                 <Button size="lg" withArrow className="px-8 py-4 text-base font-bold shadow-[0_12px_35px_rgba(46,139,87,0.35)]">
                   {CTA_PRIMARY}
                 </Button>

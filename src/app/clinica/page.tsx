@@ -130,7 +130,7 @@ export default async function ClinicaPage() {
           {/* CTA */}
           <ScrollReveal animation="fade-up">
             <div className="text-center pt-8 border-t border-border/60">
-              <Link href="/cliente/login">
+              <Link href="/agendar">
                 <Button size="lg" withArrow className="font-bold">
                   {CTA_PRIMARY}
                 </Button>

@@ -112,7 +112,7 @@ export default async function ProfissionaisPage() {
                       {CTA_VIEW_PROFILE}
                     </Button>
                   </Link>
-                  <Link href="/cliente/login" className="block w-full">
+                  <Link href="/agendar" className="block w-full">
                     <Button variant="outline" className="w-full font-bold" size="sm" withArrow>
                       {CTA_PRIMARY}
                     </Button>
