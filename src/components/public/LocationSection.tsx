@@ -44,7 +44,7 @@ export function LocationSection({
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <ScrollReveal animation="fade-up">
-            <Badge tone="premium" className="border border-[rgba(110,231,183,0.3)] shadow-[0_0_15px_rgba(46,139,87,0.2)]">Facilidade de Acesso</Badge>
+            <Badge tone="premium" className="border border-[rgba(135,201,179,0.3)] shadow-[0_0_15px_rgba(51,113,87,0.2)]">Facilidade de Acesso</Badge>
             <h2 className="text-3xl sm:text-4xl font-black text-text-primary mt-2 tracking-tight font-heading">
               Como Chegar à {clinicName}
             </h2>
@@ -56,7 +56,7 @@ export function LocationSection({
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* Left Details Card */}
-          <div className="lg:col-span-5 flex flex-col justify-between rounded-3xl border border-[rgba(110,231,183,0.18)] bg-card p-8 shadow-card space-y-6 hover:border-[rgba(110,231,183,0.35)] transition-all duration-300">
+          <div className="lg:col-span-5 flex flex-col justify-between rounded-3xl border border-[rgba(135,201,179,0.18)] bg-card p-8 shadow-card space-y-6 hover:border-[rgba(135,201,179,0.35)] transition-all duration-300">
             <div className="space-y-6">
               {address && (
                 <div>
@@ -111,7 +111,7 @@ export function LocationSection({
           </div>
 
           {/* Right Map Embed */}
-          <div className="lg:col-span-7 rounded-3xl border border-[rgba(110,231,183,0.18)] overflow-hidden min-h-[350px] lg:min-h-[450px] relative shadow-lg">
+          <div className="lg:col-span-7 rounded-3xl border border-[rgba(135,201,179,0.18)] overflow-hidden min-h-[350px] lg:min-h-[450px] relative shadow-lg">
             {embedUrl && (
               <LazyMapEmbed src={embedUrl} title={`Mapa de localização da ${clinicName}`} />
             )}

@@ -314,11 +314,11 @@ export function AdminShell({
                       className={cn(
                         "group relative flex h-8.5 items-center gap-2.5 rounded-lg px-2.5 text-xs font-semibold transition-all duration-150",
                         active
-                          ? "bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-300 font-bold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-r-full before:bg-emerald-600 dark:before:bg-emerald-400"
+                          ? "bg-[#366354]/10 text-[#2A5144] dark:bg-[#7CA799]/12 dark:text-[#A5C0B7] font-bold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-r-full before:bg-[#366354] dark:before:bg-[#7CA799]"
                           : "text-text-secondary hover:bg-card-elevated/60 hover:text-text-primary font-medium"
                       )}
                     >
-                      <span className={cn("relative shrink-0 flex items-center justify-center w-4 h-4 transition-transform group-hover:scale-105", active ? "text-emerald-600 dark:text-emerald-400" : "text-text-muted group-hover:text-text-primary")}>
+                      <span className={cn("relative shrink-0 flex items-center justify-center w-4 h-4 transition-transform group-hover:scale-105", active ? "text-[#366354] dark:text-[#7CA799]" : "text-text-muted group-hover:text-text-primary")}>
                         {renderNavIcon(item.icon)}
                         {item.href === "/requests" && pendingRequestsCount > 0 && (
                           <span className="absolute -right-1.5 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold text-white shadow-[0_0_6px_var(--danger)]">

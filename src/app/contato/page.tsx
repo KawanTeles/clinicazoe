@@ -68,7 +68,7 @@ export default async function ContatoPage() {
               {clinic.address && (
                 <ScrollReveal animation="slide-left">
                   <AnimatedCard delayMs={100} className="rounded-[2rem] p-8 space-y-4 h-full">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(15,118,110,0.15)] mb-6">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(54,99,84,0.15)] mb-6">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                         <circle cx="12" cy="10" r="3" />
@@ -83,7 +83,7 @@ export default async function ContatoPage() {
 
               <ScrollReveal animation="fade-up">
                 <AnimatedCard delayMs={200} className="rounded-[2rem] p-8 space-y-4 h-full">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(15,118,110,0.15)] mb-6">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(54,99,84,0.15)] mb-6">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
                       <line x1="16" x2="16" y1="2" y2="6" />

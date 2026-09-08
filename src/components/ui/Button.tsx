@@ -23,13 +23,13 @@ const arrowCircleSize: Record<Size, string> = {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-gradient-to-b from-[#14B8A6] to-[#0F766E] text-white hover:from-[#2DD4BF] hover:to-[#0D9488] active:from-[#0D9488] active:to-[#0B665E] border border-[#0F766E]/40 hover:border-[#14B8A6]/60 shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-card-hover)]",
+    "bg-gradient-to-b from-[#498370] to-[#366354] text-white hover:from-[#7CA799] hover:to-[#3E705F] active:from-[#3E705F] active:to-[#1D3F34] border border-[#366354]/40 hover:border-[#498370]/60 shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-card-hover)]",
   secondary:
-    "bg-white text-[#0F766E] border border-[#CBD5E1] hover:bg-[#F8FAFC] hover:border-[#0F766E] dark:bg-[#1E293B] dark:text-[#2DD4BF] dark:border-border dark:hover:bg-[#334155] dark:hover:border-[#2DD4BF] shadow-xs",
+    "bg-white text-[#366354] border border-[#CBD5E1] hover:bg-[#F8FAFC] hover:border-[#366354] dark:bg-[#1E293B] dark:text-[#7CA799] dark:border-border dark:hover:bg-[#334155] dark:hover:border-[#7CA799] shadow-xs",
   outline:
     "bg-transparent text-[#334155] border border-[#CBD5E1] hover:bg-[#F8FAFC] hover:border-[#94A3B8] dark:text-text-secondary dark:border-border dark:hover:bg-[#1E293B]",
   ghost:
-    "bg-transparent text-[#475569] border-0 hover:bg-[rgba(15,118,110,0.06)] hover:text-[#0F766E] dark:text-text-muted dark:hover:bg-[rgba(45,212,191,0.1)] dark:hover:text-[#2DD4BF] active:bg-[rgba(15,118,110,0.12)]",
+    "bg-transparent text-[#475569] border-0 hover:bg-[rgba(54,99,84,0.06)] hover:text-[#366354] dark:text-text-muted dark:hover:bg-[rgba(124,167,153,0.1)] dark:hover:text-[#7CA799] active:bg-[rgba(54,99,84,0.12)]",
   danger:
     "bg-[#DC2626]/10 text-[#DC2626] dark:text-[#F87171] border border-[#DC2626]/30 hover:bg-[#DC2626] hover:text-white hover:border-[#DC2626] active:bg-[#B91C1C]",
 };
@@ -57,7 +57,7 @@ export const Button = memo(
           transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
           onClick={onClick}
           className={cn(
-            "group inline-flex items-center justify-center text-center gap-2 font-semibold transition-colors duration-200 cursor-pointer transform-gpu will-change-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F766E] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none",
+            "group inline-flex items-center justify-center text-center gap-2 font-semibold transition-colors duration-200 cursor-pointer transform-gpu will-change-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#366354] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none",
             variantClasses[variant],
             sizeClasses[size],
             className,

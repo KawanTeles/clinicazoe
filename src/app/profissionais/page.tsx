@@ -82,10 +82,10 @@ export default async function ProfissionaisPage() {
               <AnimatedCard key={prof.id} delayMs={index * 120} className="p-8 flex flex-col justify-between h-full rounded-3xl">
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <Avatar src={prof.avatarUrl} name={prof.fullName} size={80} rounded="2xl" className="shadow-[0_4px_12px_rgba(15,118,110,0.15)] ring-2 ring-primary/10" />
+                    <Avatar src={prof.avatarUrl} name={prof.fullName} size={80} rounded="2xl" className="shadow-[0_4px_12px_rgba(54,99,84,0.15)] ring-2 ring-primary/10" />
                     <div>
                       <h3 className="text-xl font-bold text-text-primary font-heading">{prof.fullName}</h3>
-                      <Badge tone="success" className="mt-2 text-xs border border-[rgba(110,231,183,0.3)]">{prof.specialtyName}</Badge>
+                      <Badge tone="success" className="mt-2 text-xs border border-[rgba(135,201,179,0.3)]">{prof.specialtyName}</Badge>
                       <p className="text-xs text-text-muted mt-2 font-mono">{prof.licenseNumber}</p>
                     </div>
                   </div>

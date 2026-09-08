@@ -42,7 +42,7 @@ export function PhotoCarousel({ slides, autoPlayMs = 4500, className, aspectClas
           </>
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-card to-card-elevated/30 px-6 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-card text-[var(--icon-informative)] border border-[rgba(110,231,183,0.3)] shadow-[0_0_15px_rgba(110,231,183,0.15)]">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-card text-[var(--icon-informative)] border border-[rgba(135,201,179,0.3)] shadow-[0_0_15px_rgba(135,201,179,0.15)]">
               <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
                 <circle cx="9" cy="9" r="2" />

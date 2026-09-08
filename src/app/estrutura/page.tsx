@@ -130,7 +130,7 @@ export default async function EstruturaPage() {
           <div className="space-y-8">
             <div className="text-center max-w-2xl mx-auto space-y-3">
               <ScrollReveal animation="fade-up">
-                <Badge tone="premium" className="border border-[rgba(110,231,183,0.3)]">Galeria</Badge>
+                <Badge tone="premium" className="border border-[rgba(135,201,179,0.3)]">Galeria</Badge>
                 <h2 className="text-3xl font-extrabold text-text-primary mt-2 font-heading">
                   Conheça nosso espaço físico
                 </h2>
