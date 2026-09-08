@@ -136,7 +136,7 @@ export function ClinicalDocuments({ patientId, initialDocuments, evolutionOption
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Ex.: Laudo médico, exame de imagem..."
+              placeholder="Ex.: Laudo, exame de imagem..."
               className="mt-1 h-10 w-full rounded-lg border border-border bg-card-elevated px-3 text-sm text-text-primary"
             />
           </div>

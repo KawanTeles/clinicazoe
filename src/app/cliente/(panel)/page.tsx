@@ -12,7 +12,7 @@ import { getAttendanceInfo } from "@/lib/attendance";
 
 export const metadata = {
   title: "Área do Cliente — Espaço Zoe",
-  description: "Acompanhe seus agendamentos, histórico médico e atendimentos no Espaço Zoe.",
+  description: "Acompanhe seus agendamentos, histórico clínico e atendimentos no Espaço Zoe.",
 };
 
 export default async function ClientePainelPage({

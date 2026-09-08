@@ -377,9 +377,9 @@ export function TeamMemberForm({
               ))}
             </Select>
             <Input
-              label="Registro (CRM / CRO)"
+              label="Registro Profissional"
               name="license_number"
-              placeholder="CRM/SP 123456"
+              placeholder="Ex.: CRM/SP 123456, CRP 12345"
               value={licenseNumber}
               onChange={(e) => setLicenseNumber(e.target.value)}
             />

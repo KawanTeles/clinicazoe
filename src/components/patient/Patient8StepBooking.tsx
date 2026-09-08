@@ -521,7 +521,7 @@ export function Patient8StepBooking({
                     className="p-5 rounded-2xl border border-border bg-card-elevated/70 text-left hover:border-primary hover:bg-card-elevated transition-all"
                   >
                     <h5 className="text-base font-bold text-text-primary font-heading">{ins.name}</h5>
-                    <p className="text-xs text-[var(--primary)] mt-1">Compatível com corpo médico</p>
+                    <p className="text-xs text-[var(--primary)] mt-1">Compatível com corpo clínico</p>
                   </button>
                 ))}
               </div>
@@ -556,7 +556,7 @@ export function Patient8StepBooking({
                   className="mt-5 w-full font-bold"
                   onClick={() => handleSelectProfessional(prof.id)}
                 >
-                  Selecionar Médico
+                  Selecionar Profissional
                 </Button>
               </div>
             ))

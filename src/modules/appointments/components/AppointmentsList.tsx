@@ -490,7 +490,7 @@ export function AppointmentsList({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-border bg-card p-4 shadow-card">
         <div className="w-full sm:w-72">
           <Input
-            placeholder="Pesquisar por paciente, médico ou convênio..."
+            placeholder="Pesquisar por paciente, profissional ou convênio..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-10 text-xs"
