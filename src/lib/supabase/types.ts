@@ -315,6 +315,36 @@ export interface Database {
         };
         Relationships: [];
       };
+      clinic_gallery_images: {
+        Row: {
+          id: string;
+          storage_path: string;
+          alt_text: string | null;
+          display_order: number;
+          status: Status;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          storage_path: string;
+          alt_text?: string | null;
+          display_order?: number;
+          status?: Status;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          storage_path?: string;
+          alt_text?: string | null;
+          display_order?: number;
+          status?: Status;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       schedule_slots: {
         Row: {
           id: string;

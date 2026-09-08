@@ -31,7 +31,9 @@ export const metadata = {
   twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
 
-const HOME_GALLERY_SLIDES: PhotoCarouselSlide[] = [
+// Fallback enquanto não há fotos cadastradas em Configurações → Galeria —
+// sem imageUrl, o PhotoCarousel renderiza o placeholder "Foto em breve".
+const HOME_GALLERY_PLACEHOLDER_SLIDES: PhotoCarouselSlide[] = [
   { id: "recepcao", caption: "Recepção" },
   { id: "consultorios", caption: "Consultórios" },
   { id: "sala-espera", caption: "Sala de Espera" },
@@ -39,7 +41,17 @@ const HOME_GALLERY_SLIDES: PhotoCarouselSlide[] = [
 ];
 
 export default async function HomePage() {
-  const { clinic, specialties, professionals } = await getPublicWebsiteData();
+  const { clinic, specialties, professionals, galleryImages } = await getPublicWebsiteData();
+
+  const gallerySlides: PhotoCarouselSlide[] =
+    galleryImages.length > 0
+      ? galleryImages.map((image) => ({
+          id: image.id,
+          imageUrl: image.url,
+          alt: image.altText ?? "",
+          caption: image.altText ?? undefined,
+        }))
+      : HOME_GALLERY_PLACEHOLDER_SLIDES;
 
   const specialtySlides: CarouselSlide[] = chunk(specialties, 4).map((group, pageIndex) => ({
     id: `specialties-page-${pageIndex}`,
@@ -113,8 +125,17 @@ export default async function HomePage() {
       <main>
       {/* HERO SECTION */}
       <section className="relative overflow-hidden pt-16 pb-24 lg:pt-24 lg:pb-36 bg-gradient-forest-subtle">
-        {/* Ambient Glow */}
-        <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[420px] w-[420px] rounded-full bg-primary/10 blur-[140px]" />
+        {/* Ambient Glow & Organic Shapes */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          {/* Main Purple Blob */}
+          <div className="absolute -top-[10%] -left-[10%] h-[500px] w-[500px] rounded-full bg-[var(--primary)]/5 blur-[100px] animate-float-organic" />
+          
+          {/* Secondary Green Blob */}
+          <div className="absolute top-[20%] right-[5%] h-[400px] w-[400px] rounded-[100px] bg-[var(--secondary)]/5 blur-[80px] animate-float-organic-slow rotate-12" />
+
+          {/* Small Decorative Accent */}
+          <div className="absolute bottom-[10%] left-[20%] h-[300px] w-[300px] rounded-full bg-[var(--primary)]/5 blur-[90px] animate-float-organic-slow" />
+        </div>
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <PageEntrance>
@@ -122,7 +143,7 @@ export default async function HomePage() {
               {/* Left Column Content - Staggered entrance */}
               <div className="lg:col-span-7 space-y-6">
                 <PageEntranceItem>
-                  <h1 className="tracking-hero text-4xl sm:text-5xl lg:text-6xl font-black text-text-primary leading-[1.12] font-heading">
+                  <h1 className="tracking-hero text-4xl sm:text-5xl lg:text-6xl font-black text-[var(--primary)] leading-[1.12] font-heading">
                     Cuidados de saúde com{" "}
                     <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent drop-shadow-sm">
                       excelência
@@ -234,12 +255,14 @@ export default async function HomePage() {
       </section>
 
       {/* SEÇÃO DIFERENCIAIS DA CLÍNICA */}
-      <section className="py-24 border-t border-border/70 bg-background">
+      <section className="py-24 border-t border-border/70 bg-[var(--primary-light)] relative overflow-hidden">
+        {/* Soft floating background element */}
+        <div className="absolute top-1/4 -right-[10%] h-[400px] w-[400px] rounded-full bg-[var(--primary)]/5 blur-[80px] animate-float-organic-slow pointer-events-none" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
           <div className="text-center max-w-3xl mx-auto space-y-4">
             <ScrollReveal animation="fade-up">
               <Badge tone="success" className="border border-[rgba(130,169,160,0.25)] shadow-sm">Excelência Médica</Badge>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-text-primary mt-2 font-heading">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--primary)] mt-2 font-heading">
                 Diferenciais que garantem sua tranquilidade
               </h2>
               <p className="text-sm sm:text-base text-text-secondary">
@@ -259,7 +282,7 @@ export default async function HomePage() {
                         <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
                       </svg>
                     </div>
-                    <h3 className="text-2xl font-bold text-text-primary font-heading">Atendimento Humanizado</h3>
+                    <h3 className="text-2xl font-bold text-[var(--primary)] font-heading">Atendimento Humanizado</h3>
                     <p className="mt-3 text-sm text-text-secondary leading-relaxed max-w-md">
                       Atendimentos individuais estendidos, sem correria, focados no histórico biológico, estilo de vida e necessidades do paciente. Uma experiência de cuidado pensada em cada detalhe.
                     </p>
@@ -280,7 +303,7 @@ export default async function HomePage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-text-primary font-heading">Convênios</h3>
+                    <h3 className="text-base font-bold text-[var(--primary)] font-heading">Convênios</h3>
                     <p className="mt-1.5 text-xs text-text-secondary leading-relaxed">
                       Ampla cobertura de planos de saúde e atendimento particular com facilidades.
                     </p>
@@ -301,7 +324,7 @@ export default async function HomePage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-text-primary font-heading">Corpo Clínico Qualificado</h3>
+                    <h3 className="text-base font-bold text-[var(--primary)] font-heading">Corpo Clínico Qualificado</h3>
                     <p className="mt-1.5 text-xs text-text-secondary leading-relaxed">
                       Especialistas com atuação em hospitais renomados.
                     </p>
@@ -322,7 +345,7 @@ export default async function HomePage() {
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <ScrollReveal animation="fade-up">
               <Badge tone="premium" className="border border-[rgba(130,169,160,0.3)]">Nosso Espaço</Badge>
-              <h2 className="text-3xl font-extrabold text-text-primary mt-2 font-heading">
+              <h2 className="text-3xl font-extrabold text-[var(--primary)] mt-2 font-heading">
                 Conheça o Espaço Zoe
               </h2>
               <p className="text-sm text-text-secondary">
@@ -332,18 +355,20 @@ export default async function HomePage() {
           </div>
 
           <ScrollReveal animation="scale-up">
-            <PhotoCarousel slides={HOME_GALLERY_SLIDES} className="max-w-4xl mx-auto" />
+            <PhotoCarousel slides={gallerySlides} className="max-w-4xl mx-auto" />
           </ScrollReveal>
         </div>
       </section>
 
       {/* SEÇÃO PREVIEW ESPECIALIDADES */}
-      <section className="py-24 border-t border-border/70 bg-surface/40">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
+      <section className="py-24 border-t border-border/70 bg-background relative overflow-hidden">
+        {/* Soft floating organic shape in background */}
+        <div className="absolute top-1/3 -left-[5%] h-[300px] w-[300px] rounded-full bg-[var(--secondary)]/5 blur-[70px] animate-float-organic-slow pointer-events-none" />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
             <ScrollReveal animation="slide-left">
-              <Badge tone="premium" className="border border-[rgba(130,169,160,0.3)]">Especialidades Terapêuticas</Badge>
-              <h2 className="text-3xl font-extrabold text-text-primary mt-2 font-heading">
+              <Badge tone="premium" className="border border-[var(--border)]">Especialidades Terapêuticas</Badge>
+              <h2 className="text-3xl font-extrabold text-[var(--primary)] mt-2 font-heading">
                 Atendimento integral para todas as idades
               </h2>
             </ScrollReveal>
@@ -374,12 +399,14 @@ export default async function HomePage() {
       </section>
 
       {/* SEÇÃO PREVIEW PROFISSIONAIS */}
-      <section className="py-24 border-t border-border/70 bg-background">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
+      <section className="py-24 border-t border-border/70 bg-[var(--secondary-light)] relative overflow-hidden">
+        {/* Soft floating organic shape in background */}
+        <div className="absolute bottom-0 right-[5%] h-[350px] w-[350px] rounded-full bg-[var(--primary)]/5 blur-[80px] animate-float-organic pointer-events-none" />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <ScrollReveal animation="fade-up">
-              <Badge tone="success" className="border border-[rgba(130,169,160,0.25)]">Corpo Clínico</Badge>
-              <h2 className="text-3xl font-extrabold text-text-primary font-heading">
+              <Badge tone="success" className="border border-[var(--border)] bg-white/50">Corpo Clínico</Badge>
+              <h2 className="text-3xl font-extrabold text-[var(--primary)] font-heading">
                 Conheça nosso corpo clínico
               </h2>
               <p className="text-sm text-text-secondary">
@@ -417,15 +444,20 @@ export default async function HomePage() {
       </section>
 
       {/* CTA BANNER */}
-      <section className="py-20 border-t border-border/70 bg-gradient-forest-subtle relative overflow-hidden">
+      <section className="py-20 bg-[var(--primary)] relative overflow-hidden">
+        {/* Decorative elements for the purple background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-0 h-64 w-64 -translate-y-1/2 -translate-x-1/2 rounded-full bg-white/5 blur-[40px]" />
+          <div className="absolute bottom-0 right-0 h-80 w-80 translate-y-1/3 translate-x-1/3 rounded-full bg-[var(--secondary)]/10 blur-[50px] animate-float-organic" />
+        </div>
         <div className="mx-auto max-w-5xl px-4 text-center space-y-6 relative z-10">
           <ScrollReveal animation="scale-up">
-            <Badge tone="premium" className="border border-[rgba(130,169,160,0.3)] shadow-[0_0_15px_rgba(30,104,90,0.2)]">Atendimento Prioritário</Badge>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-text-primary mt-2 font-heading">
+            <Badge tone="neutral" className="bg-white/10 text-white border-white/20">Atendimento Prioritário</Badge>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2 font-heading">
               Pronto para agendar seu atendimento?
             </h2>
-            <p className="text-sm sm:text-base text-text-secondary max-w-xl mx-auto">
-              Marque em poucos minutos, sem precisar criar conta agora, e escolha o melhor dia e horário para o seu atendimento.
+            <p className="text-sm sm:text-base text-white/80 max-w-xl mx-auto">
+              Nossa equipe está disponível para acolher você e sua família. Escolha o melhor horário.
             </p>
             <div className="pt-6">
               <Link href="/agendar">

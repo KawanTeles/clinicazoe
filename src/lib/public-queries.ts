@@ -9,14 +9,20 @@ function resolveLogoUrl(admin: ReturnType<typeof createAdminClient>, logoPath: s
   return data.publicUrl;
 }
 
+function resolveGalleryUrl(admin: ReturnType<typeof createAdminClient>, storagePath: string) {
+  const { data } = admin.storage.from("clinic-gallery").getPublicUrl(storagePath);
+  return data.publicUrl;
+}
+
 export async function getPublicWebsiteData() {
   const admin = createAdminClient();
 
-  const [{ data: clinic }, { data: specialties }, { data: professionals }, { data: insurances }] = await Promise.all([
+  const [{ data: clinic }, { data: specialties }, { data: professionals }, { data: insurances }, { data: galleryImages }] = await Promise.all([
     admin.from("clinic_settings").select("*").eq("id", 1).single(),
     admin.from("specialties").select("*").eq("status", "active").order("name"),
     admin.from("professionals").select("*").eq("status", "active"),
     admin.from("insurances").select("*").eq("status", "active").order("display_order"),
+    admin.from("clinic_gallery_images").select("*").eq("status", "active").order("display_order"),
   ]);
 
   const profIds = (professionals ?? []).map((p) => p.id);
@@ -87,6 +93,11 @@ export async function getPublicWebsiteData() {
     specialties: specialties ?? [],
     professionals: fullProfessionals,
     insurances: insurances ?? [],
+    galleryImages: (galleryImages ?? []).map((image) => ({
+      id: image.id,
+      url: resolveGalleryUrl(admin, image.storage_path),
+      altText: image.alt_text,
+    })),
   };
 }
 

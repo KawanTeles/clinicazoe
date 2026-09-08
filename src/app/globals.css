@@ -18,13 +18,16 @@
 
 :root {
   /* Default Dark Mode Palette (Zoe Identity) */
-  --primary: #70A99A; /* Green Zoe */
-  --primary-hover: #84b7a9;
-  --primary-light: #2b453e;
-  --primary-dark: #eef5f3;
-  --primary-active: #84b7a9;
+  --primary: #8C83A6; /* Purple Zoe */
+  --primary-hover: #9c94b5;
+  --primary-light: #373344;
+  --primary-dark: #F6F3F9;
+  --primary-active: #9c94b5;
 
-  --secondary: #8C83A6; /* Purple Zoe */
+  --secondary: #70A99A; /* Green Zoe */
+  --secondary-hover: #84b7a9;
+  --secondary-light: #2b453e;
+
   --accent: #339BAA; /* Teal */
   --accent-light: #1d5059;
 
@@ -32,13 +35,13 @@
   --background: #121212;
   --surface: #1a1a1a;
   --card: #161616;
-  --card-elevated: #242424;
+  --card-elevated: #211f26; /* Dark purple tint */
   --bg-header: rgba(18, 18, 18, 0.85);
   --bg-footer: #0d0d0d;
 
   /* Borders & Dividers */
   --border: #2a2a2a;
-  --divider: rgba(255, 255, 255, 0.05);
+  --divider: rgba(140, 131, 166, 0.1);
 
   /* Typography Colors */
   --text-primary: #F5F5F5;
@@ -62,7 +65,7 @@
   --cta-secondary-text: #FFFFFF;
 
   /* Informative icons */
-  --icon-informative: #70A99A;
+  --icon-informative: #8C83A6;
 
   /* Status Colors */
   --success: #70A99A;
@@ -87,15 +90,18 @@
 
 /* Light Theme Variables (Espaço Zoe Premium Visual Hierarchy) */
 .light, [data-theme='light'] {
-  /* Green Zoe */
-  --primary: #70A99A;
-  --primary-hover: #5d9283;
-  --primary-light: #eef5f3;
-  --primary-dark: #2b453e;
-  --primary-active: #5d9283;
+  /* Purple Zoe (Primary Identity) */
+  --primary: #8C83A6;
+  --primary-hover: #756D8D;
+  --primary-light: #F6F3F9;
+  --primary-dark: #403B4E;
+  --primary-active: #756D8D;
 
-  /* Purple Zoe */
-  --secondary: #8C83A6;
+  /* Green Zoe (Secondary/Complementary) */
+  --secondary: #70A99A;
+  --secondary-hover: #5d9283;
+  --secondary-light: #F0F7F5;
+
   --accent: #339BAA; /* Teal */
   --accent-light: #e6f3f5;
 
@@ -103,16 +109,16 @@
   --background: #FFFFFF;
   --surface: #FFFFFF;
   --card: #FFFFFF;
-  --card-elevated: #Fcfcfc;
+  --card-elevated: #FAF9FC;
   --bg-header: rgba(255, 255, 255, 0.90);
-  --bg-footer: #Fcfcfc;
+  --bg-footer: #FAF9FC;
 
   /* Borders & Dividers */
-  --border: #E8E8E8;
-  --divider: rgba(152, 153, 154, 0.15);
+  --border: rgba(140, 131, 166, 0.18);
+  --divider: rgba(140, 131, 166, 0.12);
 
   /* Typography Colors */
-  --text-primary: #2C423C; /* Very Dark Green Zoe */
+  --text-primary: #4A4559; /* Dark Purple Zoe */
   --text-secondary: #98999A; /* Gray */
   --text-muted: #B0B0B0;
   --text-disabled: #D1D1D1;
@@ -121,7 +127,7 @@
   --link: #8C83A6; /* Purple */
   --link-hover: #756D8D;
   --link-subtle: #70A99A; /* Green */
-  --badge-bg: #f2f1f5; /* Light purple */
+  --badge-bg: #F6F3F9; /* Light purple */
   --badge-text: #8C83A6;
   --badge-neutral-bg: #F9F9F9;
   --badge-neutral-text: #98999A;
@@ -133,7 +139,7 @@
   --cta-secondary-text: #FFFFFF;
 
   /* Informative icons */
-  --icon-informative: #70A99A;
+  --icon-informative: #8C83A6;
 
   /* Status Colors */
   --success: #70A99A;
@@ -274,6 +280,10 @@ body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   overflow-x: hidden;
   min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--primary);
 }
 
 /* Text Selection */
@@ -435,6 +445,30 @@ body {
   }
 }
 
+@keyframes floatOrganic {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translate(30px, -40px) rotate(10deg) scale(1.05);
+  }
+  66% {
+    transform: translate(-20px, 20px) rotate(-5deg) scale(0.95);
+  }
+}
+
+@keyframes floatOrganicSlow {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translate(-40px, 30px) rotate(-15deg) scale(0.95);
+  }
+  66% {
+    transform: translate(20px, -20px) rotate(10deg) scale(1.02);
+  }
+}
+
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
@@ -447,6 +481,14 @@ body {
 
 .animate-glow {
   animation: pulseGlow 4s ease-in-out infinite;
+}
+
+.animate-float-organic {
+  animation: floatOrganic 20s ease-in-out infinite;
+}
+
+.animate-float-organic-slow {
+  animation: floatOrganicSlow 25s ease-in-out infinite;
 }
 
 /* Hero Typography — títulos grandes respiram melhor com tracking negativo sutil */

@@ -23,9 +23,9 @@ const arrowCircleSize: Record<Size, string> = {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] border border-[var(--primary-hover)]/50 shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-card-hover)]",
+    "bg-[var(--secondary)] text-white hover:bg-[var(--secondary-hover)] active:bg-[var(--secondary-hover)] border border-[var(--secondary-hover)]/50 shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-card-hover)]",
   secondary:
-    "bg-[var(--secondary)] text-white border border-[var(--secondary)]/80 hover:bg-[#756D8D] hover:border-[#756D8D] dark:bg-[var(--secondary)] dark:text-white dark:border-[var(--secondary)] dark:hover:bg-[#756D8D] shadow-xs",
+    "bg-[var(--primary)] text-white border border-[var(--primary)]/80 hover:bg-[var(--primary-hover)] hover:border-[var(--primary-hover)] dark:bg-[var(--primary)] dark:text-white dark:border-[var(--primary)] dark:hover:bg-[var(--primary-hover)] shadow-xs",
   outline:
     "bg-transparent text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--card-elevated)] hover:border-[var(--text-muted)] dark:text-[var(--text-primary)] dark:border-[var(--border)] dark:hover:bg-[var(--card-elevated)]",
   ghost:

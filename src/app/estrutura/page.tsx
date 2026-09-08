@@ -13,7 +13,9 @@ import { CTA_PRIMARY } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
 import { safeJsonLd } from "@/lib/json-ld";
 
-const ESTRUTURA_GALLERY_SLIDES: PhotoCarouselSlide[] = [
+// Fallback enquanto não há fotos cadastradas em Configurações → Galeria —
+// sem imageUrl, o PhotoCarousel renderiza o placeholder "Foto em breve".
+const ESTRUTURA_GALLERY_PLACEHOLDER_SLIDES: PhotoCarouselSlide[] = [
   { id: "consultorio", caption: "Consultório Climatizado" },
   { id: "central-diagnostica", caption: "Central Diagnóstica" },
   { id: "esterilizacao", caption: "Sala de Esterilização" },
@@ -37,7 +39,17 @@ export const metadata = {
 };
 
 export default async function EstruturaPage() {
-  const { clinic } = await getPublicWebsiteData();
+  const { clinic, galleryImages } = await getPublicWebsiteData();
+
+  const gallerySlides: PhotoCarouselSlide[] =
+    galleryImages.length > 0
+      ? galleryImages.map((image) => ({
+          id: image.id,
+          imageUrl: image.url,
+          alt: image.altText ?? "",
+          caption: image.altText ?? undefined,
+        }))
+      : ESTRUTURA_GALLERY_PLACEHOLDER_SLIDES;
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -141,7 +153,7 @@ export default async function EstruturaPage() {
             </div>
 
             <ScrollReveal animation="scale-up">
-              <PhotoCarousel slides={ESTRUTURA_GALLERY_SLIDES} className="max-w-4xl mx-auto" />
+              <PhotoCarousel slides={gallerySlides} className="max-w-4xl mx-auto" />
             </ScrollReveal>
           </div>
 

@@ -6,6 +6,8 @@ import { getClinicLogoUrl, getClinicSettings } from "@/modules/settings/services
 import { ClinicSettingsPanel } from "@/modules/settings/components/ClinicSettingsPanel";
 import { getHolidays } from "@/modules/holidays/services/holiday-queries";
 import { HolidayManager } from "@/modules/holidays/components/HolidayManager";
+import { getGalleryImages } from "@/modules/gallery/services/gallery-queries";
+import { GalleryManager } from "@/modules/gallery/components/GalleryManager";
 import { getAISettingsForAdmin } from "@/modules/ai/services/ai-settings-queries";
 import { AISettingsCard } from "@/modules/ai/components/AISettingsCard";
 import { getAIUsageStats } from "@/modules/ai/services/usage-stats-queries";
@@ -25,9 +27,10 @@ export default async function SettingsPage() {
 
   const canManageAI = await can(session.profile.role, "ai.settings.manage");
 
-  const [settings, holidays, aiSettings, aiUsageStats] = await Promise.all([
+  const [settings, holidays, galleryImages, aiSettings, aiUsageStats] = await Promise.all([
     getClinicSettings(),
     getHolidays(),
+    getGalleryImages(),
     canManageAI ? getAISettingsForAdmin() : Promise.resolve(null),
     canManageAI ? getAIUsageStats() : Promise.resolve(null),
   ]);
@@ -56,6 +59,22 @@ export default async function SettingsPage() {
               Feriados bloqueiam automaticamente agendamentos normais e recorrentes para todos os profissionais.
             </p>
             <HolidayManager holidays={holidays} />
+          </CardContent>
+        </Card>
+      )}
+
+      {canManage && (
+        <Card className="mt-2">
+          <CardHeader className="py-3.5 px-5">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
+              🖼️ Galeria de Fotos
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-5 flex flex-col gap-4">
+            <p className="text-xs text-text-secondary">
+              As fotos adicionadas aqui aparecem automaticamente no carrossel do site público (home e Estrutura).
+            </p>
+            <GalleryManager images={galleryImages} />
           </CardContent>
         </Card>
       )}

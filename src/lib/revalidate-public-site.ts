@@ -37,3 +37,11 @@ export function revalidatePublicSite() {
 export function revalidatePublicInsurancePages() {
   revalidatePath("/convenios");
 }
+
+// As fotos da galeria aparecem tanto na home quanto em /estrutura (mesmo
+// conjunto de imagens administrado em Configurações → Galeria).
+/** Revalida as páginas públicas que exibem o carrossel de fotos da galeria. */
+export function revalidatePublicGalleryPages() {
+  revalidatePath("/");
+  revalidatePath("/estrutura");
+}
