@@ -235,11 +235,12 @@ export default async function HomePage() {
       <main>
       {/* HERO SECTION */}
       <section className="relative overflow-hidden pt-16 pb-24 lg:pt-24 lg:pb-36 bg-gradient-forest-subtle">
-        {/* Ambient Glow & Organic Shapes */}
+        {/* Ambient Glow & Organic Shapes — fundo padrão, usado sozinho
+            quando não há foto de capa configurada. */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           {/* Main Purple Blob */}
           <div className="absolute -top-[10%] -left-[10%] h-[500px] w-[500px] rounded-full bg-[var(--primary)]/5 blur-[100px] animate-float-organic" />
-          
+
           {/* Secondary Green Blob */}
           <div className="absolute top-[20%] right-[5%] h-[400px] w-[400px] rounded-[100px] bg-[var(--secondary)]/5 blur-[80px] animate-float-organic-slow rotate-12" />
 
@@ -247,182 +248,142 @@ export default async function HomePage() {
           <div className="absolute bottom-[10%] left-[20%] h-[300px] w-[300px] rounded-full bg-[var(--primary)]/5 blur-[90px] animate-float-organic-slow" />
         </div>
 
+        {/* Foto de capa full-bleed (Configurações → Foto de Capa) — sem foto
+            configurada, o fundo padrão acima segue normalmente, sem nenhuma
+            mudança. Gradiente mais opaco do lado do texto (esquerda) e mais
+            claro do lado oposto, na nossa paleta (verde sálvia + branco). */}
+        {clinic.facade_image_url && (
+          <div className="absolute inset-0">
+            <Image
+              src={clinic.facade_image_url}
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-cover opacity-50"
+              unoptimized
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--background)] via-[var(--background)]/80 to-[var(--secondary)]/10" />
+          </div>
+        )}
+
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <PageEntrance>
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-              {/* Left Column Content - Staggered entrance */}
-              <div className="lg:col-span-7 space-y-6">
-                <PageEntranceItem>
-                  <h1 className="tracking-hero text-4xl sm:text-5xl lg:text-6xl font-black text-[var(--primary)] leading-[1.12] font-heading">
-                    Atendimentos com{" "}
-                    <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent drop-shadow-sm">
-                      excelência
-                    </span>{" "}
-                    e acolhimento.
-                  </h1>
-                </PageEntranceItem>
+            <div className="max-w-2xl space-y-6">
+              <PageEntranceItem>
+                <h1 className="tracking-hero text-4xl sm:text-5xl lg:text-6xl font-black text-[var(--primary)] leading-[1.12] font-heading">
+                  Atendimentos com{" "}
+                  <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent drop-shadow-sm">
+                    excelência
+                  </span>{" "}
+                  e acolhimento.
+                </h1>
+              </PageEntranceItem>
 
-                <PageEntranceItem>
-                  <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-2xl font-normal">
-                    No {clinic.name || "Espaço Zoe"}, possuímos uma equipe terapêutica especializada para oferecer um atendimento verdadeiramente humanizado.
-                  </p>
-                </PageEntranceItem>
+              <PageEntranceItem>
+                <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-2xl font-normal">
+                  No {clinic.name || "Espaço Zoe"}, possuímos uma equipe terapêutica especializada para oferecer um atendimento verdadeiramente humanizado.
+                </p>
+              </PageEntranceItem>
 
-                <PageEntranceItem>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
-                    <Link href="/agendar">
-                      <Button
-                        size="lg"
-                        withArrow
-                        className="w-full sm:w-auto font-bold shadow-[0_12px_35px_rgba(30,104,90,0.35)]"
-                      >
-                        {CTA_PRIMARY}
-                      </Button>
-                    </Link>
-                    <Link href="/profissionais">
-                      <Button
-                        variant="secondary"
-                        size="lg"
-                        className="w-full sm:w-auto font-bold border border-border/80 hover:border-primary/60"
-                      >
-                        Conhecer corpo clínico
-                      </Button>
-                    </Link>
-                  </div>
-                </PageEntranceItem>
-
-                {/* Animated Statistics Counters */}
-                <PageEntranceItem>
-                  <div className="pt-10 border-t border-border/70 grid grid-cols-3 gap-6">
-                    <div>
-                      <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
-                        <AnimatedCounter value="99.8%" />
-                      </p>
-                      <p className="text-xs text-text-secondary mt-1 font-medium">Satisfação dos pacientes</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
-                        <AnimatedCounter value="+15k" />
-                      </p>
-                      <p className="text-xs text-text-secondary mt-1 font-medium">Atendimentos realizados</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
-                        <AnimatedCounter value="100%" />
-                      </p>
-                      <p className="text-xs text-text-secondary mt-1 font-medium">Especialistas certificados</p>
-                    </div>
-                  </div>
-                </PageEntranceItem>
-
-                {/* Highlight Chips */}
-                <PageEntranceItem>
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-3 rounded-2xl border border-[rgba(130,169,160,0.25)] bg-card/70 px-4 py-2.5">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card text-[var(--link)] border border-[rgba(130,169,160,0.3)]">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M3 9.5 12 3l9 6.5" />
-                          <path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-text-primary leading-tight">Ambiente adaptado</p>
-                        <p className="text-[11px] text-text-secondary leading-tight">Salas terapêuticas</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 rounded-2xl border border-[rgba(130,169,160,0.25)] bg-card/70 px-4 py-2.5">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card text-[var(--link)] border border-[rgba(130,169,160,0.3)]">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="9" cy="7" r="3.5" />
-                          <path d="M16.5 7.5a3 3 0 1 0 0-6" />
-                          <path d="M2 20v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1" />
-                          <path d="M17 14.5A5 5 0 0 1 21 19v1" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-text-primary leading-tight">Visão multidisciplinar</p>
-                        <p className="text-[11px] text-text-secondary leading-tight">Atendimento integrado</p>
-                      </div>
-                    </div>
-
-                    {locationChipLabel && (
-                      <div className="flex items-center gap-3 rounded-2xl border border-[rgba(130,169,160,0.25)] bg-card/70 px-4 py-2.5">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card text-[var(--link)] border border-[rgba(130,169,160,0.3)]">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 10c0 6.5-9 12-9 12s-9-5.5-9-12a9 9 0 0 1 18 0Z" />
-                            <circle cx="12" cy="10" r="3" />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-text-primary leading-tight">Onde estamos</p>
-                          <p className="text-[11px] text-text-secondary leading-tight">{locationChipLabel}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </PageEntranceItem>
-              </div>
-
-              {/* Right Column Visual Graphic */}
-              <div className="lg:col-span-5 relative">
-                <PageEntranceItem>
-                  {/* Outer shell */}
-                  <div className="relative mx-auto max-w-md rounded-[2rem] border border-[rgba(130,169,160,0.18)] bg-card/80 p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all duration-300 hover:border-[rgba(130,169,160,0.35)] hover:shadow-card-hover group">
-                    {/* Inner core */}
-                    <div className="rounded-[calc(2rem-0.5rem)] border border-border/80 bg-card-elevated/90 p-7 shadow-inner space-y-6">
-                      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-[rgba(130,169,160,0.2)] bg-gradient-to-br from-card to-card-elevated">
-                        {clinic.facade_image_url ? (
-                          <Image
-                            src={clinic.facade_image_url}
-                            alt={`Fachada do ${clinic.name || "Espaço Zoe"}`}
-                            fill
-                            sizes="(max-width: 768px) 100vw, 400px"
-                            className="object-cover"
-                            unoptimized
-                          />
-                        ) : clinic.logo_url ? (
-                          <Image
-                            src={clinic.logo_url}
-                            alt={clinic.name || "Espaço Zoe"}
-                            fill
-                            sizes="(max-width: 768px) 100vw, 400px"
-                            className="object-contain p-10"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center">
-                            <span className="text-xs font-semibold text-text-muted">Foto da fachada em breve</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="space-y-3.5">
-                        <div className="group/item rounded-xl border border-[rgba(130,169,160,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(130,169,160,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
-                          <p className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Atendimentos Presenciais & Telemedicina</p>
-                          <p className="text-xs text-text-secondary mt-1 leading-relaxed">Flexibilidade e comodidade com suporte completo.</p>
-                        </div>
-                        <div className="group/item rounded-xl border border-[rgba(130,169,160,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(130,169,160,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
-                          <p className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Prontuário Digital Criptografado</p>
-                          <p className="text-xs text-text-secondary mt-1 leading-relaxed">Segurança de dados e acesso instantâneo ao seu histórico.</p>
-                        </div>
-                        <div className="group/item rounded-xl border border-[rgba(130,169,160,0.15)] bg-card/60 p-4 transition-all duration-300 hover:border-[rgba(130,169,160,0.35)] hover:bg-card/90 hover:translate-x-1 hover:shadow-md">
-                          <p className="text-sm font-bold text-text-primary group-hover/item:text-[var(--link)] transition-colors">Principais Convênios</p>
-                          <p className="text-xs text-text-secondary mt-1 leading-relaxed">Ampla cobertura e facilidades para plano e particular.</p>
-                        </div>
-                      </div>
-
-                      <div className="pt-2">
-                        <Link href="/agendar" className="block w-full">
-                          <Button variant="secondary" withArrow className="w-full font-bold shadow-xs">{CTA_PRIMARY}</Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </PageEntranceItem>
-              </div>
+              <PageEntranceItem>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
+                  <Link href="/agendar">
+                    <Button
+                      size="lg"
+                      withArrow
+                      className="w-full sm:w-auto font-bold shadow-[0_12px_35px_rgba(30,104,90,0.35)]"
+                    >
+                      {CTA_PRIMARY}
+                    </Button>
+                  </Link>
+                  <Link href="/profissionais">
+                    <Button
+                      variant="secondary"
+                      size="lg"
+                      className="w-full sm:w-auto font-bold border border-border/80 hover:border-primary/60"
+                    >
+                      Conhecer corpo clínico
+                    </Button>
+                  </Link>
+                </div>
+              </PageEntranceItem>
             </div>
           </PageEntrance>
+        </div>
+      </section>
+
+      {/* FAIXA DE ESTATÍSTICAS & DESTAQUES — largura total, centralizada,
+          entre a hero e a próxima seção. */}
+      <section className="border-y border-border/70 bg-card/60 py-10 lg:py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <ScrollReveal animation="fade-up">
+            <div className="grid grid-cols-3 gap-6 max-w-xl mx-auto text-center">
+              <div>
+                <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
+                  <AnimatedCounter value="99.8%" />
+                </p>
+                <p className="text-xs text-text-secondary mt-1 font-medium">Satisfação dos pacientes</p>
+              </div>
+              <div>
+                <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
+                  <AnimatedCounter value="+15k" />
+                </p>
+                <p className="text-xs text-text-secondary mt-1 font-medium">Atendimentos realizados</p>
+              </div>
+              <div>
+                <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
+                  <AnimatedCounter value="100%" />
+                </p>
+                <p className="text-xs text-text-secondary mt-1 font-medium">Especialistas certificados</p>
+              </div>
+            </div>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+              <div className="flex items-center gap-3 rounded-2xl border border-[rgba(130,169,160,0.25)] bg-card/70 px-4 py-2.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card text-[var(--link)] border border-[rgba(130,169,160,0.3)]">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 9.5 12 3l9 6.5" />
+                    <path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-text-primary leading-tight">Ambiente adaptado</p>
+                  <p className="text-[11px] text-text-secondary leading-tight">Salas terapêuticas</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 rounded-2xl border border-[rgba(130,169,160,0.25)] bg-card/70 px-4 py-2.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card text-[var(--link)] border border-[rgba(130,169,160,0.3)]">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="9" cy="7" r="3.5" />
+                    <path d="M16.5 7.5a3 3 0 1 0 0-6" />
+                    <path d="M2 20v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1" />
+                    <path d="M17 14.5A5 5 0 0 1 21 19v1" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-text-primary leading-tight">Visão multidisciplinar</p>
+                  <p className="text-[11px] text-text-secondary leading-tight">Atendimento integrado</p>
+                </div>
+              </div>
+
+              {locationChipLabel && (
+                <div className="flex items-center gap-3 rounded-2xl border border-[rgba(130,169,160,0.25)] bg-card/70 px-4 py-2.5">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card text-[var(--link)] border border-[rgba(130,169,160,0.3)]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 10c0 6.5-9 12-9 12s-9-5.5-9-12a9 9 0 0 1 18 0Z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-text-primary leading-tight">Onde estamos</p>
+                    <p className="text-[11px] text-text-secondary leading-tight">{locationChipLabel}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -515,14 +476,31 @@ export default async function HomePage() {
               <div className="pt-2 text-center">
                 <p className="text-xs font-bold uppercase tracking-wider text-text-muted mb-5">Convênios Aceitos</p>
                 <div className="flex flex-wrap items-center justify-center gap-3">
-                  {insurances.map((ins) => (
-                    <span
-                      key={ins.id}
-                      className="rounded-full border border-[rgba(130,169,160,0.25)] bg-card px-4 py-2 text-xs font-bold text-text-primary"
-                    >
-                      {ins.name}
-                    </span>
-                  ))}
+                  {insurances.map((ins) =>
+                    ins.logo_url ? (
+                      <span
+                        key={ins.id}
+                        className="inline-flex items-center gap-2 rounded-full border border-[rgba(130,169,160,0.25)] bg-card pl-2 pr-4 py-2 text-xs font-bold text-text-primary"
+                      >
+                        <Image
+                          src={ins.logo_url}
+                          alt=""
+                          width={20}
+                          height={20}
+                          className="h-5 w-5 rounded-full object-contain bg-white"
+                          unoptimized
+                        />
+                        {ins.name}
+                      </span>
+                    ) : (
+                      <span
+                        key={ins.id}
+                        className="rounded-full border border-[rgba(130,169,160,0.25)] bg-card px-4 py-2 text-xs font-bold text-text-primary"
+                      >
+                        {ins.name}
+                      </span>
+                    ),
+                  )}
                 </div>
               </div>
             </ScrollReveal>

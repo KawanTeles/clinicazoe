@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { getInsurances } from "@/modules/insurances/services/insurance-queries";
+import { getInsurances, getInsuranceLogoUrl } from "@/modules/insurances/services/insurance-queries";
 import { InsuranceManager } from "@/modules/insurances/components/InsuranceManager";
 
 export const metadata = {
@@ -11,7 +11,13 @@ export default async function InsurancesPage() {
   const session = await getCurrentUser();
   if (!session || session.profile.role !== "admin") redirect("/dashboard");
 
-  const insurances = await getInsurances();
+  const insuranceRows = await getInsurances();
+  const insurances = await Promise.all(
+    insuranceRows.map(async (insurance) => ({
+      ...insurance,
+      logoUrl: await getInsuranceLogoUrl(insurance.logo_path),
+    })),
+  );
 
   return (
     <div className="flex flex-col gap-6">

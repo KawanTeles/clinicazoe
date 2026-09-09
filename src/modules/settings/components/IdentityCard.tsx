@@ -58,7 +58,7 @@ export function IdentityCard({ data, onChange, logoUrl, facadeImageUrl, readOnly
             </label>
             <FacadeImageUploader facadeImageUrl={facadeImageUrl} readOnly={readOnly} />
             <p className="mt-1.5 text-[11px] text-text-muted">
-              Exibida na página inicial no lugar da logo. Sem uma foto enviada, a logo é usada como imagem provisória.
+              Usada como fundo da hero na página inicial. Sem uma foto enviada, a hero mantém o fundo padrão do site.
             </p>
           </div>
 

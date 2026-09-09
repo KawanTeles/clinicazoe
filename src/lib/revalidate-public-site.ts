@@ -30,12 +30,15 @@ export function revalidatePublicSite() {
   revalidatePath("/especialidades/[slug]", "page");
 }
 
-// Convênios hoje só aparecem em /convenios — getPublicWebsiteData().insurances
-// não é consumido por nenhuma outra página pública (conferido em todos os
-// consumidores de getPublicWebsiteData()).
+// Convênios aparecem em /convenios (cards completos) e na seção "Convênios
+// Aceitos" da Home (getPublicWebsiteData().insurances é o mesmo dado nas
+// duas páginas) — sem revalidar "/" aqui, trocar/remover uma logo ou
+// renomear um convênio fica com cache desatualizado na Home até o próximo
+// redeploy.
 /** Revalida as páginas públicas que listam convênios aceitos. */
 export function revalidatePublicInsurancePages() {
   revalidatePath("/convenios");
+  revalidatePath("/");
 }
 
 // As fotos da galeria aparecem tanto na home quanto em /estrutura (mesmo

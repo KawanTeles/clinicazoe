@@ -20,6 +20,12 @@ function resolveGalleryUrl(admin: ReturnType<typeof createAdminClient>, storageP
   return data.publicUrl;
 }
 
+function resolveInsuranceLogoUrl(admin: ReturnType<typeof createAdminClient>, logoPath: string | null | undefined) {
+  if (!logoPath) return null;
+  const { data } = admin.storage.from("insurance-logos").getPublicUrl(logoPath);
+  return data.publicUrl;
+}
+
 export async function getPublicWebsiteData() {
   const admin = createAdminClient();
 
@@ -125,7 +131,10 @@ export async function getPublicWebsiteData() {
     specialties: specialties ?? [],
     professionals: fullProfessionals,
     featuredProfessionals,
-    insurances: insurances ?? [],
+    insurances: (insurances ?? []).map((ins) => ({
+      ...ins,
+      logo_url: resolveInsuranceLogoUrl(admin, ins.logo_path),
+    })),
     galleryImages: (galleryImages ?? []).map((image) => ({
       id: image.id,
       url: resolveGalleryUrl(admin, image.storage_path),

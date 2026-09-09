@@ -14,8 +14,9 @@ import {
   reorderInsurances,
   updateInsurance,
 } from "@/modules/insurances/services/insurance-actions";
+import { InsuranceLogoUploader } from "@/modules/insurances/components/InsuranceLogoUploader";
 
-type Insurance = Database["public"]["Tables"]["insurances"]["Row"];
+type Insurance = Database["public"]["Tables"]["insurances"]["Row"] & { logoUrl: string | null };
 
 export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
   const router = useRouter();
@@ -138,6 +139,7 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
           <thead className="border-b border-border/80 bg-card-elevated/70 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
             <tr>
               <th className="px-4 py-2.5 font-bold">Ordem</th>
+              <th className="px-4 py-2.5 font-bold">Logo</th>
               <th className="px-4 py-2.5 font-bold">Nome do Convênio</th>
               <th className="px-4 py-2.5 font-bold">Status</th>
               <th className="px-4 py-2.5 font-bold text-right">Ações</th>
@@ -169,6 +171,9 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
                       ▼
                     </Button>
                   </div>
+                </td>
+                <td className="px-4 py-3">
+                  <InsuranceLogoUploader insuranceId={insurance.id} logoUrl={insurance.logoUrl} />
                 </td>
                 <td className="px-4 py-3">
                   {editingId === insurance.id ? (

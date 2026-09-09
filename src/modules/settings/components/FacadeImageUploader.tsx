@@ -50,7 +50,7 @@ export function FacadeImageUploader({ facadeImageUrl, readOnly }: { facadeImageU
           />
         ) : (
           <div className="flex h-13 w-20 items-center justify-center rounded-lg border border-dashed border-border bg-card-elevated text-[10px] text-text-muted text-center px-1">
-            Sem foto — usando a logo
+            Sem foto — fundo padrão
           </div>
         )}
         {!readOnly && (

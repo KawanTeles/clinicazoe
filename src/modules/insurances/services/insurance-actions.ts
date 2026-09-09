@@ -2,8 +2,18 @@
 
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/modules/team/services/audit";
 import { revalidatePublicInsurancePages } from "@/lib/revalidate-public-site";
+
+const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
+const MAX_LOGO_BYTES = 2 * 1024 * 1024;
+const LOGO_EXTENSION_BY_MIME: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+  "image/svg+xml": "svg",
+};
 
 async function requireAdmin() {
   const session = await getCurrentUser();
@@ -134,6 +144,50 @@ export async function deleteInsurance(id: string): Promise<{ error: string | nul
     entity: "insurances",
     entityId: id,
   });
+
+  return { error: null };
+}
+
+export async function uploadInsuranceLogo(id: string, formData: FormData): Promise<{ error: string | null }> {
+  const session = await requireAdmin();
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Nenhum arquivo selecionado." };
+  }
+  if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+    return { error: "Formato inválido. Envie PNG, JPG, WEBP ou SVG." };
+  }
+  if (file.size > MAX_LOGO_BYTES) {
+    return { error: "Arquivo muito grande. Limite de 2MB." };
+  }
+
+  const admin = createAdminClient();
+  // Extensão vem do MIME já validado (ALLOWED_LOGO_TYPES acima), não do
+  // nome do arquivo — file.name é controlado pelo client.
+  const extension = LOGO_EXTENSION_BY_MIME[file.type] ?? "png";
+  const path = `${id}.${extension}`;
+
+  const { error: uploadError } = await admin.storage
+    .from("insurance-logos")
+    .upload(path, file, { upsert: true, contentType: file.type });
+
+  if (uploadError) return { error: "Falha ao enviar o logo. Tente novamente." };
+
+  const { error: updateError } = await admin
+    .from("insurances")
+    .update({ logo_path: path })
+    .eq("id", id);
+
+  if (updateError) return { error: "Logo enviado, mas houve falha ao salvar." };
+
+  await logAudit({
+    actorId: session.user.id,
+    action: "insurance.logo_updated",
+    entity: "insurances",
+    entityId: id,
+  });
+  revalidatePublicInsurancePages();
 
   return { error: null };
 }
