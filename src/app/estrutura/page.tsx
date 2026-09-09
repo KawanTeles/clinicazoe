@@ -82,9 +82,9 @@ export default async function EstruturaPage() {
               <AnimatedCard delayMs={100} className="rounded-3xl p-8 space-y-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                    <line x1="3" x2="21" y1="9" y2="9" />
-                    <line x1="9" x2="9" y1="21" y2="9" />
+                    <path d="M12.8 19.6A2 2 0 1 0 14 16H2" />
+                    <path d="M17.5 8a2.5 2.5 0 1 1 2 4H2" />
+                    <path d="M9.8 4.4A2 2 0 1 1 11 8H2" />
                   </svg>
                 </div>
                 <h3 className="text-xl font-bold text-text-primary font-heading">Consultórios Climatizados & Acústicos</h3>
@@ -98,7 +98,11 @@ export default async function EstruturaPage() {
               <AnimatedCard delayMs={200} className="rounded-3xl p-8 space-y-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    <path d="M11 2v2" />
+                    <path d="M5 2v2" />
+                    <path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1" />
+                    <path d="M8 15a6 6 0 0 0 12 0v-3" />
+                    <circle cx="20" cy="10" r="2" />
                   </svg>
                 </div>
                 <h3 className="text-xl font-bold text-text-primary font-heading">Central Diagnóstica Integrada</h3>
@@ -112,7 +116,8 @@ export default async function EstruturaPage() {
               <AnimatedCard delayMs={300} className="rounded-3xl p-8 space-y-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+                    <path d="m9 12 2 2 4-4" />
                   </svg>
                 </div>
                 <h3 className="text-xl font-bold text-text-primary font-heading">Biossegurança e Esterilização Rígida</h3>
@@ -126,8 +131,10 @@ export default async function EstruturaPage() {
               <AnimatedCard delayMs={400} className="rounded-3xl p-8 space-y-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
+                    <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+                    <circle cx="7" cy="17" r="2" />
+                    <path d="M9 17h6" />
+                    <circle cx="17" cy="17" r="2" />
                   </svg>
                 </div>
                 <h3 className="text-xl font-bold text-text-primary font-heading">Recepção Premium e Estacionamento</h3>

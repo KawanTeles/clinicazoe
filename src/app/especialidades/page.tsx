@@ -3,12 +3,12 @@ import { getPublicWebsiteData } from "@/lib/public-queries";
 import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
 import { PageHero } from "@/components/public/PageHero";
-import { ScrollReveal } from "@/components/public/ScrollReveal";
 import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
 import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { EmptyState } from "@/components/public/EmptyState";
 import { SmartGrid } from "@/components/public/SmartGrid";
 import { Badge } from "@/components/ui/Badge";
+import { SpecialtyIcon } from "@/components/public/SpecialtyIcon";
 import { Button } from "@/components/ui/Button";
 import { CTA_PRIMARY } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
@@ -82,9 +82,7 @@ export default async function EspecialidadesPage() {
                 <AnimatedCard key={spec.id} delayMs={index * 100} className="p-8 flex flex-col justify-between h-full rounded-3xl">
                   <div className="space-y-4">
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                      </svg>
+                      <SpecialtyIcon name={spec.name} size={24} strokeWidth={2} />
                     </div>
                     <h3 className="text-xl font-bold text-text-primary font-heading">
                       <Link

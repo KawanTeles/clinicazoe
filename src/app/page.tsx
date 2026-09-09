@@ -13,6 +13,7 @@ import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntra
 import { AnimatedCounter } from "@/components/animation/AnimatedCounter";
 import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { FeaturedProfessionalCard } from "@/components/public/FeaturedProfessionalCard";
+import { SpecialtyIcon } from "@/components/public/SpecialtyIcon";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { CTA_PRIMARY, CTA_VIEW_ALL_PROFESSIONALS, CTA_VIEW_ALL_SPECIALTIES } from "@/lib/cta-labels";
@@ -89,7 +90,10 @@ const WHY_CHOOSE_ZOE_ITEMS: { title: string; description: string; icon: ReactNod
     description: "Acreditamos no tempo, no ritmo e na singularidade de cada criança — sem fórmulas prontas.",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 7V4a1 1 0 0 1 1-1h4a2 2 0 1 0 4 0h4a1 1 0 0 1 1 1v4a2 2 0 1 1 0 4v4a1 1 0 0 1-1 1h-4a2 2 0 1 0-4 0H5a1 1 0 0 1-1-1v-4a2 2 0 1 1 0-4Z" />
+        <path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" />
+        <path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" />
+        <path d="M16 17h4" />
+        <path d="M4 13h4" />
       </svg>
     ),
   },
@@ -153,9 +157,7 @@ export default async function HomePage() {
       <AnimatedCard className="p-6 h-full flex flex-col justify-between">
         <div>
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(130,169,160,0.25)] mb-4 shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
+            <SpecialtyIcon name={spec.name} />
           </div>
           <h3 className="text-base font-bold text-text-primary font-heading">
             {spec.name}
@@ -489,7 +491,9 @@ export default async function HomePage() {
                 <div className="flex items-center gap-5 group">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(130,169,160,0.3)] shadow-[0_0_15px_rgba(130,169,160,0.15)] group-hover:scale-105 transition-transform">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z" />
+                      <path d="M22 10v6" />
+                      <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" />
                     </svg>
                   </div>
                   <div>
@@ -549,15 +553,15 @@ export default async function HomePage() {
             <div className="flex flex-wrap items-center justify-center gap-4">
               <div className="flex items-center gap-2.5 rounded-full border border-[rgba(130,169,160,0.25)] bg-card px-4 py-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--link)]">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
-                  <circle cx="12" cy="12" r="3" />
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
                 <span className="text-xs font-bold text-text-primary">Segurança sensorial</span>
               </div>
 
               <div className="flex items-center gap-2.5 rounded-full border border-[rgba(130,169,160,0.25)] bg-card px-4 py-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--link)]">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+                  <path d="m16 9-5.5 5.5L8 12" />
                 </svg>
                 <span className="text-xs font-bold text-text-primary">Materiais certificados</span>
               </div>
