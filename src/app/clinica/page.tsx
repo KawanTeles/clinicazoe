@@ -101,7 +101,7 @@ export default async function ClinicaPage() {
               </div>
               <h3 className="text-xl sm:text-2xl font-extrabold text-primary font-heading mb-4">Visão</h3>
               <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-                Construir um espaço de referência em desenvolvimento humano, onde o cuidado seja integral, e cada profissional atue com propósito e verdade. Ser um núcleo que transforma vidas com empatia e excelência, gerando impacto positivo na comunidade e liberdade para quem sonha grande.
+                Construir um espaço de referência em desenvolvimento humano, onde o cuidado seja integral, e cada profissional atue com propósito e verdade. Ser um núcleo que transforma vidas com empatia e excelência, gerando impacto positivo na comunidade.
               </p>
             </AnimatedCard>
 

@@ -39,6 +39,7 @@ export interface CreateTeamMemberInput {
   role: Role;
   specialty_id?: string;
   license_number?: string;
+  show_license_publicly?: boolean;
   bio?: string;
   agenda_color?: string;
   consultation_duration_minutes?: number;
@@ -122,6 +123,7 @@ export async function createTeamMember(
       id: userId,
       specialty_id: input.specialty_id || null,
       license_number: input.license_number?.trim() || null,
+      show_license_publicly: input.show_license_publicly ?? true,
       bio: input.bio?.trim() || null,
       agenda_color: input.agenda_color || "#2F8F83",
       consultation_duration_minutes: input.consultation_duration_minutes || 30,
@@ -168,6 +170,7 @@ export interface UpdateTeamMemberInput {
   password?: string;
   specialty_id?: string;
   license_number?: string;
+  show_license_publicly?: boolean;
   bio?: string;
   agenda_color?: string;
   consultation_duration_minutes?: number;
@@ -211,6 +214,7 @@ export async function updateTeamMember(
       id: input.id,
       specialty_id: input.specialty_id || null,
       license_number: input.license_number?.trim() || null,
+      show_license_publicly: input.show_license_publicly ?? true,
       bio: input.bio?.trim() || null,
       agenda_color: input.agenda_color || "#2F8F83",
       consultation_duration_minutes: input.consultation_duration_minutes || 30,

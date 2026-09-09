@@ -17,10 +17,11 @@ import { toFormState, type ClinicSettingsRow } from "@/modules/settings/utils/fo
 interface ClinicSettingsPanelProps {
   initial: ClinicSettingsRow | null;
   logoUrl: string | null;
+  facadeImageUrl: string | null;
   readOnly: boolean;
 }
 
-export function ClinicSettingsPanel({ initial, logoUrl, readOnly }: ClinicSettingsPanelProps) {
+export function ClinicSettingsPanel({ initial, logoUrl, facadeImageUrl, readOnly }: ClinicSettingsPanelProps) {
   const router = useRouter();
   const [data, setData] = useState(() => toFormState(initial));
   const [savingAll, setSavingAll] = useState(false);
@@ -56,7 +57,7 @@ export function ClinicSettingsPanel({ initial, logoUrl, readOnly }: ClinicSettin
         {/* Configuration cards arranged in balanced responsive grid */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 items-start">
           <div className="md:col-span-2">
-            <IdentityCard data={data} onChange={patch} logoUrl={logoUrl} readOnly={readOnly} />
+            <IdentityCard data={data} onChange={patch} logoUrl={logoUrl} facadeImageUrl={facadeImageUrl} readOnly={readOnly} />
           </div>
           <div className="md:col-span-2">
             <AddressCard data={data} onChange={patch} readOnly={readOnly} />

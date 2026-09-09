@@ -48,6 +48,7 @@ interface TeamMemberFormProps {
     status: "active" | "inactive";
     specialty_id: string;
     license_number: string;
+    show_license_publicly: boolean;
     bio: string;
     agenda_color: string;
     consultation_duration_minutes: string;
@@ -63,6 +64,7 @@ const DEFAULTS = {
   status: "active" as const,
   specialty_id: "",
   license_number: "",
+  show_license_publicly: true,
   bio: "",
   agenda_color: "#2F8F83",
   consultation_duration_minutes: "30",
@@ -94,6 +96,7 @@ export function TeamMemberForm({
   const [password, setPassword] = useState("");
   const [specialtyId, setSpecialtyId] = useState(values.specialty_id);
   const [licenseNumber, setLicenseNumber] = useState(values.license_number);
+  const [showLicensePublicly, setShowLicensePublicly] = useState(values.show_license_publicly);
   const [bio, setBio] = useState(values.bio);
   const [agendaColor, setAgendaColor] = useState(values.agenda_color);
   const [duration, setDuration] = useState(values.consultation_duration_minutes);
@@ -169,6 +172,7 @@ export function TeamMemberForm({
       const professionalFields = {
         specialty_id: specialtyId || undefined,
         license_number: licenseNumber,
+        show_license_publicly: showLicensePublicly,
         bio,
         agenda_color: agendaColor,
         consultation_duration_minutes: Number(duration) || 30,
@@ -376,13 +380,24 @@ export function TeamMemberForm({
                 </option>
               ))}
             </Select>
-            <Input
-              label="Registro Profissional"
-              name="license_number"
-              placeholder="Ex.: CRM/SP 123456, CRP 12345"
-              value={licenseNumber}
-              onChange={(e) => setLicenseNumber(e.target.value)}
-            />
+            <div className="flex flex-col gap-1.5">
+              <Input
+                label="Registro Profissional"
+                name="license_number"
+                placeholder="Ex.: CRM/SP 123456, CRP 12345"
+                value={licenseNumber}
+                onChange={(e) => setLicenseNumber(e.target.value)}
+              />
+              <label className="flex items-center gap-2 text-[11px] font-semibold text-text-secondary cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showLicensePublicly}
+                  onChange={(e) => setShowLicensePublicly(e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-border accent-primary cursor-pointer"
+                />
+                Exibir número de registro publicamente
+              </label>
+            </div>
             <Input
               label="Duração do Atendimento (min)"
               name="consultation_duration_minutes"

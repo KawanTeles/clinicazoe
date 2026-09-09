@@ -134,7 +134,9 @@ export default async function SpecialtyDetailPage({ params }: { params: Promise<
                         <Avatar src={prof.avatarUrl} name={prof.fullName} size={56} rounded="2xl" />
                         <div>
                           <h3 className="text-sm font-bold text-text-primary font-heading">{prof.fullName}</h3>
-                          <p className="text-[11px] text-text-muted mt-0.5 font-mono">{prof.licenseNumber}</p>
+                          {prof.licenseNumber && (
+                            <p className="text-[11px] text-text-muted mt-0.5 font-mono">{prof.licenseNumber}</p>
+                          )}
                         </div>
                       </div>
                       <div className="mt-5 pt-4 border-t border-border/60">

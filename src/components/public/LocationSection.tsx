@@ -46,10 +46,10 @@ export function LocationSection({
           <ScrollReveal animation="fade-up">
             <Badge tone="premium" className="border border-[rgba(135,201,179,0.3)] shadow-[0_0_15px_rgba(51,113,87,0.2)]">Facilidade de Acesso</Badge>
             <h2 className="text-3xl sm:text-4xl font-black text-text-primary mt-2 tracking-tight font-heading">
-              Como Chegar à {clinicName}
+              Como chegar ao {clinicName}
             </h2>
             <p className="text-sm sm:text-base text-text-secondary font-normal">
-              Localização privilegiada no coração da cidade com facilidade de acesso, valete e transporte público.
+              Localização privilegiada com fácil acesso para você e sua família.
             </p>
           </ScrollReveal>
         </div>

@@ -9,7 +9,6 @@ import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { EmptyState } from "@/components/public/EmptyState";
 import { SmartGrid } from "@/components/public/SmartGrid";
 import { Button } from "@/components/ui/Button";
-import { CTA_PRIMARY } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
 import { safeJsonLd } from "@/lib/json-ld";
 
@@ -74,26 +73,15 @@ export default async function ConveniosPage() {
               />
             }
             renderItem={(ins, index) => (
-              <AnimatedCard key={ins.id} delayMs={index * 80} className="p-8 flex flex-col justify-between h-full rounded-[2rem] group">
-                <div>
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(54,99,84,0.15)] mb-6 transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-text-primary font-heading">{ins.name}</h3>
-                  <p className="text-sm text-text-secondary mt-3 leading-relaxed">
-                    Cobertura para atendimentos médicos especializados no {clinic.name || "Espaço Zoe"}.
-                  </p>
+              <AnimatedCard key={ins.id} delayMs={index * 80} className="p-8 flex flex-col items-center text-center justify-center h-full rounded-[2rem] group">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(54,99,84,0.15)] mb-5 transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2.5" />
+                    <path d="M2 10h20" />
+                    <path d="M6 15h4" />
+                  </svg>
                 </div>
-
-                <div className="mt-8 pt-5 border-t border-border/60">
-                  <Link href="/agendar" className="block w-full">
-                    <Button variant="secondary" size="sm" className="w-full font-bold">
-                      {CTA_PRIMARY}
-                    </Button>
-                  </Link>
-                </div>
+                <h3 className="text-lg font-bold text-text-primary font-heading">{ins.name}</h3>
               </AnimatedCard>
             )}
           />

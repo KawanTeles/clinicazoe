@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { getPublicWebsiteData } from "@/lib/public-queries";
 import { PublicHeader } from "@/components/public/PublicHeader";
@@ -129,7 +130,7 @@ const WHY_CHOOSE_ZOE_ITEMS: { title: string; description: string; icon: ReactNod
 ];
 
 export default async function HomePage() {
-  const { clinic, specialties, professionals, featuredProfessionals, galleryImages } = await getPublicWebsiteData();
+  const { clinic, specialties, professionals, featuredProfessionals, galleryImages, insurances } = await getPublicWebsiteData();
 
   // Sem curadoria manual ainda (Configurações → Profissionais em Destaque),
   // cai para os primeiros por ordem alfabética — a seção nunca fica vazia
@@ -251,7 +252,7 @@ export default async function HomePage() {
               <div className="lg:col-span-7 space-y-6">
                 <PageEntranceItem>
                   <h1 className="tracking-hero text-4xl sm:text-5xl lg:text-6xl font-black text-[var(--primary)] leading-[1.12] font-heading">
-                    Cuidados de saúde com{" "}
+                    Atendimentos com{" "}
                     <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent drop-shadow-sm">
                       excelência
                     </span>{" "}
@@ -368,16 +369,30 @@ export default async function HomePage() {
                   <div className="relative mx-auto max-w-md rounded-[2rem] border border-[rgba(130,169,160,0.18)] bg-card/80 p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all duration-300 hover:border-[rgba(130,169,160,0.35)] hover:shadow-card-hover group">
                     {/* Inner core */}
                     <div className="rounded-[calc(2rem-0.5rem)] border border-border/80 bg-card-elevated/90 p-7 shadow-inner space-y-6">
-                      <div className="flex items-center gap-4 border-b border-border/70 pb-6">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-card text-[var(--link)] border border-[rgba(130,169,160,0.3)] shadow-[0_0_20px_rgba(130,169,160,0.2)] transition-transform duration-300 group-hover:scale-105">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                          </svg>
-                        </div>
-                        <div>
-                          <span className="text-xs font-bold uppercase tracking-wider text-[var(--link)]">Centro Clínico Integrado</span>
-                          <p className="text-xl font-extrabold text-text-primary font-heading mt-0.5">Padrão Internacional</p>
-                        </div>
+                      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-[rgba(130,169,160,0.2)] bg-gradient-to-br from-card to-card-elevated">
+                        {clinic.facade_image_url ? (
+                          <Image
+                            src={clinic.facade_image_url}
+                            alt={`Fachada do ${clinic.name || "Espaço Zoe"}`}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 400px"
+                            className="object-cover"
+                            unoptimized
+                          />
+                        ) : clinic.logo_url ? (
+                          <Image
+                            src={clinic.logo_url}
+                            alt={clinic.name || "Espaço Zoe"}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 400px"
+                            className="object-contain p-10"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center">
+                            <span className="text-xs font-semibold text-text-muted">Foto da fachada em breve</span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="space-y-3.5">
@@ -416,7 +431,6 @@ export default async function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
           <div className="text-center max-w-3xl mx-auto space-y-4">
             <ScrollReveal animation="fade-up">
-              <Badge tone="success" className="border border-[rgba(130,169,160,0.25)] shadow-sm">Excelência Médica</Badge>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--primary)] mt-2 font-heading">
                 Diferenciais que garantem sua tranquilidade
               </h2>
@@ -491,6 +505,24 @@ export default async function HomePage() {
               </AnimatedCard>
             </div>
           </div>
+
+          {insurances.length > 0 && (
+            <ScrollReveal animation="fade-up">
+              <div className="pt-2 text-center">
+                <p className="text-xs font-bold uppercase tracking-wider text-text-muted mb-5">Convênios Aceitos</p>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  {insurances.map((ins) => (
+                    <span
+                      key={ins.id}
+                      className="rounded-full border border-[rgba(130,169,160,0.25)] bg-card px-4 py-2 text-xs font-bold text-text-primary"
+                    >
+                      {ins.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </ScrollReveal>
+          )}
         </div>
       </section>
 

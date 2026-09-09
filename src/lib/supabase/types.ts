@@ -113,6 +113,7 @@ export interface Database {
           id: string;
           specialty_id: string | null;
           license_number: string | null;
+          show_license_publicly: boolean;
           bio: string | null;
           agenda_color: string;
           status: Status;
@@ -125,6 +126,7 @@ export interface Database {
           id: string;
           specialty_id?: string | null;
           license_number?: string | null;
+          show_license_publicly?: boolean;
           bio?: string | null;
           agenda_color?: string;
           status?: Status;
@@ -137,6 +139,7 @@ export interface Database {
           id?: string;
           specialty_id?: string | null;
           license_number?: string | null;
+          show_license_publicly?: boolean;
           bio?: string | null;
           agenda_color?: string;
           status?: Status;
@@ -179,6 +182,7 @@ export interface Database {
           holiday_open_time: string | null;
           holiday_close_time: string | null;
           logo_path: string | null;
+          facade_image_path: string | null;
           price_particular_consultation: number | null;
           price_particular_package: number | null;
           created_at: string;
@@ -215,6 +219,7 @@ export interface Database {
           holiday_open_time?: string | null;
           holiday_close_time?: string | null;
           logo_path?: string | null;
+          facade_image_path?: string | null;
           price_particular_consultation?: number | null;
           price_particular_package?: number | null;
           created_at?: string;
@@ -251,6 +256,7 @@ export interface Database {
           holiday_open_time?: string | null;
           holiday_close_time?: string | null;
           logo_path?: string | null;
+          facade_image_path?: string | null;
           price_particular_consultation?: number | null;
           price_particular_package?: number | null;
           created_at?: string;

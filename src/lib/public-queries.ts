@@ -9,6 +9,12 @@ function resolveLogoUrl(admin: ReturnType<typeof createAdminClient>, logoPath: s
   return data.publicUrl;
 }
 
+function resolveFacadeImageUrl(admin: ReturnType<typeof createAdminClient>, facadeImagePath: string | null | undefined) {
+  if (!facadeImagePath) return null;
+  const { data } = admin.storage.from("clinic-assets").getPublicUrl(facadeImagePath);
+  return data.publicUrl;
+}
+
 function resolveGalleryUrl(admin: ReturnType<typeof createAdminClient>, storagePath: string) {
   const { data } = admin.storage.from("clinic-gallery").getPublicUrl(storagePath);
   return data.publicUrl;
@@ -54,7 +60,7 @@ export async function getPublicWebsiteData() {
           id: prof.id,
           fullName: profile.full_name ?? "Profissional de Saúde",
           specialtyName: spec?.name ?? "Clínica Geral",
-          licenseNumber: prof.license_number ?? "CRM/Registro Ativo",
+          licenseNumber: prof.show_license_publicly && prof.license_number ? prof.license_number : null,
           bio: prof.bio || "Especialista qualificado comprometido com a excelência no atendimento e saúde do paciente.",
           avatarUrl,
         };
@@ -72,7 +78,11 @@ export async function getPublicWebsiteData() {
 
   return {
     clinic: clinic
-      ? { ...clinic, logo_url: resolveLogoUrl(admin, clinic.logo_path) }
+      ? {
+          ...clinic,
+          logo_url: resolveLogoUrl(admin, clinic.logo_path),
+          facade_image_url: resolveFacadeImageUrl(admin, clinic.facade_image_path),
+        }
       : {
           id: 1,
           name: "",
@@ -105,6 +115,8 @@ export async function getPublicWebsiteData() {
           holiday_close_time: null,
           logo_path: null,
           logo_url: null,
+          facade_image_path: null,
+          facade_image_url: null,
           price_particular_consultation: null,
           price_particular_package: null,
           created_at: "",

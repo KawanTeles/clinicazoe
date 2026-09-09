@@ -9,7 +9,7 @@ export interface FeaturedProfessionalData {
   id: string;
   fullName: string;
   specialtyName: string;
-  licenseNumber: string;
+  licenseNumber: string | null;
   bio: string;
   avatarUrl: string | null;
 }
@@ -22,10 +22,11 @@ function initials(name: string) {
 }
 
 /**
- * Card de profissional em destaque na home — foto grande no topo com o
- * registro sobreposto no canto, especialidade em pílula, nome, subtítulo
- * curto e bio truncada. Estilo próprio dessa seção (não é o mesmo card usado
- * em /profissionais, que continua com a foto centralizada).
+ * Card de profissional em destaque na home — foto grande no topo com a
+ * especialidade sobreposta no canto (destaque vai para especialidade e
+ * formação/bio, não para o registro profissional, que fica discreto no
+ * rodapé do card quando exibido). Estilo próprio dessa seção (não é o mesmo
+ * card usado em /profissionais, que continua com a foto centralizada).
  */
 export function FeaturedProfessionalCard({ professional: prof }: { professional: FeaturedProfessionalData }) {
   return (
@@ -44,24 +45,21 @@ export function FeaturedProfessionalCard({ professional: prof }: { professional:
             <span className="text-4xl font-black text-primary/30">{initials(prof.fullName)}</span>
           </div>
         )}
-        <div className="absolute top-3 right-3">
-          <Badge tone="neutral" className="bg-card/95 text-[10px] shadow-sm backdrop-blur-sm">
-            {prof.licenseNumber}
+        <div className="absolute top-3 left-3">
+          <Badge tone="premium" className="text-[10px] uppercase tracking-wider shadow-sm backdrop-blur-sm">
+            {prof.specialtyName}
           </Badge>
         </div>
       </div>
 
       <div className="flex flex-1 flex-col p-6">
-        <Badge tone="premium" className="w-fit text-[10px] uppercase tracking-wider">
-          {prof.specialtyName}
-        </Badge>
-
-        <h3 className="mt-3 text-lg font-bold text-text-primary font-heading">{prof.fullName}</h3>
-        <p className="mt-0.5 text-[11px] font-bold uppercase tracking-wider text-[var(--primary)]">
-          Especialista em {prof.specialtyName}
-        </p>
+        <h3 className="text-lg font-bold text-text-primary font-heading">{prof.fullName}</h3>
 
         <p className="mt-3 flex-1 text-sm leading-relaxed text-text-secondary line-clamp-3">{prof.bio}</p>
+
+        {prof.licenseNumber && (
+          <p className="mt-3 text-[10px] font-mono text-text-muted">{prof.licenseNumber}</p>
+        )}
 
         <Link href={`/profissionais/${buildEntitySlug(prof.fullName, prof.id)}`} className="mt-5 block w-full">
           <Button variant="secondary" className="w-full font-bold">

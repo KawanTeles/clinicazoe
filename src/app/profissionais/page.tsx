@@ -5,7 +5,8 @@ import { PageHero } from "@/components/public/PageHero";
 import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
 import { EmptyState } from "@/components/public/EmptyState";
 import { SmartGrid } from "@/components/public/SmartGrid";
-import { ProfessionalCard } from "@/components/public/ProfessionalCard";
+import { ScrollReveal } from "@/components/public/ScrollReveal";
+import { FeaturedProfessionalCard } from "@/components/public/FeaturedProfessionalCard";
 import { SITE_URL } from "@/lib/site-url";
 import { safeJsonLd } from "@/lib/json-ld";
 
@@ -71,7 +72,9 @@ export default async function ProfissionaisPage() {
               />
             }
             renderItem={(prof, index) => (
-              <ProfessionalCard key={prof.id} professional={prof} delayMs={index * 120} avatarSize={112} showBookCta />
+              <ScrollReveal key={prof.id} animation="fade-up" delayMs={index * 100}>
+                <FeaturedProfessionalCard professional={prof} />
+              </ScrollReveal>
             )}
           />
         </PageEntrance>

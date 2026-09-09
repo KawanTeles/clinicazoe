@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { getCurrentUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
-import { getClinicLogoUrl, getClinicSettings } from "@/modules/settings/services/settings-queries";
+import { getClinicLogoUrl, getClinicFacadeImageUrl, getClinicSettings } from "@/modules/settings/services/settings-queries";
 import { ClinicSettingsPanel } from "@/modules/settings/components/ClinicSettingsPanel";
 import { getHolidays } from "@/modules/holidays/services/holiday-queries";
 import { HolidayManager } from "@/modules/holidays/components/HolidayManager";
@@ -37,7 +37,10 @@ export default async function SettingsPage() {
     canManageAI ? getAISettingsForAdmin() : Promise.resolve(null),
     canManageAI ? getAIUsageStats() : Promise.resolve(null),
   ]);
-  const logoUrl = await getClinicLogoUrl(settings?.logo_path ?? null);
+  const [logoUrl, facadeImageUrl] = await Promise.all([
+    getClinicLogoUrl(settings?.logo_path ?? null),
+    getClinicFacadeImageUrl(settings?.facade_image_path ?? null),
+  ]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -48,7 +51,7 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <ClinicSettingsPanel initial={settings} logoUrl={logoUrl} readOnly={!canManage} />
+      <ClinicSettingsPanel initial={settings} logoUrl={logoUrl} facadeImageUrl={facadeImageUrl} readOnly={!canManage} />
 
       {canManage && (
         <Card className="mt-2">

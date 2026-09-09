@@ -12,3 +12,10 @@ export async function getClinicLogoUrl(logoPath: string | null) {
   const { data } = supabase.storage.from("clinic-assets").getPublicUrl(logoPath);
   return data.publicUrl;
 }
+
+export async function getClinicFacadeImageUrl(facadeImagePath: string | null) {
+  if (!facadeImagePath) return null;
+  const supabase = await createClient();
+  const { data } = supabase.storage.from("clinic-assets").getPublicUrl(facadeImagePath);
+  return data.publicUrl;
+}

@@ -62,6 +62,7 @@ export default async function EditTeamMemberPage({
           status: profile.status,
           specialty_id: professional?.specialty_id ?? "",
           license_number: professional?.license_number ?? "",
+          show_license_publicly: professional?.show_license_publicly ?? true,
           bio: professional?.bio ?? "",
           agenda_color: professional?.agenda_color ?? "#70A99A",
           consultation_duration_minutes: String(

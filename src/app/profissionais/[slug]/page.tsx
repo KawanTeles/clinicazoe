@@ -121,7 +121,7 @@ export default async function ProfissionalDetailPage({ params }: { params: Promi
                 <div className="space-y-2 text-center sm:text-left">
                   <Badge tone="premium">{prof.specialtyName}</Badge>
                   <h1 className="tracking-hero text-2xl sm:text-3xl font-black text-text-primary font-heading">{prof.fullName}</h1>
-                  <p className="text-xs font-mono text-text-muted">{prof.licenseNumber}</p>
+                  {prof.licenseNumber && <p className="text-xs font-mono text-text-muted">{prof.licenseNumber}</p>}
                 </div>
               </div>
 
