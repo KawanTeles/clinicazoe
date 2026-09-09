@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { m, AnimatePresence } from "framer-motion";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { cn } from "@/lib/utils/cn";
 import { CTA_CLIENT_AREA, CTA_TEAM_AREA } from "@/lib/cta-labels";
 
@@ -117,15 +116,15 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                   className={cn(
                     "relative px-4 py-2 rounded-full font-bold transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     isActive
-                      ? "bg-primary/10 text-primary border border-[var(--primary)]/20 shadow-xs dark:bg-primary/25 dark:text-text-primary"
-                      : "text-text-secondary hover:text-text-primary hover:bg-black/5 dark:hover:bg-white/5",
+                      ? "bg-primary/10 text-primary border border-[var(--primary)]/20 shadow-xs"
+                      : "text-text-secondary hover:text-text-primary hover:bg-black/5",
                   )}
                 >
                   {link.label}
                   {isActive && (
                     <m.div
                       layoutId="activePill"
-                      className="absolute inset-0 rounded-full border border-primary/30 bg-primary/10 dark:bg-primary/20 pointer-events-none"
+                      className="absolute inset-0 rounded-full border border-primary/30 bg-primary/10 pointer-events-none"
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
@@ -134,10 +133,8 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
             })}
           </nav>
 
-          {/* Action Buttons & Theme Toggle */}
+          {/* Action Buttons */}
           <div className="flex items-center gap-2.5">
-            <ThemeToggle className="hidden sm:flex rounded-full h-10 w-10 border border-border hover:border-primary/50" />
-
             <div className="hidden items-center gap-2.5 lg:flex">
               <Link href="/equipe" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                 <m.button
@@ -146,7 +143,7 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.97 }}
                   transition={{ duration: 0.18 }}
-                  className="rounded-full border border-border bg-white text-text-secondary hover:bg-[var(--card-elevated)] hover:text-text-primary hover:border-[var(--primary)]/50 dark:bg-card-elevated dark:text-text-secondary dark:hover:bg-card transition-colors duration-200 px-4 py-2 text-xs font-bold cursor-pointer"
+                  className="rounded-full border border-border bg-white text-text-secondary hover:bg-[var(--card-elevated)] hover:text-text-primary hover:border-[var(--primary)]/50 transition-colors duration-200 px-4 py-2 text-xs font-bold cursor-pointer"
                 >
                   {CTA_TEAM_AREA}
                 </m.button>
@@ -179,8 +176,6 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                 </m.button>
               </Link>
             </div>
-
-            <ThemeToggle className="sm:hidden rounded-full h-9 w-9 border border-[rgba(135,201,179,0.2)]" />
 
             {/* Mobile Hamburger Button */}
             <m.button
@@ -314,11 +309,6 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                 transition={{ delay: NAV_LINKS.length * 0.05 + 0.15, duration: 0.3 }}
                 className="pt-6 border-t border-border/70 flex flex-col gap-3"
               >
-                <div className="flex items-center justify-between px-2 pb-2">
-                  <span className="text-xs font-semibold text-text-secondary">Alternar Tema</span>
-                  <ThemeToggle showLabel />
-                </div>
-
                 <Link
                   href="/cliente/login"
                   onClick={() => setMobileMenuOpen(false)}

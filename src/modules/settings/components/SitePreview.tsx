@@ -75,7 +75,7 @@ export function SitePreview({ data, logoUrl }: { data: ClinicSettingsFormState; 
             <div className="flex-1 mx-3 flex items-center justify-center bg-card border border-border/60 rounded-md px-2 py-0.5 text-[9.5px] font-medium text-text-muted truncate">
               <span className="mr-1 opacity-60">🔒</span> {cleanWebsiteUrl}
             </div>
-            <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded">
               Ao vivo
             </span>
           </div>
@@ -115,8 +115,8 @@ export function SitePreview({ data, logoUrl }: { data: ClinicSettingsFormState; 
                 {todayHours && (
                   <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
                     todayHours.is_open
-                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                      : "bg-rose-500/15 text-rose-600 dark:text-rose-400"
+                      ? "bg-emerald-500/15 text-emerald-600"
+                      : "bg-rose-500/15 text-rose-600"
                   }`}>
                     {todayHours.is_open ? "Aberto Hoje" : "Fechado Hoje"}
                   </span>

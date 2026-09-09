@@ -560,7 +560,7 @@ export function StaffAppointmentForm({
                     <Avatar src={opt.avatarUrl} name={opt.fullName} size={32} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-bold text-text-primary">{opt.fullName}</p>
-                      <p className="truncate text-[10px] text-primary dark:text-[var(--link)] font-semibold">{opt.specialtyName}</p>
+                      <p className="truncate text-[10px] text-primary font-semibold">{opt.specialtyName}</p>
                     </div>
                   </button>
                 ))}
@@ -746,7 +746,7 @@ export function StaffAppointmentForm({
                   ) : null}
                   <div className="col-span-2">
                     <span className="text-text-muted block font-medium">Data / Hora:</span>
-                    <span className="font-bold text-primary dark:text-[var(--link)]">
+                    <span className="font-bold text-primary">
                       {date && time
                         ? `${dateFormatter.format(new Date(`${date}T00:00:00`))} às ${time.startTime.slice(0, 5)}`
                         : "—"}

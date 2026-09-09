@@ -84,7 +84,6 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AnimationProvider } from "@/components/animation/AnimationProvider";
 
 const SCHEMA_WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -162,14 +161,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang="pt-BR"
       className={`h-full antialiased scroll-smooth ${geist.variable} ${manrope.variable} ${nunito.variable}`}
-      suppressHydrationWarning
     >
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var s=localStorage.getItem('clinicazoe-theme');var t=s||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);document.documentElement.classList.add(t);}catch(e){}})();`,
-          }}
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
@@ -180,13 +173,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body className="min-h-full flex flex-col bg-background text-text-primary font-sans transition-colors duration-300">
-        <ThemeProvider>
-          <AnimationProvider>
-            <ToastProvider>
-              <ConfirmDialogProvider>{children}</ConfirmDialogProvider>
-            </ToastProvider>
-          </AnimationProvider>
-        </ThemeProvider>
+        <AnimationProvider>
+          <ToastProvider>
+            <ConfirmDialogProvider>{children}</ConfirmDialogProvider>
+          </ToastProvider>
+        </AnimationProvider>
       </body>
     </html>
   );

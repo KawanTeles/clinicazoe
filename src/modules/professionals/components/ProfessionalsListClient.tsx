@@ -70,7 +70,7 @@ export function ProfessionalsListClient({
                         {professional.full_name}
                       </p>
                       {professional.specialtyName && (
-                        <p className="truncate text-xs font-semibold text-primary dark:text-[var(--link)] mt-0.5">
+                        <p className="truncate text-xs font-semibold text-primary mt-0.5">
                           {professional.specialtyName}
                         </p>
                       )}

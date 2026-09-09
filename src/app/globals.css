@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
 /* ----------------------------------------------------
-   CLÍNICA ZOE — THEME DESIGN SYSTEM (DARK & LIGHT MODE)
+   CLÍNICA ZOE — THEME DESIGN SYSTEM (LIGHT MODE)
    ----------------------------------------------------
+   Tema único (claro) em todo o site público e no painel admin — sem
+   alternância. Todas as cores continuam centralizadas nestas CSS custom
+   properties (consumidas via @theme inline abaixo); nenhum componente
+   define cor fora daqui.
+
    Hierarquia de peso visual (mesma identidade verde, pesos diferentes):
 
    Elemento                          Token                         Peso
@@ -17,88 +22,14 @@
    ---------------------------------------------------------------------- */
 
 :root {
-  /* Default Dark Mode Palette (Zoe Identity) */
+  /* Light Mode Palette (Espaço Zoe Premium Visual Hierarchy) — tema único */
   --primary: #8C83A6; /* Purple Zoe */
-  --primary-hover: #9c94b5;
-  --primary-light: #373344;
-  --primary-dark: #F6F3F9;
-  --primary-active: #9c94b5;
-
-  --secondary: #70A99A; /* Green Zoe */
-  --secondary-hover: #84b7a9;
-  --secondary-light: #2b453e;
-
-  --accent: #339BAA; /* Teal */
-  --accent-light: #1d5059;
-
-  /* Backgrounds & Surfaces */
-  --background: #121212;
-  --surface: #1a1a1a;
-  --card: #161616;
-  --card-elevated: #211f26; /* Dark purple tint */
-  --bg-header: rgba(18, 18, 18, 0.85);
-  --bg-footer: #0d0d0d;
-
-  /* Borders & Dividers */
-  --border: #2a2a2a;
-  --divider: rgba(140, 131, 166, 0.1);
-
-  /* Typography Colors */
-  --text-primary: #F5F5F5;
-  --text-secondary: #98999A; /* Gray */
-  --text-muted: #7a7a7a;
-  --text-disabled: #555555;
-
-  /* Links & Badges */
-  --link: #8C83A6;
-  --link-hover: #9c94b5;
-  --link-subtle: #70A99A;
-  --badge-bg: rgba(140, 131, 166, 0.2);
-  --badge-text: #8C83A6;
-  --badge-neutral-bg: #242424;
-  --badge-neutral-text: #98999A;
-  --badge-neutral-border: #333333;
-
-  /* CTA hierarchy */
-  --cta-secondary-bg: #8C83A6;
-  --cta-secondary-bg-hover: #9c94b5;
-  --cta-secondary-text: #FFFFFF;
-
-  /* Informative icons */
-  --icon-informative: #8C83A6;
-
-  /* Status Colors */
-  --success: #70A99A;
-  --warning: #E0B221;
-  --danger: #E06666;
-
-  /* Shadows */
-  --shadow-button: 0 8px 20px rgba(112, 169, 154, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.1);
-  --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.25);
-  --shadow-card-hover: 0 20px 50px rgba(140, 131, 166, 0.15), 0 10px 20px rgba(140, 131, 166, 0.1);
-  --shadow-glow: 0 0 35px rgba(112, 169, 154, 0.15), inset 0 0 15px rgba(112, 169, 154, 0.1);
-
-  /* Scrollbar Tokens */
-  --scrollbar-track: #121212;
-  --scrollbar-thumb: #2a2a2a;
-  --scrollbar-hover: #8C83A6;
-
-  /* Selection Tokens */
-  --selection-bg: #8C83A6;
-  --selection-text: #FFFFFF;
-}
-
-/* Light Theme Variables (Espaço Zoe Premium Visual Hierarchy) */
-.light, [data-theme='light'] {
-  /* Purple Zoe (Primary Identity) */
-  --primary: #8C83A6;
   --primary-hover: #756D8D;
   --primary-light: #F6F3F9;
   --primary-dark: #403B4E;
   --primary-active: #756D8D;
 
-  /* Green Zoe (Secondary/Complementary) */
-  --secondary: #70A99A;
+  --secondary: #70A99A; /* Green Zoe */
   --secondary-hover: #5d9283;
   --secondary-light: #F0F7F5;
 
@@ -327,22 +258,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: rgba(16, 42, 34, 0.2);
   border-radius: 9999px;
   transition: background-color 0.2s ease;
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
-}
-
-.light .sidebar-scrollbar::-webkit-scrollbar-thumb,
-[data-theme='light'] .sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(16, 42, 34, 0.2);
-}
-
-.light .sidebar-scrollbar::-webkit-scrollbar-thumb:hover,
-[data-theme='light'] .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--primary);
 }
 

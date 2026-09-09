@@ -6,7 +6,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/utils/cn";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { DeveloperSignature } from "@/components/public/DeveloperSignature";
 import { PatientSignOutButton } from "@/components/patient/PatientSignOutButton";
 
@@ -92,7 +91,7 @@ export function PatientShell({ fullName, phone, avatarUrl, clinicName, logoUrl, 
               <span className="truncate text-xs font-bold tracking-tight text-text-primary font-heading">
                 {clinicName}
               </span>
-              <span className="text-[9px] font-semibold text-primary dark:text-[var(--link)] uppercase tracking-wider">
+              <span className="text-[9px] font-semibold text-primary uppercase tracking-wider">
                 Área do Paciente
               </span>
             </div>
@@ -120,11 +119,11 @@ export function PatientShell({ fullName, phone, avatarUrl, clinicName, logoUrl, 
                 className={cn(
                   "group relative flex h-8.5 items-center gap-2.5 rounded-lg px-2.5 text-xs font-semibold transition-all duration-150",
                   active
-                    ? "bg-[var(--primary)]/10 text-[var(--primary-dark)] dark:bg-[var(--primary)]/12 dark:text-[var(--primary-light)] font-bold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-r-full before:bg-[var(--primary)] dark:before:bg-[var(--primary)]"
+                    ? "bg-[var(--primary)]/10 text-[var(--primary-dark)] font-bold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-r-full before:bg-[var(--primary)]"
                     : "text-text-secondary hover:bg-card-elevated/60 hover:text-text-primary font-medium",
                 )}
               >
-                <span className={cn("shrink-0 flex items-center justify-center w-4 h-4 transition-transform group-hover:scale-105", active ? "text-[var(--primary)] dark:text-[var(--primary)]" : "text-text-muted group-hover:text-text-primary")}>
+                <span className={cn("shrink-0 flex items-center justify-center w-4 h-4 transition-transform group-hover:scale-105", active ? "text-[var(--primary)]" : "text-text-muted group-hover:text-text-primary")}>
                   {renderNavIcon(item.icon)}
                 </span>
                 <span className="truncate tracking-tight">{item.label}</span>
@@ -182,7 +181,6 @@ export function PatientShell({ fullName, phone, avatarUrl, clinicName, logoUrl, 
               </svg>
               <span>Ver Site</span>
             </Link>
-            <ThemeToggle />
           </div>
         </header>
 

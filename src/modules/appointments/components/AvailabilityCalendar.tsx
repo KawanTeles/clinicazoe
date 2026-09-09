@@ -23,7 +23,7 @@ const LEGEND: { status: DayAvailabilityStatus; label: string; swatch: string }[]
 
 const CELL_CLASSES: Record<DayAvailabilityStatus, string> = {
   available: "border-primary/50 bg-primary/10 text-text-primary hover:border-primary hover:bg-primary/20 cursor-pointer",
-  full: "border-[#F59E0B]/40 bg-[#F59E0B]/10 text-[#B45309] dark:text-[#F59E0B] cursor-not-allowed",
+  full: "border-[#F59E0B]/40 bg-[#F59E0B]/10 text-[#B45309] cursor-not-allowed",
   blocked: "border-[#DC2626]/30 bg-[#DC2626]/5 text-[#DC2626]/80 cursor-not-allowed",
   "no-schedule": "border-border/50 bg-card-elevated/30 text-text-muted cursor-not-allowed",
   past: "border-transparent text-text-muted/40 cursor-not-allowed",

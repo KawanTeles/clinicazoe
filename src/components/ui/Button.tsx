@@ -25,13 +25,13 @@ const variantClasses: Record<Variant, string> = {
   primary:
     "bg-[var(--secondary)] text-white hover:bg-[var(--secondary-hover)] active:bg-[var(--secondary-hover)] border border-[var(--secondary-hover)]/50 shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-card-hover)]",
   secondary:
-    "bg-[var(--primary)] text-white border border-[var(--primary)]/80 hover:bg-[var(--primary-hover)] hover:border-[var(--primary-hover)] dark:bg-[var(--primary)] dark:text-white dark:border-[var(--primary)] dark:hover:bg-[var(--primary-hover)] shadow-xs",
+    "bg-[var(--primary)] text-white border border-[var(--primary)]/80 hover:bg-[var(--primary-hover)] hover:border-[var(--primary-hover)] shadow-xs",
   outline:
-    "bg-transparent text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--card-elevated)] hover:border-[var(--text-muted)] dark:text-[var(--text-primary)] dark:border-[var(--border)] dark:hover:bg-[var(--card-elevated)]",
+    "bg-transparent text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--card-elevated)] hover:border-[var(--text-muted)]",
   ghost:
-    "bg-transparent text-[var(--text-secondary)] border-0 hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] dark:text-[var(--text-secondary)] dark:hover:bg-[var(--primary)]/10 dark:hover:text-[var(--primary)] active:bg-[var(--primary)]/20",
+    "bg-transparent text-[var(--text-secondary)] border-0 hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] active:bg-[var(--primary)]/20",
   danger:
-    "bg-[var(--danger)]/10 text-[var(--danger)] dark:text-[var(--danger)] border border-[var(--danger)]/30 hover:bg-[var(--danger)] hover:text-white hover:border-[var(--danger)] active:bg-[var(--danger)]/80",
+    "bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/30 hover:bg-[var(--danger)] hover:text-white hover:border-[var(--danger)] active:bg-[var(--danger)]/80",
 };
 
 const sizeClasses: Record<Size, string> = {
