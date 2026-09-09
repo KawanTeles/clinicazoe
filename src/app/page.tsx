@@ -227,7 +227,7 @@ export default async function HomePage() {
 
       <main>
       {/* HERO SECTION */}
-      <section className="relative overflow-hidden pt-16 pb-24 lg:pt-24 lg:pb-36 bg-gradient-forest-subtle">
+      <section className="relative overflow-hidden pt-16 pb-36 lg:pt-24 lg:pb-40 bg-gradient-forest-subtle">
         {/* Ambient Glow & Organic Shapes — fundo padrão, usado sozinho
             quando não há foto de capa configurada. */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -307,40 +307,47 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FAIXA DE TRANSIÇÃO — a linha faz o papel do border-t que a seção
-          "Diferenciais" usava (removido de lá pra não duplicar) e passa
-          exatamente pelo meio da altura dos números; os rótulos ficam
-          abaixo, fora do bloco que define esse centro. */}
-      <section className="pt-6 lg:pt-8">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* FAIXA DE TRANSIÇÃO (Números Flutuantes na Emenda) */}
+      <div className="relative z-20 h-0 w-full">
+        <div className="absolute top-0 left-0 right-0 -translate-y-1/2 px-4 sm:px-6 lg:px-8">
           <ScrollReveal animation="fade-up">
-            <div className="mx-auto max-w-[800px]">
-              <div className="relative">
-                <div className="pointer-events-none absolute left-1/2 top-1/2 h-px w-screen -translate-x-1/2 -translate-y-1/2 bg-border" />
-                <div className="relative flex items-center justify-center gap-x-6 sm:gap-x-12 lg:gap-x-16">
-                  <p className="min-w-0 flex-1 bg-background text-center text-2xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)] sm:flex-none sm:text-3xl">
-                    <AnimatedCounter value="99.8%" />
-                  </p>
-                  <p className="min-w-0 flex-1 bg-background text-center text-2xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)] sm:flex-none sm:text-3xl">
-                    <AnimatedCounter value="+15k" />
-                  </p>
-                  <p className="min-w-0 flex-1 bg-background text-center text-2xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)] sm:flex-none sm:text-3xl">
-                    <AnimatedCounter value="100%" />
-                  </p>
-                </div>
+            <div className="mx-auto max-w-[900px] rounded-2xl bg-card shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[rgba(130,169,160,0.2)] p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-8">
+              <div className="flex flex-col items-center flex-1 w-full">
+                <p className="text-3xl sm:text-4xl font-black text-[var(--link)] font-heading drop-shadow-sm">
+                  <AnimatedCounter value="99.8%" />
+                </p>
+                <p className="mt-2 text-center text-[11px] sm:text-xs font-bold text-text-secondary uppercase tracking-wider">Satisfação</p>
               </div>
-              <div className="mt-1 flex items-center justify-center gap-x-6 pb-6 sm:gap-x-12 lg:gap-x-16 lg:pb-8">
-                <p className="min-w-0 flex-1 text-center text-xs font-medium text-text-secondary sm:flex-none">Satisfação dos pacientes</p>
-                <p className="min-w-0 flex-1 text-center text-xs font-medium text-text-secondary sm:flex-none">Atendimentos realizados</p>
-                <p className="min-w-0 flex-1 text-center text-xs font-medium text-text-secondary sm:flex-none">Especialistas certificados</p>
+              
+              {/* Divisor */}
+              <div className="hidden sm:block h-12 w-px bg-border/80"></div>
+              <div className="sm:hidden h-px w-24 bg-border/80"></div>
+
+              <div className="flex flex-col items-center flex-1 w-full">
+                <p className="text-3xl sm:text-4xl font-black text-[var(--link)] font-heading drop-shadow-sm">
+                  <AnimatedCounter value="+15k" />
+                </p>
+                <p className="mt-2 text-center text-[11px] sm:text-xs font-bold text-text-secondary uppercase tracking-wider">Atendimentos</p>
+              </div>
+
+              {/* Divisor */}
+              <div className="hidden sm:block h-12 w-px bg-border/80"></div>
+              <div className="sm:hidden h-px w-24 bg-border/80"></div>
+
+              <div className="flex flex-col items-center flex-1 w-full">
+                <p className="text-3xl sm:text-4xl font-black text-[var(--link)] font-heading drop-shadow-sm">
+                  <AnimatedCounter value="100%" />
+                </p>
+                <p className="mt-2 text-center text-[11px] sm:text-xs font-bold text-text-secondary uppercase tracking-wider">Especialistas</p>
               </div>
             </div>
           </ScrollReveal>
         </div>
-      </section>
+      </div>
 
       {/* SEÇÃO DIFERENCIAIS DA CLÍNICA */}
-      <section className="py-24 bg-[var(--primary-light)] relative overflow-hidden">
+      {/* pt-48 no mobile acomoda a metade do card flutuante que é mais alto em coluna. sm:pt-32 no desktop. */}
+      <section className="pb-24 pt-48 sm:pt-32 lg:pt-36 bg-[var(--primary-light)] relative overflow-hidden">
         {/* Soft floating background element */}
         <div className="absolute top-1/4 -right-[10%] h-[400px] w-[400px] rounded-full bg-[var(--primary)]/5 blur-[80px] animate-float-organic-slow pointer-events-none" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
