@@ -91,11 +91,12 @@ export function PatientForm({ mode, patientId, insurances, professionals, onCanc
       return;
     }
 
+    router.refresh();
+
     if (onCancel) {
       onCancel();
     } else {
       router.push("/patients");
-      router.refresh();
     }
   }
 

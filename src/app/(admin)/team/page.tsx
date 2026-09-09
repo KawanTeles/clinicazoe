@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Pagination } from "@/components/ui/Pagination";
@@ -6,6 +5,9 @@ import { getCurrentUser } from "@/lib/auth";
 import { ROLE_LABELS } from "@/lib/navigation";
 import { getTeamMembers } from "@/modules/team/services/team-queries";
 import { TeamTable } from "@/modules/team/components/TeamTable";
+import { TeamHeaderActions } from "@/modules/team/components/TeamHeaderActions";
+import { getActiveInsurances } from "@/modules/insurances/services/insurance-queries";
+import { getActiveProfessionals } from "@/modules/professionals/services/professional-queries";
 
 export const metadata = {
   title: "Equipe — Espaço Zoe",
@@ -23,7 +25,11 @@ export default async function TeamPage({
   if (!session || session.profile.role !== "admin") redirect("/dashboard");
 
   const { q, role, page: pageParam } = await searchParams;
-  const members = await getTeamMembers();
+  const [members, insurances, professionals] = await Promise.all([
+    getTeamMembers(),
+    getActiveInsurances(),
+    getActiveProfessionals(),
+  ]);
 
   const filtered = members.filter((member) => {
     const matchesRole = !role || member.role === role;
@@ -45,9 +51,7 @@ export default async function TeamPage({
             Administradores, recepcionistas e profissionais da clínica.
           </p>
         </div>
-        <Link href="/team/new">
-          <Button>Novo membro</Button>
-        </Link>
+        <TeamHeaderActions insurances={insurances} professionals={professionals.map((p) => ({ id: p.id, name: p.full_name }))} />
       </div>
 
       <form className="flex flex-wrap gap-3" method="get">
