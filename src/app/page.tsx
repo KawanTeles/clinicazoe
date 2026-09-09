@@ -173,13 +173,6 @@ export default async function HomePage() {
     ),
   }));
 
-  const locationChipLabel = [
-    clinic.address_neighborhood,
-    [clinic.address_city, clinic.address_state].filter(Boolean).join("/"),
-  ]
-    .filter(Boolean)
-    .join(" · ");
-
   // FAQ — conjunto fixo revisável no código (sem admin nesta primeira
   // versão). Respostas com dado real (especialidades, endereço) puxam de
   // getPublicWebsiteData() ou linkam para a página com a informação completa,
@@ -250,8 +243,9 @@ export default async function HomePage() {
 
         {/* Foto de capa full-bleed (Configurações → Foto de Capa) — sem foto
             configurada, o fundo padrão acima segue normalmente, sem nenhuma
-            mudança. Gradiente mais opaco do lado do texto (esquerda) e mais
-            claro do lado oposto, na nossa paleta (verde sálvia + branco). */}
+            mudança. Foto em opacidade total; só um véu bem sutil e
+            concentrado no lado do texto (esquerda) pra manter o título
+            legível, quase transparente no restante da imagem. */}
         {clinic.facade_image_url && (
           <div className="absolute inset-0">
             <Image
@@ -259,11 +253,11 @@ export default async function HomePage() {
               alt=""
               fill
               sizes="100vw"
-              className="object-cover opacity-50"
+              className="object-cover"
               unoptimized
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--background)] via-[var(--background)]/80 to-[var(--secondary)]/10" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--background)]/80 from-5% via-[var(--background)]/25 via-35% to-transparent to-60%" />
           </div>
         )}
 
@@ -313,12 +307,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FAIXA DE ESTATÍSTICAS & DESTAQUES — largura total, centralizada,
-          entre a hero e a próxima seção. */}
-      <section className="border-y border-border/70 bg-card/60 py-10 lg:py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* FAIXA DE ESTATÍSTICAS — números centralizados sobre a linha fina
+          que divide a hero da próxima seção, sem caixa/card em volta. */}
+      <section className="relative py-10">
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-border" />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <ScrollReveal animation="fade-up">
-            <div className="grid grid-cols-3 gap-6 max-w-xl mx-auto text-center">
+            <div className="grid grid-cols-3 gap-6 max-w-xl mx-auto text-center bg-background">
               <div>
                 <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
                   <AnimatedCounter value="99.8%" />
@@ -337,51 +332,6 @@ export default async function HomePage() {
                 </p>
                 <p className="text-xs text-text-secondary mt-1 font-medium">Especialistas certificados</p>
               </div>
-            </div>
-
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-              <div className="flex items-center gap-3 rounded-2xl border border-[rgba(130,169,160,0.25)] bg-card/70 px-4 py-2.5">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card text-[var(--link)] border border-[rgba(130,169,160,0.3)]">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 9.5 12 3l9 6.5" />
-                    <path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-text-primary leading-tight">Ambiente adaptado</p>
-                  <p className="text-[11px] text-text-secondary leading-tight">Salas terapêuticas</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 rounded-2xl border border-[rgba(130,169,160,0.25)] bg-card/70 px-4 py-2.5">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card text-[var(--link)] border border-[rgba(130,169,160,0.3)]">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="9" cy="7" r="3.5" />
-                    <path d="M16.5 7.5a3 3 0 1 0 0-6" />
-                    <path d="M2 20v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1" />
-                    <path d="M17 14.5A5 5 0 0 1 21 19v1" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-text-primary leading-tight">Visão multidisciplinar</p>
-                  <p className="text-[11px] text-text-secondary leading-tight">Atendimento integrado</p>
-                </div>
-              </div>
-
-              {locationChipLabel && (
-                <div className="flex items-center gap-3 rounded-2xl border border-[rgba(130,169,160,0.25)] bg-card/70 px-4 py-2.5">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card text-[var(--link)] border border-[rgba(130,169,160,0.3)]">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 10c0 6.5-9 12-9 12s-9-5.5-9-12a9 9 0 0 1 18 0Z" />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-text-primary leading-tight">Onde estamos</p>
-                    <p className="text-[11px] text-text-secondary leading-tight">{locationChipLabel}</p>
-                  </div>
-                </div>
-              )}
             </div>
           </ScrollReveal>
         </div>
