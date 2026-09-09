@@ -307,31 +307,38 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FAIXA DE ESTATÍSTICAS — números centralizados sobre a linha fina
-          que divide a hero da próxima seção, sem caixa/card em volta. */}
-      <section className="relative py-10">
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-border" />
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* FAIXA DE TRANSIÇÃO — indicadores numéricos centralizados como um
+          único bloco (flex, gap, max-width ~800px, margin auto) entre a
+          hero e "Diferenciais". As linhas finas ficam só nas laterais do
+          bloco (crescem via flex-1), nunca atrás dos indicadores. */}
+      <section className="py-6 lg:py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <ScrollReveal animation="fade-up">
-            <div className="grid grid-cols-3 gap-6 max-w-xl mx-auto text-center bg-background">
-              <div>
-                <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
-                  <AnimatedCounter value="99.8%" />
-                </p>
-                <p className="text-xs text-text-secondary mt-1 font-medium">Satisfação dos pacientes</p>
+            <div className="flex items-center justify-center gap-6 lg:gap-10">
+              <div className="hidden sm:block h-px flex-1 bg-border" />
+
+              <div className="flex w-full max-w-[800px] shrink-0 items-center justify-center gap-x-6 sm:gap-x-12 lg:gap-x-16">
+                <div className="min-w-0 flex-1 text-center sm:flex-none">
+                  <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
+                    <AnimatedCounter value="99.8%" />
+                  </p>
+                  <p className="mt-1 text-xs text-text-secondary font-medium">Satisfação dos pacientes</p>
+                </div>
+                <div className="min-w-0 flex-1 text-center sm:flex-none">
+                  <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
+                    <AnimatedCounter value="+15k" />
+                  </p>
+                  <p className="mt-1 text-xs text-text-secondary font-medium">Atendimentos realizados</p>
+                </div>
+                <div className="min-w-0 flex-1 text-center sm:flex-none">
+                  <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
+                    <AnimatedCounter value="100%" />
+                  </p>
+                  <p className="mt-1 text-xs text-text-secondary font-medium">Especialistas certificados</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
-                  <AnimatedCounter value="+15k" />
-                </p>
-                <p className="text-xs text-text-secondary mt-1 font-medium">Atendimentos realizados</p>
-              </div>
-              <div>
-                <p className="text-2xl sm:text-3xl font-black text-[var(--link)] font-heading drop-shadow-[0_2px_10px_rgba(130,169,160,0.2)]">
-                  <AnimatedCounter value="100%" />
-                </p>
-                <p className="text-xs text-text-secondary mt-1 font-medium">Especialistas certificados</p>
-              </div>
+
+              <div className="hidden sm:block h-px flex-1 bg-border" />
             </div>
           </ScrollReveal>
         </div>
