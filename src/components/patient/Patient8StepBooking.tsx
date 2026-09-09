@@ -17,7 +17,7 @@ import {
   type ProfessionalPricingResult,
 } from "@/modules/appointments/services/booking-queries";
 import { createAppointment } from "@/modules/appointments/services/booking-actions";
-import { formatCurrency, buildWhatsAppLink } from "@/lib/whatsapp";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { getAttendanceInfo } from "@/lib/attendance";
 import { MODALITY_LABELS, PARTICULAR_PRODUCT_LABELS, insuranceRequiresModality } from "@/lib/constants";
 import { WaitlistEntryModal } from "@/modules/waitlist/components/WaitlistEntryModal";
@@ -155,13 +155,6 @@ export function Patient8StepBooking({
     payment: requiresModality ? -1 : 7,
     summary: 8,
   };
-  const selectedValue =
-    pricing?.insuranceKind === "convenio"
-      ? pricing.options.find((o) => o.modality === modality)?.value ?? null
-      : pricing?.insuranceKind === "particular"
-        ? pricing.options.find((o) => o.product === particularProduct)?.value ?? null
-        : null;
-
   async function loadInsurancesForSpecialty(specId: string) {
     setSelectedSpecialtyId(specId);
     setLoading(true);
@@ -355,7 +348,7 @@ export function Patient8StepBooking({
         if (attendance.particularProductLabel) detailsText += `📦 ${attendance.particularProductLabel}\n`;
       }
 
-      const msg = `Nova solicitação de atendimento:\n\nPaciente: ${patientName}\nWhatsApp: ${patientPhone}\nProfissional: ${currentProf?.fullName}\nEspecialidade: ${currentSpec?.name}\nData: ${selectedDate.split("-").reverse().join("/")}\nHorário: ${selectedSlot.startTime.slice(0, 5)}\n💰 Valor do Atendimento: ${selectedValue != null ? formatCurrency(selectedValue) : "A combinar"}\n${detailsText.trim()}`;
+      const msg = `Nova solicitação de atendimento:\n\nPaciente: ${patientName}\nWhatsApp: ${patientPhone}\nProfissional: ${currentProf?.fullName}\nEspecialidade: ${currentSpec?.name}\nData: ${selectedDate.split("-").reverse().join("/")}\nHorário: ${selectedSlot.startTime.slice(0, 5)}\n${detailsText.trim()}`;
 
       const link = buildWhatsAppLink(whatsappNumber, msg);
       setSuccessResult({ whatsappLink: link });
@@ -587,16 +580,13 @@ export function Patient8StepBooking({
                       }`}
                     >
                       <h5 className="text-base font-bold text-text-primary font-heading">{MODALITY_LABELS[m]}</h5>
-                      <p className="text-xs text-[var(--primary)] mt-1 font-semibold">
-                        {opt ? formatCurrency(opt.value) : "Sem valor cadastrado"}
-                      </p>
                     </button>
                   );
                 })}
               </div>
             ) : (
               <p className="text-sm text-danger py-4 text-center">
-                Este profissional ainda não possui um valor cadastrado para essa modalidade.
+                Este profissional ainda não possui essa modalidade disponível. Entre em contato com a clínica.
               </p>
             )}
           </CardContent>
@@ -719,7 +709,6 @@ export function Patient8StepBooking({
                       }`}
                     >
                       <div className="font-bold text-base text-text-primary">{PARTICULAR_PRODUCT_LABELS[opt.product]}</div>
-                      <div className="text-xs text-[var(--primary)] font-semibold mt-1">{formatCurrency(opt.value)}</div>
                     </button>
                   ))}
                 </div>
@@ -794,12 +783,6 @@ export function Patient8StepBooking({
                 <span className="text-text-muted">Paciente:</span>
                 <p className="text-sm font-bold text-text-primary mt-0.5">{patientName} ({patientPhone})</p>
               </div>
-              {selectedValue != null && (
-                <div>
-                  <span className="text-text-muted">Valor do atendimento:</span>
-                  <p className="text-sm font-black text-[var(--primary)] mt-0.5">{formatCurrency(selectedValue)}</p>
-                </div>
-              )}
               {!requiresModality && (
                 <div>
                   <span className="text-text-muted">Pagamento:</span>

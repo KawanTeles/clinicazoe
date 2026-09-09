@@ -174,7 +174,6 @@ export async function createAppointment(
     insuranceName: insurance?.name ?? "",
     appointmentDate: input.date,
     startTime: input.startTime,
-    value: pricing.value,
     paymentMethod: input.paymentMethod,
     modality: input.modality,
     particularProduct: input.particularProduct,
@@ -352,7 +351,6 @@ export async function confirmAppointment(
     startTime: appointment.start_time,
     clinicName: clinic?.name ?? "Espaço Zoe",
     clinicAddress: clinic?.address,
-    value: appointment.value,
     clinicPhone: clinic?.whatsapp_number,
   });
 

@@ -220,7 +220,6 @@ export async function createPublicAppointment(
     insuranceName: insurance?.name ?? "",
     appointmentDate: input.date,
     startTime: input.startTime,
-    value: pricing.value,
     paymentMethod: input.paymentMethod,
     modality: input.modality,
     particularProduct: input.particularProduct,

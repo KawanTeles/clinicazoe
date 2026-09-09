@@ -71,7 +71,6 @@ export function buildBookingMessage(params: {
   insuranceName: string;
   appointmentDate: string;
   startTime: string;
-  value: number;
   paymentMethod: string;
   modality?: Modality | null;
   particularProduct?: ParticularProduct | null;
@@ -97,7 +96,6 @@ export function buildBookingMessage(params: {
     `Especialidade: ${params.specialtyName}\n` +
     `Profissional: ${params.professionalName}\n` +
     `Data/Hora: ${date} às ${params.startTime.slice(0, 5)}\n` +
-    `💰 Valor do Atendimento: ${formatCurrency(params.value)}\n` +
     attendanceLines.trim()
   );
   return appendClinicFooter(baseMessage, params.clinicPhone, params.clinicName);
@@ -288,7 +286,6 @@ export function buildConfirmationMessage(params: {
   startTime: string;
   clinicName: string;
   clinicAddress?: string | null;
-  value: number;
   clinicPhone?: string | null;
 }) {
   const date = dateFormatter.format(new Date(`${params.appointmentDate}T00:00:00`));
@@ -296,8 +293,7 @@ export function buildConfirmationMessage(params: {
     `Olá, seu atendimento foi aprovado.\n\n` +
     `Profissional: ${params.professionalName}\n` +
     `Data/Hora: ${date} às ${params.startTime.slice(0, 5)}\n` +
-    `Local: ${params.clinicName}${params.clinicAddress ? " — " + params.clinicAddress : ""}\n` +
-    `Valor: ${formatCurrency(params.value)}`
+    `Local: ${params.clinicName}${params.clinicAddress ? " — " + params.clinicAddress : ""}`
   );
   return appendClinicFooter(baseMessage, params.clinicPhone, params.clinicName);
 }
