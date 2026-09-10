@@ -1,8 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { SITE_URL } from "@/lib/site-url";
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  // Usa o domínio fixo (não o Host da requisição): atrás do proxy da
+  // Hostinger, request.url chega com o endereço interno do container
+  // (0.0.0.0:3000) em vez do domínio público, o que quebrava todo redirect
+  // gerado aqui (confirmação de e-mail e login com Google).
+  const { searchParams } = new URL(request.url);
+  const origin = SITE_URL;
   const code = searchParams.get("code");
   const from = searchParams.get("from");
 
