@@ -359,7 +359,7 @@ export default async function HomePage() {
       {/* pt no mobile acomoda os ~65% do card flutuante que ficam abaixo da
           linha (só 35% sobem pra dentro da hero); sm:pt-32/lg:pt-36
           acomodam a metade do card (overlap de 50%, como no desktop). */}
-      <section className="pb-24 pt-48 sm:pt-32 lg:pt-36 bg-[var(--primary-light)] relative overflow-hidden">
+      <section className="pb-24 pt-48 sm:pt-32 lg:pt-36 bg-gradient-brand-light relative overflow-hidden">
         {/* Soft floating background element */}
         <div className="absolute top-1/4 -right-[10%] h-[400px] w-[400px] rounded-full bg-[var(--primary)]/5 blur-[80px] animate-float-organic-slow pointer-events-none" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
@@ -566,7 +566,7 @@ export default async function HomePage() {
       </section>
 
       {/* SEÇÃO PREVIEW PROFISSIONAIS */}
-      <section className="py-24 border-t border-border/70 bg-[var(--secondary-light)] relative overflow-hidden">
+      <section className="py-24 border-t border-border/70 bg-gradient-brand-light relative overflow-hidden">
         {/* Soft floating organic shape in background */}
         <div className="absolute bottom-0 right-[5%] h-[350px] w-[350px] rounded-full bg-[var(--primary)]/5 blur-[80px] animate-float-organic pointer-events-none" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
@@ -651,7 +651,7 @@ export default async function HomePage() {
       </section>
 
       {/* SEÇÃO POR QUE ESCOLHER */}
-      <section className="py-24 border-t border-border/70 bg-[var(--secondary-light)] relative overflow-hidden">
+      <section className="py-24 border-t border-border/70 bg-gradient-brand-light relative overflow-hidden">
         {/* Soft floating organic shape in background */}
         <div className="absolute bottom-0 left-[10%] h-[350px] w-[350px] rounded-full bg-[var(--secondary)]/5 blur-[80px] animate-float-organic-slow pointer-events-none" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16 relative z-10">

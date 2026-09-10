@@ -108,7 +108,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     name,
     ...(clinic?.legal_name ? { legalName: clinic.legal_name } : {}),
     url: SITE_URL,
-    logo: clinic?.logo_url ? `${clinic.logo_url}${clinic.logo_url.includes('?') ? '&' : '?'}v=2` : `${SITE_URL}/brand-logo.png?v=2`,
+    logo: clinic?.logo_url ? `${clinic.logo_url}${clinic.logo_url.includes('?') ? '&' : '?'}v=2` : `${SITE_URL}/brand-logo.png`,
     image: `${SITE_URL}/og-image.png?v=2`,
     description: DESCRIPTION,
     ...(clinic?.email ? { email: clinic.email } : {}),

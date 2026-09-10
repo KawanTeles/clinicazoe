@@ -89,7 +89,7 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
           {/* Brand Logo */}
           <Link href="/" className="group flex shrink-0 items-center gap-3">
             <Image
-              src={logoUrl ? `${logoUrl}${logoUrl.includes('?') ? '&' : '?'}v=2` : "/brand-logo.png?v=2"}
+              src={logoUrl ? `${logoUrl}${logoUrl.includes('?') ? '&' : '?'}v=2` : "/brand-logo.png"}
               alt={clinicName}
               width={48}
               height={48}
@@ -239,7 +239,7 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                 <div className="flex items-center justify-between pb-6 border-b border-border/70">
                   <Link href="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3">
                     <Image
-                      src={logoUrl ? `${logoUrl}${logoUrl.includes('?') ? '&' : '?'}v=2` : "/brand-logo.png?v=2"}
+                      src={logoUrl ? `${logoUrl}${logoUrl.includes('?') ? '&' : '?'}v=2` : "/brand-logo.png"}
                       alt={clinicName}
                       width={38}
                       height={38}

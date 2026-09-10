@@ -276,6 +276,10 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(180deg, var(--background) 0%, var(--surface) 100%);
 }
 
+.bg-gradient-brand-light {
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-light) 100%);
+}
+
 .glass-header {
   background-color: var(--bg-header);
   backdrop-filter: blur(16px);

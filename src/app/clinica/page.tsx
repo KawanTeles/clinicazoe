@@ -42,7 +42,7 @@ export default async function ClinicaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
+    <div className="min-h-screen bg-gradient-brand-light text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
