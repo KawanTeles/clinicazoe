@@ -6,11 +6,21 @@ import { PageHero } from "@/components/public/PageHero";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
 import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
 import { AnimatedCard } from "@/components/animation/AnimatedCard";
+import { PhotoCarousel, type PhotoCarouselSlide } from "@/components/public/PhotoCarousel";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { CTA_PRIMARY } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
 import { safeJsonLd } from "@/lib/json-ld";
+
+// Fallback enquanto não há fotos cadastradas em Configurações → Galeria —
+// sem imageUrl, o PhotoCarousel renderiza o placeholder "Foto em breve".
+const CLINICA_GALLERY_PLACEHOLDER_SLIDES: PhotoCarouselSlide[] = [
+  { id: "recepcao", caption: "Recepção" },
+  { id: "consultorios", caption: "Consultórios" },
+  { id: "sala-espera", caption: "Sala de Espera" },
+  { id: "area-externa", caption: "Área Externa" },
+];
 
 export const metadata = {
   title: "A Clínica — História, Missão e Valores | Espaço Zoe",
@@ -29,7 +39,17 @@ export const metadata = {
 };
 
 export default async function ClinicaPage() {
-  const { clinic } = await getPublicWebsiteData();
+  const { clinic, galleryImages } = await getPublicWebsiteData();
+
+  const gallerySlides: PhotoCarouselSlide[] =
+    galleryImages.length > 0
+      ? galleryImages.map((image) => ({
+          id: image.id,
+          imageUrl: image.url,
+          alt: image.altText ?? "",
+          caption: image.altText ?? undefined,
+        }))
+      : CLINICA_GALLERY_PLACEHOLDER_SLIDES;
 
   const breadcrumbItems = [{ label: "Início", href: "/" }, { label: "A Clínica" }];
   const breadcrumbJsonLd = {
@@ -71,6 +91,25 @@ export default async function ClinicaPage() {
               </p>
             </div>
           </ScrollReveal>
+
+          {/* Nosso Espaço */}
+          <div className="space-y-8">
+            <div className="text-center max-w-2xl mx-auto space-y-3">
+              <ScrollReveal animation="fade-up">
+                <Badge tone="premium" className="border border-[rgba(130,169,160,0.3)]">Nosso Espaço</Badge>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-[var(--primary)] mt-2 font-heading">
+                  Conheça o Espaço Zoe
+                </h2>
+                <p className="text-sm text-text-secondary">
+                  Ambientes pensados para o seu conforto e acolhimento em cada visita.
+                </p>
+              </ScrollReveal>
+            </div>
+
+            <ScrollReveal animation="scale-up">
+              <PhotoCarousel slides={gallerySlides} className="max-w-4xl mx-auto" />
+            </ScrollReveal>
+          </div>
 
           {/* Missão / Visão / Valores */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
