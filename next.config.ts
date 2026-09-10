@@ -69,6 +69,10 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    // Next 16 exige declarar explicitamente query strings em imagens locais
+    // otimizadas via <Image> (proteção contra enumeração de URL) — sem isto
+    // o build falha em qualquer <Image src="/brand-logo.png?v=2" />.
+    localPatterns: [{ pathname: "/brand-logo.png", search: "?v=2" }],
     remotePatterns: [
       ...(supabaseHostname
         ? [
