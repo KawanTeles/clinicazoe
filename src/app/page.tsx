@@ -257,13 +257,17 @@ export default async function HomePage() {
               unoptimized
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--background)]/80 from-5% via-[var(--background)]/25 via-35% to-transparent to-60%" />
+            {/* Nuance colorida (verde e lilás) com boa transparência, e um fundo sutil pra legibilidade sem lavar a imagem */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--background)]/50 from-0% via-[var(--background)]/10 via-40% to-transparent to-70%" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/25 from-0% via-[var(--secondary)]/20 via-40% to-transparent to-70%" />
           </div>
         )}
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Espaçamento progressivo usando margens fixas em 'rem' para garantir um recuo elegante que nunca fica colado e nem centraliza demais */}
+        <div className="w-full px-6 sm:px-8 lg:pl-32 xl:pl-48 2xl:pl-64 relative z-10">
           <PageEntrance>
-            <div className="max-w-2xl space-y-6">
+            {/* -ml-4 aplica exatamente -16px de margem esquerda total */}
+            <div className="max-w-3xl space-y-6 -ml-38">
               <PageEntranceItem>
                 <h1 className="tracking-hero text-4xl sm:text-5xl lg:text-6xl font-black text-[var(--primary)] leading-[1.12] font-heading">
                   Atendimentos com{" "}
@@ -307,38 +311,44 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FAIXA DE TRANSIÇÃO (Números Flutuantes na Emenda) */}
+      {/* FAIXA DE TRANSIÇÃO (Números Flutuantes na Emenda) — o card sempre
+          sobrepõe a emenda entre hero e Diferenciais (mesmo no mobile), só
+          que com um puxão pra cima menor (-translate-y-[35%] em vez de
+          -translate-y-1/2): como a % é sempre relativa à própria altura do
+          card, ela se ajusta sozinha a qualquer altura de card, e a menor
+          fração deixa folga suficiente pros botões da hero mesmo com o
+          card mais alto (empilhado em coluna). */}
       <div className="relative z-20 h-0 w-full">
-        <div className="absolute top-0 left-0 right-0 -translate-y-1/2 px-4 sm:px-6 lg:px-8">
+        <div className="absolute top-0 left-0 right-0 -translate-y-[35%] px-4 sm:-translate-y-1/2 sm:px-6 lg:px-8">
           <ScrollReveal animation="fade-up">
-            <div className="mx-auto max-w-[900px] rounded-2xl bg-card shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[rgba(130,169,160,0.2)] p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-8">
-              <div className="flex flex-col items-center flex-1 w-full">
-                <p className="text-3xl sm:text-4xl font-black text-[var(--link)] font-heading drop-shadow-sm">
+            <div className="mx-auto flex max-w-[900px] flex-col items-center justify-between gap-3 rounded-2xl border border-[rgba(130,169,160,0.2)] bg-card p-5 shadow-[0_8px_30px_rgb(0,0,0,0.08)] sm:flex-row sm:gap-8 sm:p-8">
+              <div className="flex w-full flex-1 flex-col items-center">
+                <p className="text-2xl font-black text-[var(--link)] font-heading drop-shadow-sm sm:text-4xl">
                   <AnimatedCounter value="99.8%" />
                 </p>
-                <p className="mt-2 text-center text-[11px] sm:text-xs font-bold text-text-secondary uppercase tracking-wider">Satisfação</p>
+                <p className="mt-0.5 text-center text-[11px] font-bold uppercase tracking-wider text-text-secondary sm:mt-2 sm:text-xs">Satisfação</p>
               </div>
-              
-              {/* Divisor */}
-              <div className="hidden sm:block h-12 w-px bg-border/80"></div>
-              <div className="sm:hidden h-px w-24 bg-border/80"></div>
 
-              <div className="flex flex-col items-center flex-1 w-full">
-                <p className="text-3xl sm:text-4xl font-black text-[var(--link)] font-heading drop-shadow-sm">
+              {/* Divisor */}
+              <div className="hidden h-12 w-px bg-border/80 sm:block"></div>
+              <div className="h-px w-16 bg-border/80 sm:hidden"></div>
+
+              <div className="flex w-full flex-1 flex-col items-center">
+                <p className="text-2xl font-black text-[var(--link)] font-heading drop-shadow-sm sm:text-4xl">
                   <AnimatedCounter value="+15k" />
                 </p>
-                <p className="mt-2 text-center text-[11px] sm:text-xs font-bold text-text-secondary uppercase tracking-wider">Atendimentos</p>
+                <p className="mt-0.5 text-center text-[11px] font-bold uppercase tracking-wider text-text-secondary sm:mt-2 sm:text-xs">Atendimentos</p>
               </div>
 
               {/* Divisor */}
-              <div className="hidden sm:block h-12 w-px bg-border/80"></div>
-              <div className="sm:hidden h-px w-24 bg-border/80"></div>
+              <div className="hidden h-12 w-px bg-border/80 sm:block"></div>
+              <div className="h-px w-16 bg-border/80 sm:hidden"></div>
 
-              <div className="flex flex-col items-center flex-1 w-full">
-                <p className="text-3xl sm:text-4xl font-black text-[var(--link)] font-heading drop-shadow-sm">
+              <div className="flex w-full flex-1 flex-col items-center">
+                <p className="text-2xl font-black text-[var(--link)] font-heading drop-shadow-sm sm:text-4xl">
                   <AnimatedCounter value="100%" />
                 </p>
-                <p className="mt-2 text-center text-[11px] sm:text-xs font-bold text-text-secondary uppercase tracking-wider">Especialistas</p>
+                <p className="mt-0.5 text-center text-[11px] font-bold uppercase tracking-wider text-text-secondary sm:mt-2 sm:text-xs">Especialistas</p>
               </div>
             </div>
           </ScrollReveal>
@@ -346,7 +356,9 @@ export default async function HomePage() {
       </div>
 
       {/* SEÇÃO DIFERENCIAIS DA CLÍNICA */}
-      {/* pt-48 no mobile acomoda a metade do card flutuante que é mais alto em coluna. sm:pt-32 no desktop. */}
+      {/* pt no mobile acomoda os ~65% do card flutuante que ficam abaixo da
+          linha (só 35% sobem pra dentro da hero); sm:pt-32/lg:pt-36
+          acomodam a metade do card (overlap de 50%, como no desktop). */}
       <section className="pb-24 pt-48 sm:pt-32 lg:pt-36 bg-[var(--primary-light)] relative overflow-hidden">
         {/* Soft floating background element */}
         <div className="absolute top-1/4 -right-[10%] h-[400px] w-[400px] rounded-full bg-[var(--primary)]/5 blur-[80px] animate-float-organic-slow pointer-events-none" />
