@@ -266,8 +266,11 @@ export default async function HomePage() {
         {/* Espaçamento progressivo usando margens fixas em 'rem' para garantir um recuo elegante que nunca fica colado e nem centraliza demais */}
         <div className="w-full px-6 sm:px-8 lg:pl-32 xl:pl-48 2xl:pl-64 relative z-10">
           <PageEntrance>
-            {/* -ml-4 aplica exatamente -16px de margem esquerda total */}
-            <div className="max-w-3xl space-y-6 -ml-38">
+            {/* lg:-ml-4 é só um ajuste fino do recuo grande do desktop
+                (lg:pl-32 pra cima) — não deve existir abaixo de lg, senão
+                cancela o px-6/px-8 do mobile/tablet e corta o título pra
+                fora da tela. */}
+            <div className="max-w-3xl space-y-6 lg:-ml-4">
               <PageEntranceItem>
                 <h1 className="tracking-hero text-4xl sm:text-5xl lg:text-6xl font-black text-[var(--primary)] leading-[1.12] font-heading">
                   Atendimentos com{" "}
