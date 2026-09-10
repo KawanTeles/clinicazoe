@@ -87,7 +87,7 @@ export function PublicFooter({
           <div className="space-y-4 md:col-span-1">
             <div className="flex items-center gap-3">
               <Image
-                src={logoUrl || "/brand-logo.png"}
+                src={logoUrl ? `${logoUrl}${logoUrl.includes('?') ? '&' : '?'}v=2` : "/brand-logo.png?v=2"}
                 alt={clinicName}
                 width={40}
                 height={40}

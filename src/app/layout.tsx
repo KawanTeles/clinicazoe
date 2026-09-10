@@ -48,12 +48,12 @@ export async function generateMetadata(): Promise<Metadata> {
     formatDetection: { email: false, address: false, telephone: false },
     icons: {
       icon: [
-        { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-        { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+        { url: "/favicon-16x16.png?v=2", sizes: "16x16", type: "image/png" },
+        { url: "/favicon-32x32.png?v=2", sizes: "32x32", type: "image/png" },
       ],
-      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+      apple: [{ url: "/apple-touch-icon.png?v=2", sizes: "180x180", type: "image/png" }],
     },
-    manifest: "/site.webmanifest",
+    manifest: "/site.webmanifest?v=2",
     openGraph: {
       title: `${name} — Medicina de Excelência`,
       description: DESCRIPTION,
@@ -63,7 +63,7 @@ export async function generateMetadata(): Promise<Metadata> {
       url: SITE_URL,
       images: [
         {
-          url: "/og-image.png",
+          url: "/og-image.png?v=2",
           width: 1200,
           height: 630,
           alt: `${name} — Identidade Visual Oficial`,
@@ -108,8 +108,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     name,
     ...(clinic?.legal_name ? { legalName: clinic.legal_name } : {}),
     url: SITE_URL,
-    logo: clinic?.logo_url || `${SITE_URL}/brand-logo.png`,
-    image: `${SITE_URL}/og-image.png`,
+    logo: clinic?.logo_url ? `${clinic.logo_url}${clinic.logo_url.includes('?') ? '&' : '?'}v=2` : `${SITE_URL}/brand-logo.png?v=2`,
+    image: `${SITE_URL}/og-image.png?v=2`,
     description: DESCRIPTION,
     ...(clinic?.email ? { email: clinic.email } : {}),
     ...(clinic?.phone_primary || clinic?.whatsapp_number

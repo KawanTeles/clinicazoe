@@ -6,7 +6,7 @@ export default function Loading() {
     <div className="min-h-screen bg-background flex flex-col justify-center items-center p-6 space-y-8">
       <div className="flex flex-col items-center justify-center space-y-3 animate-pulse">
         <Image
-          src="/brand-logo.png"
+          src="/brand-logo.png?v=2"
           alt="Espaço Zoe"
           width={64}
           height={64}
