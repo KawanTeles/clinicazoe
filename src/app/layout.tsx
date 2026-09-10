@@ -48,8 +48,8 @@ export async function generateMetadata(): Promise<Metadata> {
     formatDetection: { email: false, address: false, telephone: false },
     icons: {
       icon: [
-        { url: "/favicon-16x16.png?v=2", sizes: "16x16", type: "image/png" },
-        { url: "/favicon-32x32.png?v=2", sizes: "32x32", type: "image/png" },
+        { url: "/favicon-16x16.png?v=3", sizes: "16x16", type: "image/png" },
+        { url: "/favicon-32x32.png?v=3", sizes: "32x32", type: "image/png" },
       ],
       apple: [{ url: "/apple-touch-icon.png?v=2", sizes: "180x180", type: "image/png" }],
     },
@@ -108,7 +108,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     name,
     ...(clinic?.legal_name ? { legalName: clinic.legal_name } : {}),
     url: SITE_URL,
-    logo: clinic?.logo_url ? `${clinic.logo_url}${clinic.logo_url.includes('?') ? '&' : '?'}v=2` : `${SITE_URL}/brand-logo.png`,
+    logo: clinic?.logo_url ? `${clinic.logo_url}${clinic.logo_url.includes('?') ? '&' : '?'}v=2` : `${SITE_URL}/brand-logo.png?v=2`,
     image: `${SITE_URL}/og-image.png?v=2`,
     description: DESCRIPTION,
     ...(clinic?.email ? { email: clinic.email } : {}),

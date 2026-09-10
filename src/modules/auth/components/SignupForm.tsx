@@ -49,6 +49,9 @@ export function SignupForm() {
         <p className="text-sm text-text-secondary">
           Abra seu e-mail e clique no link para ativar sua conta e fazer login.
         </p>
+        <p className="text-xs text-text-muted">
+          Não encontrou? Confira também a caixa de spam ou lixo eletrônico.
+        </p>
       </div>
     );
   }

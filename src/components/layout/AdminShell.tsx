@@ -264,7 +264,7 @@ export function AdminShell({
         <div className="flex h-14 shrink-0 items-center justify-between px-4 border-b border-border/80">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5 group">
             <Image
-              src={logoUrl || "/brand-logo.png"}
+              src={logoUrl || "/brand-logo.png?v=2"}
               alt={clinicName}
               width={32}
               height={32}

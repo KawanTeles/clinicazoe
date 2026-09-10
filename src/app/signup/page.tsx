@@ -19,7 +19,7 @@ export default function SignupPage() {
         <PageEntranceItem>
           <div className="mb-8 text-center flex flex-col items-center">
             <Image
-              src="/brand-logo.png"
+              src="/brand-logo.png?v=2"
               alt="Espaço Zoe"
               width={64}
               height={64}

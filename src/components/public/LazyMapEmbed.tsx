@@ -46,7 +46,7 @@ export function LazyMapEmbed({ src, title }: LazyMapEmbedProps) {
           src={src}
           width="100%"
           height="100%"
-          style={{ border: 0, minHeight: "350px", filter: "invert(90%) hue-rotate(180deg) brightness(95%) contrast(90%)" }}
+          style={{ border: 0, minHeight: "350px" }}
           allowFullScreen={false}
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"

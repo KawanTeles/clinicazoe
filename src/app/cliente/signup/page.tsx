@@ -26,7 +26,7 @@ export default async function PatientSignUpPage() {
           <PageEntranceItem>
             <div className="text-center space-y-2 flex flex-col items-center">
               <Image
-                src="/brand-logo.png"
+                src="/brand-logo.png?v=2"
                 alt={clinic.name || "Espaço Zoe"}
                 width={64}
                 height={64}
