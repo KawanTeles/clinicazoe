@@ -263,16 +263,14 @@ export default async function HomePage() {
           </div>
         )}
 
-        {/* Espaçamento progressivo usando margens fixas em 'rem' para garantir um recuo elegante que nunca fica colado e nem centraliza demais */}
-        <div className="w-full px-6 sm:px-8 lg:pl-32 xl:pl-48 2xl:pl-64 relative z-10">
+        {/* === MOBILE HERO TEXT (Isolado e Seguro) === */}
+        {/* Usamos block lg:hidden para isolar 100% o mobile do desktop. */}
+        <div className="block lg:hidden w-full px-4 sm:px-6 relative z-10 overflow-hidden">
           <PageEntrance>
-            {/* lg:-ml-4 é só um ajuste fino do recuo grande do desktop
-                (lg:pl-32 pra cima) — não deve existir abaixo de lg, senão
-                cancela o px-6/px-8 do mobile/tablet e corta o título pra
-                fora da tela. */}
-            <div className="max-w-3xl space-y-6 lg:-ml-4">
+            <div className="w-full space-y-5">
               <PageEntranceItem>
-                <h1 className="tracking-hero text-4xl sm:text-5xl lg:text-6xl font-black text-[var(--primary)] leading-[1.12] font-heading">
+                {/* Fonte levemente menor (text-3xl) e leading um pouco mais solto para não encavalar nem estourar as margens */}
+                <h1 className="tracking-tight text-3xl sm:text-4xl font-black text-[var(--primary)] leading-[1.2] font-heading">
                   Atendimentos com{" "}
                   <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent drop-shadow-sm">
                     excelência
@@ -282,28 +280,60 @@ export default async function HomePage() {
               </PageEntranceItem>
 
               <PageEntranceItem>
-                <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-2xl font-normal">
+                <p className="text-base sm:text-lg text-text-secondary leading-relaxed font-normal">
                   No {clinic.name || "Espaço Zoe"}, possuímos uma equipe terapêutica especializada para oferecer um atendimento verdadeiramente humanizado.
                 </p>
               </PageEntranceItem>
 
               <PageEntranceItem>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+                  <Link href="/agendar" className="w-full sm:w-auto">
+                    <Button size="lg" withArrow className="w-full font-bold shadow-[0_8px_20px_rgba(30,104,90,0.25)]">
+                      {CTA_PRIMARY}
+                    </Button>
+                  </Link>
+                  <Link href="/profissionais" className="w-full sm:w-auto">
+                    <Button variant="secondary" size="lg" className="w-full font-bold border border-border/80 hover:border-primary/60">
+                      Conhecer corpo clínico
+                    </Button>
+                  </Link>
+                </div>
+              </PageEntranceItem>
+            </div>
+          </PageEntrance>
+        </div>
+
+        {/* === DESKTOP HERO TEXT (Isolado) === */}
+        {/* hidden lg:block garante que isso jamais afeta o mobile */}
+        <div className="hidden lg:block w-full lg:pl-32 xl:pl-48 2xl:pl-64 relative z-10">
+          <PageEntrance>
+            {/* O -ml-4 agora afeta SOMENTE o desktop de forma segura */}
+            <div className="max-w-3xl space-y-6 -ml-4">
+              <PageEntranceItem>
+                <h1 className="tracking-hero lg:text-6xl font-black text-[var(--primary)] leading-[1.12] font-heading">
+                  Atendimentos com{" "}
+                  <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent drop-shadow-sm">
+                    excelência
+                  </span>{" "}
+                  e acolhimento.
+                </h1>
+              </PageEntranceItem>
+
+              <PageEntranceItem>
+                <p className="text-lg text-text-secondary leading-relaxed max-w-2xl font-normal">
+                  No {clinic.name || "Espaço Zoe"}, possuímos uma equipe terapêutica especializada para oferecer um atendimento verdadeiramente humanizado.
+                </p>
+              </PageEntranceItem>
+
+              <PageEntranceItem>
+                <div className="flex items-center gap-4 pt-4">
                   <Link href="/agendar">
-                    <Button
-                      size="lg"
-                      withArrow
-                      className="w-full sm:w-auto font-bold shadow-[0_12px_35px_rgba(30,104,90,0.35)]"
-                    >
+                    <Button size="lg" withArrow className="font-bold shadow-[0_12px_35px_rgba(30,104,90,0.35)]">
                       {CTA_PRIMARY}
                     </Button>
                   </Link>
                   <Link href="/profissionais">
-                    <Button
-                      variant="secondary"
-                      size="lg"
-                      className="w-full sm:w-auto font-bold border border-border/80 hover:border-primary/60"
-                    >
+                    <Button variant="secondary" size="lg" className="font-bold border border-border/80 hover:border-primary/60">
                       Conhecer corpo clínico
                     </Button>
                   </Link>
