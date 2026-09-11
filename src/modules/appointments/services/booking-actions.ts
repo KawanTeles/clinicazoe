@@ -459,7 +459,15 @@ export async function updateAppointmentStatus(
   appointmentId: string,
   status: "cancelada" | "remarcada" | "concluida" | "faltou",
 ): Promise<{ error: string | null }> {
-  const session = await requireStaff();
+  const session = await getCurrentUser();
+  if (!session) throw new Error("Acesso negado.");
+
+  const isStaff = ["admin", "recepcionista"].includes(session.profile.role);
+  const isProfessional = session.profile.role === "profissional";
+  if (!isStaff && !isProfessional) {
+    throw new Error("Acesso negado.");
+  }
+
   const supabase = await createClient();
 
   const { data: appointment } = await supabase
@@ -467,6 +475,14 @@ export async function updateAppointmentStatus(
     .select("patient_id, appointment_date, start_time, professional_id, specialty_id, insurance_id, modality")
     .eq("id", appointmentId)
     .single();
+
+  // Profissional só pode marcar falta no próprio atendimento — qualquer
+  // outra transição (cancelar/remarcar/concluir) continua exclusiva de
+  // admin/recepcionista. A RLS (prevent_appointment_tampering, migração
+  // 0064) reforça a mesma regra no banco caso algo escape daqui.
+  if (isProfessional && (status !== "faltou" || appointment?.professional_id !== session.user.id)) {
+    return { error: "Você só pode marcar falta em atendimentos seus." };
+  }
 
   const { error } = await supabase
     .from("appointments")

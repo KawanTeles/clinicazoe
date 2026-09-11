@@ -18,6 +18,11 @@ interface PatientFormProps {
   insurances: Option[];
   professionals: Option[];
   onCancel?: () => void;
+  /** Exige e-mail e senha de acesso já na criação — usado no cadastro pela
+   * tela de Equipe, onde o paciente sai de lá com login definido, igual
+   * Admin/Recepcionista/Profissional. Fora daí (Pacientes → Novo, cadastro
+   * rápido do agendamento) o formulário continua sem exigir credenciais. */
+  withCredentials?: boolean;
   initial?: {
     full_name: string;
     phone: string;
@@ -31,7 +36,7 @@ const DEFAULTS = {
   details: {} as PatientDetailsInput,
 };
 
-export function PatientForm({ mode, patientId, insurances, professionals, onCancel, initial }: PatientFormProps) {
+export function PatientForm({ mode, patientId, insurances, professionals, onCancel, withCredentials, initial }: PatientFormProps) {
   const router = useRouter();
   const values = initial ?? DEFAULTS;
 
@@ -40,6 +45,7 @@ export function PatientForm({ mode, patientId, insurances, professionals, onCanc
   const [cpf, setCpf] = useState(values.details.cpf ?? "");
   const [birthDate, setBirthDate] = useState(values.details.birth_date ?? "");
   const [email, setEmail] = useState(values.details.email ?? "");
+  const [password, setPassword] = useState("");
   const [whatsapp, setWhatsapp] = useState(values.details.whatsapp ?? "");
   const [address, setAddress] = useState(values.details.address ?? "");
   const [city, setCity] = useState(values.details.city ?? "");
@@ -77,11 +83,27 @@ export function PatientForm({ mode, patientId, insurances, professionals, onCanc
       return;
     }
 
+    if (withCredentials && mode === "create") {
+      if (!email.trim()) {
+        setError("Informe o e-mail de acesso do paciente.");
+        return;
+      }
+      if (password.length < 8) {
+        setError("A senha precisa ter ao menos 8 caracteres.");
+        return;
+      }
+    }
+
     setSaving(true);
 
     const result =
       mode === "create"
-        ? await createPatient({ full_name: fullName, phone, details: buildDetails() })
+        ? await createPatient({
+            full_name: fullName,
+            phone,
+            details: buildDetails(),
+            password: withCredentials ? password : undefined,
+          })
         : await updatePatient({ id: patientId!, full_name: fullName, phone, details: buildDetails() });
 
     setSaving(false);
@@ -166,13 +188,25 @@ export function PatientForm({ mode, patientId, insurances, professionals, onCanc
             onChange={(e) => setWhatsapp(e.target.value)}
           />
           <Input
-            label="E-mail"
+            label={withCredentials ? "E-mail de Acesso *" : "E-mail"}
             name="email"
             type="email"
+            required={withCredentials}
             placeholder="paciente@exemplo.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
+          {withCredentials && mode === "create" && (
+            <Input
+              label="Senha de Acesso *"
+              name="password"
+              type="password"
+              required
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 border-t border-border/40 pt-2.5">

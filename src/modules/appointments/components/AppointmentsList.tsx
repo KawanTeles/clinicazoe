@@ -244,6 +244,25 @@ export function AppointmentsList({
     await refresh();
   }
 
+  async function handleMarkAbsence(id: string) {
+    const confirmed = await confirm({
+      title: "Marcar falta neste atendimento?",
+      description: "O paciente será registrado como falta neste atendimento.",
+      confirmLabel: "Marcar Falta",
+      tone: "danger",
+    });
+    if (!confirmed) return;
+    setBusyId(id);
+    const result = await updateAppointmentStatus(id, "faltou");
+    setBusyId(null);
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Falta registrada com sucesso.");
+    await refresh();
+  }
+
   async function handleStaffCancel(id: string) {
     const confirmed = await confirm({
       title: "Cancelar este atendimento?",
@@ -363,6 +382,16 @@ export function AppointmentsList({
                   Detalhes
                 </Button>
               </Link>
+            )}
+            {(isStaff || isOwnProfessional) && (appt.status === "pendente" || appt.status === "confirmada") && (
+              <Button
+                size="sm"
+                variant="danger"
+                isLoading={busyId === appt.id}
+                onClick={() => handleMarkAbsence(appt.id)}
+              >
+                Marcar Falta
+              </Button>
             )}
             {isStaff && appt.status === "pendente" && (
               <>

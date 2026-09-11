@@ -12,6 +12,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Lista de Espera", href: "/waitlist", permission: "waitlist.manage", icon: "waitlist" },
   { label: "Meus Atendimentos", href: "/appointments", permission: "appointments.view.own", icon: "calendar" },
   { label: "Atendimentos", href: "/appointments", permission: "appointments.manage", icon: "calendar" },
+  { label: "Faltas", href: "/faltas", permission: "attendance.absences.view", icon: "user-x" },
   { label: "Financeiro", href: "/financial", permission: "financial.view.own", icon: "dollar-sign" },
   { label: "Financeiro", href: "/financial", permission: "financial.manage", icon: "dollar-sign" },
   { label: "Minha Agenda", href: "/my-schedule", permission: "schedule.manage.own", icon: "clock" },

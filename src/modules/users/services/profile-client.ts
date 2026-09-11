@@ -16,6 +16,21 @@ export async function updateOwnProfile(userId: string, values: { full_name: stri
     .eq("id", userId);
 }
 
+export async function updateOwnPassword(password: string): Promise<{ error: string | null }> {
+  if (password.length < 8) {
+    return { error: "A senha precisa ter ao menos 8 caracteres." };
+  }
+
+  const supabase = createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    return { error: "Não foi possível alterar a senha. Tente novamente." };
+  }
+
+  return { error: null };
+}
+
 export async function uploadAvatar(userId: string, file: File) {
   if (!ALLOWED_TYPES.includes(file.type)) {
     return { error: "Formato inválido. Envie PNG, JPG ou WEBP." };

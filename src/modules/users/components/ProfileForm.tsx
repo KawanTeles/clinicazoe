@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { updateOwnProfile, uploadAvatar } from "@/modules/users/services/profile-client";
+import { updateOwnPassword, updateOwnProfile, uploadAvatar } from "@/modules/users/services/profile-client";
 import { updateOwnProfessionalBio } from "@/modules/professionals/services/professional-profile-actions";
 
 const MAX_BIO_LENGTH = 500;
@@ -31,6 +31,13 @@ export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl, 
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(
+    null,
+  );
+
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<{ type: "success" | "error"; text: string } | null>(
     null,
   );
 
@@ -84,8 +91,36 @@ export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl, 
     router.refresh();
   }
 
+  async function handlePasswordSubmit(event: FormEvent) {
+    event.preventDefault();
+    setPasswordMessage(null);
+
+    if (newPassword.length < 8) {
+      setPasswordMessage({ type: "error", text: "A senha precisa ter ao menos 8 caracteres." });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({ type: "error", text: "As senhas não coincidem." });
+      return;
+    }
+
+    setPasswordSaving(true);
+    const { error } = await updateOwnPassword(newPassword);
+    setPasswordSaving(false);
+
+    if (error) {
+      setPasswordMessage({ type: "error", text: error });
+      return;
+    }
+
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordMessage({ type: "success", text: "Senha alterada com sucesso." });
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-3xl">
+    <div className="flex flex-col gap-4 max-w-3xl">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="rounded-xl border border-border/80 bg-card p-4 flex flex-col gap-4 shadow-xs">
         <div className="flex items-center justify-between border-b border-border/60 pb-2">
           <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
@@ -174,5 +209,53 @@ export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl, 
         </Button>
       </div>
     </form>
+
+    <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
+      <div className="rounded-xl border border-border/80 bg-card p-4 flex flex-col gap-4 shadow-xs">
+        <div className="flex items-center justify-between border-b border-border/60 pb-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
+            Alterar Senha
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Input
+            label="Nova senha"
+            name="new_password"
+            type="password"
+            placeholder="Mínimo de 8 caracteres"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+          <Input
+            label="Confirmar nova senha"
+            name="confirm_password"
+            type="password"
+            placeholder="Repita a nova senha"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+        </div>
+
+        {passwordMessage && (
+          <p
+            className={
+              passwordMessage.type === "success"
+                ? "text-xs font-semibold text-success"
+                : "text-xs font-semibold text-danger"
+            }
+          >
+            {passwordMessage.text}
+          </p>
+        )}
+      </div>
+
+      <div className="flex items-center justify-end gap-2.5 rounded-xl border border-border bg-card p-3 shadow-sm">
+        <Button type="submit" size="sm" isLoading={passwordSaving} className="px-5 font-bold shadow-button">
+          Salvar Nova Senha
+        </Button>
+      </div>
+    </form>
+    </div>
   );
 }

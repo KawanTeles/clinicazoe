@@ -153,3 +153,112 @@ export async function getAppointmentById(id: string): Promise<AppointmentView | 
   const [item] = await denormalize(supabase, [data]);
   return item ?? null;
 }
+
+export type AbsencePeriodFilter = "30d" | "mes_atual" | "todos";
+
+export interface AbsencePatientGroup {
+  patientId: string;
+  patientName: string;
+  patientPhone: string | null;
+  patientWhatsapp: string | null;
+  totalAbsences: number;
+  lastAbsenceDate: string;
+  appointments: AppointmentView[];
+}
+
+const ABSENCE_GROUPS_PAGE_SIZE = 20;
+/** Teto de segurança para a agregação em memória — bem acima do volume
+ * real de faltas de uma clínica de porte pequeno/médio; existe só para não
+ * deixar a query sem limite algum. */
+const ABSENCES_FETCH_CAP = 5000;
+
+function periodStartDate(period: AbsencePeriodFilter): string | null {
+  const now = new Date();
+  if (period === "30d") {
+    const from = new Date(now);
+    from.setDate(from.getDate() - 30);
+    return from.toISOString().slice(0, 10);
+  }
+  if (period === "mes_atual") {
+    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  }
+  return null;
+}
+
+/** Visão consolidada de faltas (/faltas), agrupada por paciente — mesmo
+ * escopo por papel de getAppointmentsForViewer (profissional só vê as
+ * próprias + coterapeuta; admin/recepcionista vêem todas, com filtro
+ * opcional por profissional e por período). Paginação é sobre os grupos
+ * (pacientes), não sobre os atendimentos individuais. */
+export async function getAbsencesForViewer(
+  role: Role,
+  userId: string,
+  page = 1,
+  filters: { professionalId?: string; period?: AbsencePeriodFilter } = {},
+): Promise<{ groups: AbsencePatientGroup[]; totalPages: number; totalAbsences: number }> {
+  const supabase = await createClient();
+
+  let query = supabase
+    .from("appointments")
+    .select("*")
+    .eq("status", "faltou")
+    .order("appointment_date", { ascending: false });
+
+  if (role === "profissional") {
+    const coTherapistAppointmentIds = await getCoTherapistAppointmentIds(supabase, userId);
+    query =
+      coTherapistAppointmentIds.length > 0
+        ? query.or(`professional_id.eq.${userId},id.in.(${coTherapistAppointmentIds.join(",")})`)
+        : query.eq("professional_id", userId);
+  } else if (filters.professionalId) {
+    query = query.eq("professional_id", filters.professionalId);
+  }
+
+  const since = periodStartDate(filters.period ?? "todos");
+  if (since) {
+    query = query.gte("appointment_date", since);
+  }
+
+  const { data } = await query.limit(ABSENCES_FETCH_CAP);
+  const items = await denormalize(supabase, data ?? []);
+
+  const patientIds = Array.from(new Set(items.map((item) => item.patientId)));
+  const { data: details } =
+    patientIds.length > 0
+      ? await supabase.from("patient_details").select("id, whatsapp").in("id", patientIds)
+      : { data: [] as { id: string; whatsapp: string | null }[] };
+  const whatsappById = new Map((details ?? []).map((d) => [d.id, d.whatsapp]));
+
+  const groupsByPatient = new Map<string, AbsencePatientGroup>();
+  for (const item of items) {
+    const existing = groupsByPatient.get(item.patientId);
+    if (existing) {
+      existing.totalAbsences += 1;
+      existing.appointments.push(item);
+      if (item.date > existing.lastAbsenceDate) existing.lastAbsenceDate = item.date;
+    } else {
+      groupsByPatient.set(item.patientId, {
+        patientId: item.patientId,
+        patientName: item.patientName,
+        patientPhone: item.patientPhone,
+        patientWhatsapp: whatsappById.get(item.patientId) ?? null,
+        totalAbsences: 1,
+        lastAbsenceDate: item.date,
+        appointments: [item],
+      });
+    }
+  }
+
+  // Atendimentos já vêm ordenados por data desc da query; ordenar os grupos
+  // pela falta mais recente de cada paciente preserva "mais recente
+  // primeiro" também na visão agrupada.
+  const groups = Array.from(groupsByPatient.values()).sort((a, b) =>
+    b.lastAbsenceDate.localeCompare(a.lastAbsenceDate),
+  );
+
+  const totalPages = Math.max(1, Math.ceil(groups.length / ABSENCE_GROUPS_PAGE_SIZE));
+  const from = (page - 1) * ABSENCE_GROUPS_PAGE_SIZE;
+  const pageGroups = groups.slice(from, from + ABSENCE_GROUPS_PAGE_SIZE);
+
+  return { groups: pageGroups, totalPages, totalAbsences: items.length };
+}
