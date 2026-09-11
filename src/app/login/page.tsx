@@ -4,7 +4,6 @@ import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
 import { CardContent } from "@/components/ui/Card";
 import { LoginForm } from "@/modules/auth/components/LoginForm";
-import { DeveloperSignature } from "@/components/public/DeveloperSignature";
 
 export const metadata = {
   title: "Entrar — Espaço Zoe",
@@ -14,8 +13,7 @@ export const metadata = {
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between bg-background text-text-primary px-4 py-8">
-      <div className="h-4" />
+    <main className="flex min-h-screen flex-col items-center justify-center bg-background text-text-primary px-4 py-8">
       <PageEntrance className="w-full max-w-sm">
         <PageEntranceItem>
           <div className="mb-8 text-center flex flex-col items-center">
@@ -41,9 +39,6 @@ export default function LoginPage() {
           </AnimatedCard>
         </PageEntranceItem>
       </PageEntrance>
-      <footer className="w-full max-w-2xl mt-6 border-t border-border/40 pt-2 pb-2">
-        <DeveloperSignature />
-      </footer>
     </main>
   );
 }

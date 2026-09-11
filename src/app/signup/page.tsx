@@ -3,7 +3,6 @@ import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
 import { CardContent } from "@/components/ui/Card";
 import { SignupForm } from "@/modules/auth/components/SignupForm";
-import { DeveloperSignature } from "@/components/public/DeveloperSignature";
 
 export const metadata = {
   title: "Criar conta — Espaço Zoe",
@@ -13,8 +12,7 @@ export const metadata = {
 
 export default function SignupPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between bg-background px-4 py-8">
-      <div className="h-4" />
+    <main className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">
       <PageEntrance className="w-full max-w-sm">
         <PageEntranceItem>
           <div className="mb-8 text-center flex flex-col items-center">
@@ -36,9 +34,6 @@ export default function SignupPage() {
           </AnimatedCard>
         </PageEntranceItem>
       </PageEntrance>
-      <footer className="w-full max-w-2xl mt-6 border-t border-border/30 pt-2 pb-2">
-        <DeveloperSignature />
-      </footer>
     </main>
   );
 }

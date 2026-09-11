@@ -9,10 +9,18 @@ function resolveLogoUrl(admin: ReturnType<typeof createAdminClient>, logoPath: s
   return data.publicUrl;
 }
 
-function resolveFacadeImageUrl(admin: ReturnType<typeof createAdminClient>, facadeImagePath: string | null | undefined) {
+// `?v=<updated_at>` evita servir do cache do navegador uma foto antiga: o
+// upload sempre grava no mesmo caminho (upsert), então a URL pública nunca
+// muda sozinha — sem esse parâmetro, reenviar uma foto nova não aparece no
+// site até o navegador expirar o cache da imagem por conta própria.
+function resolveFacadeImageUrl(
+  admin: ReturnType<typeof createAdminClient>,
+  facadeImagePath: string | null | undefined,
+  updatedAt?: string | null,
+) {
   if (!facadeImagePath) return null;
   const { data } = admin.storage.from("clinic-assets").getPublicUrl(facadeImagePath);
-  return data.publicUrl;
+  return updatedAt ? `${data.publicUrl}?v=${encodeURIComponent(updatedAt)}` : data.publicUrl;
 }
 
 function resolveGalleryUrl(admin: ReturnType<typeof createAdminClient>, storagePath: string) {
@@ -87,7 +95,8 @@ export async function getPublicWebsiteData() {
       ? {
           ...clinic,
           logo_url: resolveLogoUrl(admin, clinic.logo_path),
-          facade_image_url: resolveFacadeImageUrl(admin, clinic.facade_image_path),
+          facade_image_url: resolveFacadeImageUrl(admin, clinic.facade_image_path, clinic.updated_at),
+          facade_image_mobile_url: resolveFacadeImageUrl(admin, clinic.facade_image_mobile_path, clinic.updated_at),
         }
       : {
           id: 1,
@@ -122,6 +131,8 @@ export async function getPublicWebsiteData() {
           logo_path: null,
           logo_url: null,
           facade_image_path: null,
+          facade_image_mobile_path: null,
+          facade_image_mobile_url: null,
           facade_image_url: null,
           price_particular_consultation: null,
           price_particular_package: null,

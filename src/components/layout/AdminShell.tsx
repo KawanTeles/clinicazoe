@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils/cn";
 import { ROLE_LABELS, type NavItem } from "@/lib/navigation";
 import { signOut } from "@/modules/auth/services/auth-client";
 import { NotificationBell } from "@/modules/notifications/components/NotificationBell";
-import { DeveloperSignature } from "@/components/public/DeveloperSignature";
 
 interface NotificationItem {
   id: string;
@@ -422,11 +421,8 @@ export function AdminShell({
         </header>
 
         {/* Content Body */}
-        <main className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-5 lg:p-6 flex flex-col justify-between">
-          <div>{children}</div>
-          <footer className="mt-12 border-t border-border/40 pt-4 pb-2">
-            <DeveloperSignature />
-          </footer>
+        <main className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-5 lg:p-6">
+          {children}
         </main>
       </div>
     </div>

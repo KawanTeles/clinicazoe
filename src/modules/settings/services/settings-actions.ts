@@ -540,3 +540,48 @@ export async function uploadClinicFacadeImage(formData: FormData): Promise<Actio
 
   return { error: null };
 }
+
+export async function uploadClinicFacadeImageMobile(formData: FormData): Promise<ActionResult> {
+  const session = await requireAdmin().catch(() => null);
+  if (!session) return { error: "Acesso negado." };
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Nenhum arquivo selecionado." };
+  }
+  if (!ALLOWED_FACADE_TYPES.includes(file.type)) {
+    return { error: "Formato inválido. Envie PNG, JPG ou WEBP." };
+  }
+  if (file.size > MAX_FACADE_BYTES) {
+    return { error: "Arquivo muito grande. Limite de 5MB." };
+  }
+
+  const admin = createAdminClient();
+  // Extensão vem do MIME já validado (ALLOWED_FACADE_TYPES acima), não do
+  // nome do arquivo — file.name é controlado pelo client.
+  const extension = FACADE_EXTENSION_BY_MIME[file.type] ?? "jpg";
+  const path = `facade-mobile.${extension}`;
+
+  const { error: uploadError } = await admin.storage
+    .from("clinic-assets")
+    .upload(path, file, { upsert: true, contentType: file.type });
+
+  if (uploadError) return { error: "Falha ao enviar a foto. Tente novamente." };
+
+  const { error: updateError } = await admin
+    .from("clinic_settings")
+    .update({ facade_image_mobile_path: path })
+    .eq("id", 1);
+
+  if (updateError) return { error: "Foto enviada, mas houve falha ao salvar." };
+
+  await logAudit({
+    actorId: session.user.id,
+    action: "clinic_settings.facade_image_mobile_updated",
+    entity: "clinic_settings",
+    entityId: "1",
+  });
+  revalidatePublicSite();
+
+  return { error: null };
+}

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { LogoUploader } from "@/modules/settings/components/LogoUploader";
 import { FacadeImageUploader } from "@/modules/settings/components/FacadeImageUploader";
+import { FacadeImageMobileUploader } from "@/modules/settings/components/FacadeImageMobileUploader";
 import { updateClinicIdentity } from "@/modules/settings/services/settings-actions";
 import type { ClinicSettingsFormState } from "@/modules/settings/utils/form-state";
 
@@ -15,10 +16,11 @@ interface IdentityCardProps {
   onChange: (patch: Partial<ClinicSettingsFormState>) => void;
   logoUrl: string | null;
   facadeImageUrl: string | null;
+  facadeImageMobileUrl: string | null;
   readOnly: boolean;
 }
 
-export function IdentityCard({ data, onChange, logoUrl, facadeImageUrl, readOnly }: IdentityCardProps) {
+export function IdentityCard({ data, onChange, logoUrl, facadeImageUrl, facadeImageMobileUrl, readOnly }: IdentityCardProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -59,6 +61,17 @@ export function IdentityCard({ data, onChange, logoUrl, facadeImageUrl, readOnly
             <FacadeImageUploader facadeImageUrl={facadeImageUrl} readOnly={readOnly} />
             <p className="mt-1.5 text-[11px] text-text-muted">
               Usada como fundo da hero na página inicial. Sem uma foto enviada, a hero mantém o fundo padrão do site.
+            </p>
+          </div>
+
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-text-secondary mb-1.5 block">
+              Foto de Capa / Fachada (Hero — versão Mobile)
+            </label>
+            <FacadeImageMobileUploader facadeImageMobileUrl={facadeImageMobileUrl} readOnly={readOnly} />
+            <p className="mt-1.5 text-[11px] text-text-muted">
+              Opcional — use quando o enquadramento da foto de desktop não ficar bom em telas estreitas. Sem essa
+              foto, o site usa a mesma foto acima também no mobile.
             </p>
           </div>
 

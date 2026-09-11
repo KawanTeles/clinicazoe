@@ -2,7 +2,12 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { getCurrentUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
-import { getClinicLogoUrl, getClinicFacadeImageUrl, getClinicSettings } from "@/modules/settings/services/settings-queries";
+import {
+  getClinicLogoUrl,
+  getClinicFacadeImageUrl,
+  getClinicFacadeImageMobileUrl,
+  getClinicSettings,
+} from "@/modules/settings/services/settings-queries";
 import { ClinicSettingsPanel } from "@/modules/settings/components/ClinicSettingsPanel";
 import { getHolidays } from "@/modules/holidays/services/holiday-queries";
 import { HolidayManager } from "@/modules/holidays/components/HolidayManager";
@@ -37,9 +42,10 @@ export default async function SettingsPage() {
     canManageAI ? getAISettingsForAdmin() : Promise.resolve(null),
     canManageAI ? getAIUsageStats() : Promise.resolve(null),
   ]);
-  const [logoUrl, facadeImageUrl] = await Promise.all([
+  const [logoUrl, facadeImageUrl, facadeImageMobileUrl] = await Promise.all([
     getClinicLogoUrl(settings?.logo_path ?? null),
-    getClinicFacadeImageUrl(settings?.facade_image_path ?? null),
+    getClinicFacadeImageUrl(settings?.facade_image_path ?? null, settings?.updated_at ?? null),
+    getClinicFacadeImageMobileUrl(settings?.facade_image_mobile_path ?? null, settings?.updated_at ?? null),
   ]);
 
   return (
@@ -51,7 +57,13 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <ClinicSettingsPanel initial={settings} logoUrl={logoUrl} facadeImageUrl={facadeImageUrl} readOnly={!canManage} />
+      <ClinicSettingsPanel
+        initial={settings}
+        logoUrl={logoUrl}
+        facadeImageUrl={facadeImageUrl}
+        facadeImageMobileUrl={facadeImageMobileUrl}
+        readOnly={!canManage}
+      />
 
       {canManage && (
         <Card className="mt-2">

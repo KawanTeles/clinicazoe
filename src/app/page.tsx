@@ -223,11 +223,14 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
-      <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
-
-      <main>
-      {/* HERO SECTION */}
-      <section className="relative overflow-hidden pt-16 pb-36 lg:pt-24 lg:pb-40 bg-gradient-forest-subtle">
+      {/* HERO + MENU: o fundo (foto de capa ou degradê) agora cobre desde o
+          topo da página, por trás do menu flutuante — antes sobrava uma
+          faixa lisa ali em cima, porque o menu (sticky) reservava espaço no
+          fluxo antes da hero começar. Movendo as camadas de fundo pra este
+          wrapper (que engloba o menu), elas passam a cobrir também a área
+          atrás dele; o menu continua flutuando por cima, com seu próprio
+          blur/opacidade garantindo legibilidade. */}
+      <div className="relative overflow-hidden bg-gradient-forest-subtle">
         {/* Ambient Glow & Organic Shapes — fundo padrão, usado sozinho
             quando não há foto de capa configurada. */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -248,21 +251,48 @@ export default async function HomePage() {
             legível, quase transparente no restante da imagem. */}
         {clinic.facade_image_url && (
           <div className="absolute inset-0">
+            {/* Versão mobile (Configurações → Foto de Capa Mobile) — sem essa
+                foto configurada, cai de volta pra mesma foto do desktop, sem
+                quebrar quem ainda não configurou a versão mobile. */}
+            <Image
+              src={clinic.facade_image_mobile_url || clinic.facade_image_url}
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-cover lg:hidden"
+              unoptimized
+              priority
+            />
             <Image
               src={clinic.facade_image_url}
               alt=""
               fill
               sizes="100vw"
-              className="object-cover"
+              className="hidden object-cover lg:block"
               unoptimized
               priority
             />
-            {/* Nuance colorida (verde e lilás) com boa transparência, e um fundo sutil pra legibilidade sem lavar a imagem */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--background)]/50 from-0% via-[var(--background)]/10 via-40% to-transparent to-70%" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/25 from-0% via-[var(--secondary)]/20 via-40% to-transparent to-70%" />
+            {/* Overlay mobile: sem degradê colorido. No mobile o texto ocupa
+                quase toda a largura da tela (diferente do desktop, onde fica
+                só à esquerda) — o degradê horizontal abaixo já fica
+                transparente demais bem embaixo do título, brigando com a
+                própria foto (ex.: o ícone/logo da fachada). Um véu escuro
+                simples e uniforme garante contraste em qualquer ponto do
+                texto, sem depender de onde o título cai por cima da foto. */}
+            <div className="absolute inset-0 lg:hidden" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} />
+
+            {/* Overlay desktop — inalterado: nuance colorida (verde e lilás)
+                concentrada do lado do texto (esquerda), quase transparente
+                no restante da foto. */}
+            <div className="absolute inset-0 hidden bg-gradient-to-r from-[var(--background)]/50 from-0% via-[var(--background)]/10 via-40% to-transparent to-70% lg:block" />
+            <div className="absolute inset-0 hidden bg-gradient-to-r from-[var(--primary)]/25 from-0% via-[var(--secondary)]/20 via-40% to-transparent to-70% lg:block" />
           </div>
         )}
 
+        <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
+
+        {/* HERO SECTION */}
+        <section className="relative pt-16 pb-36 lg:pt-24 lg:pb-40">
         {/* === MOBILE HERO TEXT (Isolado e Seguro) === */}
         {/* Usamos block lg:hidden para isolar 100% o mobile do desktop. */}
         <div className="block lg:hidden w-full px-4 sm:px-6 relative z-10 overflow-hidden">
@@ -343,7 +373,9 @@ export default async function HomePage() {
           </PageEntrance>
         </div>
       </section>
+      </div>
 
+      <main>
       {/* FAIXA DE TRANSIÇÃO (Números Flutuantes na Emenda) — o card sempre
           sobrepõe a emenda entre hero e Diferenciais (mesmo no mobile), só
           que com um puxão pra cima menor (-translate-y-[35%] em vez de

@@ -6,7 +6,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/utils/cn";
-import { DeveloperSignature } from "@/components/public/DeveloperSignature";
 import { PatientSignOutButton } from "@/components/patient/PatientSignOutButton";
 
 interface PatientShellProps {
@@ -184,11 +183,8 @@ export function PatientShell({ fullName, phone, avatarUrl, clinicName, logoUrl, 
           </div>
         </header>
 
-        <main className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-5 lg:p-6 flex flex-col justify-between">
-          <div>{children}</div>
-          <footer className="mt-12 border-t border-border/40 pt-4 pb-2">
-            <DeveloperSignature />
-          </footer>
+        <main className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-5 lg:p-6">
+          {children}
         </main>
       </div>
     </div>

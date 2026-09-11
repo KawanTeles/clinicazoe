@@ -183,6 +183,7 @@ export interface Database {
           holiday_close_time: string | null;
           logo_path: string | null;
           facade_image_path: string | null;
+          facade_image_mobile_path: string | null;
           price_particular_consultation: number | null;
           price_particular_package: number | null;
           created_at: string;
@@ -220,6 +221,7 @@ export interface Database {
           holiday_close_time?: string | null;
           logo_path?: string | null;
           facade_image_path?: string | null;
+          facade_image_mobile_path?: string | null;
           price_particular_consultation?: number | null;
           price_particular_package?: number | null;
           created_at?: string;
@@ -257,6 +259,7 @@ export interface Database {
           holiday_close_time?: string | null;
           logo_path?: string | null;
           facade_image_path?: string | null;
+          facade_image_mobile_path?: string | null;
           price_particular_consultation?: number | null;
           price_particular_package?: number | null;
           created_at?: string;
