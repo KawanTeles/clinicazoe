@@ -19,6 +19,8 @@ interface LocationSectionProps {
   mapsUrl?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  /** "background" (padrão, usado na Home) ou "lilac" (páginas internas). */
+  tone?: "background" | "lilac" | "mint";
 }
 
 export function LocationSection({
@@ -33,6 +35,7 @@ export function LocationSection({
   mapsUrl,
   latitude,
   longitude,
+  tone = "background",
 }: LocationSectionProps) {
   const viewUrl = buildMapsViewUrl({ mapsUrl, latitude, longitude, address });
   const embedUrl = buildMapsEmbedUrl({ mapsUrl, latitude, longitude, address });
@@ -40,7 +43,7 @@ export function LocationSection({
   const sortedHours = businessHours ? [...businessHours].sort((a, b) => a.day - b.day) : [];
 
   return (
-    <section id="como-chegar" className="py-20 border-t border-border/70 bg-background">
+    <section id="como-chegar" className={`py-20 border-t border-border/70 ${tone === "lilac" ? "bg-tint-lilac" : tone === "mint" ? "bg-tint-mint" : "bg-background"}`}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <ScrollReveal animation="fade-up">

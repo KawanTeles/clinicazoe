@@ -44,20 +44,29 @@ export default async function EspecialidadesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
+    <div className="min-h-screen bg-tint-mint text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
-      <main className="flex-1 py-16 lg:py-24">
-        <PageEntrance className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
-          <PageEntranceItem>
-            <PageHero
-              breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Especialidades" }]}
-              title="Especialidades Terapêuticas"
-              subtitle="Cuidados especializados e tratamentos personalizados para sua saúde integral."
-            />
-          </PageEntranceItem>
+      <main className="flex-1">
+        {/* HERO */}
+        <section className="bg-tint-mint py-16 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <PageEntrance>
+              <PageEntranceItem>
+                <PageHero
+                  breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Especialidades" }]}
+                  title="Especialidades Terapêuticas"
+                  subtitle="Cuidados especializados e tratamentos personalizados para sua saúde integral."
+                />
+              </PageEntranceItem>
+            </PageEntrance>
+          </div>
+        </section>
 
+        {/* GRADE DE ESPECIALIDADES */}
+        <section className="border-t border-border/70 bg-tint-mint py-16 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h2 className="sr-only">Lista de Especialidades</h2>
           <SmartGrid
             items={specialties}
@@ -141,7 +150,8 @@ export default async function EspecialidadesPage() {
               );
             }}
           />
-        </PageEntrance>
+          </div>
+        </section>
       </main>
 
       <PublicFooter
@@ -159,6 +169,7 @@ export default async function EspecialidadesPage() {
           linkedin: clinic.linkedin_url,
           youtube: clinic.youtube_url,
         }}
+        tone="mint"
       />
     </div>
   );

@@ -280,6 +280,32 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-light) 100%);
 }
 
+/* Tingimento de seção — Verde Menta Pastel é a cor única de fundo em todas
+   as seções das páginas internas (A Clínica, Especialidades, Profissionais,
+   Convênios, Contato) e agora também nas seções da Home (exceto a hero com
+   foto da fachada e o banner final, que ficam como estão), dando
+   identidade visual consistente de ponta a ponta. bg-tint-lilac fica
+   mantida (não usada no momento) caso volte a ser necessária. Não mexe nos
+   tokens --primary-light/--secondary-light pra não afetar Badges e o
+   restante do site que já usa esses tokens. */
+.bg-tint-lilac {
+  background-color: #DDDAE4;
+}
+
+.bg-tint-mint {
+  background-color: #C6E2CF;
+}
+
+/* Texto de apoio (parágrafos/subtítulos) quando sentado direto sobre
+   .bg-tint-mint ou .bg-tint-lilac, sem um card branco por baixo — o
+   --text-secondary padrão (#98999A) já é claro demais mesmo no branco, e
+   sobre esses tingimentos o contraste cai ainda mais. Este tom fica entre
+   --text-primary e --text-secondary: mais escuro que o secundário padrão,
+   ainda claramente mais leve que um título. */
+.text-tint-body {
+  color: #5C5568;
+}
+
 .glass-header {
   background-color: var(--bg-header);
   backdrop-filter: blur(16px);

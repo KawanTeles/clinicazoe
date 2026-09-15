@@ -20,7 +20,7 @@ export function PageHero({ breadcrumbItems, title, subtitle }: PageHeroProps) {
         {title}
       </h1>
       {subtitle && (
-        <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-secondary">
+        <p className="mx-auto mt-4 max-w-2xl text-base sm:text-lg leading-relaxed text-tint-body">
           {subtitle}
         </p>
       )}

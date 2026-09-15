@@ -62,121 +62,142 @@ export default async function ClinicaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-brand-light text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
+    <div className="min-h-screen bg-tint-mint text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
-      <main className="flex-1 py-16 lg:py-24">
-        <PageEntrance className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-20">
-          <PageEntranceItem>
-            <PageHero
-              breadcrumbItems={breadcrumbItems}
-              title={clinic.name || "Espaço Zoe"}
-              subtitle="Inovação, ética e o acolhimento humano no centro de tudo que fazemos."
-            />
-          </PageEntranceItem>
+      <main className="flex-1">
+        {/* HERO */}
+        <section className="bg-tint-mint py-16 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <PageEntrance>
+              <PageEntranceItem>
+                <PageHero
+                  breadcrumbItems={breadcrumbItems}
+                  title={clinic.name || "Espaço Zoe"}
+                  subtitle="Inovação, ética e o acolhimento humano no centro de tudo que fazemos."
+                />
+              </PageEntranceItem>
+            </PageEntrance>
+          </div>
+        </section>
 
-          {/* Nossa História */}
-          <ScrollReveal animation="fade-up">
-            <div className="space-y-6 max-w-3xl">
-              <Badge tone="success">Nossa História</Badge>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-text-primary font-heading">
-                Uma trajetória construída com dedicação
-              </h2>
-              <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-                {clinic.name || "Espaço Zoe"} nasceu em 2025 com o propósito de criar um espaço dedicado ao desenvolvimento humano e acolhimento de famílias.
-              </p>
-              <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-                O nome Zoe, que significa &quot;vida&quot; em grego, representa nossa essência: valorizar cada pessoa em sua individualidade, respeitando sua história, suas necessidades e seu processo de desenvolvimento.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          {/* Nosso Espaço */}
-          <div className="space-y-8">
-            <div className="text-center max-w-2xl mx-auto space-y-3">
-              <ScrollReveal animation="fade-up">
-                <Badge tone="premium" className="border border-[rgba(130,169,160,0.3)]">Nosso Espaço</Badge>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-[var(--primary)] mt-2 font-heading">
-                  Conheça o Espaço Zoe
+        {/* NOSSA HISTÓRIA */}
+        <section className="border-t border-border/70 bg-tint-mint py-16 lg:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <ScrollReveal animation="fade-up">
+              <div className="space-y-6 max-w-3xl">
+                <Badge tone="success">Nossa História</Badge>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-text-primary font-heading">
+                  Uma trajetória construída com dedicação
                 </h2>
-                <p className="text-sm text-text-secondary">
-                  Ambientes pensados para o seu conforto e acolhimento em cada visita.
+                <p className="text-sm sm:text-base text-tint-body leading-relaxed">
+                  {clinic.name || "Espaço Zoe"} nasceu em 2025 com o propósito de criar um espaço dedicado ao desenvolvimento humano e acolhimento de famílias.
                 </p>
-              </ScrollReveal>
-            </div>
-
-            <ScrollReveal animation="scale-up">
-              <PhotoCarousel slides={gallerySlides} className="max-w-4xl mx-auto" />
+                <p className="text-sm sm:text-base text-tint-body leading-relaxed">
+                  O nome Zoe, que significa &quot;vida&quot; em grego, representa nossa essência: valorizar cada pessoa em sua individualidade, respeitando sua história, suas necessidades e seu processo de desenvolvimento.
+                </p>
+              </div>
             </ScrollReveal>
           </div>
+        </section>
 
-          {/* Missão / Visão / Valores */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <AnimatedCard
-              delayMs={100}
-              className="rounded-3xl p-8 sm:p-10 h-full border-t-2 border-t-[rgba(135,201,179,0.6)] bg-gradient-to-b from-[rgba(135,201,179,0.05)] to-transparent hover:from-[rgba(135,201,179,0.1)] group"
-            >
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(54,99,84,0.15)] mb-6 transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                </svg>
+        {/* NOSSO ESPAÇO */}
+        <section className="border-t border-border/70 bg-tint-mint py-16 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="space-y-8">
+              <div className="text-center max-w-2xl mx-auto space-y-3">
+                <ScrollReveal animation="fade-up">
+                  <Badge tone="premium" className="border border-[rgba(130,169,160,0.3)] bg-white/50">Nosso Espaço</Badge>
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-[var(--primary)] mt-2 font-heading">
+                    Conheça o Espaço Zoe
+                  </h2>
+                  <p className="text-sm text-tint-body">
+                    Ambientes pensados para o seu conforto e acolhimento em cada visita.
+                  </p>
+                </ScrollReveal>
               </div>
-              <h3 className="text-xl sm:text-2xl font-extrabold text-primary font-heading mb-4">Missão</h3>
-              <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-                Acolher, cuidar e desenvolver crianças e adultos, promovendo o bem-estar emocional, cognitivo e social em cada fase da vida, através de um olhar humano, sensível e interdisciplinar. Cuidar de quem cuida, fortalecer famílias, e inspirar transformação por meio do afeto, da escuta e do respeito à individualidade de cada ser.
-              </p>
-            </AnimatedCard>
 
-            <AnimatedCard
-              delayMs={200}
-              className="rounded-3xl p-8 sm:p-10 h-full border-t-2 border-t-[rgba(94,211,157,0.6)] bg-gradient-to-b from-[rgba(94,211,157,0.05)] to-transparent hover:from-[rgba(94,211,157,0.1)] group"
-            >
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(54,99,84,0.15)] mb-6 transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8-11-8-11-8Z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              </div>
-              <h3 className="text-xl sm:text-2xl font-extrabold text-primary font-heading mb-4">Visão</h3>
-              <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-                Construir um espaço de referência em desenvolvimento humano, onde o cuidado seja integral, e cada profissional atue com propósito e verdade. Ser um núcleo que transforma vidas com empatia e excelência, gerando impacto positivo na comunidade.
-              </p>
-            </AnimatedCard>
-
-            <AnimatedCard
-              delayMs={300}
-              className="rounded-3xl p-8 sm:p-10 h-full border-t-2 border-t-[rgba(51,113,87,0.6)] bg-gradient-to-b from-[rgba(51,113,87,0.05)] to-transparent hover:from-[rgba(51,113,87,0.1)] group"
-            >
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(54,99,84,0.15)] mb-6 transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg>
-              </div>
-              <h3 className="text-xl sm:text-2xl font-extrabold text-primary font-heading mb-4">Valores</h3>
-              <ul className="text-sm sm:text-base text-text-secondary leading-relaxed space-y-3">
-                <li className="flex items-start"><span className="text-primary mr-2">•</span><span><span className="font-bold text-text-primary">Acolhimento:</span> Cada pessoa é recebida com empatia, escuta e amor.</span></li>
-                <li className="flex items-start"><span className="text-primary mr-2">•</span><span><span className="font-bold text-text-primary">Verdade:</span> Agir com autenticidade, integridade e coerência.</span></li>
-                <li className="flex items-start"><span className="text-primary mr-2">•</span><span><span className="font-bold text-text-primary">Afetividade:</span> Relações humanas estão no centro de tudo que fazemos.</span></li>
-                <li className="flex items-start"><span className="text-primary mr-2">•</span><span><span className="font-bold text-text-primary">Respeito à infância:</span> Acreditamos no tempo, no ritmo e na singularidade de cada criança.</span></li>
-                <li className="flex items-start"><span className="text-primary mr-2">•</span><span><span className="font-bold text-text-primary">Cuidado com quem cuida:</span> Fortalecer profissionais e famílias com suporte e carinho.</span></li>
-                <li className="flex items-start"><span className="text-primary mr-2">•</span><span><span className="font-bold text-text-primary">Excelência com leveza:</span> Oferecer qualidade sem perder a humanidade.</span></li>
-                <li className="flex items-start"><span className="text-primary mr-2">•</span><span><span className="font-bold text-text-primary">Transformação:</span> Trabalhar para que cada atendimento seja um passo de mudança real.</span></li>
-              </ul>
-            </AnimatedCard>
-          </div>
-
-          {/* CTA */}
-          <ScrollReveal animation="fade-up">
-            <div className="text-center pt-8 border-t border-border/60">
-              <Link href="/agendar">
-                <Button size="lg" withArrow className="font-bold">
-                  {CTA_PRIMARY}
-                </Button>
-              </Link>
+              <ScrollReveal animation="scale-up">
+                <PhotoCarousel slides={gallerySlides} className="max-w-4xl mx-auto" />
+              </ScrollReveal>
             </div>
-          </ScrollReveal>
-        </PageEntrance>
+          </div>
+        </section>
+
+        {/* MISSÃO / VISÃO / VALORES */}
+        <section className="border-t border-border/70 bg-tint-mint py-16 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <AnimatedCard
+                delayMs={100}
+                className="rounded-3xl p-8 sm:p-10 h-full border-t-2 border-t-[rgba(135,201,179,0.6)] bg-gradient-to-b from-[rgba(135,201,179,0.05)] to-transparent hover:from-[rgba(135,201,179,0.1)] group"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(54,99,84,0.15)] mb-6 transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-primary font-heading mb-4">Missão</h3>
+                <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
+                  Acolher, cuidar e desenvolver crianças e adultos, promovendo o bem-estar emocional, cognitivo e social em cada fase da vida, através de um olhar humano, sensível e interdisciplinar. Cuidar de quem cuida, fortalecer famílias, e inspirar transformação por meio do afeto, da escuta e do respeito à individualidade de cada ser.
+                </p>
+              </AnimatedCard>
+
+              <AnimatedCard
+                delayMs={200}
+                className="rounded-3xl p-8 sm:p-10 h-full border-t-2 border-t-[rgba(94,211,157,0.6)] bg-gradient-to-b from-[rgba(94,211,157,0.05)] to-transparent hover:from-[rgba(94,211,157,0.1)] group"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(54,99,84,0.15)] mb-6 transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8-11-8-11-8Z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-primary font-heading mb-4">Visão</h3>
+                <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
+                  Construir um espaço de referência em desenvolvimento humano, onde o cuidado seja integral, e cada profissional atue com propósito e verdade. Ser um núcleo que transforma vidas com empatia e excelência, gerando impacto positivo na comunidade.
+                </p>
+              </AnimatedCard>
+
+              <AnimatedCard
+                delayMs={300}
+                className="rounded-3xl p-8 sm:p-10 h-full border-t-2 border-t-[rgba(51,113,87,0.6)] bg-gradient-to-b from-[rgba(51,113,87,0.05)] to-transparent hover:from-[rgba(51,113,87,0.1)] group"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(54,99,84,0.15)] mb-6 transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-primary font-heading mb-4">Valores</h3>
+                <ul className="text-sm sm:text-base text-text-secondary leading-relaxed space-y-3">
+                  <li className="flex items-start"><span className="text-primary mr-2">•</span><span><span className="font-bold text-text-primary">Acolhimento:</span> Cada pessoa é recebida com empatia, escuta e amor.</span></li>
+                  <li className="flex items-start"><span className="text-primary mr-2">•</span><span><span className="font-bold text-text-primary">Verdade:</span> Agir com autenticidade, integridade e coerência.</span></li>
+                  <li className="flex items-start"><span className="text-primary mr-2">•</span><span><span className="font-bold text-text-primary">Afetividade:</span> Relações humanas estão no centro de tudo que fazemos.</span></li>
+                  <li className="flex items-start"><span className="text-primary mr-2">•</span><span><span className="font-bold text-text-primary">Respeito à infância:</span> Acreditamos no tempo, no ritmo e na singularidade de cada criança.</span></li>
+                  <li className="flex items-start"><span className="text-primary mr-2">•</span><span><span className="font-bold text-text-primary">Cuidado com quem cuida:</span> Fortalecer profissionais e famílias com suporte e carinho.</span></li>
+                  <li className="flex items-start"><span className="text-primary mr-2">•</span><span><span className="font-bold text-text-primary">Excelência com leveza:</span> Oferecer qualidade sem perder a humanidade.</span></li>
+                  <li className="flex items-start"><span className="text-primary mr-2">•</span><span><span className="font-bold text-text-primary">Transformação:</span> Trabalhar para que cada atendimento seja um passo de mudança real.</span></li>
+                </ul>
+              </AnimatedCard>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="border-t border-border/70 bg-tint-mint py-16 lg:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <ScrollReveal animation="fade-up">
+              <div className="text-center">
+                <Link href="/agendar">
+                  <Button size="lg" withArrow className="font-bold">
+                    {CTA_PRIMARY}
+                  </Button>
+                </Link>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
       </main>
 
       <PublicFooter
@@ -194,6 +215,7 @@ export default async function ClinicaPage() {
           linkedin: clinic.linkedin_url,
           youtube: clinic.youtube_url,
         }}
+        tone="mint"
       />
     </div>
   );

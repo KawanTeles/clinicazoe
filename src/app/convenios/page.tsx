@@ -42,77 +42,91 @@ export default async function ConveniosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
+    <div className="min-h-screen bg-tint-mint text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
-      <main className="flex-1 py-16 lg:py-24">
-        <PageEntrance className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
-          <PageEntranceItem>
-            <PageHero
-              breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Convênios" }]}
-              title="Convênios"
-              subtitle="Trabalhamos com os principais planos de saúde do país e também atendimento particular com facilidades."
-            />
-          </PageEntranceItem>
+      <main className="flex-1">
+        {/* HERO */}
+        <section className="bg-tint-mint py-16 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <PageEntrance>
+              <PageEntranceItem>
+                <PageHero
+                  breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Convênios" }]}
+                  title="Convênios"
+                  subtitle="Trabalhamos com os principais planos de saúde do país e também atendimento particular com facilidades."
+                />
+              </PageEntranceItem>
+            </PageEntrance>
+          </div>
+        </section>
 
-          <h2 className="sr-only">Convênios Disponíveis</h2>
-          <SmartGrid
-            items={insurances}
-            minColumns={4}
-            gridClassName="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-            emptyState={
-              <EmptyState
-                icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  </svg>
-                }
-                title="Convênios em atualização"
-                description="Estamos atualizando nossa lista de convênios parceiros. Entre em contato para confirmar se atendemos seu plano de saúde."
-                action={{ label: "Falar com nossa equipe", href: "/contato" }}
-              />
-            }
-            renderItem={(ins, index) => (
-              <AnimatedCard key={ins.id} delayMs={index * 80} className="p-8 flex flex-col items-center text-center justify-center h-full rounded-[2rem] group">
-                {ins.logo_url ? (
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white border border-primary/20 shadow-[0_4px_20px_rgba(54,99,84,0.15)] mb-5 transition-transform duration-300 group-hover:scale-110 overflow-hidden p-2">
-                    <Image
-                      src={ins.logo_url}
-                      alt={ins.name}
-                      width={40}
-                      height={40}
-                      className="h-full w-full object-contain"
-                      unoptimized
-                    />
-                  </div>
-                ) : (
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(54,99,84,0.15)] mb-5 transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        {/* GRADE DE CONVÊNIOS */}
+        <section className="border-t border-border/70 bg-tint-mint py-16 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <h2 className="sr-only">Convênios Disponíveis</h2>
+            <SmartGrid
+              items={insurances}
+              minColumns={4}
+              gridClassName="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+              emptyState={
+                <EmptyState
+                  icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>
-                  </div>
-                )}
-                <h3 className="text-lg font-bold text-text-primary font-heading">{ins.name}</h3>
-              </AnimatedCard>
-            )}
-          />
+                  }
+                  title="Convênios em atualização"
+                  description="Estamos atualizando nossa lista de convênios parceiros. Entre em contato para confirmar se atendemos seu plano de saúde."
+                  action={{ label: "Falar com nossa equipe", href: "/contato" }}
+                />
+              }
+              renderItem={(ins, index) => (
+                <AnimatedCard key={ins.id} delayMs={index * 80} className="p-8 flex flex-col items-center text-center justify-center h-full rounded-[2rem] group">
+                  {ins.logo_url ? (
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white border border-primary/20 shadow-[0_4px_20px_rgba(54,99,84,0.15)] mb-5 transition-transform duration-300 group-hover:scale-110 overflow-hidden p-2">
+                      <Image
+                        src={ins.logo_url}
+                        alt={ins.name}
+                        width={40}
+                        height={40}
+                        className="h-full w-full object-contain"
+                        unoptimized
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-[0_4px_20px_rgba(54,99,84,0.15)] mb-5 transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      </svg>
+                    </div>
+                  )}
+                  <h3 className="text-lg font-bold text-text-primary font-heading">{ins.name}</h3>
+                </AnimatedCard>
+              )}
+            />
+          </div>
+        </section>
 
-          {/* Info Card */}
-          <ScrollReveal animation="fade-up">
-            <AnimatedCard className="rounded-3xl p-8 text-center max-w-3xl mx-auto space-y-4">
-              <h3 className="text-xl font-bold text-text-primary font-heading">Não encontrou seu plano de saúde?</h3>
-              <p className="text-xs sm:text-sm text-text-secondary">
-                Atendemos também na modalidade particular com reembolso para diversos convênios. Entre em contato para entender como solicitar seu recibo de reembolso.
-              </p>
-              <div className="pt-2">
-                <Link href="/contato">
-                  <Button size="lg" withArrow className="font-bold">Falar com nossa equipe</Button>
-                </Link>
-              </div>
-            </AnimatedCard>
-          </ScrollReveal>
-        </PageEntrance>
+        {/* CTA — não encontrou seu plano */}
+        <section className="border-t border-border/70 bg-tint-mint py-16 lg:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <ScrollReveal animation="fade-up">
+              <AnimatedCard className="rounded-3xl p-8 text-center max-w-3xl mx-auto space-y-4">
+                <h3 className="text-xl font-bold text-text-primary font-heading">Não encontrou seu plano de saúde?</h3>
+                <p className="text-xs sm:text-sm text-text-secondary">
+                  Atendemos também na modalidade particular com reembolso para diversos convênios. Entre em contato para entender como solicitar seu recibo de reembolso.
+                </p>
+                <div className="pt-2">
+                  <Link href="/contato">
+                    <Button size="lg" withArrow className="font-bold">Falar com nossa equipe</Button>
+                  </Link>
+                </div>
+              </AnimatedCard>
+            </ScrollReveal>
+          </div>
+        </section>
       </main>
 
       <PublicFooter
@@ -130,6 +144,7 @@ export default async function ConveniosPage() {
           linkedin: clinic.linkedin_url,
           youtube: clinic.youtube_url,
         }}
+        tone="mint"
       />
     </div>
   );

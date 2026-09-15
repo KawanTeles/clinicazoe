@@ -2,15 +2,21 @@ import React from "react";
 
 interface DeveloperSignatureProps {
   className?: string;
+  /** true quando renderizado sobre bg-tint-lilac/bg-tint-mint — troca os
+   * tons claros (text-text-muted/secondary) por um tom mais escuro e
+   * legível sobre esses fundos (ver .text-tint-body em globals.css). */
+  tinted?: boolean;
 }
 
-export function DeveloperSignature({ className = "" }: DeveloperSignatureProps) {
+export function DeveloperSignature({ className = "", tinted = false }: DeveloperSignatureProps) {
+  const mutedClass = tinted ? "text-tint-body" : "text-text-muted";
+  const secondaryClass = tinted ? "text-tint-body" : "text-text-secondary";
   return (
     <div
-      className={`w-full py-1 px-4 flex items-center justify-center text-center text-xs text-text-muted ${className}`}
+      className={`w-full py-1 px-4 flex items-center justify-center text-center text-xs ${mutedClass} ${className}`}
     >
       <div className="inline-flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-center font-normal leading-relaxed tracking-wide">
-        <span className="text-text-secondary">Site desenvolvido por</span>
+        <span className={secondaryClass}>Site desenvolvido por</span>
         <a
           href="https://portfolio-rvm8.vercel.app/"
           target="_blank"
@@ -51,7 +57,7 @@ export function DeveloperSignature({ className = "" }: DeveloperSignatureProps) 
           —
         </span>
 
-        <span className="text-text-muted">
+        <span className={mutedClass}>
           Conheça meu portfólio e veja outros projetos profissionais.
         </span>
       </div>

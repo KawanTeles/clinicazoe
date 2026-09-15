@@ -47,23 +47,30 @@ export default async function ContatoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
+    <div className="min-h-screen bg-tint-mint text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
-      <main className="flex-1 py-16 lg:py-24">
-        <PageEntrance className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
-          <PageEntranceItem>
-            <PageHero
-              breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Contato" }]}
-              title="Contato & Localização"
-              subtitle="Estamos prontos para atender você com agilidade e atenção."
-            />
-          </PageEntranceItem>
+      <main className="flex-1">
+        {/* HERO */}
+        <section className="bg-tint-mint py-16 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <PageEntrance>
+              <PageEntranceItem>
+                <PageHero
+                  breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Contato" }]}
+                  title="Contato & Localização"
+                  subtitle="Estamos prontos para atender você com agilidade e atenção."
+                />
+              </PageEntranceItem>
+            </PageEntrance>
+          </div>
+        </section>
 
-          <h2 className="sr-only">Formas de Contato</h2>
-          <div className="space-y-12">
-            {/* Info Cards */}
+        {/* INFO CARDS */}
+        <section className="border-t border-border/70 bg-tint-mint py-16 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <h2 className="sr-only">Formas de Contato</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {clinic.address && (
                 <ScrollReveal animation="slide-left">
@@ -131,8 +138,12 @@ export default async function ContatoPage() {
                 </ScrollReveal>
               )}
             </div>
+          </div>
+        </section>
 
-            {/* Direct Booking CTA */}
+        {/* CTA — agendamento direto */}
+        <section className="border-t border-border/70 bg-tint-mint py-16 lg:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <ScrollReveal animation="fade-up">
               <AnimatedCard className="rounded-3xl p-8 sm:p-10 text-center space-y-6 max-w-2xl mx-auto">
                 <Badge tone="success">Agendamento 100% Online</Badge>
@@ -150,7 +161,7 @@ export default async function ContatoPage() {
               </AnimatedCard>
             </ScrollReveal>
           </div>
-        </PageEntrance>
+        </section>
       </main>
 
       <LocationSection
@@ -165,6 +176,7 @@ export default async function ContatoPage() {
         mapsUrl={clinic.maps_url}
         latitude={clinic.latitude}
         longitude={clinic.longitude}
+        tone="mint"
       />
 
       <PublicFooter
@@ -182,6 +194,7 @@ export default async function ContatoPage() {
           linkedin: clinic.linkedin_url,
           youtube: clinic.youtube_url,
         }}
+        tone="mint"
       />
     </div>
   );

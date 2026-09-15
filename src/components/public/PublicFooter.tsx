@@ -21,6 +21,8 @@ interface PublicFooterProps {
   phoneSecondary?: string | null;
   emergencyPhone?: string | null;
   socialMedia?: SocialMediaLinks;
+  /** "background" (padrão, usado na Home) ou "lilac" (páginas internas). */
+  tone?: "background" | "lilac" | "mint";
 }
 
 const SOCIAL_ICONS: Array<{ key: keyof SocialMediaLinks; label: string; path: ReactElement }> = [
@@ -73,14 +75,20 @@ export function PublicFooter({
   phoneSecondary,
   emergencyPhone,
   socialMedia,
+  tone = "background",
 }: PublicFooterProps) {
   const whatsappLink = buildWhatsAppLink(whatsappNumber, `Olá! Vim pelo site da ${clinicName}.`);
   const whatsappDisplay = formatWhatsAppDisplay(whatsappNumber);
   const extraPhones = [phonePrimary, phoneSecondary, emergencyPhone].filter(Boolean) as string[];
   const activeSocials = SOCIAL_ICONS.filter((social) => socialMedia?.[social.key]);
+  // Sobre bg-tint-lilac/bg-tint-mint, --text-secondary (#98999A) perde
+  // contraste demais — troca pro tom mais escuro reservado pra texto de
+  // apoio sobre esses fundos (ver .text-tint-body em globals.css).
+  const isTinted = tone === "lilac" || tone === "mint";
+  const bodyTextClass = isTinted ? "text-tint-body" : "text-text-secondary";
 
   return (
-    <footer className="border-t border-border/80 bg-[var(--bg-footer)] pt-16 pb-8 text-text-secondary">
+    <footer className={`border-t border-border/80 pt-16 pb-8 ${bodyTextClass} ${tone === "lilac" ? "bg-tint-lilac" : tone === "mint" ? "bg-tint-mint" : "bg-[var(--bg-footer)]"}`}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-8">
           {/* Brand Info */}
@@ -95,7 +103,7 @@ export function PublicFooter({
               />
               <span className="text-xl font-bold text-text-primary font-heading">{clinicName}</span>
             </div>
-            <p className="text-xs text-text-secondary leading-relaxed">
+            <p className={`text-xs ${bodyTextClass} leading-relaxed`}>
               Excelência em saúde integrada com inovação tecnológica, infraestrutura de alto padrão e cuidado humanizado.
             </p>
             {activeSocials.length > 0 && (
@@ -175,10 +183,10 @@ export function PublicFooter({
           {/* Contact */}
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-[var(--link)] font-heading mb-4">Atendimento</p>
-            {address && <p className="text-xs text-text-secondary leading-relaxed mb-3">{address}</p>}
-            {email && <p className="text-xs text-text-secondary leading-relaxed mb-3">{email}</p>}
+            {address && <p className={`text-xs ${bodyTextClass} leading-relaxed mb-3`}>{address}</p>}
+            {email && <p className={`text-xs ${bodyTextClass} leading-relaxed mb-3`}>{email}</p>}
             {extraPhones.length > 0 && (
-              <p className="text-xs text-text-secondary leading-relaxed mb-3">{extraPhones.join(" · ")}</p>
+              <p className={`text-xs ${bodyTextClass} leading-relaxed mb-3`}>{extraPhones.join(" · ")}</p>
             )}
             {whatsappLink && (
               <a
@@ -198,14 +206,14 @@ export function PublicFooter({
           </div>
         </div>
 
-        <div className="mt-14 border-t border-border/70 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-muted">
+        <div className={`mt-14 border-t border-border/70 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs ${bodyTextClass}`}>
           <p>© {new Date().getFullYear()} {clinicName}. Todos os direitos reservados.</p>
           <p>Plataforma desenvolvida para alta performance e segurança.</p>
         </div>
 
         {/* Developer Signature Section */}
         <div className="mt-6 border-t border-border/40 pt-4">
-          <DeveloperSignature />
+          <DeveloperSignature tinted={isTinted} />
         </div>
       </div>
     </footer>

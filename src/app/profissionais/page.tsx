@@ -39,45 +39,55 @@ export default async function ProfissionaisPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-brand-light text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
+    <div className="min-h-screen bg-tint-mint text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
-      <main className="flex-1 py-16 lg:py-24">
-        <PageEntrance className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
-          <PageEntranceItem>
-            <PageHero
-              breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Profissionais" }]}
-              title="Nossos Profissionais"
-              subtitle="Profissionais experientes e dedicados a oferecer a melhor assistência à sua saúde."
-            />
-          </PageEntranceItem>
+      <main className="flex-1">
+        {/* HERO */}
+        <section className="bg-tint-mint py-16 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <PageEntrance>
+              <PageEntranceItem>
+                <PageHero
+                  breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Profissionais" }]}
+                  title="Nossos Profissionais"
+                  subtitle="Profissionais experientes e dedicados a oferecer a melhor assistência à sua saúde."
+                />
+              </PageEntranceItem>
+            </PageEntrance>
+          </div>
+        </section>
 
-          <h2 className="sr-only">Lista de Profissionais</h2>
-          <SmartGrid
-            items={professionals}
-            minColumns={3}
-            gridClassName="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            emptyState={
-              <EmptyState
-                icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                }
-                title="Equipe em formação"
-                description="Estamos ampliando nosso corpo clínico. Entre em contato para saber quais especialistas já estão atendendo."
-                action={{ label: "Falar com nossa equipe", href: "/contato" }}
-              />
-            }
-            renderItem={(prof, index) => (
-              <ScrollReveal key={prof.id} animation="fade-up" delayMs={index * 100}>
-                <FeaturedProfessionalCard professional={prof} />
-              </ScrollReveal>
-            )}
-          />
-        </PageEntrance>
+        {/* GRADE DE PROFISSIONAIS */}
+        <section className="border-t border-border/70 bg-tint-mint py-16 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <h2 className="sr-only">Lista de Profissionais</h2>
+            <SmartGrid
+              items={professionals}
+              minColumns={3}
+              gridClassName="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              emptyState={
+                <EmptyState
+                  icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  }
+                  title="Equipe em formação"
+                  description="Estamos ampliando nosso corpo clínico. Entre em contato para saber quais especialistas já estão atendendo."
+                  action={{ label: "Falar com nossa equipe", href: "/contato" }}
+                />
+              }
+              renderItem={(prof, index) => (
+                <ScrollReveal key={prof.id} animation="fade-up" delayMs={index * 100}>
+                  <FeaturedProfessionalCard professional={prof} />
+                </ScrollReveal>
+              )}
+            />
+          </div>
+        </section>
       </main>
 
       <PublicFooter
@@ -95,6 +105,7 @@ export default async function ProfissionaisPage() {
           linkedin: clinic.linkedin_url,
           youtube: clinic.youtube_url,
         }}
+        tone="mint"
       />
     </div>
   );
