@@ -281,13 +281,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Tingimento de seção — Verde Menta Pastel é a cor única de fundo em todas
-   as seções das páginas internas (A Clínica, Especialidades, Profissionais,
-   Convênios, Contato) e agora também nas seções da Home (exceto a hero com
-   foto da fachada e o banner final, que ficam como estão), dando
-   identidade visual consistente de ponta a ponta. bg-tint-lilac fica
-   mantida (não usada no momento) caso volte a ser necessária. Não mexe nos
-   tokens --primary-light/--secondary-light pra não afetar Badges e o
-   restante do site que já usa esses tokens. */
+   as seções das páginas internas do site público (A Clínica, Especialidades,
+   Profissionais, Convênios, Contato), dando identidade visual consistente
+   de ponta a ponta. A Home não usa essas classes (hero com foto da
+   fachada + degradê próprio, mantida como estava). bg-tint-lilac fica
+   mantida (não usada no site público no momento) caso volte a ser
+   necessária. Não mexe nos tokens --primary-light/--secondary-light pra
+   não afetar Badges e o restante do site que já usa esses tokens. */
 .bg-tint-lilac {
   background-color: #DDDAE4;
 }
@@ -304,6 +304,21 @@ h1, h2, h3, h4, h5, h6 {
    ainda claramente mais leve que um título. */
 .text-tint-body {
   color: #5C5568;
+}
+
+/* Painel administrativo (AdminShell, equipe da clínica) — cores próprias,
+   independentes de --background/--card pra não afetar o portal do
+   paciente (PatientShell) nem o resto do site, que continuam usando os
+   tokens padrão. Sidebar em lilás clarinho (mesma família do --primary
+   roxo); área de conteúdo num verde bem suave, variação clara do Verde
+   Menta Pastel do site público (#B2D8C0) — mesma identidade de cor,
+   intensidade reduzida pra não cansar em uso prolongado. */
+.bg-admin-sidebar {
+  background-color: rgba(237, 235, 241, 0.95);
+}
+
+.bg-admin-content {
+  background-color: #F1F8F4;
 }
 
 .glass-header {

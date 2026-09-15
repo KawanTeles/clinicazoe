@@ -265,7 +265,7 @@ export function AdminShell({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-60 h-screen flex-col shrink-0 border-r border-border/80 bg-card/95 backdrop-blur-xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-60 h-screen flex-col shrink-0 border-r border-border/80 bg-admin-sidebar backdrop-blur-xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0",
           mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
         )}
       >
@@ -421,7 +421,7 @@ export function AdminShell({
         </header>
 
         {/* Content Body */}
-        <main className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-5 lg:p-6">
+        <main className="flex-1 min-h-0 overflow-y-auto bg-admin-content p-3.5 sm:p-5 lg:p-6">
           {children}
         </main>
       </div>
