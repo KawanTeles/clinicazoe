@@ -335,7 +335,7 @@ export default async function HomePage() {
 
         {/* === DESKTOP HERO TEXT (Isolado) === */}
         {/* hidden lg:block garante que isso jamais afeta o mobile */}
-        <div className="hidden lg:block w-full lg:pl-32 xl:pl-48 2xl:pl-64 relative z-10">
+        <div className="hidden lg:block w-full lg:pl-12 xl:pl-16 2xl:pl-20 relative z-10">
           <PageEntrance>
             {/* O -ml-4 agora afeta SOMENTE o desktop de forma segura */}
             <div className="max-w-3xl space-y-6 -ml-4">
