@@ -11,7 +11,7 @@ import { generateSlotInstances, filterAvailableInstances } from "./slot-generato
 /** Status que ocupam vaga de horário (opostos: cancelada/remarcada/recusada
  * liberam). Exportada para reuso em recurrence-actions.ts (checagem de
  * conflito por paciente no preview de recorrência). */
-export const ACTIVE_APPOINTMENT_STATUSES: AppointmentStatus[] = [
+const ACTIVE_APPOINTMENT_STATUSES: AppointmentStatus[] = [
   "pendente",
   "confirmada",
   "concluida",
