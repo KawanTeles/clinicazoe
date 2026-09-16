@@ -72,21 +72,30 @@ export function RecurrenceScopeDialog({
   const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
-    if (mode !== "edit") return;
+    // Busca o detalhe da série em ambos os modos (edit/delete) — precisa só
+    // para exibir o contexto "sessão em grupo"; o pré-preenchimento do
+    // formulário bulk e o histórico continuam exclusivos do modo edit.
     getSeriesDetail(seriesId).then((series) => {
       if (!series) return;
       setOriginalSeries(series);
-      setRecurrence({
-        frequency: series.frequency as RecurrenceFrequency,
-        startDate: currentDate,
-        endDate: series.endDate ?? "",
-        maxOccurrences: series.maxOccurrences ? String(series.maxOccurrences) : "",
-        notes: "",
-      });
+      if (mode === "edit") {
+        setRecurrence({
+          frequency: series.frequency as RecurrenceFrequency,
+          startDate: currentDate,
+          endDate: series.endDate ?? "",
+          maxOccurrences: series.maxOccurrences ? String(series.maxOccurrences) : "",
+          notes: "",
+        });
+      }
     });
-    getSeriesHistory(seriesId).then(setHistory);
+    if (mode === "edit") {
+      getSeriesHistory(seriesId).then(setHistory);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, seriesId]);
+
+  const groupParticipantCount = originalSeries ? originalSeries.additionalParticipantsCount + 1 : 0;
+  const isGroupSeries = !!originalSeries && (originalSeries.additionalParticipantsCount > 0 || originalSeries.coTherapistCount > 0);
 
   async function handleDelete() {
     setSaving(true);
@@ -225,9 +234,17 @@ export function RecurrenceScopeDialog({
                     </svg>
                   </span>
                 )}
-                <h2 className="text-lg font-bold text-text-primary">
-                  {mode === "edit" ? "O que deseja alterar?" : "O que deseja excluir?"}
-                </h2>
+                <div>
+                  <h2 className="text-lg font-bold text-text-primary">
+                    {mode === "edit" ? "O que deseja alterar?" : "O que deseja excluir?"}
+                  </h2>
+                  {isGroupSeries && (
+                    <p className="text-xs font-semibold text-primary">
+                      Sessão em grupo — {groupParticipantCount} participante(s)
+                      {originalSeries!.coTherapistCount > 0 ? `, ${originalSeries!.coTherapistCount} coterapeuta(s)` : ""}
+                    </p>
+                  )}
+                </div>
               </div>
               {history && history.length > 0 && (
                 <button

@@ -123,6 +123,16 @@ export function ConflictsReview({
                 </div>
               </div>
 
+              {!occ.available && !override && occ.conflicts && occ.conflicts.length > 0 && (
+                <ul className="flex flex-col gap-0.5 border-t border-border px-4 py-2">
+                  {occ.conflicts.map((c, i) => (
+                    <li key={`${c.kind}-${c.name}-${i}`} className="text-xs text-text-secondary">
+                      <span className="font-semibold text-text-primary">{c.name}:</span> {c.reason}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
               {isExpanded && (
                 <div className="flex flex-wrap gap-2 border-t border-border px-4 py-3">
                   {loadingDate === occ.date && <p className="text-xs text-text-secondary">Carregando horários...</p>}

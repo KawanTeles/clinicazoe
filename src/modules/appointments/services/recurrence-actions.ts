@@ -12,12 +12,15 @@ import {
   cancelFinancialEntryForAppointment,
   cancelFinancialEntriesForAppointments,
 } from "@/modules/financial/services/financial-actions";
-import type { Database, Modality, ParticularProduct, PaymentMethod, RecurrenceFrequency } from "@/lib/supabase/types";
+import type { AppointmentSource, Database, Modality, ParticularProduct, PaymentMethod, RecurrenceFrequency } from "@/lib/supabase/types";
 import { toLocalIsoDate, todayLocalIso } from "@/lib/date";
-import { getAvailableTimes, resolveAppointmentValue } from "./booking-queries";
+import { getAvailableTimes, hasPatientConflict, resolveAppointmentValue } from "./booking-queries";
+import { isPatientConflictError, isSlotFullError } from "./booking-errors";
 import { generateOccurrenceDates, WEEKDAY_LABELS } from "./recurrence-generator";
+import type { GroupParticipantInput } from "./booking-actions";
 
 type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
+type AdminClient = ReturnType<typeof createAdminClient>;
 
 async function requireStaff() {
   const session = await getCurrentUser();
@@ -63,10 +66,23 @@ function addDaysIso(iso: string, days: number) {
   return toLocalIsoDate(d);
 }
 
+/** Um participante (profissional ou paciente) específico que impede uma
+ * ocorrência de sessão conjugada de ser gerada numa data — usado para
+ * avisar claramente quem/o quê está em conflito, em vez de um "indisponível"
+ * genérico (migração 0068). */
+export interface ParticipantConflict {
+  kind: "professional" | "patient";
+  name: string;
+  reason: string;
+}
+
 export interface OccurrencePreview {
   date: string;
   available: boolean;
   reason?: string;
+  /** Só preenchido quando a ocorrência é de uma sessão conjugada (migração
+   * 0068) — um item por participante em conflito nessa data. */
+  conflicts?: ParticipantConflict[];
   slotId?: string;
   endTime?: string;
 }
@@ -86,6 +102,16 @@ export interface RecurringBookingInput {
   endDate?: string | null;
   maxOccurrences?: number | null;
   notes?: string;
+  /** Presença de qualquer um destes dois campos (não vazio) faz a série
+   * inteira ser tratada como uma sessão conjugada recorrente (migração
+   * 0068) — todas as ocorrências geram 1 appointment_groups + N linhas em
+   * vez de 1 linha simples. */
+  additionalParticipants?: GroupParticipantInput[];
+  coTherapistProfessionalIds?: string[];
+}
+
+function isGroupRecurrence(input: Pick<RecurringBookingInput, "additionalParticipants" | "coTherapistProfessionalIds">): boolean {
+  return (input.additionalParticipants?.length ?? 0) > 0 || (input.coTherapistProfessionalIds?.length ?? 0) > 0;
 }
 
 async function buildPreview(
@@ -105,6 +131,90 @@ async function buildPreview(
       return match
         ? { date, available: true, slotId: match.slotId, endTime: match.endTime }
         : { date, available: false, reason: "Horário indisponível (bloqueio, feriado ou conflito)." };
+    }),
+  );
+}
+
+async function resolveDisplayNames(ids: string[]): Promise<Map<string, string>> {
+  const uniqueIds = Array.from(new Set(ids));
+  if (uniqueIds.length === 0) return new Map();
+  const supabase = await createClient();
+  const { data } = await supabase.from("profiles").select("id, full_name").in("id", uniqueIds);
+  return new Map((data ?? []).map((p) => [p.id, p.full_name]));
+}
+
+/** Equivalente a buildPreview, mas para uma sessão conjugada: checa, POR
+ * DATA, a disponibilidade do profissional principal, de cada coterapeuta
+ * (migração 0067) e conflito de agenda de cada paciente (migração 0067,
+ * via hasPatientConflict) — reporta exatamente quem está em conflito em
+ * `conflicts`, em vez de um "indisponível" genérico. Convênio/modalidade
+ * usados para checar disponibilidade dos PROFISSIONAIS é sempre o do
+ * participante 1 (mesma limitação de v1 já documentada em
+ * GroupAppointmentForm — cada participante pode ter seu próprio convênio
+ * para fins de cobrança, mas a checagem de agenda usa um representante). */
+async function buildGroupPreview(
+  principalProfessionalId: string,
+  coTherapistProfessionalIds: string[],
+  patientIds: string[],
+  insuranceId: string,
+  dates: string[],
+  startTime: string,
+  modality?: Modality,
+): Promise<OccurrencePreview[]> {
+  const nameById = await resolveDisplayNames([principalProfessionalId, ...coTherapistProfessionalIds, ...patientIds]);
+
+  return Promise.all(
+    dates.map(async (date): Promise<OccurrencePreview> => {
+      const conflicts: ParticipantConflict[] = [];
+      let slotId: string | undefined;
+      let endTime: string | undefined;
+
+      const principalTimes = await getAvailableTimes(principalProfessionalId, insuranceId, date, modality);
+      const principalMatch = principalTimes.find((t) => t.startTime === startTime);
+      if (principalMatch) {
+        slotId = principalMatch.slotId;
+        endTime = principalMatch.endTime;
+      } else {
+        conflicts.push({
+          kind: "professional",
+          name: nameById.get(principalProfessionalId) ?? "Profissional principal",
+          reason: "Sem disponibilidade (bloqueio, feriado ou horário lotado).",
+        });
+      }
+
+      for (const coId of coTherapistProfessionalIds) {
+        const coTimes = await getAvailableTimes(coId, insuranceId, date, modality);
+        const coMatch = coTimes.find((t) => t.startTime === startTime);
+        if (!coMatch) {
+          conflicts.push({
+            kind: "professional",
+            name: nameById.get(coId) ?? "Coterapeuta",
+            reason: "Sem disponibilidade nesse horário.",
+          });
+        }
+      }
+
+      for (const patientId of patientIds) {
+        const conflicted = await hasPatientConflict(patientId, date, startTime);
+        if (conflicted) {
+          conflicts.push({
+            kind: "patient",
+            name: nameById.get(patientId) ?? "Paciente",
+            reason: "Já tem outro atendimento marcado nesse horário.",
+          });
+        }
+      }
+
+      if (conflicts.length > 0) {
+        return {
+          date,
+          available: false,
+          reason: conflicts.map((c) => `${c.name}: ${c.reason}`).join(" "),
+          conflicts,
+        };
+      }
+
+      return { date, available: true, slotId, endTime };
     }),
   );
 }
@@ -130,7 +240,17 @@ export async function previewRecurringAppointments(
     return { error: "Nenhuma data gerada para esses parâmetros. Revise dia da semana e datas." };
   }
 
-  const occurrences = await buildPreview(input.professionalId, input.insuranceId, dates, input.startTime, input.modality);
+  const occurrences = isGroupRecurrence(input)
+    ? await buildGroupPreview(
+        input.professionalId,
+        input.coTherapistProfessionalIds ?? [],
+        [input.patientId, ...(input.additionalParticipants ?? []).map((p) => p.patientId)],
+        input.insuranceId,
+        dates,
+        input.startTime,
+        input.modality,
+      )
+    : await buildPreview(input.professionalId, input.insuranceId, dates, input.startTime, input.modality);
   return { error: null, occurrences };
 }
 
@@ -183,15 +303,134 @@ async function resolveOccurrences(
   return resolved;
 }
 
+export interface SkippedDate {
+  date: string;
+  reason: string;
+}
+
+interface GroupOccurrenceParticipant {
+  patientId: string;
+  insuranceId: string;
+  paymentMethod: PaymentMethod;
+  modality: Modality | null;
+  particularProduct: ParticularProduct | null;
+  value: number;
+}
+
+/** Gera as ocorrências de uma série CONJUGADA: para cada data resolvida,
+ * cria 1 appointment_groups novo + 1 linha em appointments por participante
+ * (via book_appointment, migração 0068 — mesmo lock atômico do fluxo
+ * avulso) + vincula os coterapeutas em todas as linhas daquela data (mesmo
+ * padrão "grupo coletivo sem dono" de createGroupAppointment). Best-effort
+ * POR DATA: se qualquer participante falhar numa data específica, desfaz só
+ * as linhas dessa data (rollback compensatório) e segue para as próximas —
+ * uma corrida rara numa data não derruba a série inteira. */
+async function createGroupOccurrences(
+  admin: AdminClient,
+  seriesId: string,
+  principalProfessionalId: string,
+  participants: GroupOccurrenceParticipant[],
+  coTherapistProfessionalIds: string[],
+  specialtyId: string | null,
+  toCreate: ResolvedOccurrence[],
+  source: AppointmentSource,
+  actorId: string,
+): Promise<{ createdCount: number; skippedDates: SkippedDate[] }> {
+  let createdCount = 0;
+  const skippedDates: SkippedDate[] = [];
+
+  for (const occ of toCreate) {
+    const { data: group, error: groupError } = await admin
+      .from("appointment_groups")
+      .insert({ appointment_date: occ.date, start_time: occ.startTime, end_time: occ.endTime, created_by: actorId })
+      .select("id")
+      .single();
+
+    if (groupError || !group) {
+      skippedDates.push({ date: occ.date, reason: "Não foi possível criar a sessão desta data." });
+      continue;
+    }
+
+    const createdIds: string[] = [];
+    let failReason: string | null = null;
+
+    for (const participant of participants) {
+      const { data: appointment, error } = await admin.rpc("book_appointment", {
+        p_patient_id: participant.patientId,
+        p_professional_id: principalProfessionalId,
+        p_specialty_id: specialtyId,
+        p_insurance_id: participant.insuranceId,
+        p_schedule_slot_id: occ.slotId,
+        p_appointment_date: occ.date,
+        p_start_time: occ.startTime,
+        p_end_time: occ.endTime,
+        p_payment_method: participant.paymentMethod,
+        p_value: participant.value,
+        p_modality: participant.modality,
+        p_particular_product: participant.particularProduct,
+        p_source: source,
+        p_group_id: group.id,
+        p_series_id: seriesId,
+      });
+
+      if (error || !appointment) {
+        failReason = isSlotFullError(error)
+          ? "Horário lotou nesta data."
+          : isPatientConflictError(error)
+            ? "Um dos participantes já tem outro atendimento nesta data/horário."
+            : "Não foi possível criar um dos atendimentos desta data.";
+        break;
+      }
+      createdIds.push(appointment.id);
+    }
+
+    if (failReason) {
+      if (createdIds.length > 0) await admin.from("appointments").delete().in("id", createdIds);
+      await admin.from("appointment_groups").delete().eq("id", group.id);
+      skippedDates.push({ date: occ.date, reason: failReason });
+      continue;
+    }
+
+    if (coTherapistProfessionalIds.length > 0) {
+      const links = createdIds.flatMap((appointmentId) =>
+        coTherapistProfessionalIds.map((professionalId) => ({
+          appointment_id: appointmentId,
+          professional_id: professionalId,
+          created_by: actorId,
+        })),
+      );
+      const { error: linkError } = await admin.from("appointment_professionals").insert(links);
+      if (linkError) {
+        await admin.from("appointments").delete().in("id", createdIds);
+        await admin.from("appointment_groups").delete().eq("id", group.id);
+        skippedDates.push({ date: occ.date, reason: "Não foi possível vincular os profissionais adicionais nesta data." });
+        continue;
+      }
+    }
+
+    createdCount += 1;
+  }
+
+  return { createdCount, skippedDates };
+}
+
 export async function createRecurringAppointments(
   input: CreateRecurringInput,
-): Promise<{ error: string | null; seriesId?: string; createdCount?: number; whatsappLink?: string | null }> {
+): Promise<{
+  error: string | null;
+  seriesId?: string;
+  createdCount?: number;
+  whatsappLink?: string | null;
+  skippedDates?: SkippedDate[];
+}> {
   const session = await requireStaff();
 
   const rateLimit = checkRateLimit(`create-recurring:${session.user.id}`, 10, 60_000);
   if (!rateLimit.allowed) {
     return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente de novo.` };
   }
+
+  const isGroup = isGroupRecurrence(input);
 
   const pricing = await resolveAppointmentValue(
     input.professionalId,
@@ -203,6 +442,22 @@ export async function createRecurringAppointments(
     return { error: pricing.error ?? "Não foi possível calcular o valor do atendimento." };
   }
   const appointmentValue = pricing.value;
+
+  const additionalPricing: number[] = [];
+  if (isGroup) {
+    for (const participant of input.additionalParticipants ?? []) {
+      const p = await resolveAppointmentValue(
+        input.professionalId,
+        participant.insuranceId,
+        participant.modality,
+        participant.particularProduct,
+      );
+      if (p.value == null) {
+        return { error: p.error ?? "Não foi possível calcular o valor de um dos participantes adicionais." };
+      }
+      additionalPricing.push(p.value);
+    }
+  }
 
   const preview = await previewRecurringAppointments(input);
   if (preview.error || !preview.occurrences) {
@@ -252,26 +507,106 @@ export async function createRecurringAppointments(
 
   if (seriesError || !series) return { error: "Não foi possível criar a recorrência." };
 
-  const rows = toCreate.map((occ) => ({
-    patient_id: input.patientId,
-    professional_id: input.professionalId,
-    specialty_id: input.specialtyId || null,
-    insurance_id: input.insuranceId,
-    schedule_slot_id: occ.slotId,
-    appointment_date: occ.date,
-    start_time: occ.startTime,
-    end_time: occ.endTime,
-    payment_method: input.paymentMethod,
-    value: appointmentValue,
-    modality: input.modality ?? null,
-    particular_product: input.particularProduct ?? null,
-    status: "pendente" as const,
-    series_id: series.id,
-    notes: input.notes?.trim() || null,
-  }));
+  if (isGroup) {
+    if (input.additionalParticipants && input.additionalParticipants.length > 0) {
+      const { error: participantsError } = await supabase.from("appointment_series_participants").insert(
+        input.additionalParticipants.map((p) => ({
+          series_id: series.id,
+          patient_id: p.patientId,
+          insurance_id: p.insuranceId,
+          payment_method: p.paymentMethod,
+          modality: p.modality ?? null,
+          particular_product: p.particularProduct ?? null,
+        })),
+      );
+      if (participantsError) {
+        await supabase.from("appointment_series").delete().eq("id", series.id);
+        return { error: "Não foi possível salvar os participantes adicionais da recorrência." };
+      }
+    }
+    if (input.coTherapistProfessionalIds && input.coTherapistProfessionalIds.length > 0) {
+      const { error: cotherapistsError } = await supabase.from("appointment_series_cotherapists").insert(
+        input.coTherapistProfessionalIds.map((professionalId) => ({ series_id: series.id, professional_id: professionalId })),
+      );
+      if (cotherapistsError) {
+        await supabase.from("appointment_series").delete().eq("id", series.id);
+        return { error: "Não foi possível salvar os coterapeutas da recorrência." };
+      }
+    }
+  }
 
-  const { error: insertError } = await supabase.from("appointments").insert(rows);
-  if (insertError) return { error: "Recorrência criada, mas houve falha ao gerar os atendimentos." };
+  let createdCount = 0;
+  let skippedDates: SkippedDate[] = [];
+
+  if (isGroup) {
+    const participants: GroupOccurrenceParticipant[] = [
+      {
+        patientId: input.patientId,
+        insuranceId: input.insuranceId,
+        paymentMethod: input.paymentMethod,
+        modality: input.modality ?? null,
+        particularProduct: input.particularProduct ?? null,
+        value: appointmentValue,
+      },
+      ...(input.additionalParticipants ?? []).map((p, i) => ({
+        patientId: p.patientId,
+        insuranceId: p.insuranceId,
+        paymentMethod: p.paymentMethod,
+        modality: p.modality ?? null,
+        particularProduct: p.particularProduct ?? null,
+        value: additionalPricing[i],
+      })),
+    ];
+
+    const result = await createGroupOccurrences(
+      supabase,
+      series.id,
+      input.professionalId,
+      participants,
+      input.coTherapistProfessionalIds ?? [],
+      input.specialtyId || null,
+      toCreate,
+      "staff",
+      session.user.id,
+    );
+    createdCount = result.createdCount;
+    skippedDates = result.skippedDates;
+  } else {
+    for (const occ of toCreate) {
+      const { data: appointment, error } = await supabase.rpc("book_appointment", {
+        p_patient_id: input.patientId,
+        p_professional_id: input.professionalId,
+        p_specialty_id: input.specialtyId || null,
+        p_insurance_id: input.insuranceId,
+        p_schedule_slot_id: occ.slotId,
+        p_appointment_date: occ.date,
+        p_start_time: occ.startTime,
+        p_end_time: occ.endTime,
+        p_payment_method: input.paymentMethod,
+        p_value: appointmentValue,
+        p_modality: input.modality ?? null,
+        p_particular_product: input.particularProduct ?? null,
+        p_source: "staff",
+        p_series_id: series.id,
+      });
+      if (error || !appointment) {
+        skippedDates.push({
+          date: occ.date,
+          reason: isSlotFullError(error) ? "Horário lotou nesta data." : "Não foi possível criar o atendimento desta data.",
+        });
+        continue;
+      }
+      createdCount += 1;
+    }
+  }
+
+  if (createdCount === 0) {
+    await supabase.from("appointment_series").delete().eq("id", series.id);
+    return { error: "Não foi possível criar nenhuma ocorrência (todas as datas tiveram conflito de última hora)." };
+  }
+
+  const skippedDateSet = new Set(skippedDates.map((s) => s.date));
+  const firstSuccessful = toCreate.find((occ) => !skippedDateSet.has(occ.date)) ?? toCreate[0];
 
   await logAudit({
     actorId: session.user.id,
@@ -279,17 +614,18 @@ export async function createRecurringAppointments(
     entity: "appointment_series",
     entityId: series.id,
     metadata: {
-      count: rows.length,
+      count: createdCount,
       frequency: input.frequency,
       dayOfWeek: input.dayOfWeek,
       startTime: input.startTime,
+      isGroup,
     },
   });
 
   await notifyStaff({
     type: "appointment_series.created",
     title: "Novo atendimento recorrente criado",
-    message: `${rows.length} atendimentos gerados.`,
+    message: `${createdCount} atendimento(s) gerados.`,
     entity: "appointment_series",
     entityId: series.id,
   });
@@ -303,8 +639,8 @@ export async function createRecurringAppointments(
   const message = buildStaffBookingConfirmationMessage({
     patientName: patient?.full_name ?? "",
     professionalName: professionalProfile?.full_name ?? "",
-    appointmentDate: rows[0].appointment_date,
-    startTime: rows[0].start_time,
+    appointmentDate: firstSuccessful.date,
+    startTime: firstSuccessful.startTime,
     clinicName: clinic?.name ?? "Espaço Zoe",
     clinicPhone: clinic?.whatsapp_number,
   });
@@ -312,7 +648,80 @@ export async function createRecurringAppointments(
 
   await logPatientMessage({ patientId: input.patientId, type: "booking", sentBy: session.user.id });
 
-  return { error: null, seriesId: series.id, createdCount: rows.length, whatsappLink };
+  return { error: null, seriesId: series.id, createdCount, whatsappLink, skippedDates };
+}
+
+interface SeriesGroupParticipant {
+  patientId: string;
+  insuranceId: string;
+  paymentMethod: PaymentMethod;
+  modality: Modality | null;
+  particularProduct: ParticularProduct | null;
+}
+
+interface SeriesGroupConfig {
+  additionalParticipants: SeriesGroupParticipant[];
+  coTherapistProfessionalIds: string[];
+  isGroup: boolean;
+}
+
+/** Lê o molde de participantes/coterapeutas extras de uma série (migração
+ * 0068) — vazio para toda série simples de hoje, sem exceção. Reaproveitado
+ * por preview/edição/extensão de recorrência para decidir se cada ocorrência
+ * gera 1 linha ou 1 sessão inteira. */
+async function getSeriesGroupConfig(seriesId: string): Promise<SeriesGroupConfig> {
+  const supabase = await createClient();
+  const [{ data: participants }, { data: cotherapists }] = await Promise.all([
+    supabase
+      .from("appointment_series_participants")
+      .select("patient_id, insurance_id, payment_method, modality, particular_product")
+      .eq("series_id", seriesId),
+    supabase.from("appointment_series_cotherapists").select("professional_id").eq("series_id", seriesId),
+  ]);
+
+  const additionalParticipants: SeriesGroupParticipant[] = (participants ?? []).map((p) => ({
+    patientId: p.patient_id,
+    insuranceId: p.insurance_id,
+    paymentMethod: p.payment_method,
+    modality: p.modality,
+    particularProduct: p.particular_product,
+  }));
+  const coTherapistProfessionalIds = (cotherapists ?? []).map((c) => c.professional_id);
+
+  return {
+    additionalParticipants,
+    coTherapistProfessionalIds,
+    isGroup: additionalParticipants.length > 0 || coTherapistProfessionalIds.length > 0,
+  };
+}
+
+/** Mesma checagem de buildGroupPreview, só que para 1 data — usada ao
+ * reagendar uma única ocorrência (escopo "only") de uma sessão conjugada,
+ * onde a validação precisa ser síncrona com a resposta ao staff. */
+async function checkGroupOccurrenceConflicts(
+  principalProfessionalId: string,
+  coTherapistProfessionalIds: string[],
+  patientIds: string[],
+  insuranceId: string,
+  date: string,
+  startTime: string,
+  modality?: Modality,
+): Promise<{ available: boolean; conflicts: ParticipantConflict[]; slotId?: string; endTime?: string }> {
+  const [preview] = await buildGroupPreview(
+    principalProfessionalId,
+    coTherapistProfessionalIds,
+    patientIds,
+    insuranceId,
+    [date],
+    startTime,
+    modality,
+  );
+  return {
+    available: preview.available,
+    conflicts: preview.conflicts ?? [],
+    slotId: preview.slotId,
+    endTime: preview.endTime,
+  };
 }
 
 export type RecurrenceScope = "only" | "following" | "all";
@@ -387,13 +796,24 @@ export async function previewRecurrenceUpdate(
     return { error: "Nenhuma data gerada para os novos parâmetros. Revise dia da semana, datas e frequência." };
   }
 
-  const occurrences = await buildPreview(
-    series.professional_id,
-    series.insurance_id,
-    dates,
-    input.startTime,
-    series.modality ?? undefined,
-  );
+  const groupConfig = await getSeriesGroupConfig(series.id);
+  const occurrences = groupConfig.isGroup
+    ? await buildGroupPreview(
+        series.professional_id,
+        groupConfig.coTherapistProfessionalIds,
+        [series.patient_id, ...groupConfig.additionalParticipants.map((p) => p.patientId)],
+        series.insurance_id,
+        dates,
+        input.startTime,
+        series.modality ?? undefined,
+      )
+    : await buildPreview(
+        series.professional_id,
+        series.insurance_id,
+        dates,
+        input.startTime,
+        series.modality ?? undefined,
+      );
   return { error: null, occurrences };
 }
 
@@ -429,6 +849,108 @@ async function updateSingleOccurrence(
 
   if (!input.date || !input.startTime) return { error: "Informe a nova data e horário." };
 
+  const supabase = await createClient();
+
+  if (appointment.group_id) {
+    const { data: siblingRows } = await supabase
+      .from("appointments")
+      .select("id, patient_id")
+      .eq("group_id", appointment.group_id);
+    const patientIds = Array.from(new Set((siblingRows ?? []).map((r) => r.patient_id)));
+    const siblingIds = (siblingRows ?? []).map((r) => r.id);
+
+    const { data: cotherapistRows } = siblingIds.length
+      ? await supabase.from("appointment_professionals").select("professional_id").in("appointment_id", siblingIds)
+      : { data: [] as { professional_id: string }[] };
+    const coTherapistIds = Array.from(new Set((cotherapistRows ?? []).map((r) => r.professional_id)));
+
+    const check = await checkGroupOccurrenceConflicts(
+      appointment.professional_id,
+      coTherapistIds,
+      patientIds,
+      appointment.insurance_id,
+      input.date,
+      input.startTime,
+      appointment.modality ?? undefined,
+    );
+    if (!check.available || !check.slotId || !check.endTime) {
+      const detail = check.conflicts.map((c) => `${c.name}: ${c.reason}`).join(" ");
+      return { error: detail || "Horário indisponível para um ou mais participantes desta sessão." };
+    }
+
+    // appointment_groups precisa ser atualizado ANTES das linhas de
+    // appointments — a trigger appointments_validate_group_biu (migração
+    // 0067) exige que data/hora da linha bata com a do grupo. Sem policy de
+    // UPDATE para authenticated em appointment_groups (só service role) —
+    // por isso só essa gravação usa o client admin. As linhas de
+    // appointments em si já têm policy de UPDATE para staff via o client
+    // normal (mesmo padrão do caso simples logo abaixo); usar o client admin
+    // ali faria auth.uid() virar null dentro de prevent_appointment_tampering
+    // e o trigger bloquear a alteração com "Não autorizado.".
+    const admin = createAdminClient();
+    const { error: groupError } = await admin
+      .from("appointment_groups")
+      .update({ appointment_date: input.date, start_time: input.startTime, end_time: check.endTime })
+      .eq("id", appointment.group_id);
+    if (groupError) return { error: "Não foi possível reagendar esta sessão." };
+
+    // Um UPDATE por linha (em vez de .eq("group_id", ...) em lote) — mais
+    // previsível sob RLS/triggers por linha do que um único UPDATE multi-row.
+    for (const siblingId of siblingIds) {
+      const { error: rowError } = await supabase
+        .from("appointments")
+        .update({
+          appointment_date: input.date,
+          start_time: input.startTime,
+          end_time: check.endTime,
+          schedule_slot_id: check.slotId,
+        })
+        .eq("id", siblingId);
+      if (rowError) return { error: "Não foi possível reagendar esta sessão." };
+    }
+
+    await logAudit({
+      actorId: session.user.id,
+      action: "appointment.rescheduled_occurrence",
+      entity: "appointment_groups",
+      entityId: appointment.group_id,
+      metadata: {
+        seriesId: appointment.series_id,
+        previousDate: appointment.appointment_date,
+        previousTime: appointment.start_time,
+        newDate: input.date,
+        newTime: input.startTime,
+        reason: input.reason ?? null,
+        participantCount: patientIds.length,
+      },
+    });
+
+    const [{ data: patientProfile }, { data: professionalProfile }, { data: clinic }] = await Promise.all([
+      supabase.from("profiles").select("full_name, phone").eq("id", appointment.patient_id).single(),
+      supabase.from("profiles").select("full_name").eq("id", appointment.professional_id).single(),
+      supabase.from("clinic_settings").select("name, whatsapp_number").eq("id", 1).single(),
+    ]);
+
+    const groupMessage = buildRescheduleMessage({
+      patientName: patientProfile?.full_name ?? "",
+      professionalName: professionalProfile?.full_name ?? "",
+      newDate: input.date,
+      newStartTime: input.startTime,
+      clinicPhone: clinic?.whatsapp_number,
+      clinicName: clinic?.name,
+    });
+    const groupWhatsappLink = buildWhatsAppLink(patientProfile?.phone, groupMessage);
+
+    await logPatientMessage({
+      patientId: appointment.patient_id,
+      appointmentId: appointment.id,
+      type: "reschedule",
+      sentBy: session.user.id,
+    });
+
+    return { error: null, whatsappLink: groupWhatsappLink };
+  }
+
   const availableTimes = await getAvailableTimes(
     appointment.professional_id,
     appointment.insurance_id,
@@ -438,7 +960,6 @@ async function updateSingleOccurrence(
   const match = availableTimes.find((t) => t.startTime === input.startTime);
   if (!match) return { error: "Horário indisponível para essa data. Escolha outro." };
 
-  const supabase = await createClient();
   const { error } = await supabase
     .from("appointments")
     .update({
@@ -494,7 +1015,12 @@ async function updateSingleOccurrence(
 
 export async function updateRecurringAppointment(
   input: UpdateRecurringAppointmentInput,
-): Promise<{ error: string | null; whatsappLink?: string | null; skippedConfirmed?: number }> {
+): Promise<{
+  error: string | null;
+  whatsappLink?: string | null;
+  skippedConfirmed?: number;
+  skippedDates?: SkippedDate[];
+}> {
   const supabase = await createClient();
   const { data: appointment } = await supabase
     .from("appointments")
@@ -581,6 +1107,8 @@ export async function updateRecurringAppointment(
   }
   const appointmentValue = pricing.value;
 
+  const groupConfig = await getSeriesGroupConfig(series.id);
+
   // Marca as ocorrências substituídas como remarcadas (nunca exclui —
   // preserva histórico), depois cria as novas com o dia/horário atualizado.
   await supabase
@@ -591,30 +1119,98 @@ export async function updateRecurringAppointment(
       toReplace.map((c) => c.id),
     );
 
-  const rows = toCreate.map((occ) => ({
-    patient_id: series.patient_id,
-    professional_id: series.professional_id,
-    specialty_id: series.specialty_id,
-    insurance_id: series.insurance_id,
-    schedule_slot_id: occ.slotId,
-    appointment_date: occ.date,
-    start_time: occ.startTime,
-    end_time: occ.endTime,
-    payment_method: series.payment_method,
-    value: appointmentValue,
-    modality: series.modality,
-    particular_product: series.particular_product,
-    status: "pendente" as const,
-    series_id: series.id,
-    notes: series.notes,
-  }));
-
   // Sem policy de INSERT em appointments para staff/profissional — a
   // autorização já foi validada acima (requireCanManageSeries), então usa
   // service role só para esta gravação (mesmo padrão de createRecurringAppointments).
   const admin = createAdminClient();
-  const { error: insertError } = await admin.from("appointments").insert(rows);
-  if (insertError) return { error: "Não foi possível gerar as novas ocorrências." };
+
+  let createdCount: number;
+  let skippedDates: SkippedDate[] = [];
+  let resultDate: string;
+  let resultEndTime: string;
+
+  if (groupConfig.isGroup) {
+    const additionalPricing: number[] = [];
+    for (const participant of groupConfig.additionalParticipants) {
+      const p = await resolveAppointmentValue(
+        series.professional_id,
+        participant.insuranceId,
+        participant.modality ?? undefined,
+        participant.particularProduct ?? undefined,
+      );
+      if (p.value == null) {
+        return { error: p.error ?? "Não foi possível calcular o valor de um dos participantes adicionais." };
+      }
+      additionalPricing.push(p.value);
+    }
+
+    const participants: GroupOccurrenceParticipant[] = [
+      {
+        patientId: series.patient_id,
+        insuranceId: series.insurance_id,
+        paymentMethod: series.payment_method,
+        modality: series.modality,
+        particularProduct: series.particular_product,
+        value: appointmentValue,
+      },
+      ...groupConfig.additionalParticipants.map((p, i) => ({
+        patientId: p.patientId,
+        insuranceId: p.insuranceId,
+        paymentMethod: p.paymentMethod,
+        modality: p.modality,
+        particularProduct: p.particularProduct,
+        value: additionalPricing[i],
+      })),
+    ];
+
+    const result = await createGroupOccurrences(
+      admin,
+      series.id,
+      series.professional_id,
+      participants,
+      groupConfig.coTherapistProfessionalIds,
+      series.specialty_id,
+      toCreate,
+      "staff",
+      session.user.id,
+    );
+    createdCount = result.createdCount;
+    skippedDates = result.skippedDates;
+
+    if (createdCount === 0) {
+      return { error: "Não foi possível gerar nenhuma das novas ocorrências (conflitos de última hora)." };
+    }
+
+    const skippedSet = new Set(skippedDates.map((s) => s.date));
+    const firstSuccessful = toCreate.find((occ) => !skippedSet.has(occ.date)) ?? toCreate[0];
+    resultDate = firstSuccessful.date;
+    resultEndTime = firstSuccessful.endTime;
+  } else {
+    const rows = toCreate.map((occ) => ({
+      patient_id: series.patient_id,
+      professional_id: series.professional_id,
+      specialty_id: series.specialty_id,
+      insurance_id: series.insurance_id,
+      schedule_slot_id: occ.slotId,
+      appointment_date: occ.date,
+      start_time: occ.startTime,
+      end_time: occ.endTime,
+      payment_method: series.payment_method,
+      value: appointmentValue,
+      modality: series.modality,
+      particular_product: series.particular_product,
+      status: "pendente" as const,
+      series_id: series.id,
+      notes: series.notes,
+    }));
+
+    const { error: insertError } = await admin.from("appointments").insert(rows);
+    if (insertError) return { error: "Não foi possível gerar as novas ocorrências." };
+
+    createdCount = rows.length;
+    resultDate = rows[0]?.appointment_date ?? cutoff;
+    resultEndTime = rows[0]?.end_time ?? series.end_time;
+  }
 
   await supabase
     .from("appointment_series")
@@ -625,7 +1221,7 @@ export async function updateRecurringAppointment(
       start_date: input.startDate ?? series.start_date,
       end_date: input.endDate !== undefined ? input.endDate : series.end_date,
       max_occurrences: input.maxOccurrences !== undefined ? input.maxOccurrences : series.max_occurrences,
-      end_time: rows[0]?.end_time ?? series.end_time,
+      end_time: resultEndTime,
     })
     .eq("id", series.id);
 
@@ -644,7 +1240,7 @@ export async function updateRecurringAppointment(
       newFrequency: input.frequency ?? series.frequency,
       reason: input.reason ?? null,
       occurrencesReplaced: toReplace.length,
-      occurrencesCreated: rows.length,
+      occurrencesCreated: createdCount,
     },
   });
 
@@ -657,7 +1253,7 @@ export async function updateRecurringAppointment(
   const message = buildRescheduleMessage({
     patientName: patientProfile?.full_name ?? "",
     professionalName: professionalProfile?.full_name ?? "",
-    newDate: rows[0]?.appointment_date ?? cutoff,
+    newDate: resultDate,
     newStartTime: input.startTime,
     clinicPhone: clinic?.whatsapp_number,
     clinicName: clinic?.name,
@@ -679,7 +1275,7 @@ export async function updateRecurringAppointment(
     entityId: series.id,
   });
 
-  return { error: null, whatsappLink, skippedConfirmed };
+  return { error: null, whatsappLink, skippedConfirmed, skippedDates };
 }
 
 async function cancelRecurringAppointmentCore(
@@ -693,6 +1289,28 @@ async function cancelRecurringAppointmentCore(
   if (!appointment) return { error: "Atendimento não encontrado." };
 
   if (scope === "only" || !appointment.series_id) {
+    if (appointment.group_id) {
+      const { data: siblingRows } = await supabase.from("appointments").select("id").eq("group_id", appointment.group_id);
+      const ids = (siblingRows ?? []).map((r) => r.id);
+      if (ids.length === 0) return { error: "Não foi possível cancelar esta sessão." };
+
+      // Um UPDATE por linha (em vez de .in() em lote) — mais previsível sob
+      // RLS/triggers por linha do que um único UPDATE multi-row.
+      for (const id of ids) {
+        const { error } = await supabase.from("appointments").update({ status: "cancelada" }).eq("id", id);
+        if (error) return { error: "Não foi possível cancelar esta sessão." };
+      }
+      await cancelFinancialEntriesForAppointments(ids);
+      await logAudit({
+        actorId: session.user.id,
+        action: "appointment.cancelled",
+        entity: "appointment_groups",
+        entityId: appointment.group_id,
+        metadata: { cancelledCount: ids.length },
+      });
+      return { error: null };
+    }
+
     const { error } = await supabase.from("appointments").update({ status: "cancelada" }).eq("id", appointmentId);
     if (error) return { error: "Não foi possível cancelar." };
     await cancelFinancialEntryForAppointment(appointmentId);
@@ -788,13 +1406,19 @@ export async function extendSeries(
 
   if (dates.length === 0) return { error: "Nenhuma data nova para gerar." };
 
-  const occurrences = await buildPreview(
-    series.professional_id,
-    series.insurance_id,
-    dates,
-    series.start_time,
-    series.modality ?? undefined,
-  );
+  const groupConfig = await getSeriesGroupConfig(series.id);
+
+  const occurrences = groupConfig.isGroup
+    ? await buildGroupPreview(
+        series.professional_id,
+        groupConfig.coTherapistProfessionalIds,
+        [series.patient_id, ...groupConfig.additionalParticipants.map((p) => p.patientId)],
+        series.insurance_id,
+        dates,
+        series.start_time,
+        series.modality ?? undefined,
+      )
+    : await buildPreview(series.professional_id, series.insurance_id, dates, series.start_time, series.modality ?? undefined);
   const toCreate = occurrences.filter((o) => o.available);
   if (toCreate.length === 0) return { error: "Nenhuma data disponível no período." };
 
@@ -809,40 +1433,152 @@ export async function extendSeries(
   }
   const appointmentValue = pricing.value;
 
-  const rows = toCreate.map((occ) => ({
-    patient_id: series.patient_id,
-    professional_id: series.professional_id,
-    specialty_id: series.specialty_id,
-    insurance_id: series.insurance_id,
-    schedule_slot_id: occ.slotId!,
-    appointment_date: occ.date,
-    start_time: series.start_time,
-    end_time: occ.endTime!,
-    payment_method: series.payment_method,
-    value: appointmentValue,
-    modality: series.modality,
-    particular_product: series.particular_product,
-    status: "pendente" as const,
-    series_id: series.id,
-    notes: series.notes,
-  }));
-
   // Só staff chega aqui — sem policy de INSERT em appointments para
   // admin/recepcionista, usa service role (mesmo padrão das demais funções
   // deste arquivo).
   const admin = createAdminClient();
-  const { error } = await admin.from("appointments").insert(rows);
-  if (error) return { error: "Não foi possível gerar as novas ocorrências." };
+
+  let createdCount: number;
+
+  if (groupConfig.isGroup) {
+    const additionalPricing: number[] = [];
+    for (const participant of groupConfig.additionalParticipants) {
+      const p = await resolveAppointmentValue(
+        series.professional_id,
+        participant.insuranceId,
+        participant.modality ?? undefined,
+        participant.particularProduct ?? undefined,
+      );
+      if (p.value == null) {
+        return { error: p.error ?? "Não foi possível calcular o valor de um dos participantes adicionais." };
+      }
+      additionalPricing.push(p.value);
+    }
+
+    const participants: GroupOccurrenceParticipant[] = [
+      {
+        patientId: series.patient_id,
+        insuranceId: series.insurance_id,
+        paymentMethod: series.payment_method,
+        modality: series.modality,
+        particularProduct: series.particular_product,
+        value: appointmentValue,
+      },
+      ...groupConfig.additionalParticipants.map((p, i) => ({
+        patientId: p.patientId,
+        insuranceId: p.insuranceId,
+        paymentMethod: p.paymentMethod,
+        modality: p.modality,
+        particularProduct: p.particularProduct,
+        value: additionalPricing[i],
+      })),
+    ];
+
+    const resolvedToCreate = toCreate.map((occ) => ({
+      date: occ.date,
+      startTime: series.start_time,
+      endTime: occ.endTime!,
+      slotId: occ.slotId!,
+    }));
+
+    const result = await createGroupOccurrences(
+      admin,
+      series.id,
+      series.professional_id,
+      participants,
+      groupConfig.coTherapistProfessionalIds,
+      series.specialty_id,
+      resolvedToCreate,
+      "staff",
+      session.user.id,
+    );
+    createdCount = result.createdCount;
+    if (createdCount === 0) {
+      return { error: "Não foi possível gerar nenhuma das novas ocorrências (conflitos de última hora)." };
+    }
+  } else {
+    const rows = toCreate.map((occ) => ({
+      patient_id: series.patient_id,
+      professional_id: series.professional_id,
+      specialty_id: series.specialty_id,
+      insurance_id: series.insurance_id,
+      schedule_slot_id: occ.slotId!,
+      appointment_date: occ.date,
+      start_time: series.start_time,
+      end_time: occ.endTime!,
+      payment_method: series.payment_method,
+      value: appointmentValue,
+      modality: series.modality,
+      particular_product: series.particular_product,
+      status: "pendente" as const,
+      series_id: series.id,
+      notes: series.notes,
+    }));
+
+    const { error } = await admin.from("appointments").insert(rows);
+    if (error) return { error: "Não foi possível gerar as novas ocorrências." };
+    createdCount = rows.length;
+  }
 
   await logAudit({
     actorId: session.user.id,
     action: "appointment_series.extended",
     entity: "appointment_series",
     entityId: series.id,
-    metadata: { createdCount: rows.length },
+    metadata: { createdCount },
   });
 
-  return { error: null, createdCount: rows.length };
+  return { error: null, createdCount };
+}
+
+interface GroupSiblingParticipant {
+  patientId: string;
+  insuranceId: string;
+  paymentMethod: PaymentMethod;
+  modality: Modality | null;
+  particularProduct: ParticularProduct | null;
+  value: number;
+}
+
+interface GroupSiblingInfo {
+  patientIds: string[];
+  coTherapistProfessionalIds: string[];
+  participants: GroupSiblingParticipant[];
+}
+
+/** Lê as linhas-irmãs de uma sessão conjugada (mesmo group_id) e os
+ * coterapeutas vinculados a qualquer uma delas — usado para auto-detectar
+ * participantes/coterapeutas ao transformar em recorrente uma consulta
+ * avulsa que já é uma sessão conjugada, sem o staff precisar redigitá-los. */
+async function getGroupSiblingInfo(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  groupId: string,
+  excludeAppointmentId?: string,
+): Promise<GroupSiblingInfo> {
+  const { data: rows } = await supabase
+    .from("appointments")
+    .select("id, patient_id, insurance_id, payment_method, modality, particular_product, value")
+    .eq("group_id", groupId);
+
+  const allIds = (rows ?? []).map((r) => r.id);
+  const { data: cotherapistRows } = allIds.length
+    ? await supabase.from("appointment_professionals").select("professional_id").in("appointment_id", allIds)
+    : { data: [] as { professional_id: string }[] };
+
+  const participantRows = (rows ?? []).filter((r) => r.id !== excludeAppointmentId);
+
+  return {
+    patientIds: Array.from(new Set((rows ?? []).map((r) => r.patient_id))),
+    coTherapistProfessionalIds: Array.from(new Set((cotherapistRows ?? []).map((r) => r.professional_id))),
+    participants: participantRows.map((r) => ({
+      patientId: r.patient_id,
+      insuranceId: r.insurance_id,
+      paymentMethod: r.payment_method,
+      modality: r.modality,
+      particularProduct: r.particular_product,
+      value: r.value,
+    })),
+  };
 }
 
 export interface AttachRecurrenceInput {
@@ -883,13 +1619,27 @@ export async function previewAttachRecurrence(
     return { error: null, occurrences: [] };
   }
 
-  const occurrences = await buildPreview(
-    appointment.professional_id,
-    appointment.insurance_id,
-    futureDates,
-    appointment.start_time.slice(0, 5),
-    appointment.modality ?? undefined,
-  );
+  let occurrences: OccurrencePreview[];
+  if (appointment.group_id) {
+    const sibling = await getGroupSiblingInfo(supabase, appointment.group_id);
+    occurrences = await buildGroupPreview(
+      appointment.professional_id,
+      sibling.coTherapistProfessionalIds,
+      sibling.patientIds,
+      appointment.insurance_id,
+      futureDates,
+      appointment.start_time.slice(0, 5),
+      appointment.modality ?? undefined,
+    );
+  } else {
+    occurrences = await buildPreview(
+      appointment.professional_id,
+      appointment.insurance_id,
+      futureDates,
+      appointment.start_time.slice(0, 5),
+      appointment.modality ?? undefined,
+    );
+  }
   return { error: null, occurrences };
 }
 
@@ -899,7 +1649,7 @@ export async function previewAttachRecurrence(
 export async function attachRecurrenceToAppointment(
   appointmentId: string,
   input: AttachRecurrenceInput,
-): Promise<{ error: string | null; seriesId?: string; createdCount?: number }> {
+): Promise<{ error: string | null; seriesId?: string; createdCount?: number; skippedDates?: SkippedDate[] }> {
   const session = await requireStaff();
 
   const rateLimit = checkRateLimit(`attach-recurrence:${session.user.id}`, 10, 60_000);
@@ -925,16 +1675,28 @@ export async function attachRecurrenceToAppointment(
   });
   const futureDates = dates.filter((d) => d !== appointment.appointment_date);
 
+  const sibling = appointment.group_id ? await getGroupSiblingInfo(supabase, appointment.group_id, appointmentId) : null;
+
   const preview =
-    futureDates.length > 0
-      ? await buildPreview(
-          appointment.professional_id,
-          appointment.insurance_id,
-          futureDates,
-          appointment.start_time.slice(0, 5),
-          appointment.modality ?? undefined,
-        )
-      : [];
+    futureDates.length === 0
+      ? []
+      : sibling
+        ? await buildGroupPreview(
+            appointment.professional_id,
+            sibling.coTherapistProfessionalIds,
+            [appointment.patient_id, ...sibling.participants.map((p) => p.patientId)],
+            appointment.insurance_id,
+            futureDates,
+            appointment.start_time.slice(0, 5),
+            appointment.modality ?? undefined,
+          )
+        : await buildPreview(
+            appointment.professional_id,
+            appointment.insurance_id,
+            futureDates,
+            appointment.start_time.slice(0, 5),
+            appointment.modality ?? undefined,
+          );
 
   const toCreate = await resolveOccurrences(
     appointment.professional_id,
@@ -973,6 +1735,34 @@ export async function attachRecurrenceToAppointment(
 
   if (seriesError || !series) return { error: "Não foi possível criar a recorrência." };
 
+  if (sibling) {
+    if (sibling.participants.length > 0) {
+      const { error: participantsError } = await admin.from("appointment_series_participants").insert(
+        sibling.participants.map((p) => ({
+          series_id: series.id,
+          patient_id: p.patientId,
+          insurance_id: p.insuranceId,
+          payment_method: p.paymentMethod,
+          modality: p.modality,
+          particular_product: p.particularProduct,
+        })),
+      );
+      if (participantsError) {
+        await admin.from("appointment_series").delete().eq("id", series.id);
+        return { error: "Não foi possível salvar os participantes adicionais da recorrência." };
+      }
+    }
+    if (sibling.coTherapistProfessionalIds.length > 0) {
+      const { error: cotherapistsError } = await admin.from("appointment_series_cotherapists").insert(
+        sibling.coTherapistProfessionalIds.map((professionalId) => ({ series_id: series.id, professional_id: professionalId })),
+      );
+      if (cotherapistsError) {
+        await admin.from("appointment_series").delete().eq("id", series.id);
+        return { error: "Não foi possível salvar os coterapeutas da recorrência." };
+      }
+    }
+  }
+
   // UPDATE (diferente do INSERT acima) passa pelo trigger prevent_appointment_tampering,
   // que decide o bypass de staff olhando auth.uid() — com o client admin (service role)
   // isso retorna null e a atualização é bloqueada. Por isso aqui usa o client autenticado
@@ -983,7 +1773,47 @@ export async function attachRecurrenceToAppointment(
     .eq("id", appointmentId);
   if (linkError) return { error: "Recorrência criada, mas não foi possível vincular o atendimento original." };
 
-  if (toCreate.length > 0) {
+  let createdCount = toCreate.length;
+  let skippedDates: SkippedDate[] = [];
+
+  if (sibling) {
+    const participants: GroupOccurrenceParticipant[] = [
+      {
+        patientId: appointment.patient_id,
+        insuranceId: appointment.insurance_id,
+        paymentMethod: appointment.payment_method,
+        modality: appointment.modality,
+        particularProduct: appointment.particular_product,
+        value: appointment.value,
+      },
+      ...sibling.participants.map((p) => ({
+        patientId: p.patientId,
+        insuranceId: p.insuranceId,
+        paymentMethod: p.paymentMethod,
+        modality: p.modality,
+        particularProduct: p.particularProduct,
+        value: p.value,
+      })),
+    ];
+
+    if (toCreate.length > 0) {
+      const result = await createGroupOccurrences(
+        admin,
+        series.id,
+        appointment.professional_id,
+        participants,
+        sibling.coTherapistProfessionalIds,
+        appointment.specialty_id,
+        toCreate,
+        "staff",
+        session.user.id,
+      );
+      createdCount = result.createdCount;
+      skippedDates = result.skippedDates;
+    } else {
+      createdCount = 0;
+    }
+  } else if (toCreate.length > 0) {
     const rows = toCreate.map((occ) => ({
       patient_id: appointment.patient_id,
       professional_id: appointment.professional_id,
@@ -1011,15 +1841,21 @@ export async function attachRecurrenceToAppointment(
     entity: "appointment_series",
     entityId: series.id,
     metadata: {
-      count: toCreate.length + 1,
+      count: createdCount + 1,
       frequency: input.frequency,
       dayOfWeek,
       startTime: appointment.start_time,
       attachedFromAppointmentId: appointmentId,
+      isGroup: !!sibling,
     },
   });
 
-  return { error: null, seriesId: series.id, createdCount: toCreate.length + 1 };
+  return {
+    error: null,
+    seriesId: series.id,
+    createdCount: createdCount + 1,
+    skippedDates: skippedDates.length ? skippedDates : undefined,
+  };
 }
 
 export interface SeriesDetail {
@@ -1042,6 +1878,8 @@ export interface SeriesDetail {
   endDate: string | null;
   maxOccurrences: number | null;
   status: string;
+  additionalParticipantsCount: number;
+  coTherapistCount: number;
 }
 
 export async function getSeriesDetail(id: string): Promise<SeriesDetail | null> {
@@ -1049,10 +1887,11 @@ export async function getSeriesDetail(id: string): Promise<SeriesDetail | null> 
   const { data: series } = await supabase.from("appointment_series").select("*").eq("id", id).single();
   if (!series) return null;
 
-  const [{ data: patient }, { data: professional }, { data: insurance }] = await Promise.all([
+  const [{ data: patient }, { data: professional }, { data: insurance }, groupConfig] = await Promise.all([
     supabase.from("profiles").select("full_name").eq("id", series.patient_id).single(),
     supabase.from("profiles").select("full_name").eq("id", series.professional_id).single(),
     supabase.from("insurances").select("name").eq("id", series.insurance_id).single(),
+    getSeriesGroupConfig(series.id),
   ]);
 
   return {
@@ -1075,6 +1914,8 @@ export async function getSeriesDetail(id: string): Promise<SeriesDetail | null> 
     endDate: series.end_date,
     maxOccurrences: series.max_occurrences,
     status: series.status,
+    additionalParticipantsCount: groupConfig.additionalParticipants.length,
+    coTherapistCount: groupConfig.coTherapistProfessionalIds.length,
   };
 }
 
