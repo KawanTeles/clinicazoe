@@ -7,7 +7,7 @@ import { logAudit } from "@/modules/team/services/audit";
 import { notifyStaff } from "@/modules/notifications/services/notify";
 import { logPatientMessage } from "@/modules/patients/services/message-log";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { getAvailableTimes, resolveAppointmentValue } from "./booking-queries";
+import { getAvailableTimes, isSlotFullError, resolveAppointmentValue } from "./booking-queries";
 import type { Modality, ParticularProduct, PaymentMethod } from "@/lib/supabase/types";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
@@ -161,28 +161,28 @@ export async function createPublicAppointment(
     return { error: "Esse horário não está mais disponível. Escolha outro." };
   }
 
-  const { data: appointment, error } = await admin
-    .from("appointments")
-    .insert({
-      patient_id: patientId,
-      professional_id: input.professionalId,
-      specialty_id: input.specialtyId,
-      insurance_id: input.insuranceId,
-      schedule_slot_id: input.scheduleSlotId,
-      appointment_date: input.date,
-      start_time: input.startTime,
-      end_time: input.endTime,
-      payment_method: input.paymentMethod,
-      value: pricing.value,
-      modality: input.modality ?? null,
-      particular_product: input.particularProduct ?? null,
-      status: "pendente",
-      source: "site_publico",
-    })
-    .select("id")
-    .single();
+  // Grava via RPC (book_appointment, migração 0066) em vez de INSERT direto
+  // — ver comentário equivalente em createAppointment (booking-actions.ts).
+  const { data: appointment, error } = await admin.rpc("book_appointment", {
+    p_patient_id: patientId,
+    p_professional_id: input.professionalId,
+    p_specialty_id: input.specialtyId,
+    p_insurance_id: input.insuranceId,
+    p_schedule_slot_id: input.scheduleSlotId,
+    p_appointment_date: input.date,
+    p_start_time: input.startTime,
+    p_end_time: input.endTime,
+    p_payment_method: input.paymentMethod,
+    p_value: pricing.value,
+    p_modality: input.modality ?? null,
+    p_particular_product: input.particularProduct ?? null,
+    p_source: "site_publico",
+  });
 
   if (error || !appointment) {
+    if (isSlotFullError(error)) {
+      return { error: "Esse horário acabou de ser ocupado por outra pessoa. Escolha outro horário." };
+    }
     return { error: "Não foi possível criar o agendamento. Tente novamente." };
   }
 

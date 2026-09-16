@@ -10,6 +10,19 @@ import { generateSlotInstances, filterAvailableInstances } from "./slot-generato
 
 const ACTIVE_APPOINTMENT_STATUSES = ["pendente", "confirmada", "concluida", "faltou"];
 
+/** Mensagem levantada por public.book_appointment() (migração 0066) quando o
+ * slot já está no limite de capacity no momento do INSERT — a checagem
+ * fica atômica dentro da função (lock por profissional+data+horário), então
+ * isso só acontece nos casos raros de corrida que a pré-checagem da
+ * aplicação (getAvailableTimes, chamada antes do RPC) não pegou. Usado
+ * pelos 3 pontos de criação de agendamento (createAppointment,
+ * createAppointmentForPatient, createPublicAppointment) pra traduzir o erro
+ * do banco numa mensagem amigável em vez de deixar estourar o texto cru do
+ * Postgres. */
+export function isSlotFullError(error: { message?: string } | null): boolean {
+  return error?.message?.includes("SLOT_FULL") ?? false;
+}
+
 /** Quando isPublic=true, usa o client de service role (bypassa RLS) — é o
  * que permite o wizard de agendamento público (sem sessão) ler
  * especialidades/convênios/profissionais/agenda, que hoje têm policy

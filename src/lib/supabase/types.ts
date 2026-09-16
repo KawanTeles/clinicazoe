@@ -1310,7 +1310,47 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      book_appointment: {
+        Args: {
+          p_patient_id: string;
+          p_professional_id: string;
+          p_specialty_id: string;
+          p_insurance_id: string;
+          p_schedule_slot_id: string;
+          p_appointment_date: string;
+          p_start_time: string;
+          p_end_time: string;
+          p_payment_method: PaymentMethod;
+          p_value: number;
+          p_modality: Modality | null;
+          p_particular_product: ParticularProduct | null;
+          p_source: AppointmentSource;
+        };
+        Returns: {
+          id: string;
+          patient_id: string;
+          professional_id: string;
+          specialty_id: string | null;
+          insurance_id: string;
+          schedule_slot_id: string;
+          appointment_date: string;
+          start_time: string;
+          end_time: string;
+          payment_method: PaymentMethod;
+          value: number;
+          modality: Modality | null;
+          particular_product: ParticularProduct | null;
+          status: AppointmentStatus;
+          source: AppointmentSource;
+          notes: string | null;
+          series_id: string | null;
+          reminder_sent_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

@@ -18,7 +18,7 @@ import { logPatientMessage } from "@/modules/patients/services/message-log";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { notifyWaitlistMatches } from "@/modules/waitlist/services/waitlist-actions";
 import { cancelFinancialEntryForAppointment } from "@/modules/financial/services/financial-actions";
-import { getAvailableTimes, getCoTherapistsForAppointment, resolveAppointmentValue } from "./booking-queries";
+import { getAvailableTimes, getCoTherapistsForAppointment, isSlotFullError, resolveAppointmentValue } from "./booking-queries";
 import {
   getAppointmentsForViewer,
   type AppointmentStatusFilter,
@@ -119,28 +119,30 @@ export async function createAppointment(
     return { error: "Esse horário não está mais disponível. Escolha outro." };
   }
 
-  const { data: appointment, error } = await supabase
-    .from("appointments")
-    .insert({
-      patient_id: session.user.id,
-      professional_id: input.professionalId,
-      specialty_id: input.specialtyId,
-      insurance_id: input.insuranceId,
-      schedule_slot_id: input.scheduleSlotId,
-      appointment_date: input.date,
-      start_time: input.startTime,
-      end_time: input.endTime,
-      payment_method: input.paymentMethod,
-      value: pricing.value,
-      modality: input.modality ?? null,
-      particular_product: input.particularProduct ?? null,
-      status: "pendente",
-      source: "paciente",
-    })
-    .select("id")
-    .single();
+  // Grava via RPC (book_appointment, migração 0066) em vez de INSERT direto:
+  // a checagem de capacidade + o INSERT rodam atômicos no banco (lock por
+  // profissional+data+horário), fechando a janela de corrida que a
+  // pré-checagem acima (getAvailableTimes) sozinha não cobre.
+  const { data: appointment, error } = await supabase.rpc("book_appointment", {
+    p_patient_id: session.user.id,
+    p_professional_id: input.professionalId,
+    p_specialty_id: input.specialtyId,
+    p_insurance_id: input.insuranceId,
+    p_schedule_slot_id: input.scheduleSlotId,
+    p_appointment_date: input.date,
+    p_start_time: input.startTime,
+    p_end_time: input.endTime,
+    p_payment_method: input.paymentMethod,
+    p_value: pricing.value,
+    p_modality: input.modality ?? null,
+    p_particular_product: input.particularProduct ?? null,
+    p_source: "paciente",
+  });
 
   if (error || !appointment) {
+    if (isSlotFullError(error)) {
+      return { error: "Esse horário acabou de ser ocupado por outra pessoa. Escolha outro horário." };
+    }
     return { error: "Não foi possível criar o agendamento. Tente novamente." };
   }
 
@@ -625,28 +627,28 @@ export async function createAppointmentForPatient(
   }
 
   const admin = createAdminClient();
-  const { data: appointment, error } = await admin
-    .from("appointments")
-    .insert({
-      patient_id: input.patientId,
-      professional_id: input.professionalId,
-      specialty_id: input.specialtyId,
-      insurance_id: input.insuranceId,
-      schedule_slot_id: input.scheduleSlotId,
-      appointment_date: input.date,
-      start_time: input.startTime,
-      end_time: input.endTime,
-      payment_method: input.paymentMethod,
-      value: pricing.value,
-      modality: input.modality ?? null,
-      particular_product: input.particularProduct ?? null,
-      status: "pendente",
-      source: "staff",
-    })
-    .select("id")
-    .single();
+  // Grava via RPC (book_appointment, migração 0066) em vez de INSERT direto
+  // — ver comentário equivalente em createAppointment, acima.
+  const { data: appointment, error } = await admin.rpc("book_appointment", {
+    p_patient_id: input.patientId,
+    p_professional_id: input.professionalId,
+    p_specialty_id: input.specialtyId,
+    p_insurance_id: input.insuranceId,
+    p_schedule_slot_id: input.scheduleSlotId,
+    p_appointment_date: input.date,
+    p_start_time: input.startTime,
+    p_end_time: input.endTime,
+    p_payment_method: input.paymentMethod,
+    p_value: pricing.value,
+    p_modality: input.modality ?? null,
+    p_particular_product: input.particularProduct ?? null,
+    p_source: "staff",
+  });
 
   if (error || !appointment) {
+    if (isSlotFullError(error)) {
+      return { error: "Esse horário acabou de ser ocupado por outra pessoa. Escolha outro horário." };
+    }
     return { error: "Não foi possível criar o agendamento. Tente novamente." };
   }
 
