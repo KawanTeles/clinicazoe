@@ -5,22 +5,74 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarSignedUrl } from "@/lib/supabase/storage";
 import { PARTICULAR_INSURANCE_NAME } from "@/lib/constants";
 import { toLocalIsoDate, todayLocalIso } from "@/lib/date";
-import type { Modality, ParticularProduct } from "@/lib/supabase/types";
+import type { AppointmentStatus, Modality, ParticularProduct } from "@/lib/supabase/types";
 import { generateSlotInstances, filterAvailableInstances } from "./slot-generator";
 
-const ACTIVE_APPOINTMENT_STATUSES = ["pendente", "confirmada", "concluida", "faltou"];
+/** Status que ocupam vaga de horário (opostos: cancelada/remarcada/recusada
+ * liberam). Exportada para reuso em recurrence-actions.ts (checagem de
+ * conflito por paciente no preview de recorrência). */
+export const ACTIVE_APPOINTMENT_STATUSES: AppointmentStatus[] = [
+  "pendente",
+  "confirmada",
+  "concluida",
+  "faltou",
+  "faltou_justificada",
+];
 
-/** Mensagem levantada por public.book_appointment() (migração 0066) quando o
- * slot já está no limite de capacity no momento do INSERT — a checagem
- * fica atômica dentro da função (lock por profissional+data+horário), então
- * isso só acontece nos casos raros de corrida que a pré-checagem da
- * aplicação (getAvailableTimes, chamada antes do RPC) não pegou. Usado
- * pelos 3 pontos de criação de agendamento (createAppointment,
- * createAppointmentForPatient, createPublicAppointment) pra traduzir o erro
- * do banco numa mensagem amigável em vez de deixar estourar o texto cru do
- * Postgres. */
-export function isSlotFullError(error: { message?: string } | null): boolean {
-  return error?.message?.includes("SLOT_FULL") ?? false;
+interface OccupancyRow {
+  id: string;
+  start_time: string;
+  status: string;
+  group_id: string | null;
+}
+
+/** Conta quantas vagas um profissional ocupa em cada horário, deduplicando
+ * por sessão conjugada: várias linhas do mesmo group_id (ex.: um coterapeuta
+ * vinculado a N pacientes da mesma sessão) contam como 1 ocupação, não N —
+ * senão a capacidade dele esgotaria artificialmente. Linhas sem group_id
+ * (o caso comum, atendimento simples ou grupo "implícito" via capacity)
+ * continuam contando cada uma por si, igual sempre contou. */
+function countOccupiedByStartTime(rows: OccupancyRow[]): Record<string, number> {
+  const keysByStartTime = new Map<string, Set<string>>();
+  for (const row of rows) {
+    if (!(ACTIVE_APPOINTMENT_STATUSES as string[]).includes(row.status)) continue;
+    const startTime = row.start_time.slice(0, 5);
+    const dedupeKey = row.group_id ?? row.id;
+    const keys = keysByStartTime.get(startTime) ?? new Set<string>();
+    keys.add(dedupeKey);
+    keysByStartTime.set(startTime, keys);
+  }
+  const result: Record<string, number> = {};
+  for (const [startTime, keys] of keysByStartTime) {
+    result[startTime] = keys.size;
+  }
+  return result;
+}
+
+/** Checagem de leitura (não atômica — só para dar feedback no preview de
+ * recorrência, migration 0068) do mesmo predicado de conflito por paciente
+ * que book_appointment() garante de forma atômica na criação real: o
+ * paciente já tem outro atendimento ativo nesse dia+horário fora do grupo
+ * que está sendo montado? `excludeGroupId` deixa passar linhas que já
+ * pertencem à MESMA sessão conjugada sendo gerada (não é conflito). */
+export async function hasPatientConflict(
+  patientId: string,
+  date: string,
+  startTime: string,
+  excludeGroupId?: string | null,
+): Promise<boolean> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("appointments")
+    .select("id, group_id")
+    .eq("patient_id", patientId)
+    .eq("appointment_date", date)
+    .eq("start_time", startTime)
+    .in("status", ACTIVE_APPOINTMENT_STATUSES);
+
+  if (!data || data.length === 0) return false;
+  if (!excludeGroupId) return true;
+  return data.some((row) => row.group_id !== excludeGroupId);
 }
 
 /** Quando isPublic=true, usa o client de service role (bypassa RLS) — é o
@@ -252,6 +304,8 @@ async function getCoTherapistAppointmentIds(
 export interface CoTherapistInfo {
   professionalId: string;
   fullName: string;
+  absenceStatus: "faltou" | "faltou_justificada" | null;
+  absenceReason: string | null;
 }
 
 /** Coterapeutas vinculados a uma consulta específica (não inclui o
@@ -261,16 +315,21 @@ export async function getCoTherapistsForAppointment(appointmentId: string): Prom
   const supabase = await createClient();
   const { data: links } = await supabase
     .from("appointment_professionals")
-    .select("professional_id")
+    .select("professional_id, absence_status, absence_reason")
     .eq("appointment_id", appointmentId);
 
-  const professionalIds = (links ?? []).map((l) => l.professional_id);
-  if (professionalIds.length === 0) return [];
+  if (!links || links.length === 0) return [];
 
+  const professionalIds = links.map((l) => l.professional_id);
   const { data: profiles } = await supabase.from("profiles").select("id, full_name").in("id", professionalIds);
   const nameById = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
 
-  return professionalIds.map((id) => ({ professionalId: id, fullName: nameById.get(id) ?? "Profissional" }));
+  return links.map((link) => ({
+    professionalId: link.professional_id,
+    fullName: nameById.get(link.professional_id) ?? "Profissional",
+    absenceStatus: link.absence_status,
+    absenceReason: link.absence_reason,
+  }));
 }
 
 /** Duração efetiva de uma consulta: override por convênio+profissional (e
@@ -421,27 +480,33 @@ export async function getMonthAvailability(
   const [{ data: appointments }, { data: coTherapistAppointments }] = await Promise.all([
     supabase
       .from("appointments")
-      .select("appointment_date, start_time, status")
+      .select("id, appointment_date, start_time, status, group_id")
       .eq("professional_id", professionalId)
       .gte("appointment_date", monthStart)
       .lte("appointment_date", monthEnd),
     coTherapistAppointmentIds.length > 0
       ? supabase
           .from("appointments")
-          .select("appointment_date, start_time, status")
+          .select("id, appointment_date, start_time, status, group_id")
           .in("id", coTherapistAppointmentIds)
           .gte("appointment_date", monthStart)
           .lte("appointment_date", monthEnd)
-      : Promise.resolve({ data: [] as { appointment_date: string; start_time: string; status: string }[] }),
+      : Promise.resolve({ data: [] as (OccupancyRow & { appointment_date: string })[] }),
   ]);
 
-  const bookedByDate = new Map<string, Record<string, number>>();
+  // Mesmo dedupe de countOccupiedByStartTime, mas por dia: um group_id nunca
+  // atravessa datas diferentes (garantido pela trigger
+  // appointments_validate_group, migração 0067), então deduplicar dentro de
+  // cada dia já é suficiente e mantém a estrutura por-data existente.
+  const rowsByDate = new Map<string, OccupancyRow[]>();
   for (const appt of [...(appointments ?? []), ...(coTherapistAppointments ?? [])]) {
-    if (!ACTIVE_APPOINTMENT_STATUSES.includes(appt.status)) continue;
-    const map = bookedByDate.get(appt.appointment_date) ?? {};
-    const startTime = appt.start_time.slice(0, 5);
-    map[startTime] = (map[startTime] ?? 0) + 1;
-    bookedByDate.set(appt.appointment_date, map);
+    const rows = rowsByDate.get(appt.appointment_date) ?? [];
+    rows.push(appt);
+    rowsByDate.set(appt.appointment_date, rows);
+  }
+  const bookedByDate = new Map<string, Record<string, number>>();
+  for (const [date, rows] of rowsByDate) {
+    bookedByDate.set(date, countOccupiedByStartTime(rows));
   }
 
   const todayIso = todayLocalIso();
@@ -589,24 +654,22 @@ export async function getAvailableTimes(
   const [{ data: existingAppointments }, { data: coTherapistAppointments }] = await Promise.all([
     supabase
       .from("appointments")
-      .select("start_time, status")
+      .select("id, start_time, status, group_id")
       .eq("professional_id", professionalId)
       .eq("appointment_date", date),
     coTherapistAppointmentIds.length > 0
       ? supabase
           .from("appointments")
-          .select("start_time, status")
+          .select("id, start_time, status, group_id")
           .in("id", coTherapistAppointmentIds)
           .eq("appointment_date", date)
-      : Promise.resolve({ data: [] as { start_time: string; status: string }[] }),
+      : Promise.resolve({ data: [] as OccupancyRow[] }),
   ]);
 
-  const bookedCountByStartTime: Record<string, number> = {};
-  for (const appt of [...(existingAppointments ?? []), ...(coTherapistAppointments ?? [])]) {
-    if (!ACTIVE_APPOINTMENT_STATUSES.includes(appt.status)) continue;
-    bookedCountByStartTime[appt.start_time.slice(0, 5)] =
-      (bookedCountByStartTime[appt.start_time.slice(0, 5)] ?? 0) + 1;
-  }
+  const bookedCountByStartTime = countOccupiedByStartTime([
+    ...(existingAppointments ?? []),
+    ...(coTherapistAppointments ?? []),
+  ]);
 
   const results: { slotId: string; startTime: string; endTime: string }[] = [];
   for (const slot of matchingSlots) {

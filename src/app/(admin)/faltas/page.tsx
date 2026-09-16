@@ -28,7 +28,7 @@ export default async function FaltasPage({ searchParams }: FaltasPageProps) {
     ? (periodParam as AbsencePeriodFilter)
     : "todos";
 
-  const [{ groups, totalPages, totalAbsences }, professionals] = await Promise.all([
+  const [{ groups, totalPages, totalAbsences, totalJustified }, professionals] = await Promise.all([
     getAbsencesForViewer(session.profile.role, session.user.id, page, {
       professionalId: isStaff ? professional : undefined,
       period,
@@ -47,9 +47,11 @@ export default async function FaltasPage({ searchParams }: FaltasPageProps) {
               : "Pacientes que faltaram com você, agrupados por paciente."}
           </p>
         </div>
-        {totalAbsences > 0 && (
+        {(totalAbsences > 0 || totalJustified > 0) && (
           <span className="text-xs font-semibold text-text-secondary">
-            {totalAbsences} {totalAbsences === 1 ? "falta" : "faltas"} · {groups.length === 1 ? "1 paciente" : `${groups.length} pacientes`}{" "}
+            {totalAbsences} {totalAbsences === 1 ? "falta" : "faltas"}
+            {totalJustified > 0 && ` · +${totalJustified} justificada${totalJustified > 1 ? "s" : ""}`} ·{" "}
+            {groups.length === 1 ? "1 paciente" : `${groups.length} pacientes`}{" "}
             {totalPages > 1 ? "nesta página" : "no período"}
           </span>
         )}

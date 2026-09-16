@@ -20,6 +20,8 @@ import {
 } from "@/modules/appointments/services/booking-actions";
 import { RecurrenceScopeDialog } from "@/modules/appointments/components/RecurrenceScopeDialog";
 import { AttachRecurrenceDialog } from "@/modules/appointments/components/AttachRecurrenceDialog";
+import { MarkAbsenceDialog } from "@/modules/appointments/components/MarkAbsenceDialog";
+import type { AbsenceStatus } from "@/lib/supabase/types";
 
 import { getAttendanceInfo } from "@/lib/attendance";
 
@@ -31,6 +33,7 @@ const STATUS_LABELS: Record<string, string> = {
   concluida: "Concluída",
   faltou: "Faltou",
   recusada: "Recusada",
+  faltou_justificada: "Falta justificada",
 };
 
 const STATUS_TONE: Record<string, "neutral" | "success" | "warning" | "danger" | "premium"> = {
@@ -41,6 +44,7 @@ const STATUS_TONE: Record<string, "neutral" | "success" | "warning" | "danger" |
   concluida: "success",
   faltou: "danger",
   recusada: "danger",
+  faltou_justificada: "warning",
 };
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
@@ -80,6 +84,7 @@ export function AppointmentsList({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [scopeDialog, setScopeDialog] = useState<ScopeDialogState | null>(null);
   const [attachDialog, setAttachDialog] = useState<AttachDialogState | null>(null);
+  const [absenceDialogAppointmentId, setAbsenceDialogAppointmentId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<AppointmentStatusFilter>("todos");
   const [expandedSeries, setExpandedSeries] = useState<Set<string>>(new Set());
@@ -133,8 +138,11 @@ export function AppointmentsList({
     const map = new Map<string, AppointmentView[]>();
     const order: string[] = [];
 
+    // groupId e seriesId são mutuamente exclusivos (atendimento conjugado,
+    // migração 0067, não suporta recorrência nesta versão) — a ordem do
+    // fallback não importa na prática, só decide a chave de agrupamento.
     for (const appt of filteredAppointments) {
-      const key = appt.seriesId ?? `single-${appt.id}`;
+      const key = appt.groupId ?? appt.seriesId ?? `single-${appt.id}`;
       if (!map.has(key)) {
         map.set(key, []);
         order.push(key);
@@ -149,9 +157,19 @@ export function AppointmentsList({
     return order.map((key) => {
       const items = map.get(key)!;
       const seriesId = items[0].seriesId ?? null;
+      const groupId = items[0].groupId ?? null;
 
-      if (!seriesId || items.length === 1) {
-        return { key, seriesId, primary: items[0], others: [] as AppointmentView[] };
+      if ((!seriesId && !groupId) || items.length === 1) {
+        return { key, seriesId, groupId, primary: items[0], others: [] as AppointmentView[] };
+      }
+
+      if (groupId) {
+        // Sessão conjugada: não existe "próxima ocorrência" (não é
+        // recorrência) — todo participante tem o mesmo peso, então a linha
+        // principal é só a primeira em ordem alfabética de paciente.
+        const sorted = [...items].sort((a, b) => a.patientName.localeCompare(b.patientName));
+        const [primary, ...others] = sorted;
+        return { key, seriesId, groupId, primary, others };
       }
 
       const sorted = [...items].sort(sortByDateTime);
@@ -162,7 +180,7 @@ export function AppointmentsList({
       const primary = pool.find((item) => item.date >= todayStr) ?? pool[pool.length - 1];
 
       const others = sorted.filter((item) => item.id !== primary.id);
-      return { key, seriesId, primary, others };
+      return { key, seriesId, groupId, primary, others };
     });
   }, [filteredAppointments]);
 
@@ -244,22 +262,15 @@ export function AppointmentsList({
     await refresh();
   }
 
-  async function handleMarkAbsence(id: string) {
-    const confirmed = await confirm({
-      title: "Marcar falta neste atendimento?",
-      description: "O paciente será registrado como falta neste atendimento.",
-      confirmLabel: "Marcar Falta",
-      tone: "danger",
-    });
-    if (!confirmed) return;
+  async function handleMarkAbsence(id: string, status: AbsenceStatus, reason?: string) {
     setBusyId(id);
-    const result = await updateAppointmentStatus(id, "faltou");
+    const result = await updateAppointmentStatus(id, status, reason);
     setBusyId(null);
     if (result.error) {
       toast.error(result.error);
       return;
     }
-    toast.success("Falta registrada com sucesso.");
+    toast.success(status === "faltou_justificada" ? "Falta justificada registrada." : "Falta registrada com sucesso.");
     await refresh();
   }
 
@@ -304,9 +315,10 @@ export function AppointmentsList({
       isExpanded?: boolean;
       onToggleExpand?: () => void;
       isSub?: boolean;
+      isGroup?: boolean;
     } = {},
   ) {
-    const { otherCount = 0, isExpanded = false, onToggleExpand, isSub = false } = opts;
+    const { otherCount = 0, isExpanded = false, onToggleExpand, isSub = false, isGroup = false } = opts;
     const isOwnProfessional = isProfessional && appt.professionalId === viewerId;
     const canManageRecurrence = isStaff || isOwnProfessional;
     const attendance = getAttendanceInfo(appt.insuranceName, appt.paymentMethod, appt.modality, appt.particularProduct);
@@ -351,13 +363,21 @@ export function AppointmentsList({
               Recorrente
             </Badge>
           )}
+          {appt.groupId && (
+            <Badge tone="premium" className="ml-2 text-[10px]">
+              {otherCount === 0 ? "Multidisciplinar" : otherCount + 1 >= 3 ? "Grupo" : "Dupla"}
+            </Badge>
+          )}
           {onToggleExpand && otherCount > 0 && (
             <button
               type="button"
               onClick={onToggleExpand}
               className="ml-2 inline-flex items-center gap-1 rounded-lg px-1.5 py-0.5 text-[10px] font-semibold text-[var(--primary)] hover:bg-[var(--primary)]/10"
             >
-              {isExpanded ? "▲" : "▼"} +{otherCount} outra{otherCount > 1 ? "s" : ""} data{otherCount > 1 ? "s" : ""}
+              {isExpanded ? "▲" : "▼"}{" "}
+              {isGroup
+                ? `+${otherCount} participante${otherCount > 1 ? "s" : ""}`
+                : `+${otherCount} outra${otherCount > 1 ? "s" : ""} data${otherCount > 1 ? "s" : ""}`}
             </button>
           )}
         </td>
@@ -388,7 +408,7 @@ export function AppointmentsList({
                 size="sm"
                 variant="danger"
                 isLoading={busyId === appt.id}
-                onClick={() => handleMarkAbsence(appt.id)}
+                onClick={() => setAbsenceDialogAppointmentId(appt.id)}
               >
                 Marcar Falta
               </Button>
@@ -571,14 +591,16 @@ export function AppointmentsList({
             </thead>
             <tbody className="divide-y divide-border/40">
               {appointmentGroups.map((group) => {
-                const isExpanded = group.seriesId ? expandedSeries.has(group.seriesId) : false;
+                const expandKey = group.groupId ?? group.seriesId;
+                const isExpanded = expandKey ? expandedSeries.has(expandKey) : false;
 
                 return (
                   <Fragment key={group.key}>
                     {renderAppointmentRow(group.primary, {
                       otherCount: group.others.length,
                       isExpanded,
-                      onToggleExpand: group.seriesId ? () => toggleSeriesExpanded(group.seriesId!) : undefined,
+                      onToggleExpand: expandKey ? () => toggleSeriesExpanded(expandKey) : undefined,
+                      isGroup: Boolean(group.groupId),
                     })}
                     {isExpanded &&
                       group.others.map((appt) => renderAppointmentRow(appt, { isSub: true }))}
@@ -623,6 +645,15 @@ export function AppointmentsList({
           onDone={handleAttachDialogDone}
         />
       )}
+
+      <MarkAbsenceDialog
+        isOpen={absenceDialogAppointmentId !== null}
+        onClose={() => setAbsenceDialogAppointmentId(null)}
+        isSubmitting={busyId === absenceDialogAppointmentId}
+        onConfirm={(status, reason) => {
+          if (absenceDialogAppointmentId) handleMarkAbsence(absenceDialogAppointmentId, status, reason);
+        }}
+      />
     </div>
   );
 }

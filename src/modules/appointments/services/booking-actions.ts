@@ -18,7 +18,8 @@ import { logPatientMessage } from "@/modules/patients/services/message-log";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { notifyWaitlistMatches } from "@/modules/waitlist/services/waitlist-actions";
 import { cancelFinancialEntryForAppointment } from "@/modules/financial/services/financial-actions";
-import { getAvailableTimes, getCoTherapistsForAppointment, isSlotFullError, resolveAppointmentValue } from "./booking-queries";
+import { getAvailableTimes, getCoTherapistsForAppointment, resolveAppointmentValue } from "./booking-queries";
+import { isPatientConflictError, isSlotFullError } from "./booking-errors";
 import {
   getAppointmentsForViewer,
   type AppointmentStatusFilter,
@@ -142,6 +143,9 @@ export async function createAppointment(
   if (error || !appointment) {
     if (isSlotFullError(error)) {
       return { error: "Esse horário acabou de ser ocupado por outra pessoa. Escolha outro horário." };
+    }
+    if (isPatientConflictError(error)) {
+      return { error: "Você já tem outro atendimento marcado nesse horário." };
     }
     return { error: "Não foi possível criar o agendamento. Tente novamente." };
   }
@@ -459,7 +463,8 @@ const STATUS_LABELS: Record<string, string> = {
 
 export async function updateAppointmentStatus(
   appointmentId: string,
-  status: "cancelada" | "remarcada" | "concluida" | "faltou",
+  status: "cancelada" | "remarcada" | "concluida" | "faltou" | "faltou_justificada",
+  reason?: string,
 ): Promise<{ error: string | null }> {
   const session = await getCurrentUser();
   if (!session) throw new Error("Acesso negado.");
@@ -478,17 +483,23 @@ export async function updateAppointmentStatus(
     .eq("id", appointmentId)
     .single();
 
+  const isAbsenceStatus = status === "faltou" || status === "faltou_justificada";
+
   // Profissional só pode marcar falta no próprio atendimento — qualquer
   // outra transição (cancelar/remarcar/concluir) continua exclusiva de
   // admin/recepcionista. A RLS (prevent_appointment_tampering, migração
   // 0064) reforça a mesma regra no banco caso algo escape daqui.
-  if (isProfessional && (status !== "faltou" || appointment?.professional_id !== session.user.id)) {
+  if (isProfessional && (!isAbsenceStatus || appointment?.professional_id !== session.user.id)) {
     return { error: "Você só pode marcar falta em atendimentos seus." };
+  }
+
+  if (status === "faltou_justificada" && !reason?.trim()) {
+    return { error: "Informe o motivo da falta justificada." };
   }
 
   const { error } = await supabase
     .from("appointments")
-    .update({ status })
+    .update({ status, absence_reason: isAbsenceStatus ? reason?.trim() || null : null })
     .eq("id", appointmentId);
 
   if (error) return { error: "Não foi possível atualizar o atendimento." };
@@ -649,6 +660,9 @@ export async function createAppointmentForPatient(
     if (isSlotFullError(error)) {
       return { error: "Esse horário acabou de ser ocupado por outra pessoa. Escolha outro horário." };
     }
+    if (isPatientConflictError(error)) {
+      return { error: "Este paciente já tem outro atendimento marcado nesse horário." };
+    }
     return { error: "Não foi possível criar o agendamento. Tente novamente." };
   }
 
@@ -682,6 +696,240 @@ export async function createAppointmentForPatient(
   await logPatientMessage({ patientId: input.patientId, appointmentId: appointment.id, type: "booking", sentBy: session.user.id });
 
   return { error: null, whatsappLink, appointmentId: appointment.id };
+}
+
+export interface GroupParticipantInput {
+  patientId: string;
+  insuranceId: string;
+  paymentMethod: PaymentMethod;
+  modality?: Modality;
+  particularProduct?: ParticularProduct;
+}
+
+export interface CreateGroupAppointmentInput {
+  principalProfessionalId: string;
+  /** Vazio = grupo simples com 1 profissional só (N pacientes). */
+  coTherapistProfessionalIds: string[];
+  specialtyId?: string;
+  scheduleSlotId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  /** Mínimo 1 — cada paciente aparece no máximo uma vez (multi-profissional
+   * para o mesmo paciente é resolvido com coterapeutas, não com uma segunda
+   * linha). */
+  participants: GroupParticipantInput[];
+}
+
+/** Cria um "atendimento conjugado" (dupla/grupo/multidisciplinar): uma
+ * âncora appointment_groups + uma linha de appointments por participante
+ * (via book_appointment, migração 0067, mesmo lock atômico do fluxo simples)
+ * + coterapeutas vinculados a TODAS as linhas do grupo — é isso que faz
+ * "grupo coletivo sem dono" funcionar (qualquer profissional do grupo
+ * documenta/marca falta de qualquer paciente do grupo) e dá visibilidade
+ * cruzada entre participantes de graça via is_appointment_cotherapist
+ * (migração 0040), sem precisar de RLS nova em appointments.
+ *
+ * Staff-only, mesmo padrão de createAppointmentForPatient — grupo também não
+ * é self-service. Não é uma única transação Postgres (cada book_appointment
+ * é sua própria chamada RPC): em caso de erro no meio do loop, o rollback é
+ * compensatório (apaga o que já foi criado neste lote), não atômico entre
+ * participantes. */
+export async function createGroupAppointment(
+  input: CreateGroupAppointmentInput,
+): Promise<{
+  error: string | null;
+  groupId?: string;
+  appointmentIds?: string[];
+  whatsappLinks?: { patientId: string; whatsappLink: string | null }[];
+}> {
+  const session = await requireStaff();
+
+  if (input.participants.length === 0) {
+    return { error: "Selecione ao menos um paciente." };
+  }
+
+  const uniquePatientIds = new Set(input.participants.map((p) => p.patientId));
+  if (uniquePatientIds.size !== input.participants.length) {
+    return { error: "Cada paciente só pode aparecer uma vez nesta sessão." };
+  }
+
+  if (input.coTherapistProfessionalIds.includes(input.principalProfessionalId)) {
+    return { error: "O profissional principal não pode ser adicionado também como coterapeuta." };
+  }
+
+  const rateLimit = checkRateLimit(`staff-booking:${session.user.id}`, 30, 60_000);
+  if (!rateLimit.allowed) {
+    return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente de novo.` };
+  }
+
+  // Convênio/modalidade do primeiro participante usados como referência para
+  // checar disponibilidade do principal e dos coterapeutas — limitação de v1
+  // documentada no plano: se outro participante tiver convênio incompatível
+  // com o slot, o erro só aparece no submit (na chamada de book_appointment
+  // daquele participante), não antes.
+  const representative = input.participants[0];
+
+  const principalAvailability = await getAvailableTimes(
+    input.principalProfessionalId,
+    representative.insuranceId,
+    input.date,
+    representative.modality,
+  );
+  const principalSlotFree = principalAvailability.some(
+    (slot) => slot.slotId === input.scheduleSlotId && slot.startTime === input.startTime,
+  );
+  if (!principalSlotFree) {
+    return { error: "Esse horário não está mais disponível para o profissional principal." };
+  }
+
+  for (const coProfessionalId of input.coTherapistProfessionalIds) {
+    const coAvailability = await getAvailableTimes(
+      coProfessionalId,
+      representative.insuranceId,
+      input.date,
+      representative.modality,
+    );
+    const coSlotFree = coAvailability.some((slot) => slot.startTime === input.startTime);
+    if (!coSlotFree) {
+      return { error: "Um dos profissionais adicionais não tem disponibilidade nesse horário." };
+    }
+  }
+
+  const resolvedValues: number[] = [];
+  for (const participant of input.participants) {
+    const pricing = await resolveAppointmentValue(
+      input.principalProfessionalId,
+      participant.insuranceId,
+      participant.modality,
+      participant.particularProduct,
+    );
+    if (pricing.value == null) {
+      return { error: pricing.error ?? "Não foi possível calcular o valor de um dos participantes." };
+    }
+    resolvedValues.push(pricing.value);
+  }
+
+  const admin = createAdminClient();
+
+  const { data: group, error: groupError } = await admin
+    .from("appointment_groups")
+    .insert({
+      appointment_date: input.date,
+      start_time: input.startTime,
+      end_time: input.endTime,
+      created_by: session.user.id,
+    })
+    .select("id")
+    .single();
+
+  if (groupError || !group) {
+    return { error: "Não foi possível criar a sessão conjugada." };
+  }
+
+  const createdAppointmentIds: string[] = [];
+
+  for (let i = 0; i < input.participants.length; i++) {
+    const participant = input.participants[i];
+    const { data: appointment, error } = await admin.rpc("book_appointment", {
+      p_patient_id: participant.patientId,
+      p_professional_id: input.principalProfessionalId,
+      p_specialty_id: input.specialtyId ?? null,
+      p_insurance_id: participant.insuranceId,
+      p_schedule_slot_id: input.scheduleSlotId,
+      p_appointment_date: input.date,
+      p_start_time: input.startTime,
+      p_end_time: input.endTime,
+      p_payment_method: participant.paymentMethod,
+      p_value: resolvedValues[i],
+      p_modality: participant.modality ?? null,
+      p_particular_product: participant.particularProduct ?? null,
+      p_source: "staff",
+      p_group_id: group.id,
+    });
+
+    if (error || !appointment) {
+      if (createdAppointmentIds.length > 0) {
+        await admin.from("appointments").delete().in("id", createdAppointmentIds);
+      }
+      await admin.from("appointment_groups").delete().eq("id", group.id);
+
+      if (isSlotFullError(error)) {
+        return { error: "O horário lotou no meio da criação da sessão. Tente novamente." };
+      }
+      if (isPatientConflictError(error)) {
+        return { error: "Um dos pacientes já tem outro atendimento marcado nesse horário." };
+      }
+      return { error: "Não foi possível criar um dos atendimentos da sessão." };
+    }
+
+    createdAppointmentIds.push(appointment.id);
+  }
+
+  if (input.coTherapistProfessionalIds.length > 0) {
+    const links = createdAppointmentIds.flatMap((appointmentId) =>
+      input.coTherapistProfessionalIds.map((professionalId) => ({
+        appointment_id: appointmentId,
+        professional_id: professionalId,
+        created_by: session.user.id,
+      })),
+    );
+    const { error: linkError } = await admin.from("appointment_professionals").insert(links);
+    if (linkError) {
+      await admin.from("appointments").delete().in("id", createdAppointmentIds);
+      await admin.from("appointment_groups").delete().eq("id", group.id);
+      return { error: "Não foi possível vincular os profissionais adicionais à sessão." };
+    }
+  }
+
+  await logAudit({
+    actorId: session.user.id,
+    action: "appointment.group.created",
+    entity: "appointment_groups",
+    entityId: group.id,
+    metadata: {
+      principalProfessionalId: input.principalProfessionalId,
+      coTherapistProfessionalIds: input.coTherapistProfessionalIds,
+      date: input.date,
+      startTime: input.startTime,
+      appointmentIds: createdAppointmentIds,
+    },
+  });
+
+  const [{ data: professionalProfile }, { data: clinic }] = await Promise.all([
+    admin.from("profiles").select("full_name").eq("id", input.principalProfessionalId).single(),
+    admin.from("clinic_settings").select("name, whatsapp_number").eq("id", 1).single(),
+  ]);
+
+  const whatsappLinks: { patientId: string; whatsappLink: string | null }[] = [];
+  for (let i = 0; i < input.participants.length; i++) {
+    const participant = input.participants[i];
+    const { data: patient } = await admin
+      .from("profiles")
+      .select("full_name, phone")
+      .eq("id", participant.patientId)
+      .single();
+
+    const message = buildStaffBookingConfirmationMessage({
+      patientName: patient?.full_name ?? "",
+      professionalName: professionalProfile?.full_name ?? "",
+      appointmentDate: input.date,
+      startTime: input.startTime,
+      clinicName: clinic?.name ?? "Espaço Zoe",
+      clinicPhone: clinic?.whatsapp_number,
+    });
+
+    whatsappLinks.push({ patientId: participant.patientId, whatsappLink: buildWhatsAppLink(patient?.phone, message) });
+
+    await logPatientMessage({
+      patientId: participant.patientId,
+      appointmentId: createdAppointmentIds[i],
+      type: "booking",
+      sentBy: session.user.id,
+    });
+  }
+
+  return { error: null, groupId: group.id, appointmentIds: createdAppointmentIds, whatsappLinks };
 }
 
 /** Admin, recepção ou o profissional principal podem adicionar um
@@ -792,6 +1040,52 @@ export async function removeCoTherapist(
     entity: "appointment_professionals",
     entityId: appointmentId,
     metadata: { appointment_id: appointmentId, professional_id: professionalId },
+  });
+
+  return { error: null };
+}
+
+/** Marca falta (normal ou justificada) de um coterapeuta especificamente —
+ * independente do status da linha principal de appointments, já que cada
+ * profissional de uma sessão multidisciplinar pode ter comparecimento
+ * diferente. Autoral, mesmo espírito de patient_evolutions: só o próprio
+ * coterapeuta ou staff (admin/recepcionista) — decisão confirmada, o
+ * profissional principal da sessão NÃO marca falta pelos outros. RLS
+ * (appointment_professionals_update_absence, migração 0067) reforça a mesma
+ * regra no banco. */
+export async function markCoTherapistAbsence(
+  appointmentId: string,
+  professionalId: string,
+  status: "faltou" | "faltou_justificada",
+  reason?: string,
+): Promise<{ error: string | null }> {
+  const session = await getCurrentUser();
+  if (!session) return { error: "Acesso negado." };
+
+  const isStaff = ["admin", "recepcionista"].includes(session.profile.role);
+  if (!isStaff && session.user.id !== professionalId) {
+    return { error: "Você só pode marcar a própria falta." };
+  }
+
+  if (status === "faltou_justificada" && !reason?.trim()) {
+    return { error: "Informe o motivo da falta justificada." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("appointment_professionals")
+    .update({ absence_status: status, absence_reason: reason?.trim() || null })
+    .eq("appointment_id", appointmentId)
+    .eq("professional_id", professionalId);
+
+  if (error) return { error: "Não foi possível registrar a falta." };
+
+  await logAudit({
+    actorId: session.user.id,
+    action: "appointment.cotherapist.absence_marked",
+    entity: "appointment_professionals",
+    entityId: appointmentId,
+    metadata: { appointment_id: appointmentId, professional_id: professionalId, status },
   });
 
   return { error: null };

@@ -23,6 +23,8 @@ export interface AppointmentView {
   status: string;
   seriesId: string | null;
   reminderSentAt: string | null;
+  groupId: string | null;
+  absenceReason: string | null;
 }
 
 async function denormalize(
@@ -73,6 +75,8 @@ async function denormalize(
     status: row.status,
     seriesId: row.series_id,
     reminderSentAt: row.reminder_sent_at,
+    groupId: row.group_id,
+    absenceReason: row.absence_reason,
   }));
 }
 
@@ -156,14 +160,34 @@ export async function getAppointmentById(id: string): Promise<AppointmentView | 
 
 export type AbsencePeriodFilter = "30d" | "mes_atual" | "todos";
 
+/** Uma falta individual — do profissional principal (appointments.status)
+ * ou de um coterapeuta (appointment_professionals.absence_status,
+ * migração 0067). professionalName é sempre o de quem faltou, não
+ * necessariamente o principal da consulta. */
+export interface AbsenceItem {
+  id: string;
+  professionalName: string;
+  insuranceName: string;
+  paymentMethod: string;
+  modality: Modality | null;
+  particularProduct: ParticularProduct | null;
+  date: string;
+  startTime: string;
+  justified: boolean;
+  reason: string | null;
+  source: "principal" | "cotherapist";
+}
+
 export interface AbsencePatientGroup {
   patientId: string;
   patientName: string;
   patientPhone: string | null;
   patientWhatsapp: string | null;
+  /** Só as NÃO-justificadas — é o número que a administração acompanha. */
   totalAbsences: number;
+  totalJustified: number;
   lastAbsenceDate: string;
-  appointments: AppointmentView[];
+  appointments: AbsenceItem[];
 }
 
 const ABSENCE_GROUPS_PAGE_SIZE = 20;
@@ -185,44 +209,127 @@ function periodStartDate(period: AbsencePeriodFilter): string | null {
   return null;
 }
 
+interface PatientBasics {
+  patientId: string;
+  patientName: string;
+  patientPhone: string | null;
+}
+
 /** Visão consolidada de faltas (/faltas), agrupada por paciente — mesmo
  * escopo por papel de getAppointmentsForViewer (profissional só vê as
  * próprias + coterapeuta; admin/recepcionista vêem todas, com filtro
  * opcional por profissional e por período). Paginação é sobre os grupos
- * (pacientes), não sobre os atendimentos individuais. */
+ * (pacientes), não sobre os atendimentos individuais.
+ *
+ * Une duas fontes (migração 0067): falta do profissional principal
+ * (appointments.status) e falta de coterapeuta
+ * (appointment_professionals.absence_status) — cada participação de uma
+ * sessão multidisciplinar tem seu próprio comparecimento, então o mesmo
+ * paciente pode faltar numa especialidade e comparecer em outra no mesmo
+ * horário. totalAbsences conta só as NÃO-justificadas (controle
+ * administrativo); totalJustified fica à parte, só para consulta. */
 export async function getAbsencesForViewer(
   role: Role,
   userId: string,
   page = 1,
   filters: { professionalId?: string; period?: AbsencePeriodFilter } = {},
-): Promise<{ groups: AbsencePatientGroup[]; totalPages: number; totalAbsences: number }> {
+): Promise<{ groups: AbsencePatientGroup[]; totalPages: number; totalAbsences: number; totalJustified: number }> {
   const supabase = await createClient();
+  const since = periodStartDate(filters.period ?? "todos");
 
-  let query = supabase
+  // 1) Faltas do profissional principal.
+  let principalQuery = supabase
     .from("appointments")
     .select("*")
-    .eq("status", "faltou")
+    .in("status", ["faltou", "faltou_justificada"])
     .order("appointment_date", { ascending: false });
 
   if (role === "profissional") {
-    const coTherapistAppointmentIds = await getCoTherapistAppointmentIds(supabase, userId);
-    query =
-      coTherapistAppointmentIds.length > 0
-        ? query.or(`professional_id.eq.${userId},id.in.(${coTherapistAppointmentIds.join(",")})`)
-        : query.eq("professional_id", userId);
+    principalQuery = principalQuery.eq("professional_id", userId);
   } else if (filters.professionalId) {
-    query = query.eq("professional_id", filters.professionalId);
+    principalQuery = principalQuery.eq("professional_id", filters.professionalId);
+  }
+  if (since) principalQuery = principalQuery.gte("appointment_date", since);
+
+  const { data: principalRows } = await principalQuery.limit(ABSENCES_FETCH_CAP);
+  const principalAppointments = await denormalize(supabase, principalRows ?? []);
+
+  // 2) Faltas de coterapeuta — mesmo escopo por papel, mas a fonte é
+  // appointment_professionals, não appointments.
+  let coTherapistLinksQuery = supabase
+    .from("appointment_professionals")
+    .select("appointment_id, professional_id, absence_status, absence_reason")
+    .not("absence_status", "is", null);
+
+  if (role === "profissional") {
+    coTherapistLinksQuery = coTherapistLinksQuery.eq("professional_id", userId);
+  } else if (filters.professionalId) {
+    coTherapistLinksQuery = coTherapistLinksQuery.eq("professional_id", filters.professionalId);
   }
 
-  const since = periodStartDate(filters.period ?? "todos");
-  if (since) {
-    query = query.gte("appointment_date", since);
+  const { data: coTherapistLinks } = await coTherapistLinksQuery.limit(ABSENCES_FETCH_CAP);
+
+  let coTherapistAppointmentById = new Map<string, AppointmentView>();
+  let coTherapistNameByProfessionalId = new Map<string, string>();
+  if (coTherapistLinks && coTherapistLinks.length > 0) {
+    const appointmentIds = Array.from(new Set(coTherapistLinks.map((l) => l.appointment_id)));
+    let coApptQuery = supabase.from("appointments").select("*").in("id", appointmentIds);
+    if (since) coApptQuery = coApptQuery.gte("appointment_date", since);
+    const { data: coApptRows } = await coApptQuery;
+    const coApptViews = await denormalize(supabase, coApptRows ?? []);
+    coTherapistAppointmentById = new Map(coApptViews.map((a) => [a.id, a]));
+
+    const professionalIds = Array.from(new Set(coTherapistLinks.map((l) => l.professional_id)));
+    const { data: professionals } = await supabase.from("profiles").select("id, full_name").in("id", professionalIds);
+    coTherapistNameByProfessionalId = new Map((professionals ?? []).map((p) => [p.id, p.full_name]));
   }
 
-  const { data } = await query.limit(ABSENCES_FETCH_CAP);
-  const items = await denormalize(supabase, data ?? []);
+  const allItems: { patient: PatientBasics; item: AbsenceItem }[] = [];
 
-  const patientIds = Array.from(new Set(items.map((item) => item.patientId)));
+  for (const appt of principalAppointments) {
+    allItems.push({
+      patient: { patientId: appt.patientId, patientName: appt.patientName, patientPhone: appt.patientPhone },
+      item: {
+        id: appt.id,
+        professionalName: appt.professionalName,
+        insuranceName: appt.insuranceName,
+        paymentMethod: appt.paymentMethod,
+        modality: appt.modality,
+        particularProduct: appt.particularProduct,
+        date: appt.date,
+        startTime: appt.startTime,
+        justified: appt.status === "faltou_justificada",
+        reason: appt.absenceReason,
+        source: "principal",
+      },
+    });
+  }
+
+  for (const link of coTherapistLinks ?? []) {
+    const appt = coTherapistAppointmentById.get(link.appointment_id);
+    if (!appt) continue;
+    // Falta do próprio principal fica de fora daqui por construção — este
+    // loop só existe porque absence_status não é nulo, e só coterapeutas
+    // gravam nessa coluna (a do principal é a de "appointments" acima).
+    allItems.push({
+      patient: { patientId: appt.patientId, patientName: appt.patientName, patientPhone: appt.patientPhone },
+      item: {
+        id: appt.id,
+        professionalName: coTherapistNameByProfessionalId.get(link.professional_id) ?? "Profissional",
+        insuranceName: appt.insuranceName,
+        paymentMethod: appt.paymentMethod,
+        modality: appt.modality,
+        particularProduct: appt.particularProduct,
+        date: appt.date,
+        startTime: appt.startTime,
+        justified: link.absence_status === "faltou_justificada",
+        reason: link.absence_reason,
+        source: "cotherapist",
+      },
+    });
+  }
+
+  const patientIds = Array.from(new Set(allItems.map(({ patient }) => patient.patientId)));
   const { data: details } =
     patientIds.length > 0
       ? await supabase.from("patient_details").select("id, whatsapp").in("id", patientIds)
@@ -230,28 +337,31 @@ export async function getAbsencesForViewer(
   const whatsappById = new Map((details ?? []).map((d) => [d.id, d.whatsapp]));
 
   const groupsByPatient = new Map<string, AbsencePatientGroup>();
-  for (const item of items) {
-    const existing = groupsByPatient.get(item.patientId);
+  for (const { patient, item } of allItems) {
+    const existing = groupsByPatient.get(patient.patientId);
     if (existing) {
-      existing.totalAbsences += 1;
+      if (item.justified) existing.totalJustified += 1;
+      else existing.totalAbsences += 1;
       existing.appointments.push(item);
       if (item.date > existing.lastAbsenceDate) existing.lastAbsenceDate = item.date;
     } else {
-      groupsByPatient.set(item.patientId, {
-        patientId: item.patientId,
-        patientName: item.patientName,
-        patientPhone: item.patientPhone,
-        patientWhatsapp: whatsappById.get(item.patientId) ?? null,
-        totalAbsences: 1,
+      groupsByPatient.set(patient.patientId, {
+        patientId: patient.patientId,
+        patientName: patient.patientName,
+        patientPhone: patient.patientPhone,
+        patientWhatsapp: whatsappById.get(patient.patientId) ?? null,
+        totalAbsences: item.justified ? 0 : 1,
+        totalJustified: item.justified ? 1 : 0,
         lastAbsenceDate: item.date,
         appointments: [item],
       });
     }
   }
 
-  // Atendimentos já vêm ordenados por data desc da query; ordenar os grupos
-  // pela falta mais recente de cada paciente preserva "mais recente
-  // primeiro" também na visão agrupada.
+  for (const group of groupsByPatient.values()) {
+    group.appointments.sort((a, b) => `${b.date}T${b.startTime}`.localeCompare(`${a.date}T${a.startTime}`));
+  }
+
   const groups = Array.from(groupsByPatient.values()).sort((a, b) =>
     b.lastAbsenceDate.localeCompare(a.lastAbsenceDate),
   );
@@ -260,5 +370,71 @@ export async function getAbsencesForViewer(
   const from = (page - 1) * ABSENCE_GROUPS_PAGE_SIZE;
   const pageGroups = groups.slice(from, from + ABSENCE_GROUPS_PAGE_SIZE);
 
-  return { groups: pageGroups, totalPages, totalAbsences: items.length };
+  const totalAbsences = allItems.filter(({ item }) => !item.justified).length;
+  const totalJustified = allItems.filter(({ item }) => item.justified).length;
+
+  return { groups: pageGroups, totalPages, totalAbsences, totalJustified };
+}
+
+export interface GroupParticipant {
+  appointmentId: string;
+  patientName: string;
+  professionalName: string;
+  coTherapistNames: string[];
+  status: string;
+}
+
+/** Linhas-irmãs de uma sessão conjugada (mesmo group_id) — usado na tela de
+ * detalhes para listar "quem mais está nesta sessão". A RLS de appointments
+ * já restringe o retorno certo por papel (staff vê tudo; profissional só o
+ * que é principal ou coterapeuta em alguma linha, via
+ * is_appointment_cotherapist, migração 0040) — não precisa de lógica de
+ * permissão adicional aqui. */
+export async function getGroupParticipants(
+  groupId: string,
+  excludeAppointmentId?: string,
+): Promise<GroupParticipant[]> {
+  const supabase = await createClient();
+  const { data: rows } = await supabase
+    .from("appointments")
+    .select("id, patient_id, professional_id, status")
+    .eq("group_id", groupId);
+
+  const filtered = (rows ?? []).filter((r) => r.id !== excludeAppointmentId);
+  if (filtered.length === 0) return [];
+
+  const appointmentIds = filtered.map((r) => r.id);
+  const patientIds = Array.from(new Set(filtered.map((r) => r.patient_id)));
+  const professionalIds = Array.from(new Set(filtered.map((r) => r.professional_id)));
+
+  const [{ data: patients }, { data: professionals }, { data: coTherapistLinks }] = await Promise.all([
+    supabase.from("profiles").select("id, full_name").in("id", patientIds),
+    supabase.from("profiles").select("id, full_name").in("id", professionalIds),
+    supabase.from("appointment_professionals").select("appointment_id, professional_id").in("appointment_id", appointmentIds),
+  ]);
+
+  const patientNameById = new Map((patients ?? []).map((p) => [p.id, p.full_name]));
+  const professionalNameById = new Map((professionals ?? []).map((p) => [p.id, p.full_name]));
+
+  const coTherapistProfessionalIds = Array.from(new Set((coTherapistLinks ?? []).map((l) => l.professional_id)));
+  const { data: coTherapistProfiles } =
+    coTherapistProfessionalIds.length > 0
+      ? await supabase.from("profiles").select("id, full_name").in("id", coTherapistProfessionalIds)
+      : { data: [] as { id: string; full_name: string }[] };
+  const coTherapistNameById = new Map((coTherapistProfiles ?? []).map((p) => [p.id, p.full_name]));
+
+  const coTherapistNamesByAppointment = new Map<string, string[]>();
+  for (const link of coTherapistLinks ?? []) {
+    const list = coTherapistNamesByAppointment.get(link.appointment_id) ?? [];
+    list.push(coTherapistNameById.get(link.professional_id) ?? "Profissional");
+    coTherapistNamesByAppointment.set(link.appointment_id, list);
+  }
+
+  return filtered.map((r) => ({
+    appointmentId: r.id,
+    patientName: patientNameById.get(r.patient_id) ?? "Paciente",
+    professionalName: professionalNameById.get(r.professional_id) ?? "Profissional",
+    coTherapistNames: coTherapistNamesByAppointment.get(r.id) ?? [],
+    status: r.status,
+  }));
 }

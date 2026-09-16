@@ -7,7 +7,8 @@ import { logAudit } from "@/modules/team/services/audit";
 import { notifyStaff } from "@/modules/notifications/services/notify";
 import { logPatientMessage } from "@/modules/patients/services/message-log";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { getAvailableTimes, isSlotFullError, resolveAppointmentValue } from "./booking-queries";
+import { getAvailableTimes, resolveAppointmentValue } from "./booking-queries";
+import { isPatientConflictError, isSlotFullError } from "./booking-errors";
 import type { Modality, ParticularProduct, PaymentMethod } from "@/lib/supabase/types";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
@@ -182,6 +183,9 @@ export async function createPublicAppointment(
   if (error || !appointment) {
     if (isSlotFullError(error)) {
       return { error: "Esse horário acabou de ser ocupado por outra pessoa. Escolha outro horário." };
+    }
+    if (isPatientConflictError(error)) {
+      return { error: "Você já tem outro atendimento marcado nesse horário." };
     }
     return { error: "Não foi possível criar o agendamento. Tente novamente." };
   }

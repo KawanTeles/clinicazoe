@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { formatCurrency } from "@/lib/whatsapp";
 import { getAttendanceInfo } from "@/lib/attendance";
-import type { AppointmentView } from "@/modules/appointments/services/appointment-queries";
+import Link from "next/link";
+import type { AppointmentView, GroupParticipant } from "@/modules/appointments/services/appointment-queries";
 import type { CoTherapistInfo } from "@/modules/appointments/services/booking-queries";
 import type { EvolutionView } from "@/modules/evolutions/services/evolution-queries";
 import { EvolutionPanel } from "@/modules/evolutions/components/EvolutionPanel";
@@ -18,6 +19,7 @@ const STATUS_LABELS: Record<string, string> = {
   concluida: "Concluída",
   faltou: "Faltou",
   recusada: "Recusada",
+  faltou_justificada: "Falta justificada",
 };
 
 const STATUS_TONE: Record<string, "neutral" | "success" | "warning" | "danger" | "premium"> = {
@@ -28,6 +30,7 @@ const STATUS_TONE: Record<string, "neutral" | "success" | "warning" | "danger" |
   concluida: "success",
   faltou: "danger",
   recusada: "danger",
+  faltou_justificada: "warning",
 };
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
@@ -46,6 +49,11 @@ interface AppointmentDetailTabsProps {
   coTherapists: CoTherapistInfo[];
   availableProfessionals: { id: string; fullName: string }[];
   canManageCoTherapists: boolean;
+  viewerId: string;
+  isStaff: boolean;
+  /** Linhas-irmãs da mesma sessão conjugada (migração 0067) — vazio quando o
+   * atendimento não faz parte de nenhum grupo. */
+  groupParticipants: GroupParticipant[];
 }
 
 export function AppointmentDetailTabs({
@@ -58,6 +66,9 @@ export function AppointmentDetailTabs({
   coTherapists,
   availableProfessionals,
   canManageCoTherapists,
+  viewerId,
+  isStaff,
+  groupParticipants,
 }: AppointmentDetailTabsProps) {
   const [tab, setTab] = useState<"Detalhes" | "Evolução">("Detalhes");
   const attendance = getAttendanceInfo(
@@ -116,12 +127,38 @@ export function AppointmentDetailTabs({
           {attendance.particularProductLabel && <Field label="Produto" value={attendance.particularProductLabel} />}
           <Field label="Valor" value={formatCurrency(appointment.value)} />
           {appointment.patientPhone && <Field label="Telefone do paciente" value={appointment.patientPhone} />}
+          {(appointment.status === "faltou" || appointment.status === "faltou_justificada") &&
+            appointment.absenceReason && <Field label="Motivo da falta" value={appointment.absenceReason} />}
           <CoTherapistManager
             appointmentId={appointment.id}
             coTherapists={coTherapists}
             availableProfessionals={availableProfessionals}
             canManage={canManageCoTherapists}
+            viewerId={viewerId}
+            isStaff={isStaff}
           />
+          {groupParticipants.length > 0 && (
+            <div className="sm:col-span-2">
+              <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">
+                Participantes desta sessão
+              </p>
+              <div className="mt-1.5 flex flex-col gap-1.5">
+                {groupParticipants.map((participant) => (
+                  <Link
+                    key={participant.appointmentId}
+                    href={`/appointments/${participant.appointmentId}`}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card-elevated/40 px-3.5 py-2 text-sm transition-colors hover:border-primary/50"
+                  >
+                    <span className="font-semibold text-text-primary">{participant.patientName}</span>
+                    <span className="text-xs text-text-secondary">
+                      {participant.professionalName}
+                      {participant.coTherapistNames.length > 0 && ` + ${participant.coTherapistNames.join(", ")}`}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -41,9 +41,14 @@ export default async function AppointmentsPage() {
           <p className="mt-1 text-sm text-text-secondary">{copy.subtitle}</p>
         </div>
         {isStaff && (
-          <Link href="/appointments/new">
-            <Button>Novo Agendamento</Button>
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/appointments/new-group">
+              <Button variant="secondary">Atendimento em Dupla/Grupo</Button>
+            </Link>
+            <Link href="/appointments/new">
+              <Button>Novo Agendamento</Button>
+            </Link>
+          </div>
         )}
       </div>
 

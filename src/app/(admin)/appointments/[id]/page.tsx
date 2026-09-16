@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
-import { getAppointmentById } from "@/modules/appointments/services/appointment-queries";
+import { getAppointmentById, getGroupParticipants } from "@/modules/appointments/services/appointment-queries";
 import { getCoTherapistsForAppointment } from "@/modules/appointments/services/booking-queries";
 import { getEvolutionForAppointment } from "@/modules/evolutions/services/evolution-queries";
 import { getActiveProfessionals } from "@/modules/professionals/services/professional-queries";
@@ -63,6 +63,11 @@ export default async function AppointmentDetailPage({ params }: { params: Promis
         .map((p) => ({ id: p.id, fullName: p.full_name }))
     : [];
 
+  const isStaff = ["admin", "recepcionista"].includes(session.profile.role);
+  const groupParticipants = appointment.groupId
+    ? await getGroupParticipants(appointment.groupId, appointment.id)
+    : [];
+
   return (
     <AppointmentDetailTabs
       appointment={appointment}
@@ -74,6 +79,9 @@ export default async function AppointmentDetailPage({ params }: { params: Promis
       coTherapists={coTherapists}
       availableProfessionals={availableProfessionals}
       canManageCoTherapists={canManageCoTherapists}
+      viewerId={session.user.id}
+      isStaff={isStaff}
+      groupParticipants={groupParticipants}
     />
   );
 }

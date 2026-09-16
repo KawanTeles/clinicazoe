@@ -8,7 +8,9 @@ export type AppointmentStatus =
   | "remarcada"
   | "concluida"
   | "faltou"
-  | "recusada";
+  | "recusada"
+  | "faltou_justificada";
+export type AbsenceStatus = "faltou" | "faltou_justificada";
 export type AppointmentSource = "paciente" | "site_publico" | "staff";
 export type FinancialStatus = "em_aberto" | "pago" | "cancelado";
 export type RecurrenceFrequency = "weekly" | "biweekly" | "monthly";
@@ -476,6 +478,8 @@ export interface Database {
           notes: string | null;
           series_id: string | null;
           reminder_sent_at: string | null;
+          group_id: string | null;
+          absence_reason: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -498,6 +502,8 @@ export interface Database {
           notes?: string | null;
           series_id?: string | null;
           reminder_sent_at?: string | null;
+          group_id?: string | null;
+          absence_reason?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -520,8 +526,37 @@ export interface Database {
           notes?: string | null;
           series_id?: string | null;
           reminder_sent_at?: string | null;
+          group_id?: string | null;
+          absence_reason?: string | null;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      appointment_groups: {
+        Row: {
+          id: string;
+          appointment_date: string;
+          start_time: string;
+          end_time: string;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          appointment_date: string;
+          start_time: string;
+          end_time: string;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          appointment_date?: string;
+          start_time?: string;
+          end_time?: string;
+          created_by?: string | null;
+          created_at?: string;
         };
         Relationships: [];
       };
@@ -843,6 +878,54 @@ export interface Database {
         };
         Relationships: [];
       };
+      appointment_series_participants: {
+        Row: {
+          id: string;
+          series_id: string;
+          patient_id: string;
+          insurance_id: string;
+          payment_method: PaymentMethod;
+          modality: Modality | null;
+          particular_product: ParticularProduct | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          series_id: string;
+          patient_id: string;
+          insurance_id: string;
+          payment_method: PaymentMethod;
+          modality?: Modality | null;
+          particular_product?: ParticularProduct | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          series_id?: string;
+          patient_id?: string;
+          insurance_id?: string;
+          payment_method?: PaymentMethod;
+          modality?: Modality | null;
+          particular_product?: ParticularProduct | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      appointment_series_cotherapists: {
+        Row: {
+          series_id: string;
+          professional_id: string;
+        };
+        Insert: {
+          series_id: string;
+          professional_id: string;
+        };
+        Update: {
+          series_id?: string;
+          professional_id?: string;
+        };
+        Relationships: [];
+      };
       patient_messages: {
         Row: {
           id: string;
@@ -1005,18 +1088,24 @@ export interface Database {
           professional_id: string;
           created_at: string;
           created_by: string | null;
+          absence_status: AbsenceStatus | null;
+          absence_reason: string | null;
         };
         Insert: {
           appointment_id: string;
           professional_id: string;
           created_at?: string;
           created_by?: string | null;
+          absence_status?: AbsenceStatus | null;
+          absence_reason?: string | null;
         };
         Update: {
           appointment_id?: string;
           professional_id?: string;
           created_at?: string;
           created_by?: string | null;
+          absence_status?: AbsenceStatus | null;
+          absence_reason?: string | null;
         };
         Relationships: [];
       };
@@ -1315,7 +1404,7 @@ export interface Database {
         Args: {
           p_patient_id: string;
           p_professional_id: string;
-          p_specialty_id: string;
+          p_specialty_id: string | null;
           p_insurance_id: string;
           p_schedule_slot_id: string;
           p_appointment_date: string;
@@ -1326,6 +1415,8 @@ export interface Database {
           p_modality: Modality | null;
           p_particular_product: ParticularProduct | null;
           p_source: AppointmentSource;
+          p_group_id?: string | null;
+          p_series_id?: string | null;
         };
         Returns: {
           id: string;
@@ -1346,6 +1437,8 @@ export interface Database {
           notes: string | null;
           series_id: string | null;
           reminder_sent_at: string | null;
+          group_id: string | null;
+          absence_reason: string | null;
           created_at: string;
           updated_at: string;
         };
