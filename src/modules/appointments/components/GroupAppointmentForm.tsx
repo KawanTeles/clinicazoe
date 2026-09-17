@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
-import { insuranceRequiresModality, MODALITY_LABELS, PARTICULAR_PRODUCT_LABELS } from "@/lib/constants";
+import { insuranceRequiresModality, MODALITY_LABELS, PARTICULAR_INSURANCE_NAME, PARTICULAR_PRODUCT_LABELS } from "@/lib/constants";
 import type { Modality, ParticularProduct, PaymentMethod } from "@/lib/supabase/types";
 import { PatientPickerField } from "@/modules/patients/components/PatientPickerField";
 import type { PatientSearchResult } from "@/modules/patients/services/patient-actions";
@@ -42,19 +42,26 @@ interface ParticipantDraft {
   patient: PatientSearchResult | null;
   insuranceId: string;
   paymentMethod: PaymentMethod | "";
+  /** Só para diferenciar Débito/Crédito na tela — os dois salvam
+   * paymentMethod "cartao" no banco (não existe distinção no dado). */
+  cardType: "debito" | "credito" | "";
   modality: Modality | "";
   particularProduct: ParticularProduct | "";
 }
 
-const PAYMENT_LABELS: Record<PaymentMethod, string> = {
-  cartao: "Cartão",
-  pix: "PIX",
-  dinheiro: "Dinheiro",
-  convenio: "Convênio",
-};
 const MODALITIES: Modality[] = ["aba", "comum"];
 const PARTICULAR_PRODUCTS: ParticularProduct[] = ["consulta", "pacote"];
-const PARTICULAR_PAYMENT_METHODS: PaymentMethod[] = ["cartao", "pix", "dinheiro"];
+
+/** Forma de pagamento é sempre uma escolha real e independente do convênio
+ * — "Convênio" é só mais uma opção da lista, nunca inferida a partir do
+ * paciente ter ou não um plano de saúde selecionado. */
+const PAYMENT_METHOD_CHOICES: { key: string; paymentMethod: PaymentMethod; cardType?: "debito" | "credito"; label: string }[] = [
+  { key: "dinheiro", paymentMethod: "dinheiro", label: "Dinheiro" },
+  { key: "pix", paymentMethod: "pix", label: "Pix" },
+  { key: "cartao-debito", paymentMethod: "cartao", cardType: "debito", label: "Cartão de Débito" },
+  { key: "cartao-credito", paymentMethod: "cartao", cardType: "credito", label: "Cartão de Crédito" },
+  { key: "convenio", paymentMethod: "convenio", label: "Convênio" },
+];
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 
@@ -74,6 +81,7 @@ function emptyParticipant(): ParticipantDraft {
     patient: null,
     insuranceId: "",
     paymentMethod: "",
+    cardType: "",
     modality: "",
     particularProduct: "",
   };
@@ -112,8 +120,22 @@ export function GroupAppointmentForm({ insurances, professionals }: GroupAppoint
   const [success, setSuccess] = useState<{ count: number; skippedDates?: SkippedDate[] } | null>(null);
 
   const insuranceById = new Map(insurances.map((i) => [i.id, i]));
+  const particularInsurance = insurances.find((i) => i.name === PARTICULAR_INSURANCE_NAME);
+  const convenioInsurances = insurances.filter((i) => i.name !== PARTICULAR_INSURANCE_NAME);
   const representative = participants[0];
   const representativeInsurance = representative ? insuranceById.get(representative.insuranceId) : undefined;
+
+  function selectPaymentMethod(key: string, choiceKey: string) {
+    const choice = PAYMENT_METHOD_CHOICES.find((c) => c.key === choiceKey);
+    if (!choice) return;
+    updateParticipant(key, {
+      paymentMethod: choice.paymentMethod,
+      cardType: choice.cardType ?? "",
+      insuranceId: choice.paymentMethod === "convenio" ? "" : (particularInsurance?.id ?? ""),
+      modality: "",
+      particularProduct: "",
+    });
+  }
 
   function updateParticipant(key: string, patch: Partial<ParticipantDraft>) {
     setParticipants((prev) => prev.map((p) => (p.key === key ? { ...p, ...patch } : p)));
@@ -169,8 +191,16 @@ export function GroupAppointmentForm({ insurances, professionals }: GroupAppoint
         setError("Preencha o paciente de todos os participantes.");
         return;
       }
-      if (!p.insuranceId) {
+      if (!p.paymentMethod) {
+        setError(`Selecione a forma de pagamento de ${p.patient.fullName}.`);
+        return;
+      }
+      if (p.paymentMethod === "convenio" && !p.insuranceId) {
         setError(`Selecione o convênio de ${p.patient.fullName}.`);
+        return;
+      }
+      if (!p.insuranceId) {
+        setError(`Não foi possível identificar o valor particular de ${p.patient.fullName}. Cadastre o convênio "Particular" em Convênios.`);
         return;
       }
       const insurance = insuranceById.get(p.insuranceId);
@@ -181,10 +211,6 @@ export function GroupAppointmentForm({ insurances, professionals }: GroupAppoint
       }
       if (!requiresModality && !p.particularProduct) {
         setError(`Selecione o produto particular de ${p.patient.fullName}.`);
-        return;
-      }
-      if (!p.paymentMethod) {
-        setError(`Selecione a forma de pagamento de ${p.patient.fullName}.`);
         return;
       }
 
@@ -422,7 +448,7 @@ export function GroupAppointmentForm({ insurances, professionals }: GroupAppoint
         {participants.map((p, index) => {
           const insurance = insuranceById.get(p.insuranceId);
           const requiresModality = insuranceRequiresModality(insurance?.name);
-          const paymentOptions = requiresModality ? (["convenio"] as PaymentMethod[]) : PARTICULAR_PAYMENT_METHODS;
+          const paymentChoiceKey = p.paymentMethod === "cartao" ? `cartao-${p.cardType}` : p.paymentMethod;
 
           return (
             <div key={p.key} className="flex flex-col gap-2.5 rounded-lg border border-border bg-card-elevated/40 p-3">
@@ -448,37 +474,37 @@ export function GroupAppointmentForm({ insurances, professionals }: GroupAppoint
 
               <div className="grid grid-cols-2 gap-2">
                 <Select
-                  label="Convênio"
-                  value={p.insuranceId}
-                  onChange={(e) =>
-                    updateParticipant(p.key, {
-                      insuranceId: e.target.value,
-                      modality: "",
-                      particularProduct: "",
-                      paymentMethod: "",
-                    })
-                  }
-                >
-                  <option value="">Selecione</option>
-                  {insurances.map((i) => (
-                    <option key={i.id} value={i.id}>
-                      {i.name}
-                    </option>
-                  ))}
-                </Select>
-                <Select
                   label="Forma de pagamento"
-                  value={p.paymentMethod}
-                  onChange={(e) => updateParticipant(p.key, { paymentMethod: e.target.value as PaymentMethod })}
-                  disabled={!p.insuranceId}
+                  value={paymentChoiceKey}
+                  onChange={(e) => selectPaymentMethod(p.key, e.target.value)}
                 >
                   <option value="">Selecione</option>
-                  {paymentOptions.map((pm) => (
-                    <option key={pm} value={pm}>
-                      {PAYMENT_LABELS[pm]}
+                  {PAYMENT_METHOD_CHOICES.map((c) => (
+                    <option key={c.key} value={c.key}>
+                      {c.label}
                     </option>
                   ))}
                 </Select>
+                {p.paymentMethod === "convenio" && (
+                  <Select
+                    label="Convênio"
+                    value={p.insuranceId}
+                    onChange={(e) =>
+                      updateParticipant(p.key, {
+                        insuranceId: e.target.value,
+                        modality: "",
+                        particularProduct: "",
+                      })
+                    }
+                  >
+                    <option value="">Selecione</option>
+                    {convenioInsurances.map((i) => (
+                      <option key={i.id} value={i.id}>
+                        {i.name}
+                      </option>
+                    ))}
+                  </Select>
+                )}
               </div>
 
               {p.insuranceId &&

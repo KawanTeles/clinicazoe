@@ -391,6 +391,68 @@ export async function confirmAppointment(
   return { error: null, whatsappLink };
 }
 
+/** Correção pontual de valor de UM atendimento específico — nunca mexe na
+ * tabela de preços do convênio (professional_insurances) nem em outros
+ * atendimentos. Se o atendimento já tiver um lançamento financeiro gerado
+ * (confirmAppointment cria um na confirmação) e ele ainda estiver "em
+ * aberto", o lançamento é atualizado junto para não ficar divergente do
+ * valor real do atendimento; se já estiver "pago", a edição é bloqueada —
+ * corrigir um valor já recebido é uma operação financeira separada. */
+export async function updateAppointmentValue(
+  appointmentId: string,
+  newValue: number,
+): Promise<{ error: string | null }> {
+  const session = await requireStaff();
+
+  if (!Number.isFinite(newValue) || newValue < 0) {
+    return { error: "Informe um valor válido." };
+  }
+
+  const rateLimit = checkRateLimit(`update-appointment-value:${session.user.id}`, 30, 60_000);
+  if (!rateLimit.allowed) {
+    return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente de novo.` };
+  }
+
+  const supabase = await createClient();
+
+  const { data: entry } = await supabase
+    .from("financial_entries")
+    .select("id, status")
+    .eq("appointment_id", appointmentId)
+    .maybeSingle();
+
+  if (entry?.status === "pago") {
+    return { error: "Não é possível editar: o lançamento financeiro deste atendimento já foi marcado como pago." };
+  }
+
+  const { data: updated, error: appointmentError } = await supabase
+    .from("appointments")
+    .update({ value: newValue })
+    .eq("id", appointmentId)
+    .select("id")
+    .maybeSingle();
+
+  if (appointmentError) return { error: "Não foi possível atualizar o valor do atendimento." };
+  if (!updated) return { error: "Atendimento não encontrado ou você não tem permissão para alterá-lo." };
+
+  if (entry) {
+    const { error: entryError } = await supabase.from("financial_entries").update({ value: newValue }).eq("id", entry.id);
+    if (entryError) {
+      return { error: "Valor do atendimento atualizado, mas houve falha ao sincronizar o lançamento financeiro." };
+    }
+  }
+
+  await logAudit({
+    actorId: session.user.id,
+    action: "appointment.value_edited",
+    entity: "appointments",
+    entityId: appointmentId,
+    metadata: { newValue },
+  });
+
+  return { error: null };
+}
+
 export async function rejectAppointmentRequest(
   appointmentId: string,
 ): Promise<{ error: string | null; whatsappLink?: string | null }> {

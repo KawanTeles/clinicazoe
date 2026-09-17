@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { formatCurrency } from "@/lib/whatsapp";
 import { getAttendanceInfo } from "@/lib/attendance";
@@ -10,6 +11,7 @@ import type { CoTherapistInfo } from "@/modules/appointments/services/booking-qu
 import type { EvolutionView } from "@/modules/evolutions/services/evolution-queries";
 import { EvolutionPanel } from "@/modules/evolutions/components/EvolutionPanel";
 import { CoTherapistManager } from "@/modules/appointments/components/CoTherapistManager";
+import { updateAppointmentValue } from "@/modules/appointments/services/booking-actions";
 
 const STATUS_LABELS: Record<string, string> = {
   pendente: "Pendente",
@@ -125,7 +127,7 @@ export function AppointmentDetailTabs({
           />
           {attendance.modalityLabel && <Field label="Modalidade" value={attendance.modalityLabel} />}
           {attendance.particularProductLabel && <Field label="Produto" value={attendance.particularProductLabel} />}
-          <Field label="Valor" value={formatCurrency(appointment.value)} />
+          <ValueField appointmentId={appointment.id} value={appointment.value} editable={isStaff} />
           {appointment.patientPhone && <Field label="Telefone do paciente" value={appointment.patientPhone} />}
           {(appointment.status === "faltou" || appointment.status === "faltou_justificada") &&
             appointment.absenceReason && <Field label="Motivo da falta" value={appointment.absenceReason} />}
@@ -181,6 +183,90 @@ function Field({ label, value }: { label: string; value: string }) {
     <div>
       <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">{label}</p>
       <p className="mt-1 text-sm text-text-primary">{value || "—"}</p>
+    </div>
+  );
+}
+
+/** Correção pontual do valor do atendimento — só admin/recepcionista
+ * (editable). Nunca mexe na tabela de preços do convênio, só nesta linha. */
+function ValueField({ appointmentId, value, editable }: { appointmentId: string; value: number; editable: boolean }) {
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(value));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!editable) return <Field label="Valor" value={formatCurrency(value)} />;
+
+  if (!editing) {
+    return (
+      <div>
+        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">Valor</p>
+        <div className="mt-1 flex items-center gap-2">
+          <p className="text-sm text-text-primary">{formatCurrency(value)}</p>
+          <button
+            type="button"
+            onClick={() => {
+              setDraft(String(value));
+              setError(null);
+              setEditing(true);
+            }}
+            className="text-xs font-semibold text-primary hover:underline"
+          >
+            Editar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  async function handleSave() {
+    const parsed = Number(draft.replace(",", "."));
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      setError("Informe um valor válido.");
+      return;
+    }
+    setSaving(true);
+    const result = await updateAppointmentValue(appointmentId, parsed);
+    setSaving(false);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    setEditing(false);
+    router.refresh();
+  }
+
+  return (
+    <div>
+      <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">Valor</p>
+      <div className="mt-1 flex items-center gap-2">
+        <input
+          type="text"
+          inputMode="decimal"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          disabled={saving}
+          className="w-28 rounded-md border border-border bg-card-elevated px-2 py-1 text-sm text-text-primary"
+        />
+        <button
+          type="button"
+          disabled={saving}
+          onClick={handleSave}
+          className="text-xs font-bold text-primary hover:underline disabled:opacity-50"
+        >
+          Salvar
+        </button>
+        <button
+          type="button"
+          disabled={saving}
+          onClick={() => setEditing(false)}
+          className="text-xs font-semibold text-text-secondary hover:underline disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+      </div>
+      {error && <p className="mt-1 text-xs font-medium text-danger">{error}</p>}
     </div>
   );
 }
