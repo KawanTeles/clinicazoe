@@ -20,7 +20,7 @@ import { CTA_PRIMARY, CTA_VIEW_ALL_PROFESSIONALS, CTA_VIEW_ALL_SPECIALTIES } fro
 import { SITE_URL } from "@/lib/site-url";
 import { buildEntitySlug } from "@/lib/slug";
 
-const TITLE = "Espaço Zoe — Medicina de Alta Performance e Saúde Integrada";
+const TITLE = "Espaço Zoe | Desenvolvimento & Saúde Integrada";
 const DESCRIPTION =
   "Referência em atendimento clínico de excelência, corpo clínico renomado, tecnologia de ponta e agendamento 100% online. Marque seu atendimento com o Espaço Zoe.";
 
@@ -506,7 +506,7 @@ export default async function HomePage() {
                   <div>
                     <h3 className="text-base font-bold text-[var(--primary)] font-heading">Corpo Clínico Qualificado</h3>
                     <p className="mt-1.5 text-xs text-text-secondary leading-relaxed">
-                      Especialistas com atuação em hospitais renomados.
+                      Especialistas qualificados com ampla experiência em atendimento humanizado.
                     </p>
                     <Link href="/profissionais" className="mt-3 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
                       Ver corpo clínico →
@@ -563,9 +563,6 @@ export default async function HomePage() {
               <h2 className="text-3xl font-extrabold text-[var(--primary)] mt-2 font-heading">
                 Conheça o Espaço Zoe
               </h2>
-              <p className="text-sm text-text-secondary">
-                Ambientes pensados para o seu conforto e acolhimento em cada visita.
-              </p>
             </ScrollReveal>
           </div>
 
