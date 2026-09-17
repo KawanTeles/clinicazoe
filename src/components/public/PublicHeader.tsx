@@ -70,19 +70,22 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
   return (
     <>
       <div ref={sentinelRef} aria-hidden="true" style={{ position: "absolute", top: 20, left: 0, height: 1, width: 1, pointerEvents: "none" }} />
+      
+      {/* Spacer para ocupar o espaço do header fixed no fluxo e evitar pulo do conteúdo */}
+      <div className="h-[92px] sm:h-[100px] w-full" aria-hidden="true" />
 
       {/* Floating Island Header with Framer Motion slide-down entry */}
       <m.header
         initial={{ y: -30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="sticky top-3 z-50 px-3 sm:top-5 sm:px-6 transform-gpu"
+        className="fixed w-full top-0 z-50 px-3 pt-3 sm:pt-5 sm:px-6 transform-gpu"
       >
         <div
           className={cn(
             "mx-auto flex max-w-6xl items-center justify-between rounded-full border px-4 transition-all duration-300 ease-[var(--ease-premium)] transform-gpu",
             scrolled
-              ? "h-16 border-[rgba(135,201,179,0.25)] bg-[var(--bg-header)]/95 shadow-[0_16px_50px_rgba(0,0,0,0.35)] backdrop-blur-[24px]"
+              ? "h-20 border-border bg-background shadow-[0_4px_20px_rgba(0,0,0,0.05)]"
               : "h-20 border-[rgba(135,201,179,0.14)] bg-[var(--bg-header)]/80 shadow-[0_10px_40px_rgba(0,0,0,0.2)] backdrop-blur-[20px]",
           )}
         >
