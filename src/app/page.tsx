@@ -24,6 +24,16 @@ const TITLE = "Espaço Zoe — Medicina de Alta Performance e Saúde Integrada";
 const DESCRIPTION =
   "Referência em atendimento clínico de excelência, corpo clínico renomado, tecnologia de ponta e agendamento 100% online. Marque seu atendimento com o Espaço Zoe.";
 
+// Sem isso, o Next emite Cache-Control: s-maxage=31536000 (1 ano) nesta
+// página estática — a CDN da Hostinger na frente do site (hcdn) respeita
+// esse header e serve a mesma cópia por até 1 ano, e revalidatePath()
+// (src/lib/revalidate-public-site.ts) só invalida o cache do Next no
+// servidor de origem, não a CDN. Isso fazia fotos novas e profissionais
+// marcados como destaque na home sumirem/demorarem a aparecer de forma
+// imprevisível. Com revalidate aqui, o Next passa a mandar
+// s-maxage=60, então a CDN nunca segura uma cópia velha por mais de 60s.
+export const revalidate = 60;
+
 export const metadata = {
   title: TITLE,
   description: DESCRIPTION,

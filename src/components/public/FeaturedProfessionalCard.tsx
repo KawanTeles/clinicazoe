@@ -22,23 +22,28 @@ function initials(name: string) {
 }
 
 /**
- * Card de profissional em destaque na home — foto grande no topo com a
- * especialidade sobreposta no canto (destaque vai para especialidade e
- * formação/bio, não para o registro profissional, que fica discreto no
- * rodapé do card quando exibido). Estilo próprio dessa seção (não é o mesmo
- * card usado em /profissionais, que continua com a foto centralizada).
+ * Card de profissional em destaque na home e em /profissionais — foto grande
+ * no topo com a especialidade sobreposta no canto (destaque vai para
+ * especialidade e formação/bio, não para o registro profissional, que fica
+ * discreto no rodapé do card quando exibido).
+ *
+ * Proporção 4:5 (retrato) em vez de 4:3 (paisagem): fotos de profissionais
+ * enviadas pelo painel são majoritariamente retrato/quadradas (selfies,
+ * fotos de perfil), então um crop paisagem cortava boa parte da foto.
+ * object-top prioriza o topo do enquadramento (onde o rosto normalmente
+ * está) quando ainda assim há corte horizontal.
  */
 export function FeaturedProfessionalCard({ professional: prof }: { professional: FeaturedProfessionalData }) {
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-3xl border border-border/80 bg-card shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)]">
-      <div className="relative aspect-[4/3] w-full bg-card-elevated">
+      <div className="relative aspect-[4/5] w-full bg-card-elevated">
         {prof.avatarUrl ? (
           <Image
             src={prof.avatarUrl}
             alt={prof.fullName}
             fill
             sizes="(max-width: 768px) 100vw, 33vw"
-            className="object-cover"
+            className="object-cover object-top"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-card-elevated to-primary/10">

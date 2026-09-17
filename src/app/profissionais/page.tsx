@@ -10,6 +10,10 @@ import { FeaturedProfessionalCard } from "@/components/public/FeaturedProfession
 import { SITE_URL } from "@/lib/site-url";
 import { safeJsonLd } from "@/lib/json-ld";
 
+// Bound do Cache-Control (s-maxage) para a CDN em frente ao site não segurar
+// HTML velho por até 1 ano — ver comentário completo em src/app/page.tsx.
+export const revalidate = 60;
+
 export const metadata = {
   title: "Corpo Clínico — Espaço Zoe",
   description: "Conheça os profissionais especialistas do Espaço Zoe: qualificações, especialidades atendidas e horários disponíveis para você agendar seu atendimento hoje mesmo.",

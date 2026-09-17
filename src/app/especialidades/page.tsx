@@ -15,6 +15,10 @@ import { SITE_URL } from "@/lib/site-url";
 import { buildEntitySlug } from "@/lib/slug";
 import { safeJsonLd } from "@/lib/json-ld";
 
+// Bound do Cache-Control (s-maxage) para a CDN em frente ao site não segurar
+// HTML velho por até 1 ano — ver comentário completo em src/app/page.tsx.
+export const revalidate = 60;
+
 export const metadata = {
   title: "Especialidades Terapêuticas — Espaço Zoe",
   description: "Conheça todas as especialidades médicas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada atendimento.",

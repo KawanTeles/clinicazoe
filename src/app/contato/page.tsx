@@ -15,6 +15,10 @@ import { SITE_URL } from "@/lib/site-url";
 import { WEEKDAY_LABELS } from "@/modules/settings/utils/form-state";
 import { safeJsonLd } from "@/lib/json-ld";
 
+// Bound do Cache-Control (s-maxage) para a CDN em frente ao site não segurar
+// HTML velho por até 1 ano — ver comentário completo em src/app/page.tsx.
+export const revalidate = 60;
+
 export const metadata = {
   title: "Contato e Localização",
   description: "Fale com o Espaço Zoe pelo telefone, WhatsApp ou presencialmente. Veja endereço, horários de funcionamento e agende seu atendimento com poucos cliques.",

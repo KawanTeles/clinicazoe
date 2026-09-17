@@ -13,6 +13,10 @@ import { CTA_PRIMARY } from "@/lib/cta-labels";
 import { SITE_URL } from "@/lib/site-url";
 import { safeJsonLd } from "@/lib/json-ld";
 
+// Bound do Cache-Control (s-maxage) para a CDN em frente ao site não segurar
+// HTML velho por até 1 ano — ver comentário completo em src/app/page.tsx.
+export const revalidate = 60;
+
 // Fallback enquanto não há fotos cadastradas em Configurações → Galeria —
 // sem imageUrl, o PhotoCarousel renderiza o placeholder "Foto em breve".
 const CLINICA_GALLERY_PLACEHOLDER_SLIDES: PhotoCarouselSlide[] = [
