@@ -17,6 +17,14 @@ export async function getCurrentUser() {
 
   if (!profile) return null;
 
+  // "Desativar" (setUserStatus/setPatientStatus, status = 'inactive') só
+  // tirava a pessoa de listas e do site público — sem checagem aqui, a
+  // sessão dela continuava funcionando normalmente, contradizendo o aviso
+  // já mostrado na UI ("perde acesso ao sistema imediatamente"). Sem
+  // middleware.ts no projeto, este é o único funil de autenticação (painel
+  // admin e área do cliente), então basta bloquear aqui.
+  if (profile.status !== "active") return null;
+
   return { user, profile };
 }
 

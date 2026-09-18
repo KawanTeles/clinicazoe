@@ -27,10 +27,12 @@ export default async function EvolutionsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  // Evolução do Paciente é prontuário clínico: acesso exclusivo do
-  // profissional responsável (sigilo profissional / LGPD). A RLS de
-  // patient_evolutions já restringe searchEvolutions() às evoluções do
-  // próprio profissional mesmo que ele filtre por outro nome.
+  // Evolução do Paciente é prontuário clínico: acesso exclusivo de
+  // profissionais (sigilo profissional / LGPD, admin nunca vê). Desde a
+  // Etapa 69 a RLS de patient_evolutions libera qualquer paciente vinculado
+  // ao profissional logado — filtrar por outro profissional aqui mostra o
+  // histórico completo daquele paciente (todos que o atenderam), não só o
+  // que esse profissional específico escreveu.
   const session = await getCurrentUser();
   if (!session || session.profile.role !== "profissional") redirect("/dashboard");
 

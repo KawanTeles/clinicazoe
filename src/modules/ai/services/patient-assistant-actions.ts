@@ -72,9 +72,17 @@ export async function askPatientAssistant(input: {
   const patient = await getPatientDetail(input.patientId);
   if (!patient) return { error: "Paciente não encontrado ou sem acesso." };
 
-  const evolutions = await getEvolutionsForPatient(input.patientId);
+  // getEvolutionsForPatient() enxerga o histórico inteiro do paciente desde
+  // a Etapa 69 (não só quem escreveu) — o Assistente do Prontuário continua
+  // restrito ao que o próprio profissional logado escreveu, de propósito
+  // (mesmo critério de reports-actions.ts: misturar texto clínico de outro
+  // profissional numa resposta de IA é decisão maior que só "ver o
+  // histórico", fora do escopo pedido).
+  const evolutions = (await getEvolutionsForPatient(input.patientId)).filter(
+    (e) => e.professionalId === session.user.id,
+  );
   if (evolutions.length === 0) {
-    return { error: "Este paciente ainda não tem evoluções registradas para consultar." };
+    return { error: "Você ainda não tem evoluções registradas para este paciente." };
   }
 
   const { error: configError, config } = await getActiveAIConfig();

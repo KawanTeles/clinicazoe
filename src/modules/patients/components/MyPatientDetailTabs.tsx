@@ -107,6 +107,7 @@ export function MyPatientDetailTabs({
             patientId={patient.id}
             initialEvolutions={evolutions}
             initialTotalPages={evolutionsTotalPages}
+            canAddAddendum
           />
         </div>
       )}

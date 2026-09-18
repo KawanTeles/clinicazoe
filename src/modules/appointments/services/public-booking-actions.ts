@@ -167,7 +167,9 @@ export async function createPublicAppointment(
   const { data: appointment, error } = await admin.rpc("book_appointment", {
     p_patient_id: patientId,
     p_professional_id: input.professionalId,
-    p_specialty_id: input.specialtyId,
+    // Ver comentário equivalente em createAppointment (booking-actions.ts):
+    // "" não é uuid válido (professional sem especialidade cadastrada).
+    p_specialty_id: input.specialtyId || null,
     p_insurance_id: input.insuranceId,
     p_schedule_slot_id: input.scheduleSlotId,
     p_appointment_date: input.date,

@@ -4,6 +4,13 @@ import type { Database } from "@/lib/supabase/types";
 type EvolutionRow = Database["public"]["Tables"]["patient_evolutions"]["Row"];
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
+export interface EvolutionAddendumView {
+  id: string;
+  content: string;
+  professionalNameSnapshot: string;
+  createdAt: string;
+}
+
 export interface EvolutionView {
   id: string;
   appointmentId: string;
@@ -27,11 +34,20 @@ export interface EvolutionView {
   updatedAt: string;
   updatedByName: string | null;
   wasEdited: boolean;
+  /** Assinatura: nome do profissional gravado como cópia imutável no
+   * momento do registro (trigger, nunca vindo do client) — ao contrário de
+   * `professionalName` (join ao vivo em profiles), não muda se o cadastro
+   * do profissional mudar depois, e continua correto mesmo que ele seja
+   * desativado. Use este campo para exibir "Assinado por X em Y", nunca
+   * `professionalName`. */
+  professionalNameSnapshot: string;
+  addenda: EvolutionAddendumView[];
 }
 
 async function denormalize(supabase: Supabase, rows: EvolutionRow[]): Promise<EvolutionView[]> {
   if (rows.length === 0) return [];
 
+  const evolutionIds = rows.map((r) => r.id);
   const appointmentIds = Array.from(new Set(rows.map((r) => r.appointment_id)));
   const specialtyIds = Array.from(
     new Set(rows.map((r) => r.specialty_id).filter((id): id is string => Boolean(id))),
@@ -44,17 +60,34 @@ async function denormalize(supabase: Supabase, rows: EvolutionRow[]): Promise<Ev
     ),
   );
 
-  const [{ data: appointments }, { data: people }, { data: specialties }] = await Promise.all([
+  const [{ data: appointments }, { data: people }, { data: specialties }, { data: addendaRows }] = await Promise.all([
     supabase.from("appointments").select("id, appointment_date, start_time").in("id", appointmentIds),
     supabase.from("profiles").select("id, full_name").in("id", peopleIds),
     specialtyIds.length > 0
       ? supabase.from("specialties").select("id, name").in("id", specialtyIds)
       : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+    supabase
+      .from("patient_evolution_addenda")
+      .select("id, evolution_id, content, professional_name_snapshot, created_at")
+      .in("evolution_id", evolutionIds)
+      .order("created_at", { ascending: true }),
   ]);
 
   const appointmentById = new Map((appointments ?? []).map((a) => [a.id, a]));
   const nameById = new Map((people ?? []).map((p) => [p.id, p.full_name]));
   const specialtyNameById = new Map((specialties ?? []).map((s) => [s.id, s.name]));
+
+  const addendaByEvolutionId = new Map<string, EvolutionAddendumView[]>();
+  for (const addendum of addendaRows ?? []) {
+    const list = addendaByEvolutionId.get(addendum.evolution_id) ?? [];
+    list.push({
+      id: addendum.id,
+      content: addendum.content,
+      professionalNameSnapshot: addendum.professional_name_snapshot,
+      createdAt: addendum.created_at,
+    });
+    addendaByEvolutionId.set(addendum.evolution_id, list);
+  }
 
   return rows.map((row): EvolutionView => {
     const appointment = appointmentById.get(row.appointment_id);
@@ -81,6 +114,8 @@ async function denormalize(supabase: Supabase, rows: EvolutionRow[]): Promise<Ev
       updatedAt: row.updated_at,
       updatedByName: row.updated_by ? nameById.get(row.updated_by) ?? null : null,
       wasEdited: row.updated_at !== row.created_at,
+      professionalNameSnapshot: row.professional_name_snapshot,
+      addenda: addendaByEvolutionId.get(row.id) ?? [],
     };
   });
 }
@@ -99,13 +134,18 @@ export async function getEvolutionForAppointment(appointmentId: string): Promise
   return view ?? null;
 }
 
-/** Busca cronológica completa (sem paginação) de um paciente. A RLS já
- * resolve o escopo: desde a migration 0031 (sigilo profissional/LGPD) só o
- * profissional que escreveu a evolução a enxerga — admin não vê conteúdo
- * clínico algum, nem por aqui. Usada só internamente pelo pipeline de IA
- * (geração de relatório/assistente), que precisa do histórico completo do
- * paciente para filtrar por período; a timeline exibida na ficha do
- * paciente usa `getEvolutionsForPatientPage`, que é paginada. */
+/** Busca cronológica completa (sem paginação) de um paciente. A RLS resolve
+ * o escopo de LEITURA: desde a Etapa 69, qualquer profissional vinculado ao
+ * paciente (não só quem escreveu) enxerga o histórico inteiro — admin
+ * continua sem ver conteúdo clínico algum (sigilo profissional/LGPD,
+ * migration 0031), nem por aqui. Usada internamente pelo pipeline de IA
+ * (geração de relatório/assistente) — que, à parte da RLS, filtra
+ * explicitamente por `professionalId === session.user.id` antes de mandar
+ * pra IA (ver reports-actions.ts/patient-assistant-actions.ts): decisão de
+ * produto separada de "ver o histórico", gerar/responder com IA continua
+ * restrito ao que o próprio profissional logado escreveu. A timeline
+ * exibida na ficha do paciente usa `getEvolutionsForPatientPage`, que é
+ * paginada. */
 export async function getEvolutionsForPatient(patientId: string): Promise<EvolutionView[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -205,9 +245,11 @@ export interface EvolutionSearchParams {
 
 /** Busca global (paciente, profissional, especialidade, período). Usada pela
  * tela /evolutions, restrita a profissional na própria página (admin não
- * tem acesso a conteúdo clínico desde a 0031) — aqui a RLS reforça de novo
- * que cada profissional só enxergaria as próprias evoluções mesmo se
- * chamasse isso com outro filtro. */
+ * tem acesso a conteúdo clínico desde a 0031). Desde a Etapa 69 a RLS libera
+ * qualquer evolução de paciente vinculado ao profissional logado, não só as
+ * que ele mesmo escreveu — filtrar por `professionalId` de outra pessoa
+ * aqui mostra o histórico completo daquele paciente (as evoluções de todos
+ * que o atenderam), não só o que esse profissional específico escreveu. */
 export async function searchEvolutions(
   params: EvolutionSearchParams,
 ): Promise<{ items: EvolutionView[]; totalPages: number }> {

@@ -59,7 +59,14 @@ export async function listEvolutionsForReport(
   const allowed = await can(session.profile.role, "ai.reports.use");
   if (!allowed) return [];
 
-  const evolutions = await getEvolutionsForPatient(patientId);
+  // getEvolutionsForPatient() enxerga o paciente inteiro desde a Etapa 69
+  // (histórico completo, não só quem escreveu) — Relatório IA continua
+  // restrito ao que o PRÓPRIO profissional logado escreveu, de propósito:
+  // gerar um relatório de IA misturando texto clínico de outro profissional
+  // é uma decisão maior que só "ver o histórico", fora do escopo pedido.
+  const evolutions = (await getEvolutionsForPatient(patientId)).filter(
+    (e) => e.professionalId === session.user.id,
+  );
   const filtered = evolutions.filter((e) => {
     if (!periodStart && !periodEnd) return true;
     if (!e.appointmentDate) return false;
@@ -135,8 +142,12 @@ export async function generateAIReport(input: {
     .maybeSingle();
   if (!patient) return { error: "Paciente não encontrado." };
 
-  // getEvolutionsForPatient já é restrita pela RLS às evoluções do próprio profissional.
-  const allEvolutions = await getEvolutionsForPatient(input.patientId);
+  // getEvolutionsForPatient() já não é mais restrita a quem escreveu (Etapa
+  // 69) — filtro explícito aqui mantém o Relatório IA usando só o que o
+  // próprio profissional logado escreveu, ver listEvolutionsForReport acima.
+  const allEvolutions = (await getEvolutionsForPatient(input.patientId)).filter(
+    (e) => e.professionalId === session.user.id,
+  );
   const selected = allEvolutions.filter((e) => input.evolutionIds.includes(e.id));
   if (selected.length === 0) {
     return { error: "Nenhuma evolução válida foi selecionada." };

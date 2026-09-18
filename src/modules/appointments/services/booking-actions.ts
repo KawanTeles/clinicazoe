@@ -127,7 +127,12 @@ export async function createAppointment(
   const { data: appointment, error } = await supabase.rpc("book_appointment", {
     p_patient_id: session.user.id,
     p_professional_id: input.professionalId,
-    p_specialty_id: input.specialtyId,
+    // "" (professional sem especialidade cadastrada, "?? \"\"" no client pra
+    // satisfazer o <select>) não é um uuid válido — o Postgres rejeita com
+    // 22P02 antes de chegar na checagem de horário/capacidade, e isso cai no
+    // catch genérico abaixo ("Não foi possível criar o agendamento"), sem
+    // pista nenhuma da causa real. specialty_id é nullable no schema.
+    p_specialty_id: input.specialtyId || null,
     p_insurance_id: input.insuranceId,
     p_schedule_slot_id: input.scheduleSlotId,
     p_appointment_date: input.date,
@@ -705,7 +710,9 @@ export async function createAppointmentForPatient(
   const { data: appointment, error } = await admin.rpc("book_appointment", {
     p_patient_id: input.patientId,
     p_professional_id: input.professionalId,
-    p_specialty_id: input.specialtyId,
+    // Ver comentário equivalente em createAppointment, acima: "" não é uuid
+    // válido (professional sem especialidade cadastrada).
+    p_specialty_id: input.specialtyId || null,
     p_insurance_id: input.insuranceId,
     p_schedule_slot_id: input.scheduleSlotId,
     p_appointment_date: input.date,

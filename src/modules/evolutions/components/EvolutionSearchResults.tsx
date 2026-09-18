@@ -3,12 +3,17 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { EvolutionDetailModal } from "@/modules/evolutions/components/EvolutionDetailModal";
+import type { EvolutionAddendumResult } from "@/modules/evolutions/services/evolution-actions";
 import type { EvolutionView } from "@/modules/evolutions/services/evolution-queries";
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 
 export function EvolutionSearchResults({ items }: { items: EvolutionView[] }) {
   const [selected, setSelected] = useState<EvolutionView | null>(null);
+
+  function handleAddendumSaved(addendum: EvolutionAddendumResult) {
+    setSelected((prev) => (prev ? { ...prev, addenda: [...prev.addenda, addendum] } : prev));
+  }
 
   if (items.length === 0) {
     return (
@@ -42,7 +47,7 @@ export function EvolutionSearchResults({ items }: { items: EvolutionView[] }) {
                 )}
               </td>
               <td className="px-5 py-4 font-semibold text-text-primary">{evolution.patientName}</td>
-              <td className="px-5 py-4 text-text-secondary">{evolution.professionalName}</td>
+              <td className="px-5 py-4 text-text-secondary">{evolution.professionalNameSnapshot}</td>
               <td className="px-5 py-4 text-text-secondary">{evolution.specialtyName ?? "—"}</td>
               <td className="px-5 py-4 text-right">
                 <Button size="sm" variant="secondary" onClick={() => setSelected(evolution)}>
@@ -54,7 +59,12 @@ export function EvolutionSearchResults({ items }: { items: EvolutionView[] }) {
         </tbody>
       </table>
 
-      <EvolutionDetailModal evolution={selected} onClose={() => setSelected(null)} />
+      <EvolutionDetailModal
+        evolution={selected}
+        onClose={() => setSelected(null)}
+        canAddAddendum
+        onAddendumSaved={handleAddendumSaved}
+      />
     </div>
   );
 }

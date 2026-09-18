@@ -134,45 +134,78 @@ export async function createEvolution(
   return { error: null, id: created.id };
 }
 
-/** Edita uma evolução já existente. Só quem criou pode editar — reforçado
- * também pela RLS (patient_evolutions_update_own). Admin nunca chega aqui
- * pela UI, e mesmo que chamasse, a RLS bloqueia o update no banco. */
-export async function updateEvolution(
-  id: string,
-  input: EvolutionContentInput,
-): Promise<{ error: string | null }> {
+/** Evolução assinada é imutável (RLS não tem mais policy de UPDATE desde a
+ * Etapa 69) — corrigir ou acrescentar informação depois de salva é sempre
+ * uma complementação/adendo, novo registro vinculado à evolução original,
+ * nunca uma sobrescrita. Qualquer profissional vinculado ao paciente da
+ * evolução (não só o autor original) pode complementar — mesmo critério de
+ * leitura da Etapa 69, para dar continuidade quando um profissional assume
+ * os pacientes de outro. */
+export interface EvolutionAddendumResult {
+  id: string;
+  content: string;
+  professionalNameSnapshot: string;
+  createdAt: string;
+}
+
+export async function addEvolutionAddendum(
+  evolutionId: string,
+  content: string,
+): Promise<{ error: string | null; addendum?: EvolutionAddendumResult }> {
   const session = await requireProfessional();
 
-  if (!input.clinical_evolution.trim()) {
-    return { error: "Descreva a evolução clínica do paciente." };
+  const rateLimit = checkRateLimit(`add-evolution-addendum:${session.user.id}`, 30, 60_000);
+  if (!rateLimit.allowed) {
+    return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente de novo.` };
   }
+
+  const trimmed = content.trim();
+  if (!trimmed) return { error: "Descreva a complementação." };
 
   const supabase = await createClient();
 
-  const { data: existing } = await supabase
+  // A RLS de patient_evolutions (patient_evolutions_select_linked_patient)
+  // já garante que esse select só retorna algo se o profissional estiver
+  // vinculado ao paciente — sem linha aqui, ele não pode complementar.
+  const { data: evolution } = await supabase
     .from("patient_evolutions")
-    .select("id, professional_id, appointment_id, patient_id")
-    .eq("id", id)
+    .select("id, patient_id")
+    .eq("id", evolutionId)
     .maybeSingle();
 
-  if (!existing) return { error: "Evolução não encontrada." };
-  if (existing.professional_id !== session.user.id) {
-    return { error: "Você só pode editar as evoluções que você mesmo criou." };
-  }
+  if (!evolution) return { error: "Evolução não encontrada." };
 
-  const { error } = await supabase.from("patient_evolutions").update(cleanContent(input)).eq("id", id);
+  const { data: created, error } = await supabase
+    .from("patient_evolution_addenda")
+    .insert({
+      evolution_id: evolutionId,
+      patient_id: evolution.patient_id,
+      professional_id: session.user.id,
+      content: trimmed,
+      created_by: session.user.id,
+    })
+    .select("id, content, professional_name_snapshot, created_at")
+    .single();
 
-  if (error) return { error: "Não foi possível salvar as alterações." };
+  if (error) return { error: "Não foi possível salvar a complementação." };
 
   await logAudit({
     actorId: session.user.id,
-    action: "evolution.updated",
-    entity: "patient_evolutions",
-    entityId: id,
-    metadata: { appointment_id: existing.appointment_id, patient_id: existing.patient_id },
+    action: "evolution.addendum_created",
+    entity: "patient_evolution_addenda",
+    entityId: created.id,
+    metadata: { evolution_id: evolutionId, patient_id: evolution.patient_id },
   });
 
-  return { error: null };
+  return {
+    error: null,
+    addendum: {
+      id: created.id,
+      content: created.content,
+      professionalNameSnapshot: created.professional_name_snapshot,
+      createdAt: created.created_at,
+    },
+  };
 }
 
 /** Carrega o histórico de versões anteriores de uma evolução editada,

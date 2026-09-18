@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import { loadEvolutionVersions } from "@/modules/evolutions/services/evolution-actions";
+import { AddendumForm, SignatureLine } from "@/modules/evolutions/components/AddendumForm";
+import { loadEvolutionVersions, type EvolutionAddendumResult } from "@/modules/evolutions/services/evolution-actions";
 import type { EvolutionVersionView, EvolutionView } from "@/modules/evolutions/services/evolution-queries";
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
@@ -25,16 +26,25 @@ const SECTIONS: { key: keyof EvolutionView & keyof EvolutionVersionView; label: 
 export function EvolutionDetailModal({
   evolution,
   onClose,
+  canAddAddendum = false,
+  onAddendumSaved,
 }: {
   evolution: EvolutionView | null;
   onClose: () => void;
+  /** Só true quando o profissional atual está vinculado ao paciente desta
+   * evolução (mesmo critério de leitura, Etapa 69) — não depende de ter
+   * sido o autor original. */
+  canAddAddendum?: boolean;
+  onAddendumSaved?: (addendum: EvolutionAddendumResult) => void;
 }) {
   const [versions, setVersions] = useState<EvolutionVersionView[] | null>(null);
   const [loadingVersions, setLoadingVersions] = useState(false);
+  const [showAddendumForm, setShowAddendumForm] = useState(false);
 
   useEffect(() => {
     setVersions(null);
     setLoadingVersions(false);
+    setShowAddendumForm(false);
   }, [evolution?.id]);
 
   async function handleLoadHistory() {
@@ -84,7 +94,7 @@ export function EvolutionDetailModal({
                 label="Hora"
                 value={evolution.appointmentStartTime ? evolution.appointmentStartTime.slice(0, 5) : "—"}
               />
-              <MetaField label="Profissional" value={evolution.professionalName} />
+              <MetaField label="Profissional" value={evolution.professionalNameSnapshot} />
               <MetaField label="Especialidade" value={evolution.specialtyName ?? "—"} />
             </div>
 
@@ -99,16 +109,42 @@ export function EvolutionDetailModal({
               );
             })}
 
-            <div className="border-t border-border/60 pt-3 text-xs text-text-muted">
-              Criado por {evolution.createdByName ?? "—"} em {dateTimeFormatter.format(new Date(evolution.createdAt))}
-              {evolution.wasEdited && evolution.updatedByName && (
-                <>
-                  {" "}
-                  · Última edição por {evolution.updatedByName} em{" "}
-                  {dateTimeFormatter.format(new Date(evolution.updatedAt))}
-                </>
-              )}
+            <div className="border-t border-border/60 pt-3">
+              <SignatureLine name={evolution.professionalNameSnapshot} at={evolution.createdAt} />
             </div>
+
+            {evolution.addenda.length > 0 && (
+              <div className="flex flex-col gap-3 border-t border-border/60 pt-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">Complementações</p>
+                {evolution.addenda.map((addendum) => (
+                  <div key={addendum.id} className="rounded-xl border border-border bg-card-elevated/50 p-4">
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-text-primary">{addendum.content}</p>
+                    <div className="mt-2">
+                      <SignatureLine name={addendum.professionalNameSnapshot} at={addendum.createdAt} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {canAddAddendum && (
+              <div className="border-t border-border/60 pt-3 print:hidden">
+                {showAddendumForm ? (
+                  <AddendumForm
+                    evolutionId={evolution.id}
+                    onCancel={() => setShowAddendumForm(false)}
+                    onSaved={(addendum) => {
+                      setShowAddendumForm(false);
+                      onAddendumSaved?.(addendum);
+                    }}
+                  />
+                ) : (
+                  <Button size="sm" variant="secondary" onClick={() => setShowAddendumForm(true)}>
+                    Adicionar complementação
+                  </Button>
+                )}
+              </div>
+            )}
 
             {evolution.wasEdited && (
               <div className="border-t border-border/60 pt-3 print:hidden">

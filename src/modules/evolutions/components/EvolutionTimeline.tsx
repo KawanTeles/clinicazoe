@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EvolutionDetailModal } from "@/modules/evolutions/components/EvolutionDetailModal";
-import { loadMoreEvolutionsForPatient } from "@/modules/evolutions/services/evolution-actions";
+import { loadMoreEvolutionsForPatient, type EvolutionAddendumResult } from "@/modules/evolutions/services/evolution-actions";
 import type { EvolutionView } from "@/modules/evolutions/services/evolution-queries";
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
@@ -15,13 +15,23 @@ interface EvolutionTimelineProps {
   initialEvolutions: EvolutionView[];
   /** Total de páginas disponíveis para esse paciente, calculado no servidor. */
   initialTotalPages: number;
+  /** Só true na ficha do profissional (/my-patients/[id]) — admin nunca vê
+   * conteúdo clínico (sigilo profissional/LGPD, Etapa 31), então nunca
+   * complementa evolução. A RLS de patient_evolution_addenda reforça o
+   * mesmo critério de vínculo ao paciente independente desta prop. */
+  canAddAddendum?: boolean;
 }
 
 /** Linha do tempo cronológica de evoluções de um paciente — usada tanto na
  * ficha do profissional (/my-patients/[id]) quanto na aba "Histórico
  * Clínico" do admin (/patients/[id]). Paginada (20 por vez, mesmo padrão de
  * `searchEvolutions`) para não carregar anos de histórico de uma vez. */
-export function EvolutionTimeline({ patientId, initialEvolutions, initialTotalPages }: EvolutionTimelineProps) {
+export function EvolutionTimeline({
+  patientId,
+  initialEvolutions,
+  initialTotalPages,
+  canAddAddendum = false,
+}: EvolutionTimelineProps) {
   const [selected, setSelected] = useState<EvolutionView | null>(null);
   const [evolutions, setEvolutions] = useState(initialEvolutions);
   const [page, setPage] = useState(1);
@@ -36,6 +46,17 @@ export function EvolutionTimeline({ patientId, initialEvolutions, initialTotalPa
     setTotalPages(result.totalPages);
     setPage(nextPage);
     setLoadingMore(false);
+  }
+
+  // `evolutions`/`selected` são cópias locais (carregadas uma vez + páginas
+  // seguintes via "Carregar mais") — diferente de EvolutionPanel, que usa o
+  // prop `evolution` direto, um router.refresh() aqui não atualiza sozinho,
+  // então o adendo recém-criado precisa ser inserido manualmente nos dois.
+  function handleAddendumSaved(evolutionId: string, addendum: EvolutionAddendumResult) {
+    setEvolutions((prev) =>
+      prev.map((evo) => (evo.id === evolutionId ? { ...evo, addenda: [...evo.addenda, addendum] } : evo)),
+    );
+    setSelected((prev) => (prev && prev.id === evolutionId ? { ...prev, addenda: [...prev.addenda, addendum] } : prev));
   }
 
   if (evolutions.length === 0) {
@@ -63,7 +84,7 @@ export function EvolutionTimeline({ patientId, initialEvolutions, initialTotalPa
                 )}
               </p>
               <p className="mt-0.5 text-xs text-text-secondary">
-                {evolution.professionalName}
+                {evolution.professionalNameSnapshot}
                 {evolution.specialtyName && ` · ${evolution.specialtyName}`}
               </p>
             </div>
@@ -94,7 +115,12 @@ export function EvolutionTimeline({ patientId, initialEvolutions, initialTotalPa
         </div>
       )}
 
-      <EvolutionDetailModal evolution={selected} onClose={() => setSelected(null)} />
+      <EvolutionDetailModal
+        evolution={selected}
+        onClose={() => setSelected(null)}
+        canAddAddendum={canAddAddendum}
+        onAddendumSaved={(addendum) => selected && handleAddendumSaved(selected.id, addendum)}
+      />
     </div>
   );
 }

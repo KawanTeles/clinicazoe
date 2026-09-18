@@ -79,7 +79,7 @@ export default async function TeamPage({
         </Button>
       </form>
 
-      <TeamTable members={pageItems} />
+      <TeamTable members={pageItems} currentUserId={session.user.id} />
       <Pagination page={page} totalPages={totalPages} basePath="/team" searchParams={{ q, role }} />
     </div>
   );

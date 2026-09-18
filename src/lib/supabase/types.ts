@@ -967,6 +967,7 @@ export interface Database {
           patient_response: string | null;
           home_guidance: string | null;
           observations: string | null;
+          professional_name_snapshot: string;
           created_by: string;
           updated_by: string | null;
           created_at: string;
@@ -985,6 +986,7 @@ export interface Database {
           patient_response?: string | null;
           home_guidance?: string | null;
           observations?: string | null;
+          professional_name_snapshot?: string;
           created_by: string;
           updated_by?: string | null;
           created_at?: string;
@@ -1003,10 +1005,44 @@ export interface Database {
           patient_response?: string | null;
           home_guidance?: string | null;
           observations?: string | null;
+          professional_name_snapshot?: string;
           created_by?: string;
           updated_by?: string | null;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      patient_evolution_addenda: {
+        Row: {
+          id: string;
+          evolution_id: string;
+          patient_id: string;
+          professional_id: string;
+          professional_name_snapshot: string;
+          content: string;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          evolution_id: string;
+          patient_id: string;
+          professional_id: string;
+          professional_name_snapshot?: string;
+          content: string;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          evolution_id?: string;
+          patient_id?: string;
+          professional_id?: string;
+          professional_name_snapshot?: string;
+          content?: string;
+          created_by?: string;
+          created_at?: string;
         };
         Relationships: [];
       };

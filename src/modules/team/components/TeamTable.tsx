@@ -4,10 +4,11 @@ import { Badge } from "@/components/ui/Badge";
 import { ROLE_LABELS } from "@/lib/navigation";
 import type { Database } from "@/lib/supabase/types";
 import { DeleteMemberButton } from "./DeleteMemberButton";
+import { ToggleMemberStatusButton } from "./ToggleMemberStatusButton";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"] & { avatarUrl: string | null };
 
-export function TeamTable({ members }: { members: Profile[] }) {
+export function TeamTable({ members, currentUserId }: { members: Profile[]; currentUserId: string }) {
   if (members.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center text-sm font-medium text-text-secondary">
@@ -56,6 +57,12 @@ export function TeamTable({ members }: { members: Profile[] }) {
                   >
                     Editar
                   </Link>
+                  <ToggleMemberStatusButton
+                    id={member.id}
+                    name={member.full_name || "este usuário"}
+                    status={member.status}
+                    isSelf={member.id === currentUserId}
+                  />
                   <DeleteMemberButton id={member.id} name={member.full_name || "este usuário"} />
                 </div>
               </td>
