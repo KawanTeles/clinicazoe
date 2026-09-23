@@ -97,15 +97,23 @@ export function LoginForm({ signupHref = null, allowGoogle = false }: LoginFormP
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <Input
-          label="Senha"
-          type="password"
-          name="password"
-          autoComplete="current-password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div className="flex flex-col gap-1.5">
+          <Input
+            label="Senha"
+            type="password"
+            name="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Link
+            href={allowGoogle ? "/recuperar-senha?from=cliente" : "/recuperar-senha"}
+            className="self-end text-[11px] font-semibold text-[var(--link)] hover:text-[var(--link-hover)] hover:underline"
+          >
+            Esqueci minha senha
+          </Link>
+        </div>
         {error && <p className="text-sm font-medium text-danger">{error}</p>}
         <Button type="submit" isLoading={loading} disabled={googleLoading} className="w-full font-bold">
           Entrar

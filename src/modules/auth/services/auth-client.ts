@@ -39,3 +39,16 @@ export async function signUpPatient(params: {
     },
   });
 }
+
+export async function requestPasswordReset(email: string) {
+  const supabase = createClient();
+  return supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/auth/reset-password`,
+  });
+}
+
+/** Só funciona com uma sessão de recuperação ativa (ver /auth/reset-password). */
+export async function updatePassword(password: string) {
+  const supabase = createClient();
+  return supabase.auth.updateUser({ password });
+}
