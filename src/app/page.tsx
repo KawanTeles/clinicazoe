@@ -461,7 +461,10 @@ export default async function HomePage() {
                       </svg>
                     </div>
                     <h3 className="text-2xl font-bold text-[var(--primary)] font-heading">Atendimento Humanizado</h3>
-                    <p className="mt-3 text-sm text-text-secondary leading-relaxed max-w-md">
+                    <p className="mt-3 text-sm font-bold text-[var(--primary)] leading-relaxed">
+                      Aqui cada história importa.
+                    </p>
+                    <p className="mt-2 text-sm text-text-secondary leading-relaxed max-w-md">
                       Atendimentos individuais estendidos, sem correria, focados no histórico biológico, estilo de vida e necessidades do paciente. Uma experiência de cuidado pensada em cada detalhe.
                     </p>
                   </div>

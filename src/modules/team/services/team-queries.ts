@@ -33,6 +33,7 @@ export async function getTeamMember(id: string) {
 
   let professional = null;
   let insurances: { insurance_id: string; modality: Modality; value: number; duration_minutes: number | null }[] = [];
+  let specialtyIds: string[] = [];
   if (profile.role === "profissional") {
     const { data } = await supabase.from("professionals").select("*").eq("id", id).single();
     professional = data;
@@ -42,10 +43,16 @@ export async function getTeamMember(id: string) {
       .select("insurance_id, modality, value, duration_minutes")
       .eq("professional_id", id);
     insurances = links ?? [];
+
+    const { data: specialtyLinks } = await supabase
+      .from("professional_specialties")
+      .select("specialty_id")
+      .eq("professional_id", id);
+    specialtyIds = (specialtyLinks ?? []).map((link) => link.specialty_id);
   }
 
   const admin = createAdminClient();
   const { data: authUser } = await admin.auth.admin.getUserById(id);
 
-  return { profile, professional, insurances, email: authUser.user?.email ?? "" };
+  return { profile, professional, insurances, specialtyIds, email: authUser.user?.email ?? "" };
 }

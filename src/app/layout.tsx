@@ -37,11 +37,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(SITE_URL),
     title: {
-      default: `${name} — Medicina de Excelência e Saúde Integrada`,
+      default: `${name} — Cuidado Terapêutico de Excelência e Saúde Integrada`,
       template: `%s | ${name}`,
     },
     description: DESCRIPTION,
-    keywords: ["clínica médica", "agendamento médico", "atendimentos online", "especialistas de saúde", name],
+    keywords: ["clínica terapêutica", "agendamento terapêutico", "atendimentos online", "especialistas de saúde", name],
     authors: [{ name }],
     creator: name,
     publisher: name,
@@ -55,7 +55,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     manifest: "/site.webmanifest?v=2",
     openGraph: {
-      title: `${name} — Medicina de Excelência`,
+      title: `${name} — Cuidado Terapêutico de Excelência`,
       description: DESCRIPTION,
       type: "website",
       locale: "pt_BR",
@@ -72,7 +72,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: `${name} — Medicina de Excelência`,
+      title: `${name} — Cuidado Terapêutico de Excelência`,
       description: DESCRIPTION,
       images: ["/og-image.png"],
     },
@@ -141,7 +141,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     medicalSpecialty: specialtyNames.length > 0 ? specialtyNames : ["GeneralPractice"],
     availableService: {
       "@type": "MedicalProcedure",
-      name: "Atendimentos Médicos Especializados",
+      name: "Atendimentos Terapêuticos Especializados",
     },
     sameAs: [clinic?.instagram_url, clinic?.facebook_url, clinic?.linkedin_url, clinic?.youtube_url].filter(
       (url): url is string => Boolean(url),

@@ -28,17 +28,17 @@ const CLINICA_GALLERY_PLACEHOLDER_SLIDES: PhotoCarouselSlide[] = [
 
 export const metadata = {
   title: "A Clínica — História, Missão e Valores | Espaço Zoe",
-  description: "Conheça a história, missão, visão e valores do Espaço Zoe: atendimento humanizado, ética médica e padrão internacional de qualidade em saúde integrada.",
+  description: "Conheça a história, missão, visão e valores do Espaço Zoe: atendimento humanizado, ética terapêutica e padrão internacional de qualidade em saúde integrada.",
   alternates: { canonical: `${SITE_URL}/clinica` },
   openGraph: {
     title: "A Clínica — História, Missão e Valores | Espaço Zoe",
-    description: "Conheça a história, missão, visão e valores do Espaço Zoe: atendimento humanizado, ética médica e padrão internacional de qualidade em saúde integrada.",
+    description: "Conheça a história, missão, visão e valores do Espaço Zoe: atendimento humanizado, ética terapêutica e padrão internacional de qualidade em saúde integrada.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "A Clínica — História, Missão e Valores | Espaço Zoe",
-    description: "Conheça a história, missão, visão e valores do Espaço Zoe: atendimento humanizado, ética médica e padrão internacional de qualidade em saúde integrada.",
+    description: "Conheça a história, missão, visão e valores do Espaço Zoe: atendimento humanizado, ética terapêutica e padrão internacional de qualidade em saúde integrada.",
   },
 };
 

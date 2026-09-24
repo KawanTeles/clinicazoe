@@ -428,6 +428,24 @@ export interface Database {
         };
         Relationships: [];
       };
+      professional_specialties: {
+        Row: {
+          professional_id: string;
+          specialty_id: string;
+          created_at: string;
+        };
+        Insert: {
+          professional_id: string;
+          specialty_id: string;
+          created_at?: string;
+        };
+        Update: {
+          professional_id?: string;
+          specialty_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       specialties: {
         Row: {
           id: string;

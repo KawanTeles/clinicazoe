@@ -26,7 +26,13 @@ export default async function PatientAgendarPage() {
 
       <Patient8StepBooking
         specialties={specialties}
-        initialProfessionals={professionals}
+        initialProfessionals={professionals.map((p) => ({
+          id: p.id,
+          fullName: p.fullName,
+          specialtyName: p.specialtyNames.join(", "),
+          bio: p.bio,
+          avatarUrl: p.avatarUrl,
+        }))}
         patientProfile={{
           fullName: session.profile.full_name,
           phone: session.profile.phone,

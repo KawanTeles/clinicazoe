@@ -19,17 +19,17 @@ export const revalidate = 60;
 
 export const metadata = {
   title: "Convênios Atendidos — Espaço Zoe",
-  description: "Veja os planos de saúde e convênios médicos aceitos pelo Espaço Zoe, além das condições para atendimento particular com reembolso facilitado.",
+  description: "Veja os planos de saúde e convênios terapêuticos aceitos pelo Espaço Zoe, além das condições para atendimento particular com reembolso facilitado.",
   alternates: { canonical: `${SITE_URL}/convenios` },
   openGraph: {
     title: "Convênios Atendidos — Espaço Zoe",
-    description: "Veja os planos de saúde e convênios médicos aceitos pelo Espaço Zoe, além das condições para atendimento particular com reembolso facilitado.",
+    description: "Veja os planos de saúde e convênios terapêuticos aceitos pelo Espaço Zoe, além das condições para atendimento particular com reembolso facilitado.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Convênios Atendidos — Espaço Zoe",
-    description: "Veja os planos de saúde e convênios médicos aceitos pelo Espaço Zoe, além das condições para atendimento particular com reembolso facilitado.",
+    description: "Veja os planos de saúde e convênios terapêuticos aceitos pelo Espaço Zoe, além das condições para atendimento particular com reembolso facilitado.",
   },
 };
 
@@ -59,7 +59,7 @@ export default async function ConveniosPage() {
                 <PageHero
                   breadcrumbItems={[{ label: "Início", href: "/" }, { label: "Convênios" }]}
                   title="Convênios"
-                  subtitle="Trabalhamos com os principais planos de saúde do país e também atendimento particular com facilidades."
+                  subtitle="Trabalhamos com os principais planos de saúde do país e também atendimento particular."
                 />
               </PageEntranceItem>
             </PageEntrance>

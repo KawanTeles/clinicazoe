@@ -26,7 +26,7 @@ export default async function ProfessionalDetailPage({
   const result = await getActiveProfessional(id);
   if (!result) notFound();
 
-  const { profile, professional, specialtyName, insuranceNames, avatarUrl } = result;
+  const { profile, professional, specialtyNames, insuranceNames, avatarUrl } = result;
   const slots = (await getScheduleForProfessional(id)).filter((slot) => slot.status === "active");
 
   return (
@@ -41,7 +41,9 @@ export default async function ProfessionalDetailPage({
           <div className="flex flex-col gap-3">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-text-primary">{profile.full_name}</h1>
-              {specialtyName && <p className="text-sm font-semibold text-[var(--link)] mt-0.5">{specialtyName}</p>}
+              {specialtyNames.length > 0 && (
+                <p className="text-sm font-semibold text-[var(--link)] mt-0.5">{specialtyNames.join(", ")}</p>
+              )}
             </div>
             {professional?.license_number && (
               <Badge tone="neutral" className="w-fit">

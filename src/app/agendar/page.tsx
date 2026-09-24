@@ -43,7 +43,7 @@ export default async function AgendarPage() {
               initialProfessionals={professionals.map((p) => ({
                 id: p.id,
                 fullName: p.fullName,
-                specialtyName: p.specialtyName,
+                specialtyName: p.specialtyNames.join(", "),
                 bio: p.bio,
                 avatarUrl: p.avatarUrl,
               }))}

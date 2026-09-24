@@ -8,7 +8,7 @@ import { buildEntitySlug } from "@/lib/slug";
 export interface FeaturedProfessionalData {
   id: string;
   fullName: string;
-  specialtyName: string;
+  specialtyNames: string[];
   licenseNumber: string | null;
   bio: string;
   avatarUrl: string | null;
@@ -50,10 +50,12 @@ export function FeaturedProfessionalCard({ professional: prof }: { professional:
             <span className="text-4xl font-black text-primary/30">{initials(prof.fullName)}</span>
           </div>
         )}
-        <div className="absolute top-3 left-3">
-          <Badge tone="premium" className="text-[10px] uppercase tracking-wider shadow-sm backdrop-blur-sm">
-            {prof.specialtyName}
-          </Badge>
+        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+          {prof.specialtyNames.map((name) => (
+            <Badge key={name} tone="premium" className="text-[10px] uppercase tracking-wider shadow-sm backdrop-blur-sm">
+              {name}
+            </Badge>
+          ))}
         </div>
       </div>
 

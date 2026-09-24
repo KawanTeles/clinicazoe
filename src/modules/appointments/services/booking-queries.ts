@@ -116,10 +116,17 @@ export async function getBookableSpecialties(isPublic = false) {
 export async function getBookableInsurances(specialtyId: string, isPublic = false) {
   const supabase = await getBookingClient(isPublic);
 
+  const { data: specialtyLinks } = await supabase
+    .from("professional_specialties")
+    .select("professional_id")
+    .eq("specialty_id", specialtyId);
+  const professionalIdsWithSpecialty = (specialtyLinks ?? []).map((l) => l.professional_id);
+  if (professionalIdsWithSpecialty.length === 0) return [];
+
   const { data: professionals } = await supabase
     .from("professionals")
     .select("id, status")
-    .eq("specialty_id", specialtyId)
+    .in("id", professionalIdsWithSpecialty)
     .eq("status", "active");
 
   if (!professionals || professionals.length === 0) return [];
@@ -162,10 +169,17 @@ export async function getBookableProfessionals(specialtyId: string, insuranceId:
   const particular = await getInsuranceByName(PARTICULAR_INSURANCE_NAME, isPublic);
   const isParticular = particular?.id === insuranceId;
 
+  const { data: specialtyLinks } = await supabase
+    .from("professional_specialties")
+    .select("professional_id")
+    .eq("specialty_id", specialtyId);
+  const professionalIdsWithSpecialty = (specialtyLinks ?? []).map((l) => l.professional_id);
+  if (professionalIdsWithSpecialty.length === 0) return [];
+
   const { data: professionals } = await supabase
     .from("professionals")
     .select("*")
-    .eq("specialty_id", specialtyId)
+    .in("id", professionalIdsWithSpecialty)
     .eq("status", "active");
 
   if (!professionals || professionals.length === 0) return [];
@@ -208,8 +222,8 @@ export async function getBookableProfessionals(specialtyId: string, insuranceId:
 /**
  * Igual a getBookableProfessionals, mas sem filtrar por especialidade — usado
  * no agendamento manual da recepção, onde a especialidade não é uma etapa
- * própria: ela é carregada automaticamente a partir do profissional
- * escolhido (cada profissional tem uma única especialidade).
+ * própria: ela é carregada automaticamente a partir do(s) profissional(is)
+ * escolhido(s) (um profissional pode ter mais de uma especialidade).
  */
 export async function getBookableProfessionalsByInsurance(insuranceId: string) {
   const supabase = await createClient();
@@ -243,29 +257,38 @@ export async function getBookableProfessionalsByInsurance(insuranceId: string) {
   if (filtered.length === 0) return [];
 
   const profileIds = filtered.map((p) => p.id);
-  const specialtyIds = Array.from(
-    new Set(filtered.map((p) => p.specialty_id).filter((id): id is string => Boolean(id))),
-  );
+  const professionalIds = filtered.map((p) => p.id);
 
-  const [{ data: profiles }, { data: specialties }] = await Promise.all([
+  const [{ data: profiles }, { data: specialtyLinks }] = await Promise.all([
     supabase.from("profiles").select("*").in("id", profileIds),
-    specialtyIds.length > 0
-      ? supabase.from("specialties").select("id, name").in("id", specialtyIds)
-      : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+    supabase.from("professional_specialties").select("professional_id, specialty_id").in("professional_id", professionalIds),
   ]);
+
+  const specialtyIds = Array.from(new Set((specialtyLinks ?? []).map((l) => l.specialty_id)));
+  const { data: specialties } =
+    specialtyIds.length > 0
+      ? await supabase.from("specialties").select("id, name").in("id", specialtyIds)
+      : { data: [] as { id: string; name: string }[] };
 
   const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
   const specialtyNameById = new Map((specialties ?? []).map((s) => [s.id, s.name]));
+  const specialtyIdsByProfessional = new Map<string, string[]>();
+  for (const link of specialtyLinks ?? []) {
+    const list = specialtyIdsByProfessional.get(link.professional_id) ?? [];
+    list.push(link.specialty_id);
+    specialtyIdsByProfessional.set(link.professional_id, list);
+  }
 
   return Promise.all(
     filtered.map(async (professional) => {
       const profile = profileById.get(professional.id);
+      const names = (specialtyIdsByProfessional.get(professional.id) ?? [])
+        .map((id) => specialtyNameById.get(id))
+        .filter((name): name is string => Boolean(name));
       return {
         ...professional,
         fullName: profile?.full_name ?? "Profissional",
-        specialtyName: professional.specialty_id
-          ? specialtyNameById.get(professional.specialty_id) ?? "Especialista"
-          : "Especialista",
+        specialtyName: names.length > 0 ? names.join(", ") : "Especialista",
         avatarUrl: profile ? await getAvatarSignedUrl(supabase, profile.avatar_path) : null,
       };
     }),

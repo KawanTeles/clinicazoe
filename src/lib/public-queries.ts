@@ -46,11 +46,21 @@ export async function getPublicWebsiteData() {
   ]);
 
   const profIds = (professionals ?? []).map((p) => p.id);
-  const { data: profiles } = profIds.length > 0
-    ? await admin.from("profiles").select("*").in("id", profIds)
-    : { data: [] };
+  const [{ data: profiles }, { data: specialtyLinks }] = profIds.length > 0
+    ? await Promise.all([
+        admin.from("profiles").select("*").in("id", profIds),
+        admin.from("professional_specialties").select("professional_id, specialty_id").in("professional_id", profIds),
+      ])
+    : [{ data: [] }, { data: [] }];
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+
+  const specialtyIdsByProfessional = new Map<string, string[]>();
+  for (const link of specialtyLinks ?? []) {
+    const list = specialtyIdsByProfessional.get(link.professional_id) ?? [];
+    list.push(link.specialty_id);
+    specialtyIdsByProfessional.set(link.professional_id, list);
+  }
 
   const homeOrderById = new Map((professionals ?? []).map((p) => [p.id, p.home_display_order]));
 
@@ -68,12 +78,15 @@ export async function getPublicWebsiteData() {
         }
 
         const avatarUrl = await getAvatarSignedUrl(admin, profile.avatar_path);
-        const spec = (specialties ?? []).find((s) => s.id === prof.specialty_id);
+        const specialtyIds = specialtyIdsByProfessional.get(prof.id) ?? [];
+        const specialtyNames = (specialties ?? [])
+          .filter((s) => specialtyIds.includes(s.id))
+          .map((s) => s.name);
 
         return {
           id: prof.id,
           fullName: profile.full_name ?? "Profissional de Saúde",
-          specialtyName: spec?.name ?? "Clínica Geral",
+          specialtyNames: specialtyNames.length > 0 ? specialtyNames : ["Clínica Geral"],
           licenseNumber: prof.show_license_publicly && prof.license_number ? prof.license_number : null,
           bio: prof.bio || "Especialista qualificado comprometido com a excelência no atendimento e saúde do paciente.",
           avatarUrl,

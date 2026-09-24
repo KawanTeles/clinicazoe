@@ -25,7 +25,7 @@ export default async function EditTeamMemberPage({
   const result = await getTeamMember(id);
   if (!result) notFound();
 
-  const { profile, professional, insurances: professionalInsurances, email } = result;
+  const { profile, professional, insurances: professionalInsurances, specialtyIds, email } = result;
   const supabase = await createClient();
   const [avatarUrl, specialties, insurances] = await Promise.all([
     getAvatarSignedUrl(supabase, profile.avatar_path),
@@ -60,7 +60,7 @@ export default async function EditTeamMemberPage({
           phone: profile.phone ?? "",
           role: profile.role,
           status: profile.status,
-          specialty_id: professional?.specialty_id ?? "",
+          specialty_ids: specialtyIds,
           license_number: professional?.license_number ?? "",
           show_license_publicly: professional?.show_license_publicly ?? true,
           bio: professional?.bio ?? "",

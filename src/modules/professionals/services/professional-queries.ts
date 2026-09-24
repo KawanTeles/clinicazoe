@@ -20,26 +20,37 @@ export async function getActiveProfessionals() {
     .select("*")
     .in("id", ids);
 
-  const specialtyIds = Array.from(
-    new Set((professionals ?? []).map((p) => p.specialty_id).filter((id): id is string => Boolean(id))),
-  );
+  const { data: specialtyLinks } = await supabase
+    .from("professional_specialties")
+    .select("professional_id, specialty_id")
+    .in("professional_id", ids);
+
+  const specialtyIds = Array.from(new Set((specialtyLinks ?? []).map((l) => l.specialty_id)));
   const { data: specialties } =
     specialtyIds.length > 0
       ? await supabase.from("specialties").select("id, name").in("id", specialtyIds)
       : { data: [] as { id: string; name: string }[] };
   const specialtyNameById = new Map((specialties ?? []).map((s) => [s.id, s.name]));
 
+  const specialtyNamesByProfessional = new Map<string, string[]>();
+  for (const link of specialtyLinks ?? []) {
+    const name = specialtyNameById.get(link.specialty_id);
+    if (!name) continue;
+    const list = specialtyNamesByProfessional.get(link.professional_id) ?? [];
+    list.push(name);
+    specialtyNamesByProfessional.set(link.professional_id, list);
+  }
+
   const professionalById = new Map((professionals ?? []).map((p) => [p.id, p]));
 
   return Promise.all(
     profiles.map(async (profile) => {
       const professional = professionalById.get(profile.id);
+      const names = specialtyNamesByProfessional.get(profile.id) ?? [];
       return {
         ...profile,
         avatarUrl: await getAvatarSignedUrl(supabase, profile.avatar_path),
-        specialtyName: professional?.specialty_id
-          ? specialtyNameById.get(professional.specialty_id) ?? null
-          : null,
+        specialtyName: names.length > 0 ? names.join(", ") : null,
         bio: professional?.bio ?? null,
         licenseNumber: professional?.license_number ?? null,
         agendaColor: professional?.agenda_color ?? "#2F8F83",
@@ -64,18 +75,30 @@ export async function getProfessionalsForHomeFeature() {
   const ids = profiles.map((p) => p.id);
   const { data: professionals } = await supabase
     .from("professionals")
-    .select("id, specialty_id, home_display_order")
+    .select("id, home_display_order")
     .in("id", ids)
     .eq("status", "active");
 
-  const specialtyIds = Array.from(
-    new Set((professionals ?? []).map((p) => p.specialty_id).filter((id): id is string => Boolean(id))),
-  );
+  const { data: specialtyLinks } = await supabase
+    .from("professional_specialties")
+    .select("professional_id, specialty_id")
+    .in("professional_id", ids);
+
+  const specialtyIds = Array.from(new Set((specialtyLinks ?? []).map((l) => l.specialty_id)));
   const { data: specialties } =
     specialtyIds.length > 0
       ? await supabase.from("specialties").select("id, name").in("id", specialtyIds)
       : { data: [] as { id: string; name: string }[] };
   const specialtyNameById = new Map((specialties ?? []).map((s) => [s.id, s.name]));
+
+  const specialtyNamesByProfessional = new Map<string, string[]>();
+  for (const link of specialtyLinks ?? []) {
+    const name = specialtyNameById.get(link.specialty_id);
+    if (!name) continue;
+    const list = specialtyNamesByProfessional.get(link.professional_id) ?? [];
+    list.push(name);
+    specialtyNamesByProfessional.set(link.professional_id, list);
+  }
 
   const professionalById = new Map((professionals ?? []).map((p) => [p.id, p]));
 
@@ -83,10 +106,11 @@ export async function getProfessionalsForHomeFeature() {
     .filter((profile) => professionalById.has(profile.id))
     .map((profile) => {
       const professional = professionalById.get(profile.id)!;
+      const names = specialtyNamesByProfessional.get(profile.id) ?? [];
       return {
         id: profile.id,
         fullName: profile.full_name,
-        specialtyName: professional.specialty_id ? specialtyNameById.get(professional.specialty_id) ?? null : null,
+        specialtyName: names.length > 0 ? names.join(", ") : null,
         homeDisplayOrder: professional.home_display_order,
       };
     });
@@ -111,15 +135,16 @@ export async function getActiveProfessional(id: string) {
     .eq("id", id)
     .single();
 
-  let specialtyName: string | null = null;
-  if (professional?.specialty_id) {
-    const { data: specialty } = await supabase
-      .from("specialties")
-      .select("name")
-      .eq("id", professional.specialty_id)
-      .single();
-    specialtyName = specialty?.name ?? null;
-  }
+  const { data: specialtyLinks } = await supabase
+    .from("professional_specialties")
+    .select("specialty_id")
+    .eq("professional_id", id);
+  const specialtyIds = (specialtyLinks ?? []).map((l) => l.specialty_id);
+  const { data: specialtyRows } =
+    specialtyIds.length > 0
+      ? await supabase.from("specialties").select("name").in("id", specialtyIds)
+      : { data: [] as { name: string }[] };
+  const specialtyNames = (specialtyRows ?? []).map((s) => s.name);
 
   const { data: insuranceLinks } = await supabase
     .from("professional_insurances")
@@ -137,7 +162,7 @@ export async function getActiveProfessional(id: string) {
   return {
     profile,
     professional,
-    specialtyName,
+    specialtyNames,
     insuranceNames: (insurances ?? []).map((i) => i.name),
     avatarUrl,
   };

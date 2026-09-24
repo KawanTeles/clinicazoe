@@ -21,17 +21,17 @@ export const revalidate = 60;
 
 export const metadata = {
   title: "Especialidades Terapêuticas — Espaço Zoe",
-  description: "Conheça todas as especialidades médicas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada atendimento.",
+  description: "Conheça todas as especialidades terapêuticas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada atendimento.",
   alternates: { canonical: `${SITE_URL}/especialidades` },
   openGraph: {
     title: "Especialidades Terapêuticas — Espaço Zoe",
-    description: "Conheça todas as especialidades médicas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada atendimento.",
+    description: "Conheça todas as especialidades terapêuticas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada atendimento.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Especialidades Terapêuticas — Espaço Zoe",
-    description: "Conheça todas as especialidades médicas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada atendimento.",
+    description: "Conheça todas as especialidades terapêuticas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada atendimento.",
   },
 };
 
@@ -89,7 +89,7 @@ export default async function EspecialidadesPage() {
               />
             }
             renderItem={(spec, index) => {
-              const relatedProfs = professionals.filter((p) => p.specialtyName === spec.name);
+              const relatedProfs = professionals.filter((p) => p.specialtyNames.includes(spec.name));
 
               return (
                 <AnimatedCard key={spec.id} delayMs={index * 100} className="p-8 flex flex-col justify-between h-full rounded-3xl">

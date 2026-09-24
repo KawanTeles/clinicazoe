@@ -37,7 +37,7 @@ export interface CreateTeamMemberInput {
   password: string;
   phone: string;
   role: Role;
-  specialty_id?: string;
+  specialty_ids?: string[];
   license_number?: string;
   show_license_publicly?: boolean;
   bio?: string;
@@ -119,9 +119,10 @@ export async function createTeamMember(
   }
 
   if (input.role === "profissional") {
+    const specialtyIds = input.specialty_ids?.filter(Boolean) ?? [];
     const { error: professionalError } = await supabase.from("professionals").insert({
       id: userId,
-      specialty_id: input.specialty_id || null,
+      specialty_id: specialtyIds[0] || null,
       license_number: input.license_number?.trim() || null,
       show_license_publicly: input.show_license_publicly ?? true,
       bio: input.bio?.trim() || null,
@@ -130,6 +131,15 @@ export async function createTeamMember(
     });
     if (professionalError) {
       return { error: "Usuário criado, mas houve falha ao salvar os dados profissionais. Edite o membro para completar." };
+    }
+
+    if (specialtyIds.length > 0) {
+      const { error: specialtiesError } = await supabase.from("professional_specialties").insert(
+        specialtyIds.map((specialtyId) => ({ professional_id: userId, specialty_id: specialtyId })),
+      );
+      if (specialtiesError) {
+        return { error: "Usuário criado, mas houve falha ao salvar as especialidades. Edite o membro para completar." };
+      }
     }
 
     if (input.insurances && input.insurances.length > 0) {
@@ -168,7 +178,7 @@ export interface UpdateTeamMemberInput {
   role: Role;
   status: "active" | "inactive";
   password?: string;
-  specialty_id?: string;
+  specialty_ids?: string[];
   license_number?: string;
   show_license_publicly?: boolean;
   bio?: string;
@@ -210,9 +220,10 @@ export async function updateTeamMember(
   }
 
   if (input.role === "profissional") {
+    const specialtyIds = input.specialty_ids?.filter(Boolean) ?? [];
     await supabase.from("professionals").upsert({
       id: input.id,
-      specialty_id: input.specialty_id || null,
+      specialty_id: specialtyIds[0] || null,
       license_number: input.license_number?.trim() || null,
       show_license_publicly: input.show_license_publicly ?? true,
       bio: input.bio?.trim() || null,
@@ -223,6 +234,13 @@ export async function updateTeamMember(
       // sem isto aqui, desativar um profissional nesta tela não o esconde.
       status: input.status,
     });
+
+    await supabase.from("professional_specialties").delete().eq("professional_id", input.id);
+    if (specialtyIds.length > 0) {
+      await supabase.from("professional_specialties").insert(
+        specialtyIds.map((specialtyId) => ({ professional_id: input.id, specialty_id: specialtyId })),
+      );
+    }
 
     await supabase.from("professional_insurances").delete().eq("professional_id", input.id);
     if (input.insurances && input.insurances.length > 0) {

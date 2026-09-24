@@ -21,7 +21,7 @@ async function findSpecialty(slug: string) {
   if (!spec) return null;
 
   const canonicalSlug = buildEntitySlug(spec.name, spec.id);
-  const relatedProfessionals = professionals.filter((p) => p.specialtyName === spec.name);
+  const relatedProfessionals = professionals.filter((p) => p.specialtyNames.includes(spec.name));
 
   return { spec, canonicalSlug, relatedProfessionals, clinic };
 }
@@ -29,11 +29,11 @@ async function findSpecialty(slug: string) {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const result = await findSpecialty(slug);
-  if (!result) return { title: "Especialidade Médica | Espaço Zoe" };
+  if (!result) return { title: "Especialidade Terapêutica | Espaço Zoe" };
   const { spec, canonicalSlug, clinic } = result;
   const clinicName = clinic.name || "Espaço Zoe";
 
-  const title = `${spec.name} — Especialidade Médica | ${clinicName}`;
+  const title = `${spec.name} — Especialidade Terapêutica | ${clinicName}`;
   const description = `Atendimentos de ${spec.name} na ${clinicName}: diagnóstico preciso, tecnologia moderna e atendimento humanizado com especialistas qualificados. Agende online.`;
 
   return {
@@ -103,7 +103,7 @@ export default async function SpecialtyDetailPage({ params }: { params: Promise<
 
           <PageEntranceItem>
             <div className="space-y-4">
-              <Badge tone="premium">Especialidade Médica</Badge>
+              <Badge tone="premium">Especialidade Terapêutica</Badge>
               <h1 className="tracking-hero text-3xl sm:text-4xl font-black text-text-primary font-heading leading-[1.15]">
                 {spec.name}
               </h1>
@@ -111,7 +111,7 @@ export default async function SpecialtyDetailPage({ params }: { params: Promise<
                 Sobre a especialidade
               </h2>
               <p className="text-sm sm:text-base text-text-secondary leading-relaxed max-w-2xl">
-                A especialidade de {spec.name} na {clinic.name || "Espaço Zoe"} reúne diagnóstico preciso, tecnologia médica moderna e
+                A especialidade de {spec.name} na {clinic.name || "Espaço Zoe"} reúne diagnóstico preciso, tecnologia terapêutica moderna e
                 acompanhamento contínuo, com escuta ativa e cuidado humanizado em cada atendimento.
               </p>
               <p className="text-sm sm:text-base text-text-secondary leading-relaxed max-w-2xl">

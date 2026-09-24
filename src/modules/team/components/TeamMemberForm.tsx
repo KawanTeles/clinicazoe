@@ -46,7 +46,7 @@ interface TeamMemberFormProps {
     phone: string;
     role: Role;
     status: "active" | "inactive";
-    specialty_id: string;
+    specialty_ids: string[];
     license_number: string;
     show_license_publicly: boolean;
     bio: string;
@@ -62,7 +62,7 @@ const DEFAULTS = {
   phone: "",
   role: "profissional" as Role,
   status: "active" as const,
-  specialty_id: "",
+  specialty_ids: [] as string[],
   license_number: "",
   show_license_publicly: true,
   bio: "",
@@ -94,7 +94,11 @@ export function TeamMemberForm({
   const [role, setRole] = useState<Role>(values.role);
   const [status, setStatus] = useState<"active" | "inactive">(values.status);
   const [password, setPassword] = useState("");
-  const [specialtyId, setSpecialtyId] = useState(values.specialty_id);
+  const [specialtyIds, setSpecialtyIds] = useState<string[]>(values.specialty_ids);
+
+  function toggleSpecialty(id: string) {
+    setSpecialtyIds((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
+  }
   const [licenseNumber, setLicenseNumber] = useState(values.license_number);
   const [showLicensePublicly, setShowLicensePublicly] = useState(values.show_license_publicly);
   const [bio, setBio] = useState(values.bio);
@@ -170,7 +174,7 @@ export function TeamMemberForm({
     try {
       let targetId = memberId;
       const professionalFields = {
-        specialty_id: specialtyId || undefined,
+        specialty_ids: specialtyIds,
         license_number: licenseNumber,
         show_license_publicly: showLicensePublicly,
         bio,
@@ -365,21 +369,39 @@ export function TeamMemberForm({
             <span className="text-[10px] font-medium text-text-muted">Atendimento e tabela de valores</span>
           </div>
 
+          {/* Especialidades: seleção múltipla via chips */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+              Especialidades
+            </label>
+            {specialties.length === 0 ? (
+              <span className="text-xs text-text-muted">Nenhuma especialidade cadastrada.</span>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {specialties.map((s) => {
+                  const selected = specialtyIds.includes(s.id);
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => toggleSpecialty(s.id)}
+                      aria-pressed={selected}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        selected
+                          ? "border-primary bg-primary text-white"
+                          : "border-border bg-card-elevated text-text-secondary hover:border-primary/60"
+                      }`}
+                    >
+                      {s.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* 4-Column Compact Grid */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Select
-              label="Especialidade"
-              name="specialty_id"
-              value={specialtyId}
-              onChange={(e) => setSpecialtyId(e.target.value)}
-            >
-              <option value="">Selecione...</option>
-              {specialties.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </Select>
             <div className="flex flex-col gap-1.5">
               <Input
                 label="Registro Profissional"

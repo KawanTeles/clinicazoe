@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { clinic: metaClinic } = await getPublicWebsiteData();
   const clinicName = metaClinic.name || "Espaço Zoe";
 
-  const title = `${prof.fullName} — ${prof.specialtyName} | ${clinicName}`;
+  const title = `${prof.fullName} — ${prof.specialtyNames.join(", ")} | ${clinicName}`;
   const description = prof.bio.length > 160 ? `${prof.bio.slice(0, 157)}...` : prof.bio;
 
   return {
@@ -82,7 +82,7 @@ export default async function ProfissionalDetailPage({ params }: { params: Promi
     "@context": "https://schema.org",
     "@type": "Physician",
     name: prof.fullName,
-    medicalSpecialty: prof.specialtyName,
+    medicalSpecialty: prof.specialtyNames,
     description: prof.bio,
     url: `${SITE_URL}/profissionais/${canonicalSlug}`,
     ...(prof.avatarUrl ? { image: prof.avatarUrl } : {}),
@@ -119,7 +119,11 @@ export default async function ProfissionalDetailPage({ params }: { params: Promi
                 <Avatar src={prof.avatarUrl} name={prof.fullName} size={112} rounded="3xl" className="shadow-xl" />
 
                 <div className="space-y-2 text-center sm:text-left">
-                  <Badge tone="premium">{prof.specialtyName}</Badge>
+                  <div className="flex flex-wrap justify-center gap-1.5 sm:justify-start">
+                    {prof.specialtyNames.map((name) => (
+                      <Badge key={name} tone="premium">{name}</Badge>
+                    ))}
+                  </div>
                   <h1 className="tracking-hero text-2xl sm:text-3xl font-black text-text-primary font-heading">{prof.fullName}</h1>
                   {prof.licenseNumber && <p className="text-xs font-mono text-text-muted">{prof.licenseNumber}</p>}
                 </div>
