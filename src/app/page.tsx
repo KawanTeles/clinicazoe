@@ -20,6 +20,26 @@ import { CTA_PRIMARY, CTA_VIEW_ALL_PROFESSIONALS, CTA_VIEW_ALL_SPECIALTIES } fro
 import { SITE_URL } from "@/lib/site-url";
 import { buildEntitySlug } from "@/lib/slug";
 
+// Foto de capa (hero) via <picture>/<source media> em vez de next/image: com
+// dois <Image priority fill> (mobile + desktop) só diferenciados por classe
+// CSS (lg:hidden), o navegador baixava as DUAS fotos inteiras em qualquer
+// dispositivo (a escondida via display:none não deixa de ser buscada).
+// <picture> resolve isso nativamente — o navegador só busca a fonte que
+// casa com a media query, sem precisar de JS. As URLs continuam passando
+// pelo otimizador de imagem do Next (resize + AVIF/WebP), só que montadas
+// manualmente em vez de via o componente <Image>.
+const FACADE_IMAGE_QUALITY = 75;
+const FACADE_MOBILE_WIDTHS = [640, 750, 828, 1080];
+const FACADE_DESKTOP_WIDTHS = [1200, 1920, 2048];
+
+function nextImageUrl(src: string, width: number) {
+  return `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${FACADE_IMAGE_QUALITY}`;
+}
+
+function buildFacadeSrcSet(src: string, widths: number[]) {
+  return widths.map((width) => `${nextImageUrl(src, width)} ${width}w`).join(", ");
+}
+
 const TITLE = "Espaço Zoe | Desenvolvimento & Saúde Integrada";
 const DESCRIPTION =
   "Referência em atendimento clínico de excelência, corpo clínico renomado, tecnologia de ponta e agendamento 100% online. Marque seu atendimento com o Espaço Zoe.";
@@ -264,24 +284,22 @@ export default async function HomePage() {
             {/* Versão mobile (Configurações → Foto de Capa Mobile) — sem essa
                 foto configurada, cai de volta pra mesma foto do desktop, sem
                 quebrar quem ainda não configurou a versão mobile. */}
-            <Image
-              src={clinic.facade_image_mobile_url || clinic.facade_image_url}
-              alt=""
-              fill
-              sizes="100vw"
-              className="object-cover lg:hidden"
-              unoptimized
-              priority
-            />
-            <Image
-              src={clinic.facade_image_url}
-              alt=""
-              fill
-              sizes="100vw"
-              className="hidden object-cover lg:block"
-              unoptimized
-              priority
-            />
+            <picture>
+              <source
+                media="(min-width: 1024px)"
+                sizes="100vw"
+                srcSet={buildFacadeSrcSet(clinic.facade_image_url, FACADE_DESKTOP_WIDTHS)}
+              />
+              <img
+                src={nextImageUrl(clinic.facade_image_mobile_url || clinic.facade_image_url, 828)}
+                srcSet={buildFacadeSrcSet(clinic.facade_image_mobile_url || clinic.facade_image_url, FACADE_MOBILE_WIDTHS)}
+                sizes="100vw"
+                alt=""
+                fetchPriority="high"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </picture>
             {/* Overlay mobile: sem degradê colorido. No mobile o texto ocupa
                 quase toda a largura da tela (diferente do desktop, onde fica
                 só à esquerda) — o degradê horizontal abaixo já fica
@@ -537,7 +555,6 @@ export default async function HomePage() {
                           width={20}
                           height={20}
                           className="h-5 w-5 rounded-full object-contain bg-white"
-                          unoptimized
                         />
                         {ins.name}
                       </span>

@@ -96,7 +96,6 @@ export default async function ConveniosPage() {
                         width={40}
                         height={40}
                         className="h-full w-full object-contain"
-                        unoptimized
                       />
                     </div>
                   ) : (
