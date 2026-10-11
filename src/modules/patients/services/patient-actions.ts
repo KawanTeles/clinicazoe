@@ -3,7 +3,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getAvatarSignedUrl } from "@/lib/supabase/storage";
+import { getAvatarDisplayUrl } from "@/lib/supabase/storage";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { buildIlikeFilterValue } from "@/lib/postgrest-filter";
 import { logAudit } from "@/modules/team/services/audit";
@@ -248,7 +248,7 @@ export async function searchPatientsForBooking(query: string): Promise<PatientSe
         phone: profile.phone,
         whatsapp: detail?.whatsapp ?? null,
         email: detail?.email ?? null,
-        avatarUrl: await getAvatarSignedUrl(supabase, profile.avatar_path),
+        avatarUrl: await getAvatarDisplayUrl(supabase, profile.avatar_path),
         city: detail?.city ?? null,
         preferredInsuranceId: detail?.preferred_insurance_id ?? null,
         preferredProfessionalId: detail?.preferred_professional_id ?? null,

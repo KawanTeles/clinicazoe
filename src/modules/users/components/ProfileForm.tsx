@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { updateOwnPassword, updateOwnProfile, uploadAvatar } from "@/modules/users/services/profile-client";
+import { updateOwnPassword, updateOwnProfile } from "@/modules/users/services/profile-client";
+import { uploadOwnAvatar } from "@/modules/users/services/profile-actions";
 import { updateOwnProfessionalBio } from "@/modules/professionals/services/professional-profile-actions";
 
 const MAX_BIO_LENGTH = 500;
@@ -78,7 +79,9 @@ export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl, 
     const objectUrl = URL.createObjectURL(file);
     setPreview(objectUrl);
 
-    const result = await uploadAvatar(userId, file);
+    const formData = new FormData();
+    formData.set("file", file);
+    const result = await uploadOwnAvatar(formData);
 
     setUploading(false);
     if (result.error) {

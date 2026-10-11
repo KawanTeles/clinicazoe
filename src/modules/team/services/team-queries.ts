@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getAvatarSignedUrl } from "@/lib/supabase/storage";
+import { getAvatarDisplayUrl } from "@/lib/supabase/storage";
 import { requireAdmin } from "@/lib/auth";
 import type { Modality } from "@/lib/supabase/types";
 
@@ -17,7 +17,7 @@ export async function getTeamMembers() {
   const withAvatars = await Promise.all(
     members.map(async (member) => ({
       ...member,
-      avatarUrl: await getAvatarSignedUrl(supabase, member.avatar_path),
+      avatarUrl: await getAvatarDisplayUrl(supabase, member.avatar_path, member.role),
     })),
   );
 

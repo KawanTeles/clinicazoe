@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getAvatarSignedUrl } from "@/lib/supabase/storage";
+import { getAvatarDisplayUrl } from "@/lib/supabase/storage";
 
 export async function getActiveProfessionals() {
   const supabase = await createClient();
@@ -49,7 +49,7 @@ export async function getActiveProfessionals() {
       const names = specialtyNamesByProfessional.get(profile.id) ?? [];
       return {
         ...profile,
-        avatarUrl: await getAvatarSignedUrl(supabase, profile.avatar_path),
+        avatarUrl: await getAvatarDisplayUrl(supabase, profile.avatar_path, "profissional"),
         specialtyName: names.length > 0 ? names.join(", ") : null,
         bio: professional?.bio ?? null,
         licenseNumber: professional?.license_number ?? null,
@@ -157,7 +157,7 @@ export async function getActiveProfessional(id: string) {
       ? await supabase.from("insurances").select("id, name").in("id", insuranceIds)
       : { data: [] as { id: string; name: string }[] };
 
-  const avatarUrl = await getAvatarSignedUrl(supabase, profile.avatar_path);
+  const avatarUrl = await getAvatarDisplayUrl(supabase, profile.avatar_path, "profissional");
 
   return {
     profile,

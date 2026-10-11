@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { getAvatarSignedUrl } from "@/lib/supabase/storage";
+import { getAvatarDisplayUrl } from "@/lib/supabase/storage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ProfileForm } from "@/modules/users/components/ProfileForm";
 
@@ -13,7 +13,7 @@ export default async function PatientPerfilPage() {
   if (!session) return null;
 
   const supabase = await createClient();
-  const avatarUrl = await getAvatarSignedUrl(supabase, session.profile.avatar_path, session.profile.avatar_url);
+  const avatarUrl = await getAvatarDisplayUrl(supabase, session.profile.avatar_path, session.profile.role, session.profile.avatar_url);
 
   return (
     <div className="flex flex-col gap-6">

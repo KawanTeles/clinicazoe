@@ -69,10 +69,16 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    // Imagens públicas (avatar de profissional, logo, capa, galeria, logo de
+    // convênio) agora sempre trocam de URL ao trocar de foto (upsert com
+    // `?v=`, ou nome aleatório na galeria) — sem risco de servir uma versão
+    // velha, então o otimizador do Next pode manter a versão processada em
+    // cache pelo máximo permitido (1 ano) em vez do default de 60s.
+    minimumCacheTTL: 31536000,
     // Next 16 exige declarar explicitamente query strings em imagens locais
     // otimizadas via <Image> (proteção contra enumeração de URL) — sem isto
-    // o build falha em qualquer <Image src="/brand-logo.png?v=2" />.
-    localPatterns: [{ pathname: "/brand-logo.png", search: "?v=2" }],
+    // o build falha em qualquer <Image src="/brand-logo.png?v=3" />.
+    localPatterns: [{ pathname: "/brand-logo.png", search: "?v=3" }],
     remotePatterns: [
       ...(supabaseHostname
         ? [

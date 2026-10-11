@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getAvatarSignedUrl } from "@/lib/supabase/storage";
+import { getAvatarDisplayUrl } from "@/lib/supabase/storage";
 import { PARTICULAR_INSURANCE_NAME } from "@/lib/constants";
 import { toLocalIsoDate, todayLocalIso } from "@/lib/date";
 import type { AppointmentStatus, Modality, ParticularProduct } from "@/lib/supabase/types";
@@ -213,7 +213,7 @@ export async function getBookableProfessionals(specialtyId: string, insuranceId:
       return {
         ...professional,
         fullName: profile?.full_name ?? "Profissional",
-        avatarUrl: profile ? await getAvatarSignedUrl(supabase, profile.avatar_path) : null,
+        avatarUrl: profile ? await getAvatarDisplayUrl(supabase, profile.avatar_path, "profissional") : null,
       };
     }),
   );
@@ -289,7 +289,7 @@ export async function getBookableProfessionalsByInsurance(insuranceId: string) {
         ...professional,
         fullName: profile?.full_name ?? "Profissional",
         specialtyName: names.length > 0 ? names.join(", ") : "Especialista",
-        avatarUrl: profile ? await getAvatarSignedUrl(supabase, profile.avatar_path) : null,
+        avatarUrl: profile ? await getAvatarDisplayUrl(supabase, profile.avatar_path, "profissional") : null,
       };
     }),
   );

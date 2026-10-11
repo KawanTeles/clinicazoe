@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getAvatarSignedUrl } from "@/lib/supabase/storage";
+import { getAvatarDisplayUrl } from "@/lib/supabase/storage";
 import { requireAdmin } from "@/lib/auth";
 import type { Database, Role } from "@/lib/supabase/types";
 
@@ -48,7 +48,7 @@ export async function getAllUsers(): Promise<UserListItem[]> {
     profiles.map(async (profile) => ({
       ...profile,
       email: emailById.get(profile.id) ?? "",
-      avatarUrl: await getAvatarSignedUrl(supabase, profile.avatar_path),
+      avatarUrl: await getAvatarDisplayUrl(supabase, profile.avatar_path, profile.role),
     })),
   );
 }
@@ -69,7 +69,7 @@ export async function getUserDetail(id: string): Promise<UserDetail | null> {
   const admin = createAdminClient();
   const [{ data: authUser }, avatarUrl, appointmentsCount] = await Promise.all([
     admin.auth.admin.getUserById(id),
-    getAvatarSignedUrl(supabase, profile.avatar_path),
+    getAvatarDisplayUrl(supabase, profile.avatar_path, profile.role),
     countUserAppointments(id, profile.role),
   ]);
 

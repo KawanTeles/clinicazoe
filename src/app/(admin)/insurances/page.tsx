@@ -15,7 +15,7 @@ export default async function InsurancesPage() {
   const insurances = await Promise.all(
     insuranceRows.map(async (insurance) => ({
       ...insurance,
-      logoUrl: await getInsuranceLogoUrl(insurance.logo_path),
+      logoUrl: await getInsuranceLogoUrl(insurance.logo_path, insurance.updated_at),
     })),
   );
 

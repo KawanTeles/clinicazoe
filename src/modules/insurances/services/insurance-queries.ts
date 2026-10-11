@@ -16,9 +16,9 @@ export async function getActiveInsurances() {
   return data ?? [];
 }
 
-export async function getInsuranceLogoUrl(logoPath: string | null) {
+export async function getInsuranceLogoUrl(logoPath: string | null, updatedAt?: string | null) {
   if (!logoPath) return null;
   const supabase = await createClient();
   const { data } = supabase.storage.from("insurance-logos").getPublicUrl(logoPath);
-  return data.publicUrl;
+  return updatedAt ? `${data.publicUrl}?v=${encodeURIComponent(updatedAt)}` : data.publicUrl;
 }

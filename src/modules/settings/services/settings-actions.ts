@@ -8,25 +8,27 @@ import { logAudit } from "@/modules/team/services/audit";
 import { buildFullAddress } from "@/modules/settings/utils/address";
 import { revalidatePublicSite as revalidatePublicSiteShared } from "@/lib/revalidate-public-site";
 import type { BusinessHourEntry } from "@/lib/supabase/types";
+import { processImageToWebp } from "@/lib/images/process-image";
 
+// Cache de 1 ano: path é fixo por natureza (upsert sempre no mesmo nome), e
+// quem lê a URL (settings-queries.ts/public-queries.ts) já adiciona
+// `?v=<updated_at>` — a troca de foto sempre vem com uma URL nova, então não
+// há risco de servir uma versão antiga presa em cache.
+const PUBLIC_ASSET_CACHE_CONTROL = "31536000";
+
+// A foto original enviada pela administradora pode ser grande (ex.: foto de
+// celular) — o limite aqui é só para não aceitar algo absurdo no upload; o
+// que de fato fica salvo é a versão já redimensionada/comprimida abaixo.
 const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
-const MAX_LOGO_BYTES = 2 * 1024 * 1024;
+const MAX_LOGO_BYTES = 5 * 1024 * 1024;
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
-
-const LOGO_EXTENSION_BY_MIME: Record<string, string> = {
-  "image/png": "png",
-  "image/jpeg": "jpg",
-  "image/webp": "webp",
-  "image/svg+xml": "svg",
-};
+const LOGO_MAX_DIMENSION = 600;
+const LOGO_QUALITY = 85;
 
 const ALLOWED_FACADE_TYPES = ["image/png", "image/jpeg", "image/webp"];
-const MAX_FACADE_BYTES = 5 * 1024 * 1024;
-const FACADE_EXTENSION_BY_MIME: Record<string, string> = {
-  "image/png": "png",
-  "image/jpeg": "jpg",
-  "image/webp": "webp",
-};
+const MAX_FACADE_BYTES = 10 * 1024 * 1024;
+const FACADE_MAX_DIMENSION = 1600;
+const FACADE_QUALITY = 78;
 
 // Reaproveita o conjunto amplo de páginas públicas (src/lib/revalidate-public-site.ts)
 // e soma /settings, que é só a própria tela admin (não faz parte do "site
@@ -463,20 +465,35 @@ export async function uploadClinicLogo(formData: FormData): Promise<ActionResult
     return { error: "Formato inválido. Envie PNG, JPG, WEBP ou SVG." };
   }
   if (file.size > MAX_LOGO_BYTES) {
-    return { error: "Arquivo muito grande. Limite de 2MB." };
+    return { error: "Arquivo muito grande. Limite de 5MB." };
   }
 
   const admin = createAdminClient();
-  // Extensão vem do MIME já validado (ALLOWED_LOGO_TYPES acima), não do
-  // nome do arquivo — file.name é controlado pelo client.
-  const extension = LOGO_EXTENSION_BY_MIME[file.type] ?? "png";
-  const path = `logo.${extension}`;
 
-  const { error: uploadError } = await admin.storage
-    .from("clinic-assets")
-    .upload(path, file, { upsert: true, contentType: file.type });
+  // SVG é vetorial — redimensionar/converter pra WebP não faz sentido
+  // (perderia a nitidez em qualquer tamanho); já é pequeno por natureza.
+  const isSvg = file.type === "image/svg+xml";
+  const path = isSvg ? "logo.svg" : "logo.webp";
+  const uploadBody = isSvg
+    ? file
+    : (await processImageToWebp(Buffer.from(await file.arrayBuffer()), {
+        maxDimension: LOGO_MAX_DIMENSION,
+        quality: LOGO_QUALITY,
+      })).buffer;
+
+  const { error: uploadError } = await admin.storage.from("clinic-assets").upload(path, uploadBody, {
+    upsert: true,
+    contentType: isSvg ? file.type : "image/webp",
+    cacheControl: PUBLIC_ASSET_CACHE_CONTROL,
+  });
 
   if (uploadError) return { error: "Falha ao enviar o logo. Tente novamente." };
+
+  // Best-effort: remove extensão antiga (de antes desta etapa de otimização,
+  // ou trocar PNG<->SVG) — path é sempre fixo ("logo.*"), então upsert não
+  // limpa sozinho um arquivo salvo antes com outra extensão.
+  const legacyLogoPaths = ["logo.png", "logo.jpg", "logo.webp", "logo.svg"].filter((p) => p !== path);
+  await admin.storage.from("clinic-assets").remove(legacyLogoPaths);
 
   const { error: updateError } = await admin
     .from("clinic_settings")
@@ -508,20 +525,26 @@ export async function uploadClinicFacadeImage(formData: FormData): Promise<Actio
     return { error: "Formato inválido. Envie PNG, JPG ou WEBP." };
   }
   if (file.size > MAX_FACADE_BYTES) {
-    return { error: "Arquivo muito grande. Limite de 5MB." };
+    return { error: "Arquivo muito grande. Limite de 10MB." };
   }
 
   const admin = createAdminClient();
-  // Extensão vem do MIME já validado (ALLOWED_FACADE_TYPES acima), não do
-  // nome do arquivo — file.name é controlado pelo client.
-  const extension = FACADE_EXTENSION_BY_MIME[file.type] ?? "jpg";
-  const path = `facade.${extension}`;
+  const path = "facade.webp";
+  const processed = await processImageToWebp(Buffer.from(await file.arrayBuffer()), {
+    maxDimension: FACADE_MAX_DIMENSION,
+    quality: FACADE_QUALITY,
+  });
 
-  const { error: uploadError } = await admin.storage
-    .from("clinic-assets")
-    .upload(path, file, { upsert: true, contentType: file.type });
+  const { error: uploadError } = await admin.storage.from("clinic-assets").upload(path, processed.buffer, {
+    upsert: true,
+    contentType: processed.contentType,
+    cacheControl: PUBLIC_ASSET_CACHE_CONTROL,
+  });
 
   if (uploadError) return { error: "Falha ao enviar a foto. Tente novamente." };
+
+  // Best-effort: remove extensão antiga (de antes desta etapa de otimização).
+  await admin.storage.from("clinic-assets").remove(["facade.png", "facade.jpg"]);
 
   const { error: updateError } = await admin
     .from("clinic_settings")
@@ -553,20 +576,26 @@ export async function uploadClinicFacadeImageMobile(formData: FormData): Promise
     return { error: "Formato inválido. Envie PNG, JPG ou WEBP." };
   }
   if (file.size > MAX_FACADE_BYTES) {
-    return { error: "Arquivo muito grande. Limite de 5MB." };
+    return { error: "Arquivo muito grande. Limite de 10MB." };
   }
 
   const admin = createAdminClient();
-  // Extensão vem do MIME já validado (ALLOWED_FACADE_TYPES acima), não do
-  // nome do arquivo — file.name é controlado pelo client.
-  const extension = FACADE_EXTENSION_BY_MIME[file.type] ?? "jpg";
-  const path = `facade-mobile.${extension}`;
+  const path = "facade-mobile.webp";
+  const processed = await processImageToWebp(Buffer.from(await file.arrayBuffer()), {
+    maxDimension: FACADE_MAX_DIMENSION,
+    quality: FACADE_QUALITY,
+  });
 
-  const { error: uploadError } = await admin.storage
-    .from("clinic-assets")
-    .upload(path, file, { upsert: true, contentType: file.type });
+  const { error: uploadError } = await admin.storage.from("clinic-assets").upload(path, processed.buffer, {
+    upsert: true,
+    contentType: processed.contentType,
+    cacheControl: PUBLIC_ASSET_CACHE_CONTROL,
+  });
 
   if (uploadError) return { error: "Falha ao enviar a foto. Tente novamente." };
+
+  // Best-effort: remove extensão antiga (de antes desta etapa de otimização).
+  await admin.storage.from("clinic-assets").remove(["facade-mobile.png", "facade-mobile.jpg"]);
 
   const { error: updateError } = await admin
     .from("clinic_settings")

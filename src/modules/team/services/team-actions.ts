@@ -3,6 +3,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { saveProfileAvatar } from "@/lib/supabase/avatar-upload";
 import { checkRateLimit } from "@/lib/rate-limit";
 import type { Modality, Role } from "@/lib/supabase/types";
 import { logAudit } from "./audit";
@@ -282,14 +283,6 @@ export async function updateTeamMember(
   return { error: null };
 }
 
-const ALLOWED_AVATAR_TYPES = ["image/png", "image/jpeg", "image/webp"];
-const MAX_AVATAR_BYTES = 3 * 1024 * 1024;
-const AVATAR_EXTENSION_BY_MIME: Record<string, string> = {
-  "image/png": "png",
-  "image/jpeg": "jpg",
-  "image/webp": "webp",
-};
-
 export async function uploadTeamMemberAvatar(
   memberId: string,
   formData: FormData,
@@ -300,35 +293,10 @@ export async function uploadTeamMemberAvatar(
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Nenhum arquivo selecionado." };
   }
-  if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
-    return { error: "Formato inválido. Envie PNG, JPG ou WEBP." };
-  }
-  if (file.size > MAX_AVATAR_BYTES) {
-    return { error: "Arquivo muito grande. Limite de 3MB." };
-  }
 
   const admin = createAdminClient();
-  // Extensão vem do MIME já validado (ALLOWED_AVATAR_TYPES acima), não do
-  // nome do arquivo — file.name é controlado pelo client.
-  const extension = AVATAR_EXTENSION_BY_MIME[file.type] ?? "jpg";
-  const path = `${memberId}/avatar.${extension}`;
-
-  const { error: uploadError } = await admin.storage
-    .from("avatars")
-    .upload(path, file, { upsert: true, contentType: file.type });
-
-  if (uploadError) {
-    return { error: "Falha ao enviar a foto. Tente novamente." };
-  }
-
-  const { error: updateError } = await admin
-    .from("profiles")
-    .update({ avatar_path: path })
-    .eq("id", memberId);
-
-  if (updateError) {
-    return { error: "Foto enviada, mas houve falha ao salvar o perfil." };
-  }
+  const result = await saveProfileAvatar(admin, memberId, file);
+  if (result.error) return result;
 
   revalidatePublicSite();
 
@@ -339,7 +307,7 @@ export async function uploadTeamMemberAvatar(
     entityId: memberId,
   });
 
-  return { error: null, path };
+  return result;
 }
 
 export async function deleteTeamMember(id: string): Promise<{ error: string | null }> {

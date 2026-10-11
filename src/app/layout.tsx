@@ -63,7 +63,7 @@ export async function generateMetadata(): Promise<Metadata> {
       url: SITE_URL,
       images: [
         {
-          url: "/og-image.png?v=2",
+          url: "/og-image.png?v=3",
           width: 1200,
           height: 630,
           alt: `${name} — Identidade Visual Oficial`,
@@ -108,8 +108,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     name,
     ...(clinic?.legal_name ? { legalName: clinic.legal_name } : {}),
     url: SITE_URL,
-    logo: clinic?.logo_url ? `${clinic.logo_url}${clinic.logo_url.includes('?') ? '&' : '?'}v=2` : `${SITE_URL}/brand-logo.png?v=2`,
-    image: `${SITE_URL}/og-image.png?v=2`,
+    logo: clinic?.logo_url ? `${clinic.logo_url}${clinic.logo_url.includes('?') ? '&' : '?'}v=2` : `${SITE_URL}/brand-logo.png?v=3`,
+    image: `${SITE_URL}/og-image.png?v=3`,
     description: DESCRIPTION,
     ...(clinic?.email ? { email: clinic.email } : {}),
     ...(clinic?.phone_primary || clinic?.whatsapp_number

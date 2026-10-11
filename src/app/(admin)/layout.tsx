@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { getAvatarSignedUrl } from "@/lib/supabase/storage";
+import { getAvatarDisplayUrl } from "@/lib/supabase/storage";
 import { getPermissions } from "@/lib/permissions";
 import { NAV_ITEMS } from "@/lib/navigation";
 import { AdminShell } from "@/components/layout/AdminShell";
@@ -29,7 +29,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const supabase = await createClient();
   const [avatarUrl, permissions, notifications, unreadCount, clinicSettings, pendingRequestsCount, waitlistCount] =
     await Promise.all([
-      getAvatarSignedUrl(supabase, profile.avatar_path, profile.avatar_url),
+      getAvatarDisplayUrl(supabase, profile.avatar_path, profile.role, profile.avatar_url),
       getPermissions(profile.role),
       getNotifications(session.user.id),
       getUnreadCount(session.user.id),

@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { getAvatarSignedUrl } from "@/lib/supabase/storage";
+import { getAvatarDisplayUrl } from "@/lib/supabase/storage";
 import { getTeamMember } from "@/modules/team/services/team-queries";
 import { getActiveSpecialties } from "@/modules/specialties/services/specialty-queries";
 import { getActiveInsurances } from "@/modules/insurances/services/insurance-queries";
@@ -28,7 +28,7 @@ export default async function EditTeamMemberPage({
   const { profile, professional, insurances: professionalInsurances, specialtyIds, email } = result;
   const supabase = await createClient();
   const [avatarUrl, specialties, insurances] = await Promise.all([
-    getAvatarSignedUrl(supabase, profile.avatar_path),
+    getAvatarDisplayUrl(supabase, profile.avatar_path, profile.role),
     getActiveSpecialties(),
     getActiveInsurances(),
   ]);

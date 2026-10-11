@@ -5,15 +5,12 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/modules/team/services/audit";
 import { revalidatePublicInsurancePages } from "@/lib/revalidate-public-site";
+import { processImageToWebp } from "@/lib/images/process-image";
 
 const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
-const MAX_LOGO_BYTES = 2 * 1024 * 1024;
-const LOGO_EXTENSION_BY_MIME: Record<string, string> = {
-  "image/png": "png",
-  "image/jpeg": "jpg",
-  "image/webp": "webp",
-  "image/svg+xml": "svg",
-};
+const MAX_LOGO_BYTES = 5 * 1024 * 1024;
+const LOGO_MAX_DIMENSION = 500;
+const LOGO_QUALITY = 85;
 
 async function requireAdmin() {
   const session = await getCurrentUser();
@@ -159,20 +156,34 @@ export async function uploadInsuranceLogo(id: string, formData: FormData): Promi
     return { error: "Formato inválido. Envie PNG, JPG, WEBP ou SVG." };
   }
   if (file.size > MAX_LOGO_BYTES) {
-    return { error: "Arquivo muito grande. Limite de 2MB." };
+    return { error: "Arquivo muito grande. Limite de 5MB." };
   }
 
   const admin = createAdminClient();
-  // Extensão vem do MIME já validado (ALLOWED_LOGO_TYPES acima), não do
-  // nome do arquivo — file.name é controlado pelo client.
-  const extension = LOGO_EXTENSION_BY_MIME[file.type] ?? "png";
-  const path = `${id}.${extension}`;
 
-  const { error: uploadError } = await admin.storage
-    .from("insurance-logos")
-    .upload(path, file, { upsert: true, contentType: file.type });
+  // SVG é vetorial — redimensionar/converter pra WebP não faz sentido.
+  const isSvg = file.type === "image/svg+xml";
+  const path = isSvg ? `${id}.svg` : `${id}.webp`;
+  const uploadBody = isSvg
+    ? file
+    : (await processImageToWebp(Buffer.from(await file.arrayBuffer()), {
+        maxDimension: LOGO_MAX_DIMENSION,
+        quality: LOGO_QUALITY,
+      })).buffer;
+
+  const { error: uploadError } = await admin.storage.from("insurance-logos").upload(path, uploadBody, {
+    upsert: true,
+    contentType: isSvg ? file.type : "image/webp",
+    cacheControl: "31536000",
+  });
 
   if (uploadError) return { error: "Falha ao enviar o logo. Tente novamente." };
+
+  // Best-effort: remove extensão antiga (de antes desta etapa de otimização,
+  // ou trocar PNG<->SVG) — path é fixo por convênio, então upsert não limpa
+  // sozinho um arquivo salvo antes com outra extensão.
+  const legacyLogoPaths = [`${id}.png`, `${id}.jpg`, `${id}.webp`, `${id}.svg`].filter((p) => p !== path);
+  await admin.storage.from("insurance-logos").remove(legacyLogoPaths);
 
   const { error: updateError } = await admin
     .from("insurances")

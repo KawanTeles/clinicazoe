@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getAvatarSignedUrl } from "@/lib/supabase/storage";
+import { getAvatarDisplayUrl } from "@/lib/supabase/storage";
 import { DEFAULT_BUSINESS_HOURS } from "@/modules/settings/utils/form-state";
 
 function resolveLogoUrl(admin: ReturnType<typeof createAdminClient>, logoPath: string | null | undefined) {
@@ -28,10 +28,14 @@ function resolveGalleryUrl(admin: ReturnType<typeof createAdminClient>, storageP
   return data.publicUrl;
 }
 
-function resolveInsuranceLogoUrl(admin: ReturnType<typeof createAdminClient>, logoPath: string | null | undefined) {
+function resolveInsuranceLogoUrl(
+  admin: ReturnType<typeof createAdminClient>,
+  logoPath: string | null | undefined,
+  updatedAt?: string | null,
+) {
   if (!logoPath) return null;
   const { data } = admin.storage.from("insurance-logos").getPublicUrl(logoPath);
-  return data.publicUrl;
+  return updatedAt ? `${data.publicUrl}?v=${encodeURIComponent(updatedAt)}` : data.publicUrl;
 }
 
 export async function getPublicWebsiteData() {
@@ -77,7 +81,7 @@ export async function getPublicWebsiteData() {
           return null;
         }
 
-        const avatarUrl = await getAvatarSignedUrl(admin, profile.avatar_path);
+        const avatarUrl = await getAvatarDisplayUrl(admin, profile.avatar_path, "profissional");
         const specialtyIds = specialtyIdsByProfessional.get(prof.id) ?? [];
         const specialtyNames = (specialties ?? [])
           .filter((s) => specialtyIds.includes(s.id))
@@ -157,7 +161,7 @@ export async function getPublicWebsiteData() {
     featuredProfessionals,
     insurances: (insurances ?? []).map((ins) => ({
       ...ins,
-      logo_url: resolveInsuranceLogoUrl(admin, ins.logo_path),
+      logo_url: resolveInsuranceLogoUrl(admin, ins.logo_path, ins.updated_at),
     })),
     galleryImages: (galleryImages ?? []).map((image) => ({
       id: image.id,

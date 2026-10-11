@@ -6,15 +6,14 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/modules/team/services/audit";
 import { revalidatePublicGalleryPages } from "@/lib/revalidate-public-site";
+import { processImageToWebp } from "@/lib/images/process-image";
 
 const ALLOWED_GALLERY_TYPES = ["image/png", "image/jpeg", "image/webp"];
-const MAX_GALLERY_BYTES = 5 * 1024 * 1024;
-
-const GALLERY_EXTENSION_BY_MIME: Record<string, string> = {
-  "image/png": "png",
-  "image/jpeg": "jpg",
-  "image/webp": "webp",
-};
+// A foto original pode ser grande (ex.: celular) — o que fica salvo é a
+// versão já redimensionada/comprimida abaixo.
+const MAX_GALLERY_BYTES = 10 * 1024 * 1024;
+const GALLERY_MAX_DIMENSION = 1600;
+const GALLERY_QUALITY = 78;
 
 type ActionResult = { error: string | null };
 
@@ -30,7 +29,7 @@ export async function uploadGalleryImages(formData: FormData): Promise<ActionRes
       return { error: "Formato inválido. Envie PNG, JPG ou WEBP." };
     }
     if (file.size > MAX_GALLERY_BYTES) {
-      return { error: "Arquivo muito grande. Limite de 5MB por imagem." };
+      return { error: "Arquivo muito grande. Limite de 10MB por imagem." };
     }
   }
 
@@ -46,14 +45,22 @@ export async function uploadGalleryImages(formData: FormData): Promise<ActionRes
   const uploadedPaths: string[] = [];
 
   for (const file of files) {
-    // Extensão vem do MIME já validado (ALLOWED_GALLERY_TYPES acima), não do
-    // nome do arquivo — file.name é controlado pelo client.
-    const extension = GALLERY_EXTENSION_BY_MIME[file.type] ?? "jpg";
-    const path = `${randomUUID()}.${extension}`;
+    const path = `${randomUUID()}.webp`;
+    let processed;
+    try {
+      processed = await processImageToWebp(Buffer.from(await file.arrayBuffer()), {
+        maxDimension: GALLERY_MAX_DIMENSION,
+        quality: GALLERY_QUALITY,
+      });
+    } catch {
+      await admin.storage.from("clinic-gallery").remove(uploadedPaths);
+      return { error: "Não foi possível processar uma das imagens. Tente outro arquivo." };
+    }
 
-    const { error: uploadError } = await admin.storage
-      .from("clinic-gallery")
-      .upload(path, file, { contentType: file.type });
+    const { error: uploadError } = await admin.storage.from("clinic-gallery").upload(path, processed.buffer, {
+      contentType: processed.contentType,
+      cacheControl: "31536000",
+    });
     if (uploadError) {
       await admin.storage.from("clinic-gallery").remove(uploadedPaths);
       return { error: "Falha ao enviar uma das imagens. Tente novamente." };

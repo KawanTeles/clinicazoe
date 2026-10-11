@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { getAvatarSignedUrl } from "@/lib/supabase/storage";
+import { getAvatarDisplayUrl } from "@/lib/supabase/storage";
 import { ProfileForm } from "@/modules/users/components/ProfileForm";
 
 export const metadata = {
@@ -14,7 +14,7 @@ export default async function ProfilePage() {
   if (!session) redirect("/login");
 
   const supabase = await createClient();
-  const avatarUrl = await getAvatarSignedUrl(supabase, session.profile.avatar_path, session.profile.avatar_url);
+  const avatarUrl = await getAvatarDisplayUrl(supabase, session.profile.avatar_path, session.profile.role, session.profile.avatar_url);
 
   const isProfessional = session.profile.role === "profissional";
   let initialBio = "";
