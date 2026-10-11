@@ -213,8 +213,21 @@ body {
   min-height: 100vh;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  color: var(--primary);
+/* @layer base (não CSS solto): regras fora de qualquer @layer do Tailwind
+   formam uma camada implícita que vence QUALQUER classe de @layer utilities
+   — inclusive mais específica — independente da ordem no arquivo. Sem este
+   @layer, nenhuma classe text-* aplicada a h1-h6 em lugar nenhum do site
+   tinha efeito: a cor caía sempre em --primary. Passou despercebido porque a
+   maioria dos títulos já usa --primary (mesma cor, "bug" invisível); ficou
+   óbvio só na faixa "Atendimento Prioritário" (fundo bg-[var(--primary)]),
+   onde o h2 pedia text-white e saía com a MESMA cor do fundo atrás dele.
+   Dentro de @layer base, a prioridade volta a ser a normal do Tailwind:
+   @layer utilities > @layer base, então text-white (ou qualquer outra
+   classe) volta a vencer este default. */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--primary);
+  }
 }
 
 /* Text Selection */
