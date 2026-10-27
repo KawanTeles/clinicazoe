@@ -6,6 +6,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import {
@@ -488,9 +489,9 @@ export function PublicBookingWizard({ specialties, initialProfessionals, whatsap
                 onChange={(e) => setClaimEmail(e.target.value)}
                 required
               />
-              <Input
+              <PasswordInput
                 label="Crie uma senha *"
-                type="password"
+                autoComplete="new-password"
                 placeholder="Mínimo 6 caracteres"
                 value={claimPassword}
                 onChange={(e) => setClaimPassword(e.target.value)}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { signInWithGoogle, signInWithPassword } from "@/modules/auth/services/auth-client";
 
 interface LoginFormProps {
@@ -98,9 +99,8 @@ export function LoginForm({ signupHref = null, allowGoogle = false }: LoginFormP
           onChange={(e) => setEmail(e.target.value)}
         />
         <div className="flex flex-col gap-1.5">
-          <Input
+          <PasswordInput
             label="Senha"
-            type="password"
             name="password"
             autoComplete="current-password"
             required

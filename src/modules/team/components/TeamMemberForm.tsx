@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { ROLE_LABELS } from "@/lib/navigation";
@@ -347,10 +348,10 @@ export function TeamMemberForm({
             </Select>
           ) : null}
 
-          <Input
+          <PasswordInput
             label={mode === "create" ? "Senha de Acesso *" : "Nova Senha (opcional)"}
             name="password"
-            type="password"
+            autoComplete="new-password"
             required={mode === "create"}
             placeholder={mode === "edit" ? "Manter senha atual" : "••••••••"}
             value={password}

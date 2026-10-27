@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Select } from "@/components/ui/Select";
 import { ROLE_LABELS } from "@/lib/navigation";
 import type { Role, Status } from "@/lib/supabase/types";
@@ -179,10 +180,10 @@ export function UserEditForm({ userId, isSelf, avatarUrl, initial }: UserEditFor
             <option value="active">Ativo</option>
             <option value="inactive">Inativo</option>
           </Select>
-          <Input
+          <PasswordInput
             label="Nova Senha (opcional)"
             name="password"
-            type="password"
+            autoComplete="new-password"
             placeholder="Manter senha atual"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

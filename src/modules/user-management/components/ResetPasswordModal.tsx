@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useToast } from "@/components/ui/Toast";
 import { resetUserPassword } from "@/modules/user-management/services/user-actions";
 
@@ -68,10 +68,10 @@ export function ResetPasswordModal({
             {error}
           </div>
         )}
-        <Input
+        <PasswordInput
           label="Nova senha"
           name="password"
-          type="password"
+          autoComplete="new-password"
           placeholder="Mínimo de 8 caracteres"
           value={password}
           onChange={(e) => setPassword(e.target.value)}

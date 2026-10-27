@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { signUpPatient } from "@/modules/auth/services/auth-client";
 
 export function SignupForm() {
@@ -82,10 +83,10 @@ export function SignupForm() {
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
       />
-      <Input
+      <PasswordInput
         label="Senha"
         name="password"
-        type="password"
+        autoComplete="new-password"
         required
         value={password}
         onChange={(e) => setPassword(e.target.value)}

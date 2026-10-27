@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Select } from "@/components/ui/Select";
 import { createPatient, updatePatient, type PatientDetailsInput } from "@/modules/patients/services/patient-actions";
 
@@ -197,10 +198,10 @@ export function PatientForm({ mode, patientId, insurances, professionals, onCanc
             onChange={(e) => setEmail(e.target.value)}
           />
           {withCredentials && mode === "create" && (
-            <Input
+            <PasswordInput
               label="Senha de Acesso *"
               name="password"
-              type="password"
+              autoComplete="new-password"
               required
               placeholder="••••••••"
               value={password}

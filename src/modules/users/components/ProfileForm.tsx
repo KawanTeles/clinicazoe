@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { updateOwnPassword, updateOwnProfile } from "@/modules/users/services/profile-client";
 import { uploadOwnAvatar } from "@/modules/users/services/profile-actions";
 import { updateOwnProfessionalBio } from "@/modules/professionals/services/professional-profile-actions";
@@ -222,18 +223,18 @@ export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl, 
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Input
+          <PasswordInput
             label="Nova senha"
             name="new_password"
-            type="password"
+            autoComplete="new-password"
             placeholder="Mínimo de 8 caracteres"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
           />
-          <Input
+          <PasswordInput
             label="Confirmar nova senha"
             name="confirm_password"
-            type="password"
+            autoComplete="new-password"
             placeholder="Repita a nova senha"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}

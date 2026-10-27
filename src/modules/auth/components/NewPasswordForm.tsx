@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { updatePassword } from "@/modules/auth/services/auth-client";
 
 interface NewPasswordFormProps {
@@ -46,18 +46,16 @@ export function NewPasswordForm({ redirectTo }: NewPasswordFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <Input
+      <PasswordInput
         label="Nova senha"
-        type="password"
         name="password"
         autoComplete="new-password"
         required
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      <Input
+      <PasswordInput
         label="Confirmar nova senha"
-        type="password"
         name="confirm_password"
         autoComplete="new-password"
         required
