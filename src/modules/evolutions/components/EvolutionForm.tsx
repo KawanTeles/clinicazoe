@@ -1,9 +1,11 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
-import { AIWritingAssistant } from "@/modules/ai/components/AIWritingAssistant";
+import { AIDisclaimerNotice } from "@/modules/ai/components/AIDisclaimerNotice";
+import { FieldVoiceAssistant } from "@/modules/ai/components/FieldVoiceAssistant";
+import { insertTextAt, useFieldDictation, type EvolutionTargetField } from "@/modules/ai/components/useFieldDictation";
 import type { EvolutionContentInput } from "@/modules/evolutions/services/evolution-actions";
 
 interface EvolutionFormProps {
@@ -20,7 +22,7 @@ interface EvolutionFormProps {
 }
 
 const FIELDS: {
-  key: keyof EvolutionContentInput;
+  key: EvolutionTargetField;
   label: string;
   hint: string;
   required?: boolean;
@@ -63,10 +65,25 @@ export function EvolutionForm({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Guarda o <textarea> de cada campo (callback ref) só para ler a posição
+  // do cursor na hora de iniciar um ditado ou inserir uma transcrição — não
+  // precisa disparar re-render, por isso é um ref simples, não estado.
+  const textareaEls = useRef<Partial<Record<EvolutionTargetField, HTMLTextAreaElement | null>>>({});
+
+  const dictation = useFieldDictation((field, text, cursorPos) => {
+    setValues((prev) => ({ ...prev, [field]: insertTextAt(prev[field] ?? "", text, cursorPos) }));
+  });
+
+  const voiceAssistantEnabled = Boolean(aiEnabled && appointmentId);
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!values.clinical_evolution.trim()) {
       setError("Descreva a evolução clínica do paciente.");
+      return;
+    }
+    if (dictation.status !== "idle") {
+      setError("Pare a gravação de voz em andamento antes de salvar.");
       return;
     }
     setSaving(true);
@@ -81,24 +98,39 @@ export function EvolutionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      {aiEnabled && appointmentId && (
-        <AIWritingAssistant
-          appointmentId={appointmentId}
-          onTextReady={(text, field) => setValues((prev) => ({ ...prev, [field]: text }))}
-          transcriptionEnabled={transcriptionEnabled}
-        />
-      )}
-      {FIELDS.map((field) => (
-        <Textarea
-          key={field.key}
-          label={field.required ? `${field.label} *` : field.label}
-          placeholder={field.hint || undefined}
-          rows={field.rows ?? 3}
-          value={values[field.key] ?? ""}
-          onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
-        />
-      ))}
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {voiceAssistantEnabled && <AIDisclaimerNotice />}
+      {FIELDS.map((field) => {
+        const isDictatingField = dictation.activeField === field.key;
+        return (
+          <div key={field.key} className="flex flex-col gap-2">
+            <Textarea
+              ref={(el) => {
+                textareaEls.current[field.key] = el;
+              }}
+              label={field.required ? `${field.label} *` : field.label}
+              placeholder={field.hint || undefined}
+              rows={field.rows ?? 3}
+              value={values[field.key] ?? ""}
+              onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
+              disabled={isDictatingField}
+            />
+            {voiceAssistantEnabled && appointmentId && (
+              <FieldVoiceAssistant
+                field={field.key}
+                label={field.label}
+                value={values[field.key] ?? ""}
+                onChangeValue={(text) => setValues((prev) => ({ ...prev, [field.key]: text }))}
+                getTextarea={() => textareaEls.current[field.key] ?? null}
+                dictation={dictation}
+                appointmentId={appointmentId}
+                aiEnabled={aiEnabled}
+                transcriptionEnabled={transcriptionEnabled}
+              />
+            )}
+          </div>
+        );
+      })}
       {error && <p className="text-xs font-semibold text-danger">{error}</p>}
       <div className="flex justify-end gap-2">
         <Button type="button" variant="secondary" onClick={onCancel} disabled={saving}>
