@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { EvolutionTimeline } from "@/modules/evolutions/components/EvolutionTimeline";
+import { NewEvolutionLauncher } from "@/modules/evolutions/components/NewEvolutionLauncher";
 import { PatientAIAssistant } from "@/modules/ai/components/PatientAIAssistant";
 import { ClinicalDocuments, type EvolutionOption } from "@/modules/clinical-documents/components/ClinicalDocuments";
 import type { EvolutionView } from "@/modules/evolutions/services/evolution-queries";
@@ -26,6 +27,12 @@ interface MyPatientDetailTabsProps {
   evolutions: EvolutionView[];
   evolutionsTotalPages: number;
   aiAssistantEnabled: boolean;
+  /** Habilita o assistente de escrita (rascunho/melhoria de texto) dentro do
+   * formulário de nova evolução — mesmo flag usado em AppointmentDetailTabs
+   * (ai.evolution_assistant.use), não confundir com aiAssistantEnabled (aba
+   * "🤖 Assistente IA", Q&A sobre o histórico). */
+  evolutionAiEnabled?: boolean;
+  evolutionTranscriptionEnabled?: boolean;
   documents: ClinicalDocumentView[];
 }
 
@@ -38,6 +45,8 @@ export function MyPatientDetailTabs({
   evolutions,
   evolutionsTotalPages,
   aiAssistantEnabled,
+  evolutionAiEnabled,
+  evolutionTranscriptionEnabled,
   documents,
 }: MyPatientDetailTabsProps) {
   const [tab, setTab] = useState<Tab>("Dados");
@@ -101,8 +110,13 @@ export function MyPatientDetailTabs({
       )}
 
       {tab === "Histórico Clínico" && (
-        <div>
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-text-secondary">Histórico Clínico</h2>
+        <div className="flex flex-col gap-3">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-text-secondary">Histórico Clínico</h2>
+          <NewEvolutionLauncher
+            patientId={patient.id}
+            aiEnabled={evolutionAiEnabled}
+            transcriptionEnabled={evolutionTranscriptionEnabled}
+          />
           <EvolutionTimeline
             patientId={patient.id}
             initialEvolutions={evolutions}

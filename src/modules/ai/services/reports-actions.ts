@@ -10,7 +10,7 @@ import { listPatients, searchOwnPatients, type PatientOption } from "@/modules/p
 import { getAIFeatureFlags } from "./ai-settings-queries";
 import { getActiveAIConfig, checkAIUsageLimits } from "./ai-runtime";
 import { AIService } from "./ai-service";
-import type { ReportTemplate } from "./provider-types";
+import { REPORT_TEMPLATE_LABELS, type ReportTemplate } from "./provider-types";
 
 async function requireProfessionalWithReportsAccess() {
   const session = await getCurrentUser();
@@ -103,6 +103,12 @@ function formatEvolutionsText(evolutions: EvolutionView[]): string {
     .join("\n\n---\n\n");
 }
 
+/** Gera (ou cria em branco) um relatório. Relatório e evolução são
+ * independentes: evolutionIds vazio é válido e pula a chamada de IA — o
+ * relatório nasce em branco (template + nome do paciente só no título),
+ * pronto pra edição manual no ReportEditor. O recurso de IA (flags, limite
+ * de uso, chamada ao provedor) só é necessário quando existe pelo menos uma
+ * evolução selecionada para resumir. */
 export async function generateAIReport(input: {
   patientId: string;
   template: ReportTemplate;
@@ -117,22 +123,10 @@ export async function generateAIReport(input: {
     return { error: "Acesso negado." };
   }
 
-  if (input.evolutionIds.length === 0) {
-    return { error: "Selecione ao menos uma evolução para gerar o relatório." };
-  }
-
-  const flags = await getAIFeatureFlags();
-  if (!flags.enabled || !flags.reportsEnabled) {
-    return { error: "O recurso de Relatórios IA está desabilitado pelo administrador da clínica." };
-  }
-
   const rateLimit = checkRateLimit(`ai-generate-report:${session.user.id}`, 10, 60_000);
   if (!rateLimit.allowed) {
     return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente de novo.` };
   }
-
-  const limitCheck = await checkAIUsageLimits(session.user.id);
-  if (limitCheck.blocked) return { error: limitCheck.reason };
 
   const supabase = await createClient();
   const { data: patient } = await supabase
@@ -142,39 +136,63 @@ export async function generateAIReport(input: {
     .maybeSingle();
   if (!patient) return { error: "Paciente não encontrado." };
 
-  // getEvolutionsForPatient() já não é mais restrita a quem escreveu (Etapa
-  // 69) — filtro explícito aqui mantém o Relatório IA usando só o que o
-  // próprio profissional logado escreveu, ver listEvolutionsForReport acima.
-  const allEvolutions = (await getEvolutionsForPatient(input.patientId)).filter(
-    (e) => e.professionalId === session.user.id,
-  );
-  const selected = allEvolutions.filter((e) => input.evolutionIds.includes(e.id));
-  if (selected.length === 0) {
-    return { error: "Nenhuma evolução válida foi selecionada." };
+  let selected: EvolutionView[] = [];
+  if (input.evolutionIds.length > 0) {
+    // getEvolutionsForPatient() já não é mais restrita a quem escreveu
+    // (Etapa 69) — filtro explícito aqui mantém o Relatório IA usando só o
+    // que o próprio profissional logado escreveu, ver listEvolutionsForReport
+    // acima.
+    const allEvolutions = (await getEvolutionsForPatient(input.patientId)).filter(
+      (e) => e.professionalId === session.user.id,
+    );
+    selected = allEvolutions.filter((e) => input.evolutionIds.includes(e.id));
+    if (selected.length === 0) {
+      return { error: "Nenhuma evolução válida foi selecionada." };
+    }
   }
 
-  const { error: configError, config } = await getActiveAIConfig();
-  if (configError || !config) return { error: configError };
-
-  const periodLabel =
-    input.periodStart && input.periodEnd
-      ? `${new Date(`${input.periodStart}T00:00:00`).toLocaleDateString("pt-BR")} a ${new Date(`${input.periodEnd}T00:00:00`).toLocaleDateString("pt-BR")}`
-      : "todas as evoluções selecionadas";
-
   let generated: { title: string; content: string; usage?: { inputTokens: number; outputTokens: number } };
-  try {
-    generated = await AIService.generateReport({
-      patientName: patient.full_name,
-      template: input.template,
-      periodLabel,
-      evolutionsText: formatEvolutionsText(selected),
-      provider: config.provider,
-      apiKey: config.apiKey,
-      model: config.model,
-    });
-  } catch (err) {
-    console.error("[ai] generateReport falhou:", err);
-    return { error: "Não foi possível gerar o relatório com IA. Tente novamente ou contate o administrador." };
+  let providerUsed: string | undefined;
+
+  if (selected.length > 0) {
+    const flags = await getAIFeatureFlags();
+    if (!flags.enabled || !flags.reportsEnabled) {
+      return { error: "O recurso de Relatórios IA está desabilitado pelo administrador da clínica." };
+    }
+
+    const limitCheck = await checkAIUsageLimits(session.user.id);
+    if (limitCheck.blocked) return { error: limitCheck.reason };
+
+    const { error: configError, config } = await getActiveAIConfig();
+    if (configError || !config) return { error: configError };
+
+    const periodLabel =
+      input.periodStart && input.periodEnd
+        ? `${new Date(`${input.periodStart}T00:00:00`).toLocaleDateString("pt-BR")} a ${new Date(`${input.periodEnd}T00:00:00`).toLocaleDateString("pt-BR")}`
+        : "todas as evoluções selecionadas";
+
+    try {
+      generated = await AIService.generateReport({
+        patientName: patient.full_name,
+        template: input.template,
+        periodLabel,
+        evolutionsText: formatEvolutionsText(selected),
+        provider: config.provider,
+        apiKey: config.apiKey,
+        model: config.model,
+      });
+    } catch (err) {
+      console.error("[ai] generateReport falhou:", err);
+      return { error: "Não foi possível gerar o relatório com IA. Tente novamente ou contate o administrador." };
+    }
+    providerUsed = config.provider;
+  } else {
+    // Sem evolução selecionada: relatório nasce em branco, sem chamar IA —
+    // o profissional escreve o conteúdo manualmente no ReportEditor.
+    generated = {
+      title: `${REPORT_TEMPLATE_LABELS[input.template]} — ${patient.full_name}`,
+      content: "",
+    };
   }
 
   const { data: created, error } = await supabase
@@ -198,9 +216,11 @@ export async function generateAIReport(input: {
   // Integridade referencial: além do array evolution_ids (mantido por
   // compatibilidade com as leituras existentes), grava o mesmo vínculo na
   // tabela ai_report_evolutions (FK real para ai_reports/patient_evolutions).
-  await supabase
-    .from("ai_report_evolutions")
-    .insert(selected.map((e) => ({ report_id: created.id, evolution_id: e.id })));
+  if (selected.length > 0) {
+    await supabase
+      .from("ai_report_evolutions")
+      .insert(selected.map((e) => ({ report_id: created.id, evolution_id: e.id })));
+  }
 
   await logAudit({
     actorId: session.user.id,
@@ -210,9 +230,10 @@ export async function generateAIReport(input: {
     metadata: {
       template: input.template,
       patient_id: input.patientId,
-      provider: config.provider,
+      provider: providerUsed,
       tokens_in: generated.usage?.inputTokens,
       tokens_out: generated.usage?.outputTokens,
+      manual: selected.length === 0,
     },
   });
 

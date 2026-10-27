@@ -74,10 +74,6 @@ export function ReportWizard() {
       setError("Selecione um paciente.");
       return;
     }
-    if (selectedEvolutionIds.length === 0) {
-      setError("Selecione ao menos uma evolução.");
-      return;
-    }
     setError(null);
     setGenerating(true);
     const result = await generateAIReport({
@@ -161,13 +157,18 @@ export function ReportWizard() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">3. Evoluções a utilizar</label>
+        <label className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+          3. Evoluções a utilizar (opcional)
+        </label>
         {!patient ? (
           <p className="text-xs text-text-muted">Selecione um paciente para ver as evoluções disponíveis.</p>
         ) : loadingEvolutions ? (
           <p className="text-xs text-text-muted">Carregando evoluções...</p>
         ) : evolutions.length === 0 ? (
-          <p className="text-xs text-text-muted">Nenhuma evolução encontrada nesse período.</p>
+          <p className="text-xs text-text-muted">
+            Nenhuma evolução encontrada nesse período — sem problema, o relatório pode ser criado em branco para
+            você escrever manualmente.
+          </p>
         ) : (
           <div className="flex flex-col gap-2 rounded-xl border border-border bg-card-elevated/40 p-3">
             {evolutions.map((e) => (
@@ -203,7 +204,7 @@ export function ReportWizard() {
 
       <div className="flex justify-end">
         <Button type="button" isLoading={generating} onClick={handleGenerate}>
-          ✨ Gerar Relatório IA
+          {selectedEvolutionIds.length > 0 ? "✨ Gerar Relatório IA" : "+ Criar Relatório em Branco"}
         </Button>
       </div>
     </div>

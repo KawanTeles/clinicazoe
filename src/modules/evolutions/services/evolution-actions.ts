@@ -5,8 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/modules/team/services/audit";
 import {
+  getAppointmentsAvailableForEvolution,
   getEvolutionsForPatientPage,
   getEvolutionVersions,
+  type EvolutionEligibleAppointment,
   type EvolutionView,
   type EvolutionVersionView,
 } from "@/modules/evolutions/services/evolution-queries";
@@ -218,6 +220,20 @@ export async function loadEvolutionVersions(evolutionId: string): Promise<Evolut
   if (!session) return [];
 
   return getEvolutionVersions(evolutionId);
+}
+
+/** Atendimentos deste paciente, vinculados ao profissional logado, ainda
+ * sem evolução dele — carregado pelo botão "Nova evolução" da ficha do
+ * paciente (NewEvolutionLauncher) para o profissional escolher qual
+ * atendimento está documentando. Evolução continua sempre vinculada a um
+ * atendimento realizado; aqui só resolvemos QUAL atendimento, já que a
+ * ficha do paciente (diferente da tela de um atendimento específico) não
+ * tem isso implícito. */
+export async function loadAppointmentsAvailableForEvolution(
+  patientId: string,
+): Promise<EvolutionEligibleAppointment[]> {
+  const session = await requireProfessional();
+  return getAppointmentsAvailableForEvolution(patientId, session.user.id);
 }
 
 /** Carrega a próxima página da timeline clínica de um paciente, chamada

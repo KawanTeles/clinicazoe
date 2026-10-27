@@ -134,6 +134,81 @@ export async function getEvolutionForAppointment(appointmentId: string): Promise
   return view ?? null;
 }
 
+export interface EvolutionEligibleAppointment {
+  id: string;
+  date: string;
+  startTime: string;
+  specialtyName: string | null;
+}
+
+/** Atendimentos do paciente vinculados a este profissional (principal ou
+ * coterapeuta), já realizados (confirmada/concluída), que ainda não têm
+ * evolução registrada POR ESSE profissional — candidatos ao botão "Nova
+ * evolução" da ficha do paciente. patient_evolutions é 1 registro por
+ * atendimento+profissional desde a Etapa 37 (não 1 por paciente/consulta),
+ * então mais de um atendimento pode estar pendente ao mesmo tempo. */
+export async function getAppointmentsAvailableForEvolution(
+  patientId: string,
+  professionalId: string,
+): Promise<EvolutionEligibleAppointment[]> {
+  const supabase = await createClient();
+
+  const [{ data: ownAppointments }, { data: coTherapistLinks }] = await Promise.all([
+    supabase
+      .from("appointments")
+      .select("id, appointment_date, start_time, specialty_id")
+      .eq("patient_id", patientId)
+      .eq("professional_id", professionalId)
+      .in("status", ["confirmada", "concluida"]),
+    supabase.from("appointment_professionals").select("appointment_id").eq("professional_id", professionalId),
+  ]);
+
+  const coTherapistAppointmentIds = (coTherapistLinks ?? []).map((l) => l.appointment_id);
+  const { data: coTherapistAppointments } =
+    coTherapistAppointmentIds.length > 0
+      ? await supabase
+          .from("appointments")
+          .select("id, appointment_date, start_time, specialty_id")
+          .eq("patient_id", patientId)
+          .in("id", coTherapistAppointmentIds)
+          .in("status", ["confirmada", "concluida"])
+      : { data: [] as typeof ownAppointments };
+
+  const byId = new Map<string, { id: string; appointment_date: string; start_time: string; specialty_id: string | null }>();
+  for (const a of [...(ownAppointments ?? []), ...(coTherapistAppointments ?? [])]) byId.set(a.id, a);
+  const appointments = Array.from(byId.values());
+  if (appointments.length === 0) return [];
+
+  const appointmentIds = appointments.map((a) => a.id);
+  const { data: existing } = await supabase
+    .from("patient_evolutions")
+    .select("appointment_id")
+    .in("appointment_id", appointmentIds)
+    .eq("professional_id", professionalId);
+  const existingSet = new Set((existing ?? []).map((e) => e.appointment_id));
+
+  const pending = appointments.filter((a) => !existingSet.has(a.id));
+  if (pending.length === 0) return [];
+
+  const specialtyIds = Array.from(
+    new Set(pending.map((a) => a.specialty_id).filter((id): id is string => Boolean(id))),
+  );
+  const { data: specialties } =
+    specialtyIds.length > 0
+      ? await supabase.from("specialties").select("id, name").in("id", specialtyIds)
+      : { data: [] as { id: string; name: string }[] };
+  const specialtyNameById = new Map((specialties ?? []).map((s) => [s.id, s.name]));
+
+  return pending
+    .sort((a, b) => (a.appointment_date + a.start_time < b.appointment_date + b.start_time ? 1 : -1))
+    .map((a) => ({
+      id: a.id,
+      date: a.appointment_date,
+      startTime: a.start_time,
+      specialtyName: a.specialty_id ? specialtyNameById.get(a.specialty_id) ?? null : null,
+    }));
+}
+
 /** Busca cronológica completa (sem paginação) de um paciente. A RLS resolve
  * o escopo de LEITURA: desde a Etapa 69, qualquer profissional vinculado ao
  * paciente (não só quem escreveu) enxerga o histórico inteiro — admin

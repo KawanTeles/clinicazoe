@@ -37,7 +37,7 @@ export default async function ReportsPage() {
         </div>
         {isProfessional && (
           <Link href="/reports/new">
-            <Button>+ Novo Relatório IA</Button>
+            <Button>+ Novo Relatório</Button>
           </Link>
         )}
       </div>

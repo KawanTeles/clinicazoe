@@ -19,9 +19,10 @@ export default async function NewReportPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">✨ Novo Relatório IA</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">✨ Novo Relatório</h1>
         <p className="mt-1 text-sm text-text-secondary">
-          Escolha o paciente, o período, as evoluções e o modelo de relatório.
+          Escolha o paciente e o modelo de relatório. Selecionar evoluções é opcional — sem nenhuma selecionada, o
+          relatório nasce em branco para você escrever manualmente.
         </p>
       </div>
 
