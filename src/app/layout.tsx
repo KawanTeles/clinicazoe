@@ -104,7 +104,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": ["MedicalClinic", "MedicalBusiness"],
+    "@type": ["LocalBusiness", "HealthAndBeautyBusiness"],
     name,
     ...(clinic?.legal_name ? { legalName: clinic.legal_name } : {}),
     url: SITE_URL,
@@ -138,9 +138,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         }
       : {}),
     ...(openingHours.length > 0 ? { openingHoursSpecification: openingHours } : {}),
-    medicalSpecialty: specialtyNames.length > 0 ? specialtyNames : ["GeneralPractice"],
+    ...(specialtyNames.length > 0 ? { knowsAbout: specialtyNames } : {}),
     availableService: {
-      "@type": "MedicalProcedure",
+      "@type": "Service",
       name: "Atendimentos Terapêuticos Especializados",
     },
     sameAs: [clinic?.instagram_url, clinic?.facebook_url, clinic?.linkedin_url, clinic?.youtube_url].filter(
@@ -154,7 +154,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     name,
     url: SITE_URL,
     inLanguage: "pt-BR",
-    publisher: { "@type": "MedicalClinic", name },
+    publisher: { "@type": "LocalBusiness", name },
   };
 
   return (

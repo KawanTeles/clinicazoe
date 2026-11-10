@@ -299,7 +299,7 @@ export function TeamMemberForm({
             label="Nome Completo *"
             name="full_name"
             required
-            placeholder="Ex: Dra. Ana Clara Silva"
+            placeholder="Ex: Ana Clara Silva"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
           />
@@ -407,7 +407,7 @@ export function TeamMemberForm({
               <Input
                 label="Registro Profissional"
                 name="license_number"
-                placeholder="Ex.: CRM/SP 123456, CRP 12345"
+                placeholder="Ex.: CRP 12345, CREFITO 123456-F"
                 value={licenseNumber}
                 onChange={(e) => setLicenseNumber(e.target.value)}
               />

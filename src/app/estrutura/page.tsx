@@ -21,24 +21,24 @@ export const revalidate = 60;
 // sem imageUrl, o PhotoCarousel renderiza o placeholder "Foto em breve".
 const ESTRUTURA_GALLERY_PLACEHOLDER_SLIDES: PhotoCarouselSlide[] = [
   { id: "consultorio", caption: "Consultório Climatizado" },
-  { id: "central-diagnostica", caption: "Central Diagnóstica" },
-  { id: "esterilizacao", caption: "Sala de Esterilização" },
+  { id: "sala-multidisciplinar", caption: "Sala Multidisciplinar" },
+  { id: "higienizacao", caption: "Sala de Higienização de Materiais" },
   { id: "recepcao", caption: "Recepção Premium" },
 ];
 
 export const metadata = {
   title: "Estrutura e Tecnologia — Espaço Zoe",
-  description: "Conheça a estrutura do Espaço Zoe: consultórios climatizados, central diagnóstica integrada, biossegurança rigorosa e acessibilidade para todos os pacientes.",
+  description: "Conheça a estrutura do Espaço Zoe: consultórios climatizados, salas multidisciplinares equipadas, higienização rigorosa e acessibilidade para todos os pacientes.",
   alternates: { canonical: `${SITE_URL}/estrutura` },
   openGraph: {
     title: "Estrutura e Tecnologia — Espaço Zoe",
-    description: "Conheça a estrutura do Espaço Zoe: consultórios climatizados, central diagnóstica integrada, biossegurança rigorosa e acessibilidade para todos os pacientes.",
+    description: "Conheça a estrutura do Espaço Zoe: consultórios climatizados, salas multidisciplinares equipadas, higienização rigorosa e acessibilidade para todos os pacientes.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Estrutura e Tecnologia — Espaço Zoe",
-    description: "Conheça a estrutura do Espaço Zoe: consultórios climatizados, central diagnóstica integrada, biossegurança rigorosa e acessibilidade para todos os pacientes.",
+    description: "Conheça a estrutura do Espaço Zoe: consultórios climatizados, salas multidisciplinares equipadas, higienização rigorosa e acessibilidade para todos os pacientes.",
   },
 };
 
@@ -102,16 +102,15 @@ export default async function EstruturaPage() {
               <AnimatedCard delayMs={200} className="rounded-3xl p-8 space-y-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-elevated text-[var(--link)] border border-border">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 2v2" />
-                    <path d="M5 2v2" />
-                    <path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1" />
-                    <path d="M8 15a6 6 0 0 0 12 0v-3" />
-                    <circle cx="20" cy="10" r="2" />
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-text-primary font-heading">Central Diagnóstica Integrada</h3>
+                <h3 className="text-xl font-bold text-text-primary font-heading">Salas Multidisciplinares Equipadas</h3>
                 <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-                  Equipamentos modernos para exames de triagem e diagnósticos rápidos no próprio complexo.
+                  Recursos e materiais específicos para fonoaudiologia, terapia ocupacional, musicoterapia e demais especialidades, reunidos no mesmo espaço.
                 </p>
               </AnimatedCard>
             </ScrollReveal>
@@ -124,9 +123,9 @@ export default async function EstruturaPage() {
                     <path d="m9 12 2 2 4-4" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-text-primary font-heading">Biossegurança e Esterilização Rígida</h3>
+                <h3 className="text-xl font-bold text-text-primary font-heading">Higiene e Segurança Rigorosas</h3>
                 <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-                  Controle rigoroso de assepsia seguindo protocolos da Anvisa e órgãos internacionais de saúde.
+                  Protocolos rigorosos de limpeza e higienização de materiais e ambientes, com atenção especial ao atendimento infantil.
                 </p>
               </AnimatedCard>
             </ScrollReveal>

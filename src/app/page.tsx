@@ -462,7 +462,7 @@ export default async function HomePage() {
                 Diferenciais que garantem sua tranquilidade
               </h2>
               <p className="text-sm sm:text-base text-text-secondary">
-                Compromisso com o cuidado contínuo, diagnósticos ágeis e ambiente acolhedor.
+                Compromisso com o cuidado contínuo, avaliações ágeis e ambiente acolhedor.
               </p>
             </ScrollReveal>
           </div>

@@ -21,17 +21,17 @@ export const revalidate = 60;
 
 export const metadata = {
   title: "Especialidades Terapêuticas — Espaço Zoe",
-  description: "Conheça todas as especialidades terapêuticas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada atendimento.",
+  description: "Conheça todas as especialidades terapêuticas atendidas no Espaço Zoe, com corpo clínico qualificado, avaliação terapêutica cuidadosa e cuidado humanizado em cada atendimento.",
   alternates: { canonical: `${SITE_URL}/especialidades` },
   openGraph: {
     title: "Especialidades Terapêuticas — Espaço Zoe",
-    description: "Conheça todas as especialidades terapêuticas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada atendimento.",
+    description: "Conheça todas as especialidades terapêuticas atendidas no Espaço Zoe, com corpo clínico qualificado, avaliação terapêutica cuidadosa e cuidado humanizado em cada atendimento.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Especialidades Terapêuticas — Espaço Zoe",
-    description: "Conheça todas as especialidades terapêuticas atendidas no Espaço Zoe, com corpo clínico qualificado, diagnóstico preciso e cuidado humanizado em cada atendimento.",
+    description: "Conheça todas as especialidades terapêuticas atendidas no Espaço Zoe, com corpo clínico qualificado, avaliação terapêutica cuidadosa e cuidado humanizado em cada atendimento.",
   },
 };
 
@@ -106,7 +106,7 @@ export default async function EspecialidadesPage() {
                       </Link>
                     </h3>
                     <p className="text-xs text-text-secondary leading-relaxed">
-                      Atendimento preventivo, diagnóstico avançado e acompanhamento personalizado nesta especialidade.
+                      Atendimento preventivo, avaliação terapêutica avançada e acompanhamento personalizado nesta especialidade.
                     </p>
                     {spec.highlights && spec.highlights.length > 0 && (
                       <ul className="space-y-1.5">

@@ -78,17 +78,18 @@ export default async function ProfissionalDetailPage({ params }: { params: Promi
     })),
   };
 
-  const physicianJsonLd = {
+  const professionalJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Physician",
+    "@type": "Person",
     name: prof.fullName,
-    medicalSpecialty: prof.specialtyNames,
+    jobTitle: prof.specialtyNames.join(", "),
+    knowsAbout: prof.specialtyNames,
     description: prof.bio,
     url: `${SITE_URL}/profissionais/${canonicalSlug}`,
     ...(prof.avatarUrl ? { image: prof.avatarUrl } : {}),
     ...(prof.licenseNumber ? { identifier: prof.licenseNumber } : {}),
     worksFor: {
-      "@type": "MedicalClinic",
+      "@type": "LocalBusiness",
       name: clinic.name || "Espaço Zoe",
       url: SITE_URL,
     },
@@ -102,7 +103,7 @@ export default async function ProfissionalDetailPage({ params }: { params: Promi
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(physicianJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(professionalJsonLd) }}
       />
 
       <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />

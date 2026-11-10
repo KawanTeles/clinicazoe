@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const clinicName = clinic.name || "Espaço Zoe";
 
   const title = `${spec.name} — Especialidade Terapêutica | ${clinicName}`;
-  const description = `Atendimentos de ${spec.name} na ${clinicName}: diagnóstico preciso, tecnologia moderna e atendimento humanizado com especialistas qualificados. Agende online.`;
+  const description = `Atendimentos de ${spec.name} na ${clinicName}: avaliação terapêutica cuidadosa, tecnologia moderna e atendimento humanizado com especialistas qualificados. Agende online.`;
 
   return {
     title,
@@ -75,14 +75,13 @@ export default async function SpecialtyDetailPage({ params }: { params: Promise<
 
   const specialtyJsonLd = {
     "@context": "https://schema.org",
-    "@type": "MedicalWebPage",
+    "@type": "WebPage",
     name: `${spec.name} — ${clinic.name || "Espaço Zoe"}`,
     url: `${SITE_URL}/especialidades/${canonicalSlug}`,
     inLanguage: "pt-BR",
-    about: { "@type": "MedicalSpecialty", name: spec.name },
-    specialty: spec.name,
+    about: { "@type": "Thing", name: spec.name },
     mainEntity: {
-      "@type": "MedicalClinic",
+      "@type": "LocalBusiness",
       name: clinic.name || "Espaço Zoe",
       url: SITE_URL,
     },
@@ -111,7 +110,7 @@ export default async function SpecialtyDetailPage({ params }: { params: Promise<
                 Sobre a especialidade
               </h2>
               <p className="text-sm sm:text-base text-text-secondary leading-relaxed max-w-2xl">
-                A especialidade de {spec.name} na {clinic.name || "Espaço Zoe"} reúne diagnóstico preciso, tecnologia terapêutica moderna e
+                A especialidade de {spec.name} na {clinic.name || "Espaço Zoe"} reúne avaliação terapêutica cuidadosa, tecnologia terapêutica moderna e
                 acompanhamento contínuo, com escuta ativa e cuidado humanizado em cada atendimento.
               </p>
               <p className="text-sm sm:text-base text-text-secondary leading-relaxed max-w-2xl">
