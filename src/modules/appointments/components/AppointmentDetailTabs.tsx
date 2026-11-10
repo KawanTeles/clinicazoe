@@ -189,31 +189,46 @@ function Field({ label, value }: { label: string; value: string }) {
 
 /** Correção pontual do valor do atendimento — só admin/recepcionista
  * (editable). Nunca mexe na tabela de preços do convênio, só nesta linha. */
-function ValueField({ appointmentId, value, editable }: { appointmentId: string; value: number; editable: boolean }) {
+function ValueField({
+  appointmentId,
+  value,
+  editable,
+}: {
+  appointmentId: string;
+  value: number | null;
+  editable: boolean;
+}) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(String(value));
+  const [draft, setDraft] = useState(value != null ? String(value) : "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!editable) return <Field label="Valor" value={formatCurrency(value)} />;
+  const display =
+    value != null ? (
+      formatCurrency(value)
+    ) : (
+      <span className="font-semibold text-warning">Pendente — valor a definir</span>
+    );
+
+  if (!editable) return <Field label="Valor" value={value != null ? formatCurrency(value) : "Pendente"} />;
 
   if (!editing) {
     return (
       <div>
         <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">Valor</p>
         <div className="mt-1 flex items-center gap-2">
-          <p className="text-sm text-text-primary">{formatCurrency(value)}</p>
+          <p className="text-sm text-text-primary">{display}</p>
           <button
             type="button"
             onClick={() => {
-              setDraft(String(value));
+              setDraft(value != null ? String(value) : "");
               setError(null);
               setEditing(true);
             }}
             className="text-xs font-semibold text-primary hover:underline"
           >
-            Editar
+            {value != null ? "Editar" : "Definir valor"}
           </button>
         </div>
       </div>

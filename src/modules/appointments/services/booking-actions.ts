@@ -326,21 +326,28 @@ export async function confirmAppointment(
 
   if (updateError) return { error: "Não foi possível confirmar o atendimento." };
 
-  const admin = createAdminClient();
-  const { error: financialError } = await admin.from("financial_entries").insert({
-    appointment_id: appointment.id,
-    patient_id: appointment.patient_id,
-    professional_id: appointment.professional_id,
-    insurance_id: appointment.insurance_id,
-    value: appointment.value,
-    payment_method: appointment.payment_method,
-    modality: appointment.modality,
-    particular_product: appointment.particular_product,
-    due_date: appointment.appointment_date,
-  });
+  // Atendimento sem valor definido (agendado como "pendente", Parte 2 do
+  // pedido de valor opcional): não gera lançamento financeiro agora — ele é
+  // criado só quando alguém definir o valor (updateAppointmentValue, abaixo),
+  // pra não entrar nos totais do financeiro com um value incorreto. O resto
+  // da confirmação (auditoria, notificação, WhatsApp) segue normalmente.
+  if (appointment.value != null) {
+    const admin = createAdminClient();
+    const { error: financialError } = await admin.from("financial_entries").insert({
+      appointment_id: appointment.id,
+      patient_id: appointment.patient_id,
+      professional_id: appointment.professional_id,
+      insurance_id: appointment.insurance_id,
+      value: appointment.value,
+      payment_method: appointment.payment_method,
+      modality: appointment.modality,
+      particular_product: appointment.particular_product,
+      due_date: appointment.appointment_date,
+    });
 
-  if (financialError && !financialError.message.includes("duplicate")) {
-    return { error: "Atendimento confirmado, mas houve falha ao gerar o lançamento financeiro." };
+    if (financialError && !financialError.message.includes("duplicate")) {
+      return { error: "Atendimento confirmado, mas houve falha ao gerar o lançamento financeiro." };
+    }
   }
 
   await logAudit({
@@ -434,7 +441,7 @@ export async function updateAppointmentValue(
     .from("appointments")
     .update({ value: newValue })
     .eq("id", appointmentId)
-    .select("id")
+    .select("*")
     .maybeSingle();
 
   if (appointmentError) return { error: "Não foi possível atualizar o valor do atendimento." };
@@ -444,6 +451,26 @@ export async function updateAppointmentValue(
     const { error: entryError } = await supabase.from("financial_entries").update({ value: newValue }).eq("id", entry.id);
     if (entryError) {
       return { error: "Valor do atendimento atualizado, mas houve falha ao sincronizar o lançamento financeiro." };
+    }
+  } else if (updated.status !== "pendente") {
+    // Atendimento já passou pela confirmação (confirmAppointment) sem valor
+    // definido, então nenhum lançamento financeiro foi criado na hora —
+    // cria agora que o valor existe. Se ainda estiver "pendente", não cria
+    // nada: o lançamento nasce normalmente quando confirmAppointment rodar.
+    const admin = createAdminClient();
+    const { error: entryError } = await admin.from("financial_entries").insert({
+      appointment_id: updated.id,
+      patient_id: updated.patient_id,
+      professional_id: updated.professional_id,
+      insurance_id: updated.insurance_id,
+      value: newValue,
+      payment_method: updated.payment_method,
+      modality: updated.modality,
+      particular_product: updated.particular_product,
+      due_date: updated.appointment_date,
+    });
+    if (entryError && !entryError.message.includes("duplicate")) {
+      return { error: "Valor do atendimento atualizado, mas houve falha ao gerar o lançamento financeiro." };
     }
   }
 
@@ -681,15 +708,18 @@ export async function createAppointmentForPatient(
     return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente de novo.` };
   }
 
+  // Valor é opcional neste fluxo (equipe agendando por um paciente): quando
+  // não há preço cadastrado pra essa modalidade/produto, o atendimento é
+  // criado mesmo assim com value = null ("pendente"), em vez de bloquear o
+  // agendamento — ver AGENTS.md / pedido "valor opcional". O autoagendamento
+  // do paciente (createAppointment, acima) continua exigindo valor
+  // calculável, não mudou.
   const pricing = await resolveAppointmentValue(
     input.professionalId,
     input.insuranceId,
     input.modality,
     input.particularProduct,
   );
-  if (pricing.value == null) {
-    return { error: pricing.error ?? "Não foi possível calcular o valor do atendimento." };
-  }
 
   const availableTimes = await getAvailableTimes(
     input.professionalId,
@@ -865,7 +895,10 @@ export async function createGroupAppointment(
     }
   }
 
-  const resolvedValues: number[] = [];
+  // Valor opcional por participante (mesma regra de createAppointmentForPatient,
+  // acima): sem preço cadastrado, o participante entra com value = null
+  // ("pendente") em vez de travar a criação de toda a sessão conjugada.
+  const resolvedValues: (number | null)[] = [];
   for (const participant of input.participants) {
     const pricing = await resolveAppointmentValue(
       input.principalProfessionalId,
@@ -873,9 +906,6 @@ export async function createGroupAppointment(
       participant.modality,
       participant.particularProduct,
     );
-    if (pricing.value == null) {
-      return { error: pricing.error ?? "Não foi possível calcular o valor de um dos participantes." };
-    }
     resolvedValues.push(pricing.value);
   }
 

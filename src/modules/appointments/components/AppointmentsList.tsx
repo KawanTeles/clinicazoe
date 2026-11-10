@@ -381,7 +381,15 @@ export function AppointmentsList({
             </button>
           )}
         </td>
-        <td className="px-5 py-4 font-medium text-text-secondary">{formatCurrency(appt.value)}</td>
+        <td className="px-5 py-4 font-medium text-text-secondary">
+          {appt.value != null ? (
+            formatCurrency(appt.value)
+          ) : (
+            <span className="font-semibold text-warning" title="Valor ainda não definido para este atendimento">
+              Pendente
+            </span>
+          )}
+        </td>
         <td className="px-5 py-4">
           <Badge tone={STATUS_TONE[appt.status] ?? "neutral"}>{STATUS_LABELS[appt.status] ?? appt.status}</Badge>
         </td>

@@ -139,7 +139,7 @@ export default async function ClientePainelPage({
 
                       <div className="text-right">
                         <span className="text-sm font-extrabold text-text-primary font-heading">
-                          R$ {appt.value.toFixed(2)}
+                          {appt.value != null ? `R$ ${appt.value.toFixed(2)}` : "Pendente"}
                         </span>
                         <p className="text-[11px] text-text-muted font-medium">
                           {attendance.isConvenio ? attendance.insuranceName : `Particular (${attendance.paymentMethodLabel})`}

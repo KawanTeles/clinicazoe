@@ -18,7 +18,7 @@ interface AppointmentRow {
   appointment_date: string;
   start_time: string;
   status: string;
-  value: number;
+  value: number | null;
   professionalName: string;
   specialtyName: string;
   insuranceName: string;
@@ -345,7 +345,9 @@ function AppointmentsTable({ rows, empty }: { rows: AppointmentRow[]; empty: str
               </td>
               <td className="px-5 py-4 font-semibold text-text-primary">{row.professionalName}</td>
               <td className="px-5 py-4 text-text-secondary">{row.insuranceName}</td>
-              <td className="px-5 py-4 text-text-secondary">{formatCurrency(row.value)}</td>
+              <td className="px-5 py-4 text-text-secondary">
+                {row.value != null ? formatCurrency(row.value) : <span className="text-warning font-semibold">Pendente</span>}
+              </td>
               <td className="px-5 py-4">
                 <Badge tone="neutral">{STATUS_LABELS[row.status] ?? row.status}</Badge>
               </td>

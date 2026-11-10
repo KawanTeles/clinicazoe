@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { getCurrentUser } from "@/lib/auth";
-import { getAppointmentsForViewer } from "@/modules/appointments/services/appointment-queries";
+import { getAppointmentsForViewer, getPendingValueCount } from "@/modules/appointments/services/appointment-queries";
 import { AppointmentsList } from "@/modules/appointments/components/AppointmentsList";
 
 export const metadata = {
@@ -23,12 +23,10 @@ export default async function AppointmentsPage() {
   const session = await getCurrentUser();
   if (!session) redirect("/login");
 
-  const { items, totalPages } = await getAppointmentsForViewer(
-    session.profile.role,
-    session.user.id,
-    1,
-    "todos",
-  );
+  const [{ items, totalPages }, pendingValueCount] = await Promise.all([
+    getAppointmentsForViewer(session.profile.role, session.user.id, 1, "todos"),
+    getPendingValueCount(session.profile.role, session.user.id),
+  ]);
   const copy = TITLES[session.profile.role] ?? TITLES.paciente;
 
   const isStaff = session.profile.role === "admin" || session.profile.role === "recepcionista";
@@ -42,6 +40,9 @@ export default async function AppointmentsPage() {
         </div>
         {isStaff && (
           <div className="flex flex-wrap gap-2">
+            <Link href="/appointments/import">
+              <Button variant="secondary">Lançar Atendimento Existente</Button>
+            </Link>
             <Link href="/appointments/new-group">
               <Button variant="secondary">Atendimento em Dupla/Grupo</Button>
             </Link>
@@ -51,6 +52,16 @@ export default async function AppointmentsPage() {
           </div>
         )}
       </div>
+
+      {pendingValueCount > 0 && (
+        <div className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
+          <strong className="font-bold">{pendingValueCount}</strong>{" "}
+          {pendingValueCount === 1
+            ? "atendimento está com valor pendente de definição."
+            : "atendimentos estão com valor pendente de definição."}{" "}
+          Eles ficam fora dos totais do financeiro até o valor ser definido.
+        </div>
+      )}
 
       <AppointmentsList
         viewerRole={session.profile.role}

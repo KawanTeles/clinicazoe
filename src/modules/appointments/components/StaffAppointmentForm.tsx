@@ -59,6 +59,7 @@ const PAYMENT_LABELS: Record<PaymentMethod, string> = {
 };
 
 const MODALITIES: Modality[] = ["aba", "comum"];
+const PARTICULAR_PRODUCTS: ParticularProduct[] = ["consulta", "pacote"];
 const PARTICULAR_PAYMENT_METHODS: PaymentMethod[] = ["cartao", "pix", "dinheiro"];
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
@@ -585,32 +586,26 @@ export function StaffAppointmentForm({
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Modalidade</label>
                 {loading ? (
                   <p className="text-xs text-text-muted animate-pulse">Carregando valores...</p>
-                ) : pricing?.insuranceKind === "convenio" && pricing.options.length > 0 ? (
+                ) : (
                   <div className="flex flex-wrap gap-1.5">
                     {MODALITIES.map((m) => {
-                      const opt = pricing.options.find((o) => o.modality === m);
+                      const opt =
+                        pricing?.insuranceKind === "convenio"
+                          ? pricing.options.find((o) => o.modality === m)
+                          : undefined;
                       return (
                         <button
                           key={m}
                           type="button"
-                          disabled={!opt}
-                          onClick={() => opt && handleSelectModality(m)}
-                          className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-all ${
-                            !opt
-                              ? "border-border/50 bg-card-elevated/20 text-text-muted cursor-not-allowed"
-                              : "border-border bg-card-elevated/40 text-text-primary hover:border-primary/50 cursor-pointer"
-                          }`}
+                          onClick={() => handleSelectModality(m)}
+                          className="rounded-md border border-border bg-card-elevated/40 px-3 py-1.5 text-xs font-semibold text-text-primary transition-all hover:border-primary/50 cursor-pointer"
                         >
                           {MODALITY_LABELS[m]}
-                          {opt ? ` — ${formatCurrency(opt.value)}` : " (sem valor)"}
+                          {opt ? ` — ${formatCurrency(opt.value)}` : " — valor pendente"}
                         </button>
                       );
                     })}
                   </div>
-                ) : (
-                  <p className="text-xs text-danger">
-                    Este profissional ainda não possui um valor cadastrado para essa modalidade.
-                  </p>
                 )}
               </div>
             ) : (
@@ -752,10 +747,16 @@ export function StaffAppointmentForm({
                         : "—"}
                     </span>
                   </div>
-                  {selectedValue != null && (
+                  {(modality || particularProduct) && (
                     <div className="col-span-2">
                       <span className="text-text-muted block font-medium">Valor:</span>
-                      <span className="font-black text-primary">{formatCurrency(selectedValue)}</span>
+                      {selectedValue != null ? (
+                        <span className="font-black text-primary">{formatCurrency(selectedValue)}</span>
+                      ) : (
+                        <span className="font-bold text-warning">
+                          Pendente — defina o valor depois em Atendimentos ou no Financeiro
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -770,26 +771,27 @@ export function StaffAppointmentForm({
                     Produto Particular
                   </label>
                   <div className="flex flex-wrap gap-1.5">
-                    {pricing?.insuranceKind === "particular" && pricing.options.length > 0 ? (
-                      pricing.options.map((opt) => (
+                    {PARTICULAR_PRODUCTS.map((product) => {
+                      const opt =
+                        pricing?.insuranceKind === "particular"
+                          ? pricing.options.find((o) => o.product === product)
+                          : undefined;
+                      return (
                         <button
-                          key={opt.product}
+                          key={product}
                           type="button"
-                          onClick={() => setParticularProduct(opt.product)}
+                          onClick={() => setParticularProduct(product)}
                           className={`rounded-md border px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
-                            particularProduct === opt.product
+                            particularProduct === product
                               ? "border-primary bg-primary/10 text-primary font-bold shadow-xs"
                               : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
                           }`}
                         >
-                          {PARTICULAR_PRODUCT_LABELS[opt.product]} — {formatCurrency(opt.value)}
+                          {PARTICULAR_PRODUCT_LABELS[product]}
+                          {opt ? ` — ${formatCurrency(opt.value)}` : " — valor pendente"}
                         </button>
-                      ))
-                    ) : (
-                      <p className="text-xs text-danger">
-                        Valores particulares ainda não configurados em Configurações da Clínica.
-                      </p>
-                    )}
+                      );
+                    })}
                   </div>
                 </div>
                 <div>

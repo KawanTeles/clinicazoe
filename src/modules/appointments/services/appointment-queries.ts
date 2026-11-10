@@ -16,7 +16,7 @@ export interface AppointmentView {
   date: string;
   startTime: string;
   endTime: string;
-  value: number;
+  value: number | null;
   paymentMethod: string;
   modality: Modality | null;
   particularProduct: ParticularProduct | null;
@@ -145,6 +145,32 @@ export async function getAppointmentsForViewer(
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
   return { items, totalPages };
+}
+
+/** Conta atendimentos com valor ainda pendente (agendados sem preço
+ * definido, Parte 2 do pedido de valor opcional) — usado só pro aviso
+ * discreto no topo da agenda, por isso soma head-only (count), sem trazer
+ * linhas. Mesmo escopo de visibilidade de getAppointmentsForViewer, e mesmo
+ * filtro de status "todos" (ignora cancelada/remarcada). */
+export async function getPendingValueCount(role: Role, userId: string): Promise<number> {
+  const supabase = await createClient();
+
+  let query = supabase.from("appointments").select("id", { count: "exact", head: true }).is("value", null);
+
+  if (role === "paciente") {
+    query = query.eq("patient_id", userId);
+  } else if (role === "profissional") {
+    const coTherapistAppointmentIds = await getCoTherapistAppointmentIds(supabase, userId);
+    query =
+      coTherapistAppointmentIds.length > 0
+        ? query.or(`professional_id.eq.${userId},id.in.(${coTherapistAppointmentIds.join(",")})`)
+        : query.eq("professional_id", userId);
+  } else {
+    query = query.or("status.neq.pendente,source.eq.staff");
+  }
+
+  const { count } = await query.not("status", "in", '("cancelada","remarcada")');
+  return count ?? 0;
 }
 
 /** Consulta única para a tela de detalhes (/appointments/[id]). A RLS de

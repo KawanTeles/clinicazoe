@@ -314,7 +314,7 @@ interface GroupOccurrenceParticipant {
   paymentMethod: PaymentMethod;
   modality: Modality | null;
   particularProduct: ParticularProduct | null;
-  value: number;
+  value: number | null;
 }
 
 /** Gera as ocorrências de uma série CONJUGADA: para cada data resolvida,
@@ -432,18 +432,19 @@ export async function createRecurringAppointments(
 
   const isGroup = isGroupRecurrence(input);
 
+  // Valor opcional (equipe criando recorrência por um paciente): sem preço
+  // cadastrado, cada ocorrência é criada com value = null ("pendente") em
+  // vez de bloquear a série inteira — mesma regra de createAppointmentForPatient
+  // em booking-actions.ts.
   const pricing = await resolveAppointmentValue(
     input.professionalId,
     input.insuranceId,
     input.modality,
     input.particularProduct,
   );
-  if (pricing.value == null) {
-    return { error: pricing.error ?? "Não foi possível calcular o valor do atendimento." };
-  }
   const appointmentValue = pricing.value;
 
-  const additionalPricing: number[] = [];
+  const additionalPricing: (number | null)[] = [];
   if (isGroup) {
     for (const participant of input.additionalParticipants ?? []) {
       const p = await resolveAppointmentValue(
@@ -452,9 +453,6 @@ export async function createRecurringAppointments(
         participant.modality,
         participant.particularProduct,
       );
-      if (p.value == null) {
-        return { error: p.error ?? "Não foi possível calcular o valor de um dos participantes adicionais." };
-      }
       additionalPricing.push(p.value);
     }
   }
@@ -1102,9 +1100,6 @@ export async function updateRecurringAppointment(
     series.modality ?? undefined,
     series.particular_product ?? undefined,
   );
-  if (pricing.value == null) {
-    return { error: pricing.error ?? "Não foi possível calcular o valor do atendimento." };
-  }
   const appointmentValue = pricing.value;
 
   const groupConfig = await getSeriesGroupConfig(series.id);
@@ -1130,7 +1125,7 @@ export async function updateRecurringAppointment(
   let resultEndTime: string;
 
   if (groupConfig.isGroup) {
-    const additionalPricing: number[] = [];
+    const additionalPricing: (number | null)[] = [];
     for (const participant of groupConfig.additionalParticipants) {
       const p = await resolveAppointmentValue(
         series.professional_id,
@@ -1138,9 +1133,6 @@ export async function updateRecurringAppointment(
         participant.modality ?? undefined,
         participant.particularProduct ?? undefined,
       );
-      if (p.value == null) {
-        return { error: p.error ?? "Não foi possível calcular o valor de um dos participantes adicionais." };
-      }
       additionalPricing.push(p.value);
     }
 
@@ -1428,9 +1420,6 @@ export async function extendSeries(
     series.modality ?? undefined,
     series.particular_product ?? undefined,
   );
-  if (pricing.value == null) {
-    return { error: pricing.error ?? "Não foi possível calcular o valor do atendimento." };
-  }
   const appointmentValue = pricing.value;
 
   // Só staff chega aqui — sem policy de INSERT em appointments para
@@ -1441,7 +1430,7 @@ export async function extendSeries(
   let createdCount: number;
 
   if (groupConfig.isGroup) {
-    const additionalPricing: number[] = [];
+    const additionalPricing: (number | null)[] = [];
     for (const participant of groupConfig.additionalParticipants) {
       const p = await resolveAppointmentValue(
         series.professional_id,
@@ -1449,9 +1438,6 @@ export async function extendSeries(
         participant.modality ?? undefined,
         participant.particularProduct ?? undefined,
       );
-      if (p.value == null) {
-        return { error: p.error ?? "Não foi possível calcular o valor de um dos participantes adicionais." };
-      }
       additionalPricing.push(p.value);
     }
 
@@ -1537,7 +1523,7 @@ interface GroupSiblingParticipant {
   paymentMethod: PaymentMethod;
   modality: Modality | null;
   particularProduct: ParticularProduct | null;
-  value: number;
+  value: number | null;
 }
 
 interface GroupSiblingInfo {

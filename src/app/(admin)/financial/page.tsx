@@ -4,6 +4,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { getCurrentUser } from "@/lib/auth";
 import { formatCurrency } from "@/lib/whatsapp";
 import { getFinancialEntries, getFinancialSummary } from "@/modules/financial/services/financial-queries";
+import { getPendingValueCount } from "@/modules/appointments/services/appointment-queries";
 import { FinancialTable } from "@/modules/financial/components/FinancialTable";
 import { getActiveFinancialCategories } from "@/modules/financial/services/financial-category-queries";
 import {
@@ -32,7 +33,7 @@ export default async function FinancialPage({
   const page = Math.max(1, Number(pageParam) || 1);
   const isFinancialStaff = FINANCIAL_STAFF_ROLES.includes(session.profile.role);
 
-  const [{ items, totalPages }, summary, transactionsData, expenseCategories, revenueCategories, professionals] =
+  const [{ items, totalPages }, summary, transactionsData, expenseCategories, revenueCategories, professionals, pendingValueCount] =
     await Promise.all([
       getFinancialEntries(session.profile.role, session.user.id, page),
       getFinancialSummary(session.profile.role, session.user.id),
@@ -40,6 +41,7 @@ export default async function FinancialPage({
       isFinancialStaff ? getActiveFinancialCategories("despesa") : Promise.resolve([]),
       isFinancialStaff ? getActiveFinancialCategories("receita") : Promise.resolve([]),
       isFinancialStaff ? getActiveProfessionalsForSelect() : Promise.resolve([]),
+      getPendingValueCount(session.profile.role, session.user.id),
     ]);
 
   const categories: FinancialCategoryOption[] = [
@@ -55,6 +57,15 @@ export default async function FinancialPage({
           Lançamentos gerados automaticamente na confirmação de cada atendimento.
         </p>
       </div>
+
+      {pendingValueCount > 0 && (
+        <div className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
+          <strong className="font-bold">{pendingValueCount}</strong>{" "}
+          {pendingValueCount === 1
+            ? "atendimento está com valor pendente de definição e por isso fica fora dos totais abaixo."
+            : "atendimentos estão com valor pendente de definição e por isso ficam fora dos totais abaixo."}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <Card className="relative overflow-hidden">

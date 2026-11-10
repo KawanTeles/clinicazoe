@@ -11,7 +11,7 @@ export type AppointmentStatus =
   | "recusada"
   | "faltou_justificada";
 export type AbsenceStatus = "faltou" | "faltou_justificada";
-export type AppointmentSource = "paciente" | "site_publico" | "staff";
+export type AppointmentSource = "paciente" | "site_publico" | "staff" | "importado";
 export type FinancialStatus = "em_aberto" | "pago" | "cancelado";
 export type RecurrenceFrequency = "weekly" | "biweekly" | "monthly";
 export type SeriesStatus = "active" | "cancelled";
@@ -488,7 +488,7 @@ export interface Database {
           start_time: string;
           end_time: string;
           payment_method: PaymentMethod;
-          value: number;
+          value: number | null;
           modality: Modality | null;
           particular_product: ParticularProduct | null;
           status: AppointmentStatus;
@@ -498,6 +498,7 @@ export interface Database {
           reminder_sent_at: string | null;
           group_id: string | null;
           absence_reason: string | null;
+          import_batch_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -512,7 +513,7 @@ export interface Database {
           start_time: string;
           end_time: string;
           payment_method: PaymentMethod;
-          value: number;
+          value?: number | null;
           modality?: Modality | null;
           particular_product?: ParticularProduct | null;
           status?: AppointmentStatus;
@@ -522,6 +523,7 @@ export interface Database {
           reminder_sent_at?: string | null;
           group_id?: string | null;
           absence_reason?: string | null;
+          import_batch_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -536,7 +538,7 @@ export interface Database {
           start_time?: string;
           end_time?: string;
           payment_method?: PaymentMethod;
-          value?: number;
+          value?: number | null;
           modality?: Modality | null;
           particular_product?: ParticularProduct | null;
           status?: AppointmentStatus;
@@ -546,8 +548,39 @@ export interface Database {
           reminder_sent_at?: string | null;
           group_id?: string | null;
           absence_reason?: string | null;
+          import_batch_id?: string | null;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      appointment_import_batches: {
+        Row: {
+          id: string;
+          label: string;
+          row_count: number;
+          created_by: string;
+          created_at: string;
+          undone_at: string | null;
+          undone_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          label: string;
+          row_count?: number;
+          created_by: string;
+          created_at?: string;
+          undone_at?: string | null;
+          undone_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          label?: string;
+          row_count?: number;
+          created_by?: string;
+          created_at?: string;
+          undone_at?: string | null;
+          undone_by?: string | null;
         };
         Relationships: [];
       };
@@ -1465,12 +1498,14 @@ export interface Database {
           p_start_time: string;
           p_end_time: string;
           p_payment_method: PaymentMethod;
-          p_value: number;
+          p_value: number | null;
           p_modality: Modality | null;
           p_particular_product: ParticularProduct | null;
           p_source: AppointmentSource;
           p_group_id?: string | null;
           p_series_id?: string | null;
+          p_status?: AppointmentStatus | null;
+          p_import_batch_id?: string | null;
         };
         Returns: {
           id: string;
@@ -1483,7 +1518,7 @@ export interface Database {
           start_time: string;
           end_time: string;
           payment_method: PaymentMethod;
-          value: number;
+          value: number | null;
           modality: Modality | null;
           particular_product: ParticularProduct | null;
           status: AppointmentStatus;
@@ -1493,6 +1528,7 @@ export interface Database {
           reminder_sent_at: string | null;
           group_id: string | null;
           absence_reason: string | null;
+          import_batch_id: string | null;
           created_at: string;
           updated_at: string;
         };

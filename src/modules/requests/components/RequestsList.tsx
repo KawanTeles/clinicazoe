@@ -118,7 +118,9 @@ export function RequestsList({ requests }: { requests: RequestView[] }) {
                     {dateFormatter.format(new Date(`${req.date}T00:00:00`))}{" "}
                     <span className="font-semibold text-text-primary">{req.startTime.slice(0, 5)}</span>
                   </td>
-                  <td className="px-5 py-4 font-medium text-text-secondary">{formatCurrency(req.value)}</td>
+                  <td className="px-5 py-4 font-medium text-text-secondary">
+                    {req.value != null ? formatCurrency(req.value) : "—"}
+                  </td>
                   <td className="px-5 py-4 text-text-secondary">{dateTimeFormatter.format(new Date(req.requestedAt))}</td>
                   <td className="px-5 py-4">
                     <div className="flex flex-wrap justify-end gap-1.5">
@@ -215,7 +217,9 @@ export function RequestsList({ requests }: { requests: RequestView[] }) {
               </div>
               <div>
                 <span className="text-xs text-text-muted">Valor do atendimento</span>
-                <p className="font-black text-text-primary">{formatCurrency(viewing.value)}</p>
+                <p className="font-black text-text-primary">
+                  {viewing.value != null ? formatCurrency(viewing.value) : "—"}
+                </p>
               </div>
               <div>
                 <span className="text-xs text-text-muted">Solicitado em</span>

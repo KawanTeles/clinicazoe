@@ -18,7 +18,7 @@ export interface RequestView {
   date: string;
   startTime: string;
   endTime: string;
-  value: number;
+  value: number | null;
   paymentMethod: string;
   modality: Modality | null;
   particularProduct: ParticularProduct | null;

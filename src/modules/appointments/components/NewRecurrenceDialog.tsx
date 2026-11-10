@@ -35,6 +35,7 @@ interface TimeOption {
 }
 
 const MODALITIES: Modality[] = ["aba", "comum"];
+const PARTICULAR_PRODUCTS: ParticularProduct[] = ["consulta", "pacote"];
 const PARTICULAR_PAYMENT_METHODS: PaymentMethod[] = ["cartao", "pix", "dinheiro"];
 const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   cartao: "Cartão",
@@ -293,58 +294,55 @@ export function NewRecurrenceDialog({ patientId, patientName, insurances, onClos
           ) : requiresModality ? (
             <div>
               <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Modalidade</label>
-              {pricing?.insuranceKind === "convenio" && pricing.options.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {MODALITIES.map((m) => {
-                    const opt = pricing.options.find((o) => o.modality === m);
-                    return (
-                      <button
-                        key={m}
-                        type="button"
-                        disabled={!opt}
-                        onClick={() => opt && handleSelectModality(m)}
-                        className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all ${
-                          !opt
-                            ? "border-border/50 bg-card-elevated/20 text-text-muted cursor-not-allowed"
-                            : modality === m
-                              ? "border-primary bg-primary/10 text-primary font-bold"
-                              : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
-                        }`}
-                      >
-                        {MODALITY_LABELS[m]}
-                        {opt ? ` — ${formatCurrency(opt.value)}` : " (sem valor)"}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-xs text-danger">Este profissional ainda não possui valor cadastrado para essa modalidade.</p>
-              )}
+              <div className="flex flex-wrap gap-1.5">
+                {MODALITIES.map((m) => {
+                  const opt =
+                    pricing?.insuranceKind === "convenio" ? pricing.options.find((o) => o.modality === m) : undefined;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => handleSelectModality(m)}
+                      className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all ${
+                        modality === m
+                          ? "border-primary bg-primary/10 text-primary font-bold"
+                          : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
+                      }`}
+                    >
+                      {MODALITY_LABELS[m]}
+                      {opt ? ` — ${formatCurrency(opt.value)}` : " — valor pendente"}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
               <div>
                 <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Produto</label>
-                {pricing?.insuranceKind === "particular" && pricing.options.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {pricing.options.map((opt) => (
+                <div className="flex flex-wrap gap-1.5">
+                  {PARTICULAR_PRODUCTS.map((product) => {
+                    const opt =
+                      pricing?.insuranceKind === "particular"
+                        ? pricing.options.find((o) => o.product === product)
+                        : undefined;
+                    return (
                       <button
-                        key={opt.product}
+                        key={product}
                         type="button"
-                        onClick={() => setParticularProduct(opt.product)}
+                        onClick={() => setParticularProduct(product)}
                         className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all ${
-                          particularProduct === opt.product
+                          particularProduct === product
                             ? "border-primary bg-primary/10 text-primary font-bold"
                             : "border-border bg-card-elevated/40 text-text-secondary hover:border-primary/50"
                         }`}
                       >
-                        {PARTICULAR_PRODUCT_LABELS[opt.product]} — {formatCurrency(opt.value)}
+                        {PARTICULAR_PRODUCT_LABELS[product]}
+                        {opt ? ` — ${formatCurrency(opt.value)}` : " — valor pendente"}
                       </button>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-danger">Valores particulares ainda não configurados em Configurações da Clínica.</p>
-                )}
+                    );
+                  })}
+                </div>
               </div>
               <div>
                 <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Forma de pagamento</label>
@@ -458,9 +456,14 @@ export function NewRecurrenceDialog({ patientId, patientName, insurances, onClos
               onChange={(e) => setMaxOccurrences(e.target.value)}
             />
 
-            {selectedValue != null && (
+            {(modality || particularProduct) && (
               <p className="text-xs text-text-secondary">
-                Valor por atendimento: <strong className="text-text-primary">{formatCurrency(selectedValue)}</strong>
+                Valor por atendimento:{" "}
+                {selectedValue != null ? (
+                  <strong className="text-text-primary">{formatCurrency(selectedValue)}</strong>
+                ) : (
+                  <strong className="text-warning">pendente — defina depois</strong>
+                )}
               </p>
             )}
           </>
