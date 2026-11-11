@@ -172,11 +172,6 @@ export function PublicFooter({
                   Contato & Localização
                 </Link>
               </li>
-              <li>
-                <Link href="/cliente/login" className="hover:text-text-primary transition-colors">
-                  Área do Paciente
-                </Link>
-              </li>
             </ul>
           </div>
 

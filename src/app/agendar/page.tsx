@@ -2,12 +2,12 @@ import { getPublicWebsiteData } from "@/lib/public-queries";
 import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
 import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
-import { PublicBookingWizard } from "@/components/public/PublicBookingWizard";
+import { SimpleBookingForm } from "@/components/public/SimpleBookingForm";
 import { SITE_URL } from "@/lib/site-url";
 
 const TITLE = "Agendar Atendimento — Espaço Zoe";
 const DESCRIPTION =
-  "Marque seu atendimento em poucos passos, sem precisar criar conta agora. Escolha especialidade, convênio, profissional e horário.";
+  "Escolha a especialidade, informe seu nome e fale direto com a clínica pelo WhatsApp para agendar seu atendimento.";
 
 export const metadata = {
   title: TITLE,
@@ -17,7 +17,7 @@ export const metadata = {
 };
 
 export default async function AgendarPage() {
-  const { clinic, specialties, professionals } = await getPublicWebsiteData();
+  const { clinic, specialties } = await getPublicWebsiteData();
 
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans selection:bg-primary selection:text-white">
@@ -31,22 +31,15 @@ export default async function AgendarPage() {
                 Agendar Atendimento
               </h1>
               <p className="text-sm sm:text-base text-text-secondary max-w-xl mx-auto">
-                Marque seu atendimento em poucos passos, sem precisar criar conta agora. Se quiser, você
-                pode criar uma senha só no final para acompanhar tudo por aqui.
+                Escolha a especialidade e informe seu nome. Você será direcionado ao WhatsApp da clínica
+                para concluir o agendamento, sem precisar criar conta.
               </p>
             </div>
           </PageEntranceItem>
 
           <PageEntranceItem>
-            <PublicBookingWizard
+            <SimpleBookingForm
               specialties={specialties.map((s) => ({ id: s.id, name: s.name }))}
-              initialProfessionals={professionals.map((p) => ({
-                id: p.id,
-                fullName: p.fullName,
-                specialtyName: p.specialtyNames.join(", "),
-                bio: p.bio,
-                avatarUrl: p.avatarUrl,
-              }))}
               whatsappNumber={clinic.whatsapp_number}
             />
           </PageEntranceItem>

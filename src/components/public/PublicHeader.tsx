@@ -6,7 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { m, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
-import { CTA_CLIENT_AREA, CTA_TEAM_AREA } from "@/lib/cta-labels";
+import { CTA_TEAM_AREA } from "@/lib/cta-labels";
 
 interface PublicHeaderProps {
   clinicName: string;
@@ -151,33 +151,6 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                   {CTA_TEAM_AREA}
                 </m.button>
               </Link>
-              <Link href="/cliente/login" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background">
-                <m.button
-                  type="button"
-                  tabIndex={-1}
-                  whileHover={{ scale: 1.02, y: -1 }}
-                  whileTap={{ scale: 0.97 }}
-                  transition={{ duration: 0.18 }}
-                  className="group inline-flex items-center gap-2 rounded-full bg-[var(--secondary)] hover:bg-[var(--secondary-hover)] px-5 py-2.5 text-xs font-bold text-white shadow-[0_10px_25px_rgba(112,169,154,0.18)] border border-[var(--secondary)]/30 cursor-pointer"
-                >
-                  <span>{CTA_CLIENT_AREA}</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="transition-transform duration-200 group-hover:translate-x-1"
-                  >
-                    <path d="M5 12h14" />
-                    <path d="m12 5 7 7-7 7" />
-                  </svg>
-                </m.button>
-              </Link>
             </div>
 
             {/* Mobile Hamburger Button */}
@@ -312,35 +285,6 @@ export function PublicHeader({ clinicName, logoUrl }: PublicHeaderProps) {
                 transition={{ delay: NAV_LINKS.length * 0.05 + 0.15, duration: 0.3 }}
                 className="pt-6 border-t border-border/70 flex flex-col gap-3"
               >
-                <Link
-                  href="/cliente/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                >
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--secondary)] to-[var(--secondary-hover)] py-3.5 text-sm font-bold text-white shadow-[0_10px_30px_rgba(112,169,154,0.35)] border border-[rgba(112,169,154,0.3)] transition-transform duration-200 active:scale-98 cursor-pointer"
-                  >
-                    <span>{CTA_CLIENT_AREA}</span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="transition-transform duration-200 group-hover:translate-x-1"
-                    >
-                      <path d="M5 12h14" />
-                      <path d="m12 5 7 7-7 7" />
-                    </svg>
-                  </button>
-                </Link>
-
                 <Link
                   href="/equipe"
                   onClick={() => setMobileMenuOpen(false)}

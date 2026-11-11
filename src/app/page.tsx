@@ -10,7 +10,6 @@ import { EmptyState } from "@/components/public/EmptyState";
 import { PhotoCarousel, type PhotoCarouselSlide } from "@/components/public/PhotoCarousel";
 import { MarqueeCarousel, type MarqueeSlide } from "@/components/public/MarqueeCarousel";
 import { PageEntrance, PageEntranceItem } from "@/components/animation/PageEntrance";
-import { AnimatedCounter } from "@/components/animation/AnimatedCounter";
 import { AnimatedCard } from "@/components/animation/AnimatedCard";
 import { FeaturedProfessionalCard } from "@/components/public/FeaturedProfessionalCard";
 import { SpecialtyIcon } from "@/components/public/SpecialtyIcon";
@@ -320,7 +319,7 @@ export default async function HomePage() {
         <PublicHeader clinicName={clinic.name} logoUrl={clinic.logo_url} />
 
         {/* HERO SECTION */}
-        <section className="relative pt-16 pb-36 lg:pt-24 lg:pb-40">
+        <section className="relative pt-16 pb-16 lg:pt-24 lg:pb-24">
         {/* === MOBILE HERO TEXT (Isolado e Seguro) === */}
         {/* Usamos block lg:hidden para isolar 100% o mobile do desktop. */}
         <div className="block lg:hidden w-full px-4 sm:px-6 relative z-10 overflow-hidden">
@@ -330,10 +329,15 @@ export default async function HomePage() {
                 {/* Fonte levemente menor (text-3xl) e leading um pouco mais solto para não encavalar nem estourar as margens */}
                 <h1 className="tracking-tight text-3xl sm:text-4xl font-black text-[var(--primary)] leading-[1.2] font-heading">
                   Atendimentos com{" "}
-                  <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent drop-shadow-sm">
-                    excelência
-                  </span>{" "}
-                  e acolhimento.
+                  <span className="text-[1.15em] font-black bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">
+                    E
+                  </span>
+                  xcelência{" "}
+                  e{" "}
+                  <span className="text-[1.15em] font-black bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">
+                    A
+                  </span>
+                  colhimento.
                 </h1>
               </PageEntranceItem>
 
@@ -370,10 +374,15 @@ export default async function HomePage() {
               <PageEntranceItem>
                 <h1 className="tracking-hero lg:text-6xl font-black text-[var(--primary)] leading-[1.12] font-heading">
                   Atendimentos com{" "}
-                  <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent drop-shadow-sm">
-                    excelência
-                  </span>{" "}
-                  e acolhimento.
+                  <span className="text-[1.15em] font-black bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">
+                    E
+                  </span>
+                  xcelência{" "}
+                  e{" "}
+                  <span className="text-[1.15em] font-black bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">
+                    A
+                  </span>
+                  colhimento.
                 </h1>
               </PageEntranceItem>
 
@@ -404,55 +413,8 @@ export default async function HomePage() {
       </div>
 
       <main>
-      {/* FAIXA DE TRANSIÇÃO (Números Flutuantes na Emenda) — o card sempre
-          sobrepõe a emenda entre hero e Diferenciais (mesmo no mobile), só
-          que com um puxão pra cima menor (-translate-y-[35%] em vez de
-          -translate-y-1/2): como a % é sempre relativa à própria altura do
-          card, ela se ajusta sozinha a qualquer altura de card, e a menor
-          fração deixa folga suficiente pros botões da hero mesmo com o
-          card mais alto (empilhado em coluna). */}
-      <div className="relative z-20 h-0 w-full">
-        <div className="absolute top-0 left-0 right-0 -translate-y-[35%] px-4 sm:-translate-y-1/2 sm:px-6 lg:px-8">
-          <ScrollReveal animation="fade-up">
-            <div className="mx-auto flex max-w-[900px] flex-col items-center justify-between gap-3 rounded-2xl border border-[rgba(130,169,160,0.2)] bg-card p-5 shadow-[0_8px_30px_rgb(0,0,0,0.08)] sm:flex-row sm:gap-8 sm:p-8">
-              <div className="flex w-full flex-1 flex-col items-center">
-                <p className="text-2xl font-black text-[var(--link)] font-heading drop-shadow-sm sm:text-4xl">
-                  <AnimatedCounter value="99.8%" />
-                </p>
-                <p className="mt-0.5 text-center text-[11px] font-bold uppercase tracking-wider text-text-secondary sm:mt-2 sm:text-xs">Satisfação</p>
-              </div>
-
-              {/* Divisor */}
-              <div className="hidden h-12 w-px bg-border/80 sm:block"></div>
-              <div className="h-px w-16 bg-border/80 sm:hidden"></div>
-
-              <div className="flex w-full flex-1 flex-col items-center">
-                <p className="text-2xl font-black text-[var(--link)] font-heading drop-shadow-sm sm:text-4xl">
-                  <AnimatedCounter value="+15k" />
-                </p>
-                <p className="mt-0.5 text-center text-[11px] font-bold uppercase tracking-wider text-text-secondary sm:mt-2 sm:text-xs">Atendimentos</p>
-              </div>
-
-              {/* Divisor */}
-              <div className="hidden h-12 w-px bg-border/80 sm:block"></div>
-              <div className="h-px w-16 bg-border/80 sm:hidden"></div>
-
-              <div className="flex w-full flex-1 flex-col items-center">
-                <p className="text-2xl font-black text-[var(--link)] font-heading drop-shadow-sm sm:text-4xl">
-                  <AnimatedCounter value="100%" />
-                </p>
-                <p className="mt-0.5 text-center text-[11px] font-bold uppercase tracking-wider text-text-secondary sm:mt-2 sm:text-xs">Especialistas</p>
-              </div>
-            </div>
-          </ScrollReveal>
-        </div>
-      </div>
-
       {/* SEÇÃO DIFERENCIAIS DA CLÍNICA */}
-      {/* pt no mobile acomoda os ~65% do card flutuante que ficam abaixo da
-          linha (só 35% sobem pra dentro da hero); sm:pt-32/lg:pt-36
-          acomodam a metade do card (overlap de 50%, como no desktop). */}
-      <section className="pb-24 pt-48 sm:pt-32 lg:pt-36 bg-gradient-brand-light relative overflow-hidden">
+      <section className="py-24 border-t border-border/70 bg-gradient-brand-light relative overflow-hidden">
         {/* Soft floating background element */}
         <div className="absolute top-1/4 -right-[10%] h-[400px] w-[400px] rounded-full bg-[var(--primary)]/5 blur-[80px] animate-float-organic-slow pointer-events-none" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
