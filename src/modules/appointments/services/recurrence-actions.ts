@@ -7,6 +7,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { buildRescheduleMessage, buildStaffBookingConfirmationMessage, buildWhatsAppLink } from "@/lib/whatsapp";
 import { logAudit } from "@/modules/team/services/audit";
 import { notify, notifyStaff } from "@/modules/notifications/services/notify";
+import { logScheduleChange } from "@/modules/schedule/services/change-log";
 import { logPatientMessage } from "@/modules/patients/services/message-log";
 import {
   cancelFinancialEntryForAppointment,
@@ -423,7 +424,16 @@ export async function createRecurringAppointments(
   whatsappLink?: string | null;
   skippedDates?: SkippedDate[];
 }> {
-  const session = await requireStaff();
+  // Mesma exceção de createAppointmentForPatient (booking-actions.ts): o
+  // próprio profissional pode criar recorrência na PRÓPRIA agenda, pela
+  // Agenda. Grava via service role (sem RLS), então essa checagem aqui é a
+  // única barreira — nunca relaxar sem manter a comparação de professionalId.
+  const rawSession = await getCurrentUser();
+  if (!rawSession) throw new Error("Acesso negado.");
+  const isStaffSession = ["admin", "recepcionista"].includes(rawSession.profile.role);
+  const isOwnProfessionalSession = rawSession.profile.role === "profissional" && input.professionalId === rawSession.user.id;
+  if (!isStaffSession && !isOwnProfessionalSession) throw new Error("Acesso negado.");
+  const session = rawSession;
 
   const rateLimit = checkRateLimit(`create-recurring:${session.user.id}`, 10, 60_000);
   if (!rateLimit.allowed) {
@@ -618,6 +628,18 @@ export async function createRecurringAppointments(
       startTime: input.startTime,
       isGroup,
     },
+  });
+
+  await logScheduleChange({
+    changedBy: session.user.id,
+    professionalId: input.professionalId,
+    entityType: "appointment",
+    entityId: series.id,
+    action: "created",
+    changes: [
+      { field: "recurrence", old: null, new: `${input.frequency} às ${input.startTime}` },
+      { field: "occurrences_created", old: null, new: createdCount },
+    ],
   });
 
   await notifyStaff({
@@ -923,6 +945,18 @@ async function updateSingleOccurrence(
       },
     });
 
+    await logScheduleChange({
+      changedBy: session.user.id,
+      professionalId: appointment.professional_id,
+      entityType: "appointment",
+      entityId: appointment.id,
+      action: "rescheduled",
+      changes: [
+        { field: "appointment_date", old: appointment.appointment_date, new: input.date },
+        { field: "start_time", old: appointment.start_time, new: input.startTime },
+      ],
+    });
+
     const [{ data: patientProfile }, { data: professionalProfile }, { data: clinic }] = await Promise.all([
       supabase.from("profiles").select("full_name, phone").eq("id", appointment.patient_id).single(),
       supabase.from("profiles").select("full_name").eq("id", appointment.professional_id).single(),
@@ -983,6 +1017,18 @@ async function updateSingleOccurrence(
       newTime: input.startTime,
       reason: input.reason ?? null,
     },
+  });
+
+  await logScheduleChange({
+    changedBy: session.user.id,
+    professionalId: appointment.professional_id,
+    entityType: "appointment",
+    entityId: appointment.id,
+    action: "rescheduled",
+    changes: [
+      { field: "appointment_date", old: appointment.appointment_date, new: input.date },
+      { field: "start_time", old: appointment.start_time, new: input.startTime },
+    ],
   });
 
   const [{ data: patientProfile }, { data: professionalProfile }, { data: clinic }] = await Promise.all([

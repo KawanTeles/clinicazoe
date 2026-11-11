@@ -3,6 +3,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/modules/team/services/audit";
+import { logScheduleChange } from "@/modules/schedule/services/change-log";
 
 // A escrita de fato é decidida pela RLS (admin ou o próprio profissional
 // dono do horário) — aqui só garantimos que existe uma sessão válida.
@@ -89,6 +90,19 @@ export async function createSlot(input: CreateSlotInput): Promise<{ error: strin
     },
   });
 
+  await logScheduleChange({
+    changedBy: session.user.id,
+    professionalId: input.professionalId,
+    entityType: "schedule_slot",
+    entityId: created.id,
+    action: "slot_created",
+    changes: [
+      { field: "day_of_week", old: null, new: input.dayOfWeek },
+      { field: "start_time", old: null, new: input.startTime },
+      { field: "end_time", old: null, new: input.endTime },
+    ],
+  });
+
   return { error: null };
 }
 
@@ -108,7 +122,7 @@ export async function setSlotStatus(
     .from("schedule_slots")
     .update({ status })
     .eq("id", slotId)
-    .select("id")
+    .select("id, professional_id")
     .maybeSingle();
 
   if (error) return { error: "Não foi possível atualizar o horário." };
@@ -122,6 +136,15 @@ export async function setSlotStatus(
     metadata: { status },
   });
 
+  await logScheduleChange({
+    changedBy: session.user.id,
+    professionalId: updated.professional_id,
+    entityType: "schedule_slot",
+    entityId: slotId,
+    action: "slot_updated",
+    changes: [{ field: "status", old: null, new: status }],
+  });
+
   return { error: null };
 }
 
@@ -133,7 +156,7 @@ export async function deleteSlot(slotId: string): Promise<{ error: string | null
     .from("schedule_slots")
     .delete()
     .eq("id", slotId)
-    .select("id")
+    .select("id, professional_id")
     .maybeSingle();
 
   if (error) return { error: "Não foi possível excluir o horário." };
@@ -144,6 +167,15 @@ export async function deleteSlot(slotId: string): Promise<{ error: string | null
     action: "schedule_slot.deleted",
     entity: "schedule_slots",
     entityId: slotId,
+  });
+
+  await logScheduleChange({
+    changedBy: session.user.id,
+    professionalId: deleted.professional_id,
+    entityType: "schedule_slot",
+    entityId: slotId,
+    action: "slot_deleted",
+    changes: [],
   });
 
   return { error: null };
@@ -194,6 +226,18 @@ export async function createScheduleException(
     },
   });
 
+  await logScheduleChange({
+    changedBy: session.user.id,
+    professionalId: input.professionalId,
+    entityType: "schedule_exception",
+    entityId: created.id,
+    action: "exception_created",
+    changes: [
+      { field: "start_date", old: null, new: input.startDate },
+      { field: "end_date", old: null, new: input.endDate },
+    ],
+  });
+
   return { error: null };
 }
 
@@ -205,7 +249,7 @@ export async function deleteScheduleException(id: string): Promise<{ error: stri
     .from("schedule_exceptions")
     .delete()
     .eq("id", id)
-    .select("id")
+    .select("id, professional_id")
     .maybeSingle();
 
   if (error) return { error: "Não foi possível remover o bloqueio." };
@@ -216,6 +260,15 @@ export async function deleteScheduleException(id: string): Promise<{ error: stri
     action: "schedule_exception.deleted",
     entity: "schedule_exceptions",
     entityId: id,
+  });
+
+  await logScheduleChange({
+    changedBy: session.user.id,
+    professionalId: deleted.professional_id,
+    entityType: "schedule_exception",
+    entityId: id,
+    action: "exception_deleted",
+    changes: [],
   });
 
   return { error: null };

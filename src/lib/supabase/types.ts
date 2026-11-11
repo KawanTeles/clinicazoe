@@ -309,6 +309,7 @@ export interface Database {
           status: Status;
           display_order: number;
           logo_path: string | null;
+          color: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -318,6 +319,7 @@ export interface Database {
           status?: Status;
           display_order?: number;
           logo_path?: string | null;
+          color?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -327,8 +329,87 @@ export interface Database {
           status?: Status;
           display_order?: number;
           logo_path?: string | null;
+          color?: string | null;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      schedule_blocks: {
+        Row: {
+          id: string;
+          professional_id: string;
+          block_type: string;
+          day_of_week: number | null;
+          specific_date: string | null;
+          start_time: string;
+          end_time: string;
+          label: string | null;
+          status: Status;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          professional_id: string;
+          block_type: string;
+          day_of_week?: number | null;
+          specific_date?: string | null;
+          start_time: string;
+          end_time: string;
+          label?: string | null;
+          status?: Status;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          professional_id?: string;
+          block_type?: string;
+          day_of_week?: number | null;
+          specific_date?: string | null;
+          start_time?: string;
+          end_time?: string;
+          label?: string | null;
+          status?: Status;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      schedule_change_log: {
+        Row: {
+          id: string;
+          changed_by: string | null;
+          professional_id: string;
+          entity_type: string;
+          entity_id: string;
+          action: string;
+          changes: unknown;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          changed_by?: string | null;
+          professional_id: string;
+          entity_type: string;
+          entity_id: string;
+          action: string;
+          changes?: unknown;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          changed_by?: string | null;
+          professional_id?: string;
+          entity_type?: string;
+          entity_id?: string;
+          action?: string;
+          changes?: unknown;
+          created_at?: string;
         };
         Relationships: [];
       };

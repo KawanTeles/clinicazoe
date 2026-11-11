@@ -8,6 +8,10 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", permission: "dashboard.view", icon: "dashboard" },
   { label: "Agendar Atendimento", href: "/book", permission: "appointments.book", icon: "calendar-plus" },
+  { label: "Agenda", href: "/schedule", permission: "appointments.view.own", icon: "calendar" },
+  { label: "Agenda", href: "/schedule", permission: "appointments.manage", icon: "calendar" },
+  { label: "Alterações da Agenda", href: "/schedule/changes", permission: "schedule.changes.view", icon: "activity" },
+  { label: "Alterações da Agenda", href: "/schedule/changes", permission: "schedule.changes.view.own", icon: "activity" },
   { label: "Solicitações", href: "/requests", permission: "requests.manage", icon: "bell" },
   { label: "Lista de Espera", href: "/waitlist", permission: "waitlist.manage", icon: "waitlist" },
   { label: "Meus Atendimentos", href: "/appointments", permission: "appointments.view.own", icon: "calendar" },

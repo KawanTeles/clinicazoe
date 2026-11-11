@@ -81,6 +81,14 @@ interface StaffAppointmentFormProps {
   initialProfessionalId?: string;
   initialModality?: Modality;
   waitlistEntryId?: string;
+  /** Preenchimento vindo da Agenda (clique num horário livre da grade) —
+   * mesmo fluxo de sempre, só avança direto pra data/hora já escolhidas. */
+  initialDate?: string;
+  initialStartTime?: string;
+  /** Quando o próprio profissional agenda pela Agenda, trava o passo
+   * "Profissional Responsável" nele mesmo — não pode escolher outro, mesmo
+   * que a UI de seleção livre continue existindo para staff. */
+  lockProfessionalId?: string;
 }
 
 export function StaffAppointmentForm({
@@ -90,6 +98,9 @@ export function StaffAppointmentForm({
   initialProfessionalId,
   initialModality,
   waitlistEntryId,
+  initialDate,
+  initialStartTime,
+  lockProfessionalId,
 }: StaffAppointmentFormProps) {
   const router = useRouter();
 
@@ -267,6 +278,25 @@ export function StaffAppointmentForm({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pricing]);
+
+  // Prefill vindo da Agenda: data só pode ser escolhida quando o calendário
+  // já estaria liberado na UI (mesma condição do JSX abaixo — profissional
+  // pronto e, se o convênio exige modalidade, modalidade já escolhida).
+  useEffect(() => {
+    if (!initialDate || date) return;
+    const ready = !!professional && (requiresModality ? !!modality : duration !== null);
+    if (ready) {
+      void handleSelectDay({ date: initialDate, status: "available", freeSlotsCount: 1 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [professional, modality, duration]);
+
+  useEffect(() => {
+    if (!initialStartTime || time || times.length === 0) return;
+    const match = times.find((t) => t.startTime.slice(0, 5) === initialStartTime.slice(0, 5));
+    if (match) handleSelectTime(match);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [times]);
 
   async function handleSelectDay(day: DayAvailability) {
     setDate(day.date);
@@ -539,7 +569,19 @@ export function StaffAppointmentForm({
                 3. Profissional Responsável
               </span>
             </div>
-            {!insurance ? (
+            {lockProfessionalId ? (
+              professional ? (
+                <div className="flex items-center gap-2.5 rounded-lg border border-primary/40 bg-primary/10 p-2.5">
+                  <Avatar name={professional.fullName} size={32} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-bold text-text-primary">{professional.fullName}</p>
+                    <p className="truncate text-[10px] text-primary font-semibold">{professional.specialtyName}</p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-text-muted animate-pulse">Carregando seu perfil...</p>
+              )
+            ) : !insurance ? (
               <p className="text-xs text-text-muted">Selecione primeiro um convênio acima.</p>
             ) : loading ? (
               <p className="text-xs text-text-muted animate-pulse">Buscando profissionais...</p>

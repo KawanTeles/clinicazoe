@@ -14,6 +14,7 @@ import {
 } from "@/lib/whatsapp";
 import { logAudit } from "@/modules/team/services/audit";
 import { notify, notifyStaff } from "@/modules/notifications/services/notify";
+import { logScheduleChange } from "@/modules/schedule/services/change-log";
 import { logPatientMessage } from "@/modules/patients/services/message-log";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { notifyWaitlistMatches } from "@/modules/waitlist/services/waitlist-actions";
@@ -163,6 +164,18 @@ export async function createAppointment(
     metadata: { professionalId: input.professionalId, date: input.date, startTime: input.startTime },
   });
 
+  await logScheduleChange({
+    changedBy: session.user.id,
+    professionalId: input.professionalId,
+    entityType: "appointment",
+    entityId: appointment.id,
+    action: "created",
+    changes: [
+      { field: "appointment_date", old: null, new: input.date },
+      { field: "start_time", old: null, new: input.startTime },
+    ],
+  });
+
   const [{ data: professional }, { data: specialty }, { data: insurance }, { data: clinic }] =
     await Promise.all([
       supabase.from("professionals").select("id").eq("id", input.professionalId).single(),
@@ -208,7 +221,7 @@ export async function createAppointment(
 
 export async function cancelAppointment(
   appointmentId: string,
-  options?: { rescheduled?: boolean },
+  options?: { rescheduled?: boolean; reason?: string },
 ): Promise<{ error: string | null; whatsappLink?: string | null }> {
   const session = await getCurrentUser();
   if (!session) return { error: "Acesso negado." };
@@ -220,16 +233,20 @@ export async function cancelAppointment(
 
   const supabase = await createClient();
   const rescheduled = options?.rescheduled ?? false;
+  const reason = options?.reason?.trim() || null;
 
   const { data: appointment } = await supabase
     .from("appointments")
-    .select("appointment_date, start_time, professional_id, specialty_id, insurance_id, modality")
+    .select("appointment_date, start_time, professional_id, specialty_id, insurance_id, modality, notes")
     .eq("id", appointmentId)
     .single();
 
   const { error } = await supabase
     .from("appointments")
-    .update({ status: rescheduled ? "remarcada" : "cancelada" })
+    .update({
+      status: rescheduled ? "remarcada" : "cancelada",
+      ...(reason ? { notes: appointment?.notes ? `${appointment.notes}\n\nMotivo: ${reason}` : `Motivo: ${reason}` } : {}),
+    })
     .eq("id", appointmentId);
 
   if (error) return { error: "Não foi possível cancelar o atendimento." };
@@ -244,6 +261,17 @@ export async function cancelAppointment(
     entity: "appointments",
     entityId: appointmentId,
   });
+
+  if (appointment) {
+    await logScheduleChange({
+      changedBy: session.user.id,
+      professionalId: appointment.professional_id,
+      entityType: "appointment",
+      entityId: appointmentId,
+      action: rescheduled ? "rescheduled" : "cancelled",
+      changes: [{ field: "status", old: null, new: rescheduled ? "remarcada" : "cancelada" }, ...(reason ? [{ field: "reason", old: null, new: reason }] : [])],
+    });
+  }
 
   if (appointment && !rescheduled) {
     await notifyWaitlistForAllInvolved({
@@ -355,6 +383,15 @@ export async function confirmAppointment(
     action: "appointment.confirmed",
     entity: "appointments",
     entityId: appointmentId,
+  });
+
+  await logScheduleChange({
+    changedBy: session.user.id,
+    professionalId: appointment.professional_id,
+    entityType: "appointment",
+    entityId: appointmentId,
+    action: "status_changed",
+    changes: [{ field: "status", old: appointment.status, new: "confirmada" }],
   });
 
   const [{ data: patient }, { data: professionalProfile }, { data: clinic }] = await Promise.all([
@@ -482,6 +519,15 @@ export async function updateAppointmentValue(
     metadata: { newValue },
   });
 
+  await logScheduleChange({
+    changedBy: session.user.id,
+    professionalId: updated.professional_id,
+    entityType: "appointment",
+    entityId: appointmentId,
+    action: "updated",
+    changes: [{ field: "value", old: null, new: newValue }],
+  });
+
   return { error: null };
 }
 
@@ -579,12 +625,13 @@ export async function updateAppointmentStatus(
 
   const isAbsenceStatus = status === "faltou" || status === "faltou_justificada";
 
-  // Profissional só pode marcar falta no próprio atendimento — qualquer
-  // outra transição (cancelar/remarcar/concluir) continua exclusiva de
-  // admin/recepcionista. A RLS (prevent_appointment_tampering, migração
-  // 0064) reforça a mesma regra no banco caso algo escape daqui.
-  if (isProfessional && (!isAbsenceStatus || appointment?.professional_id !== session.user.id)) {
-    return { error: "Você só pode marcar falta em atendimentos seus." };
+  // Profissional pode mudar o status de qualquer atendimento PRÓPRIO (não só
+  // marcar falta — item confirmado do pedido "Agenda por Profissional"); a
+  // RLS (prevent_appointment_tampering, migração 0076) reforça no banco que
+  // isso só vale pra hoje/futuro — atendimento passado só aceita fechar
+  // status (falta/concluída), o que já é o único caminho que chega aqui.
+  if (isProfessional && appointment?.professional_id !== session.user.id) {
+    return { error: "Você só pode alterar atendimentos seus." };
   }
 
   if (status === "faltou_justificada" && !reason?.trim()) {
@@ -609,6 +656,17 @@ export async function updateAppointmentStatus(
     entityId: appointmentId,
     metadata: { status },
   });
+
+  if (appointment) {
+    await logScheduleChange({
+      changedBy: session.user.id,
+      professionalId: appointment.professional_id,
+      entityType: "appointment",
+      entityId: appointmentId,
+      action: "status_changed",
+      changes: [{ field: "status", old: null, new: status }],
+    });
+  }
 
   if (appointment && status === "cancelada") {
     await notifyWaitlistForAllInvolved({
@@ -697,11 +755,22 @@ export interface CreateAppointmentForPatientInput {
 /** Agendamento avulso criado pela recepção/admin para um paciente já
  * cadastrado (fluxo "agendamento mais rápido") — não cria conta nova, só usa
  * o patientId selecionado. Não gera nem edita recorrência (isso é
- * responsabilidade de createRecurringAppointments, em recurrence-actions). */
+ * responsabilidade de createRecurringAppointments, em recurrence-actions).
+ * Desde a Agenda por Profissional (migração 0076), o próprio profissional
+ * também pode usar esta action pra criar um atendimento na PRÓPRIA agenda —
+ * grava via admin client (sem RLS de appointments), então essa checagem
+ * aqui é a única barreira contra um profissional criar atendimento na
+ * agenda de outro: NUNCA relaxar sem manter a comparação com input.professionalId. */
 export async function createAppointmentForPatient(
   input: CreateAppointmentForPatientInput,
 ): Promise<{ error: string | null; whatsappLink?: string | null; appointmentId?: string }> {
-  const session = await requireStaff();
+  const session = await getCurrentUser();
+  if (!session) return { error: "Acesso negado." };
+  const isStaff = ["admin", "recepcionista"].includes(session.profile.role);
+  const isOwnProfessional = session.profile.role === "profissional" && input.professionalId === session.user.id;
+  if (!isStaff && !isOwnProfessional) {
+    return { error: "Acesso negado." };
+  }
 
   const rateLimit = checkRateLimit(`staff-booking:${session.user.id}`, 30, 60_000);
   if (!rateLimit.allowed) {
@@ -771,6 +840,18 @@ export async function createAppointmentForPatient(
     entity: "appointments",
     entityId: appointment.id,
     metadata: { professionalId: input.professionalId, date: input.date, startTime: input.startTime },
+  });
+
+  await logScheduleChange({
+    changedBy: session.user.id,
+    professionalId: input.professionalId,
+    entityType: "appointment",
+    entityId: appointment.id,
+    action: "created",
+    changes: [
+      { field: "appointment_date", old: null, new: input.date },
+      { field: "start_time", old: null, new: input.startTime },
+    ],
   });
 
   const [{ data: patient }, { data: professionalProfile }, { data: clinic }] = await Promise.all([
@@ -994,6 +1075,24 @@ export async function createGroupAppointment(
       appointmentIds: createdAppointmentIds,
     },
   });
+
+  // Sessão conjugada: todos os profissionais envolvidos (principal +
+  // coterapeutas) recebem o log/notificação, não só quem criou — aparece na
+  // agenda de todos eles (Parte 2/g do pedido).
+  for (const professionalId of [input.principalProfessionalId, ...input.coTherapistProfessionalIds]) {
+    await logScheduleChange({
+      changedBy: session.user.id,
+      professionalId,
+      entityType: "appointment",
+      entityId: group.id,
+      action: "created",
+      changes: [
+        { field: "appointment_date", old: null, new: input.date },
+        { field: "start_time", old: null, new: input.startTime },
+        { field: "participants", old: null, new: input.participants.length },
+      ],
+    });
+  }
 
   const [{ data: professionalProfile }, { data: clinic }] = await Promise.all([
     admin.from("profiles").select("full_name").eq("id", input.principalProfessionalId).single(),

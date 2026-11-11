@@ -17,14 +17,24 @@ interface NewAppointmentPageProps {
     professionalId?: string;
     modality?: string;
     waitlistId?: string;
+    date?: string;
+    startTime?: string;
   }>;
 }
 
 export default async function NewAppointmentPage({ searchParams }: NewAppointmentPageProps) {
   const session = await getCurrentUser();
-  if (!session || !["admin", "recepcionista"].includes(session.profile.role)) redirect("/dashboard");
+  if (!session || !["admin", "recepcionista", "profissional"].includes(session.profile.role)) {
+    redirect("/dashboard");
+  }
 
-  const { patientId, insuranceId, professionalId, modality, waitlistId } = await searchParams;
+  const { patientId, insuranceId, professionalId, modality, waitlistId, date, startTime } = await searchParams;
+
+  // Profissional só agenda a própria agenda, mesmo que a URL tente apontar
+  // pra outro profissional — nunca confiar em professionalId da query nesse
+  // caso (mesma cautela de createAppointmentForPatient, booking-actions.ts).
+  const isProfessional = session.profile.role === "profissional";
+  const effectiveProfessionalId = isProfessional ? session.user.id : professionalId;
 
   const insurances = await getActiveInsurances();
 
@@ -65,9 +75,12 @@ export default async function NewAppointmentPage({ searchParams }: NewAppointmen
           insurances={insurances}
           initialPatient={initialPatient}
           initialInsurance={initialInsurance}
-          initialProfessionalId={professionalId || undefined}
+          initialProfessionalId={effectiveProfessionalId || undefined}
           initialModality={initialModality}
           waitlistEntryId={waitlistId || undefined}
+          initialDate={date || undefined}
+          initialStartTime={startTime || undefined}
+          lockProfessionalId={isProfessional ? session.user.id : undefined}
         />
       )}
     </div>
