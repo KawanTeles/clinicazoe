@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { getPublicWebsiteData } from "@/lib/public-queries";
 import { PublicHeader } from "@/components/public/PublicHeader";
@@ -163,7 +162,7 @@ const WHY_CHOOSE_ZOE_ITEMS: { title: string; description: string; icon: ReactNod
 ];
 
 export default async function HomePage() {
-  const { clinic, specialties, professionals, featuredProfessionals, galleryImages, insurances } = await getPublicWebsiteData();
+  const { clinic, specialties, professionals, featuredProfessionals, galleryImages } = await getPublicWebsiteData();
 
   // Sem curadoria manual ainda (Configurações → Profissionais em Destaque),
   // cai para os primeiros por ordem alfabética — a seção nunca fica vazia
@@ -418,121 +417,79 @@ export default async function HomePage() {
         {/* Soft floating background element */}
         <div className="absolute top-1/4 -right-[10%] h-[400px] w-[400px] rounded-full bg-[var(--primary)]/5 blur-[80px] animate-float-organic-slow pointer-events-none" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
+          <div className="text-center max-w-3xl mx-auto">
             <ScrollReveal animation="fade-up">
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--primary)] mt-2 font-heading">
-                Diferenciais que garantem sua tranquilidade
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--primary)] font-heading">
+                Nossos Diferenciais
               </h2>
-              <p className="text-sm sm:text-base text-text-secondary">
-                Compromisso com o cuidado contínuo, avaliações ágeis e ambiente acolhedor.
-              </p>
             </ScrollReveal>
           </div>
 
-          {/* Bento grid with AnimatedCard */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-7 lg:row-span-2">
-              <AnimatedCard delayMs={100} className="h-full rounded-[1.75rem] p-2">
-                <div className="rounded-[calc(1.75rem-0.375rem)] border border-border/80 bg-card-elevated/90 p-8 lg:p-10 shadow-inner h-full flex flex-col justify-between group">
-                  <div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card text-[var(--icon-informative)] border border-[rgba(130,169,160,0.3)] shadow-[0_0_15px_rgba(130,169,160,0.18)] mb-6 transition-transform duration-300 group-hover:scale-110">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-2xl font-bold text-[var(--primary)] font-heading">Atendimento Humanizado</h3>
-                    <p className="mt-3 text-sm font-bold text-[var(--primary)] leading-relaxed">
-                      Aqui cada história importa.
-                    </p>
-                    <p className="mt-2 text-sm text-text-secondary leading-relaxed max-w-md">
-                      Atendimentos individuais estendidos, sem correria, focados no histórico biológico, estilo de vida e necessidades do paciente. Uma experiência de cuidado pensada em cada detalhe.
-                    </p>
-                  </div>
-                  <Link href="/clinica" className="mt-8 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                    Saiba mais sobre a clínica →
-                  </Link>
-                </div>
-              </AnimatedCard>
-            </div>
-
-            <div className="lg:col-span-5">
-              <AnimatedCard delayMs={200} className="p-6 sm:p-7 h-full">
-                <div className="flex items-center gap-5 group">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(130,169,160,0.3)] shadow-[0_0_15px_rgba(130,169,160,0.15)] group-hover:scale-105 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-[var(--primary)] font-heading">Convênios</h3>
-                    <p className="mt-1.5 text-xs text-text-secondary leading-relaxed">
-                      Ampla cobertura de planos de saúde e atendimento particular com facilidades.
-                    </p>
-                    <Link href="/convenios" className="mt-3 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
-                      Ver convênios →
-                    </Link>
-                  </div>
-                </div>
-              </AnimatedCard>
-            </div>
-
-            <div className="lg:col-span-5">
-              <AnimatedCard delayMs={300} className="p-6 sm:p-7 h-full">
-                <div className="flex items-center gap-5 group">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(130,169,160,0.3)] shadow-[0_0_15px_rgba(130,169,160,0.15)] group-hover:scale-105 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z" />
-                      <path d="M22 10v6" />
-                      <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-[var(--primary)] font-heading">Corpo Clínico Qualificado</h3>
-                    <p className="mt-1.5 text-xs text-text-secondary leading-relaxed">
-                      Especialistas qualificados com ampla experiência em atendimento humanizado.
-                    </p>
-                    <Link href="/profissionais" className="mt-3 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
-                      Ver corpo clínico →
-                    </Link>
-                  </div>
-                </div>
-              </AnimatedCard>
-            </div>
-          </div>
-
-          {insurances.length > 0 && (
-            <ScrollReveal animation="fade-up">
-              <div className="pt-2 text-center">
-                <p className="text-xs font-bold uppercase tracking-wider text-text-muted mb-5">Convênios Aceitos</p>
-                <div className="flex flex-wrap items-center justify-center gap-3">
-                  {insurances.map((ins) =>
-                    ins.logo_url ? (
-                      <span
-                        key={ins.id}
-                        className="inline-flex items-center gap-2 rounded-full border border-[rgba(130,169,160,0.25)] bg-card pl-2 pr-4 py-2 text-xs font-bold text-text-primary"
-                      >
-                        <Image
-                          src={ins.logo_url}
-                          alt=""
-                          width={20}
-                          height={20}
-                          className="h-5 w-5 rounded-full object-contain bg-white"
-                        />
-                        {ins.name}
-                      </span>
-                    ) : (
-                      <span
-                        key={ins.id}
-                        className="rounded-full border border-[rgba(130,169,160,0.25)] bg-card px-4 py-2 text-xs font-bold text-text-primary"
-                      >
-                        {ins.name}
-                      </span>
-                    ),
-                  )}
-                </div>
+          {/* Grade de 4 cards iguais — ícone + título curto + 1 linha de apoio
+              (texto factual, sem adjetivo superlativo) + link opcional. */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <AnimatedCard delayMs={100} className="p-6 sm:p-7 h-full flex flex-col">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(130,169,160,0.3)] shadow-[0_0_15px_rgba(130,169,160,0.15)] mb-5 transition-transform duration-300 group-hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                </svg>
               </div>
-            </ScrollReveal>
-          )}
+              <h3 className="text-lg font-bold text-[var(--primary)] font-heading">Atendimento Humanizado</h3>
+              <p className="mt-2 text-base text-text-primary/80 leading-relaxed flex-1">
+                Aqui cada história importa.
+              </p>
+              <Link href="/clinica" className="mt-4 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
+                Saiba mais sobre a clínica →
+              </Link>
+            </AnimatedCard>
+
+            <AnimatedCard delayMs={175} className="p-6 sm:p-7 h-full flex flex-col">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(130,169,160,0.3)] shadow-[0_0_15px_rgba(130,169,160,0.15)] mb-5 transition-transform duration-300 group-hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z" />
+                  <path d="M22 10v6" />
+                  <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-[var(--primary)] font-heading">Corpo Clínico</h3>
+              <p className="mt-2 text-base text-text-primary/80 leading-relaxed flex-1">
+                Equipe multidisciplinar e interdisciplinar especializada.
+              </p>
+              <Link href="/profissionais" className="mt-4 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
+                Ver corpo clínico →
+              </Link>
+            </AnimatedCard>
+
+            <AnimatedCard delayMs={250} className="p-6 sm:p-7 h-full flex flex-col">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(130,169,160,0.3)] shadow-[0_0_15px_rgba(130,169,160,0.15)] mb-5 transition-transform duration-300 group-hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-[var(--primary)] font-heading">Convênios e Particular</h3>
+              <p className="mt-2 text-base text-text-primary/80 leading-relaxed flex-1">
+                Conheça os planos que atendemos.
+              </p>
+              <Link href="/convenios" className="mt-4 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
+                Ver convênios →
+              </Link>
+            </AnimatedCard>
+
+            <AnimatedCard delayMs={325} className="p-6 sm:p-7 h-full flex flex-col">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card-elevated text-[var(--icon-informative)] border border-[rgba(130,169,160,0.3)] shadow-[0_0_15px_rgba(130,169,160,0.15)] mb-5 transition-transform duration-300 group-hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-[var(--primary)] font-heading">Atendimento por WhatsApp</h3>
+              <p className="mt-2 text-base text-text-primary/80 leading-relaxed flex-1">
+                Escolha a especialidade e fale com a gente.
+              </p>
+              <Link href="/agendar" className="mt-4 text-xs font-bold text-[var(--link)] hover:underline inline-flex items-center gap-1">
+                Agendar atendimento →
+              </Link>
+            </AnimatedCard>
+          </div>
         </div>
       </section>
 
