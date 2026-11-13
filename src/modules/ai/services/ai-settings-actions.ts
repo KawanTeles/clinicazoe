@@ -123,6 +123,7 @@ export async function updateAIFeatureToggles(input: {
   show_review_notice: boolean;
   reports_enabled: boolean;
   patient_assistant_enabled: boolean;
+  quick_evolution_enabled: boolean;
 }): Promise<ActionResult> {
   const session = await requireAIAdmin();
   if (!session) return { error: "Acesso negado." };
@@ -136,6 +137,7 @@ export async function updateAIFeatureToggles(input: {
       show_review_notice: input.show_review_notice,
       reports_enabled: input.reports_enabled,
       patient_assistant_enabled: input.patient_assistant_enabled,
+      quick_evolution_enabled: input.quick_evolution_enabled,
       updated_by: session.user.id,
     })
     .eq("id", 1);

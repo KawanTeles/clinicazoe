@@ -19,6 +19,9 @@ interface EvolutionFormProps {
   /** Só true quando, além do acima, o admin também habilitou a transcrição de áudio (ai_settings.transcription_enabled). */
   transcriptionEnabled?: boolean;
   appointmentId?: string;
+  /** Link "Usar evolução rápida" — só exibido quando a chamadora oferece a
+   * Evolução Rápida como alternativa (EvolutionPanel/NewEvolutionLauncher). */
+  onSwitchToQuickMode?: () => void;
 }
 
 const FIELDS: {
@@ -52,6 +55,7 @@ export function EvolutionForm({
   aiEnabled,
   transcriptionEnabled,
   appointmentId,
+  onSwitchToQuickMode,
 }: EvolutionFormProps) {
   const [values, setValues] = useState<EvolutionContentInput>({
     session_summary: initial?.session_summary ?? "",
@@ -70,7 +74,7 @@ export function EvolutionForm({
   // precisa disparar re-render, por isso é um ref simples, não estado.
   const textareaEls = useRef<Partial<Record<EvolutionTargetField, HTMLTextAreaElement | null>>>({});
 
-  const dictation = useFieldDictation((field, text, cursorPos) => {
+  const dictation = useFieldDictation<EvolutionTargetField>((field, text, cursorPos) => {
     setValues((prev) => ({ ...prev, [field]: insertTextAt(prev[field] ?? "", text, cursorPos) }));
   });
 
@@ -99,6 +103,15 @@ export function EvolutionForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {onSwitchToQuickMode && (
+        <button
+          type="button"
+          onClick={onSwitchToQuickMode}
+          className="self-start text-xs font-semibold text-text-secondary hover:underline"
+        >
+          ← Usar evolução rápida
+        </button>
+      )}
       {voiceAssistantEnabled && <AIDisclaimerNotice />}
       {FIELDS.map((field) => {
         const isDictatingField = dictation.activeField === field.key;
