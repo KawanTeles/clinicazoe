@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 import { processImageToWebp } from "@/lib/images/process-image";
+import { sniffImageType } from "@/lib/images/sniff-image-type";
 
 const ALLOWED_AVATAR_INPUT_TYPES = ["image/png", "image/jpeg", "image/webp"];
 // A foto original enviada pode ser grande (ex.: foto de celular, 5MB+) — o
@@ -44,6 +45,14 @@ export async function saveProfileAvatar(
     return { error: "Arquivo muito grande. Limite de 8MB." };
   }
 
+  const inputBuffer = Buffer.from(await file.arrayBuffer());
+  // `file.type` é só o que o client declarou — confere o formato real pelos
+  // bytes antes de mandar pro sharp, que decodifica pelo conteúdo e não
+  // pelo Content-Type declarado (ver sniff-image-type.ts).
+  if (!ALLOWED_AVATAR_INPUT_TYPES.includes(sniffImageType(inputBuffer) ?? "")) {
+    return { error: "Formato inválido. Envie PNG, JPG ou WEBP." };
+  }
+
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
@@ -55,7 +64,6 @@ export async function saveProfileAvatar(
 
   let processed;
   try {
-    const inputBuffer = Buffer.from(await file.arrayBuffer());
     processed = await processImageToWebp(inputBuffer, {
       maxDimension: AVATAR_MAX_DIMENSION,
       quality: AVATAR_QUALITY,

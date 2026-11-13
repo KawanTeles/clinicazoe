@@ -9,6 +9,7 @@ import { buildFullAddress } from "@/modules/settings/utils/address";
 import { revalidatePublicSite as revalidatePublicSiteShared } from "@/lib/revalidate-public-site";
 import type { BusinessHourEntry } from "@/lib/supabase/types";
 import { processImageToWebp } from "@/lib/images/process-image";
+import { sniffImageType } from "@/lib/images/sniff-image-type";
 
 // Cache de 1 ano: path é fixo por natureza (upsert sempre no mesmo nome), e
 // quem lê a URL (settings-queries.ts/public-queries.ts) já adiciona
@@ -468,15 +469,23 @@ export async function uploadClinicLogo(formData: FormData): Promise<ActionResult
     return { error: "Arquivo muito grande. Limite de 5MB." };
   }
 
+  const inputBuffer = Buffer.from(await file.arrayBuffer());
+  // `file.type` é só o que o client declarou — confere o formato real pelos
+  // bytes antes de decidir o que fazer com o arquivo (ver sniff-image-type.ts).
+  const sniffed = sniffImageType(inputBuffer);
+  if (!ALLOWED_LOGO_TYPES.includes(sniffed ?? "")) {
+    return { error: "Formato inválido. Envie PNG, JPG, WEBP ou SVG." };
+  }
+
   const admin = createAdminClient();
 
   // SVG é vetorial — redimensionar/converter pra WebP não faz sentido
   // (perderia a nitidez em qualquer tamanho); já é pequeno por natureza.
-  const isSvg = file.type === "image/svg+xml";
+  const isSvg = sniffed === "image/svg+xml";
   const path = isSvg ? "logo.svg" : "logo.webp";
   const uploadBody = isSvg
-    ? file
-    : (await processImageToWebp(Buffer.from(await file.arrayBuffer()), {
+    ? inputBuffer
+    : (await processImageToWebp(inputBuffer, {
         maxDimension: LOGO_MAX_DIMENSION,
         quality: LOGO_QUALITY,
       })).buffer;
@@ -528,9 +537,16 @@ export async function uploadClinicFacadeImage(formData: FormData): Promise<Actio
     return { error: "Arquivo muito grande. Limite de 10MB." };
   }
 
+  const inputBuffer = Buffer.from(await file.arrayBuffer());
+  // `file.type` é só o que o client declarou — confere o formato real pelos
+  // bytes antes de mandar pro sharp (ver sniff-image-type.ts).
+  if (!ALLOWED_FACADE_TYPES.includes(sniffImageType(inputBuffer) ?? "")) {
+    return { error: "Formato inválido. Envie PNG, JPG ou WEBP." };
+  }
+
   const admin = createAdminClient();
   const path = "facade.webp";
-  const processed = await processImageToWebp(Buffer.from(await file.arrayBuffer()), {
+  const processed = await processImageToWebp(inputBuffer, {
     maxDimension: FACADE_MAX_DIMENSION,
     quality: FACADE_QUALITY,
   });
@@ -579,9 +595,16 @@ export async function uploadClinicFacadeImageMobile(formData: FormData): Promise
     return { error: "Arquivo muito grande. Limite de 10MB." };
   }
 
+  const inputBuffer = Buffer.from(await file.arrayBuffer());
+  // `file.type` é só o que o client declarou — confere o formato real pelos
+  // bytes antes de mandar pro sharp (ver sniff-image-type.ts).
+  if (!ALLOWED_FACADE_TYPES.includes(sniffImageType(inputBuffer) ?? "")) {
+    return { error: "Formato inválido. Envie PNG, JPG ou WEBP." };
+  }
+
   const admin = createAdminClient();
   const path = "facade-mobile.webp";
-  const processed = await processImageToWebp(Buffer.from(await file.arrayBuffer()), {
+  const processed = await processImageToWebp(inputBuffer, {
     maxDimension: FACADE_MAX_DIMENSION,
     quality: FACADE_QUALITY,
   });

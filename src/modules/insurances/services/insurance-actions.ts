@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/modules/team/services/audit";
 import { revalidatePublicInsurancePages } from "@/lib/revalidate-public-site";
 import { processImageToWebp } from "@/lib/images/process-image";
+import { sniffImageType } from "@/lib/images/sniff-image-type";
 
 const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
 const MAX_LOGO_BYTES = 5 * 1024 * 1024;
@@ -159,14 +160,22 @@ export async function uploadInsuranceLogo(id: string, formData: FormData): Promi
     return { error: "Arquivo muito grande. Limite de 5MB." };
   }
 
+  const inputBuffer = Buffer.from(await file.arrayBuffer());
+  // `file.type` é só o que o client declarou — confere o formato real pelos
+  // bytes antes de decidir o que fazer com o arquivo (ver sniff-image-type.ts).
+  const sniffed = sniffImageType(inputBuffer);
+  if (!ALLOWED_LOGO_TYPES.includes(sniffed ?? "")) {
+    return { error: "Formato inválido. Envie PNG, JPG, WEBP ou SVG." };
+  }
+
   const admin = createAdminClient();
 
   // SVG é vetorial — redimensionar/converter pra WebP não faz sentido.
-  const isSvg = file.type === "image/svg+xml";
+  const isSvg = sniffed === "image/svg+xml";
   const path = isSvg ? `${id}.svg` : `${id}.webp`;
   const uploadBody = isSvg
-    ? file
-    : (await processImageToWebp(Buffer.from(await file.arrayBuffer()), {
+    ? inputBuffer
+    : (await processImageToWebp(inputBuffer, {
         maxDimension: LOGO_MAX_DIMENSION,
         quality: LOGO_QUALITY,
       })).buffer;
