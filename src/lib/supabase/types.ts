@@ -1099,7 +1099,6 @@ export interface Database {
           patient_response: string | null;
           home_guidance: string | null;
           observations: string | null;
-          raw_summary_input: string | null;
           professional_name_snapshot: string;
           created_by: string;
           updated_by: string | null;
@@ -1119,7 +1118,6 @@ export interface Database {
           patient_response?: string | null;
           home_guidance?: string | null;
           observations?: string | null;
-          raw_summary_input?: string | null;
           professional_name_snapshot?: string;
           created_by: string;
           updated_by?: string | null;
@@ -1139,7 +1137,6 @@ export interface Database {
           patient_response?: string | null;
           home_guidance?: string | null;
           observations?: string | null;
-          raw_summary_input?: string | null;
           professional_name_snapshot?: string;
           created_by?: string;
           updated_by?: string | null;
@@ -1349,7 +1346,6 @@ export interface Database {
           transcription_enabled: boolean;
           transcription_api_key_ciphertext: string | null;
           transcription_api_key_last4: string | null;
-          quick_evolution_enabled: boolean;
           updated_by: string | null;
           created_at: string;
           updated_at: string;
@@ -1374,7 +1370,6 @@ export interface Database {
           transcription_enabled?: boolean;
           transcription_api_key_ciphertext?: string | null;
           transcription_api_key_last4?: string | null;
-          quick_evolution_enabled?: boolean;
           updated_by?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -1399,7 +1394,6 @@ export interface Database {
           transcription_enabled?: boolean;
           transcription_api_key_ciphertext?: string | null;
           transcription_api_key_last4?: string | null;
-          quick_evolution_enabled?: boolean;
           updated_by?: string | null;
           created_at?: string;
           updated_at?: string;

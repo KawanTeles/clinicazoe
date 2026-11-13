@@ -29,11 +29,6 @@ export interface EvolutionContentInput {
   patient_response?: string;
   home_guidance?: string;
   observations?: string;
-  /** Resumo bruto original (ditado/digitado) que deu origem ao rascunho da
-   * Evolução Rápida — trilha de auditoria LGPD, nunca preenchido pelo Modo
-   * detalhado. Mesma imutabilidade e visibilidade do resto da evolução
-   * (migração 0077). */
-  raw_summary_input?: string | null;
 }
 
 function cleanContent(input: EvolutionContentInput) {
@@ -45,7 +40,6 @@ function cleanContent(input: EvolutionContentInput) {
     patient_response: input.patient_response?.trim() || null,
     home_guidance: input.home_guidance?.trim() || null,
     observations: input.observations?.trim() || null,
-    raw_summary_input: input.raw_summary_input?.trim() || null,
   };
 }
 

@@ -113,17 +113,6 @@ export function EvolutionDetailModal({
               <SignatureLine name={evolution.professionalNameSnapshot} at={evolution.createdAt} />
             </div>
 
-            {evolution.rawSummaryInput && (
-              <details className="rounded-xl border border-border/60 bg-card-elevated/40 px-3.5 py-2.5 print:hidden">
-                <summary className="cursor-pointer text-[11px] font-bold uppercase tracking-wider text-text-secondary">
-                  Resumo original (ditado/digitado) — trilha de auditoria
-                </summary>
-                <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-text-secondary">
-                  {evolution.rawSummaryInput}
-                </p>
-              </details>
-            )}
-
             {evolution.addenda.length > 0 && (
               <div className="flex flex-col gap-3 border-t border-border/60 pt-3">
                 <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">Complementações</p>

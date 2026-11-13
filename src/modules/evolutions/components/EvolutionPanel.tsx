@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { EvolutionForm } from "@/modules/evolutions/components/EvolutionForm";
-import { QuickEvolutionForm } from "@/modules/evolutions/components/QuickEvolutionForm";
 import { AddendumForm, SignatureLine } from "@/modules/evolutions/components/AddendumForm";
 import { createEvolution } from "@/modules/evolutions/services/evolution-actions";
 import type { EvolutionView } from "@/modules/evolutions/services/evolution-queries";
@@ -24,15 +23,10 @@ const REALIZED_STATUSES = ["confirmada", "concluida"];
 interface EvolutionPanelProps {
   appointmentId: string;
   appointmentStatus: string;
-  patientName?: string;
   canManageEvolution: boolean;
   evolution: EvolutionView | null;
   aiEnabled?: boolean;
   transcriptionEnabled?: boolean;
-  /** Habilita o fluxo padrão de "Evolução Rápida" (resumo único + IA gera o
-   * rascunho) — independente de `aiEnabled` (que só controla o "Melhorar
-   * texto"/ditado por campo do Modo detalhado). */
-  quickEvolutionEnabled?: boolean;
 }
 
 /** Conteúdo da aba "Evolução" da tela de detalhes da consulta. Evolução
@@ -42,16 +36,13 @@ interface EvolutionPanelProps {
 export function EvolutionPanel({
   appointmentId,
   appointmentStatus,
-  patientName,
   canManageEvolution,
   evolution,
   aiEnabled,
   transcriptionEnabled,
-  quickEvolutionEnabled,
 }: EvolutionPanelProps) {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
-  const [detailedMode, setDetailedMode] = useState(false);
   const [showAddendumForm, setShowAddendumForm] = useState(false);
 
   const canCreate = canManageEvolution && REALIZED_STATUSES.includes(appointmentStatus);
@@ -66,29 +57,15 @@ export function EvolutionPanel({
   if (showForm) {
     return (
       <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
-        {detailedMode ? (
-          <EvolutionForm
-            submitLabel="Registrar evolução"
-            onSubmit={(input) => createEvolution({ appointment_id: appointmentId, ...input })}
-            onCancel={() => setShowForm(false)}
-            onSaved={handleSaved}
-            aiEnabled={aiEnabled}
-            transcriptionEnabled={transcriptionEnabled}
-            appointmentId={appointmentId}
-            onSwitchToQuickMode={() => setDetailedMode(false)}
-          />
-        ) : (
-          <QuickEvolutionForm
-            appointmentId={appointmentId}
-            patientName={patientName}
-            onSubmit={(input) => createEvolution({ appointment_id: appointmentId, ...input })}
-            onCancel={() => setShowForm(false)}
-            onSaved={handleSaved}
-            onSwitchToDetailedMode={() => setDetailedMode(true)}
-            aiEnabled={quickEvolutionEnabled}
-            transcriptionEnabled={transcriptionEnabled}
-          />
-        )}
+        <EvolutionForm
+          submitLabel="Registrar evolução"
+          onSubmit={(input) => createEvolution({ appointment_id: appointmentId, ...input })}
+          onCancel={() => setShowForm(false)}
+          onSaved={handleSaved}
+          aiEnabled={aiEnabled}
+          transcriptionEnabled={transcriptionEnabled}
+          appointmentId={appointmentId}
+        />
       </div>
     );
   }
@@ -132,17 +109,6 @@ export function EvolutionPanel({
       <div className="mt-5 border-t border-border/60 pt-3">
         <SignatureLine name={evolution.professionalNameSnapshot} at={evolution.createdAt} />
       </div>
-
-      {evolution.rawSummaryInput && (
-        <details className="mt-3 rounded-xl border border-border/60 bg-card-elevated/40 px-3.5 py-2.5">
-          <summary className="cursor-pointer text-[11px] font-bold uppercase tracking-wider text-text-secondary">
-            Resumo original (ditado/digitado) — trilha de auditoria
-          </summary>
-          <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-text-secondary">
-            {evolution.rawSummaryInput}
-          </p>
-        </details>
-      )}
 
       {evolution.addenda.length > 0 && (
         <div className="mt-5 flex flex-col gap-3 border-t border-border/60 pt-4">

@@ -44,7 +44,6 @@ export default async function AppointmentDetailPage({ params }: { params: Promis
 
   let aiEnabled = false;
   let transcriptionEnabled = false;
-  let quickEvolutionEnabled = false;
   if (isLinkedProfessional) {
     const [hasPermission, flags] = await Promise.all([
       can(session.profile.role, "ai.evolution_assistant.use"),
@@ -52,7 +51,6 @@ export default async function AppointmentDetailPage({ params }: { params: Promis
     ]);
     aiEnabled = hasPermission && flags.enabled && flags.evolutionAssistantEnabled;
     transcriptionEnabled = hasPermission && flags.enabled && flags.transcriptionEnabled;
-    quickEvolutionEnabled = hasPermission && flags.enabled && flags.quickEvolutionEnabled;
   }
 
   // Admin, recepção ou o profissional principal podem adicionar/remover
@@ -78,7 +76,6 @@ export default async function AppointmentDetailPage({ params }: { params: Promis
       evolution={evolution}
       aiEnabled={aiEnabled}
       transcriptionEnabled={transcriptionEnabled}
-      quickEvolutionEnabled={quickEvolutionEnabled}
       coTherapists={coTherapists}
       availableProfessionals={availableProfessionals}
       canManageCoTherapists={canManageCoTherapists}

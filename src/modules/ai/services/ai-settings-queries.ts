@@ -21,7 +21,6 @@ export interface AISettingsForAdmin {
   transcriptionEnabled: boolean;
   hasTranscriptionApiKey: boolean;
   transcriptionApiKeyLast4: string | null;
-  quickEvolutionEnabled: boolean;
 }
 
 /** Usado só pela tela de admin. Nunca retorna nenhuma das duas chaves em texto puro — apenas os últimos 4 dígitos. */
@@ -30,7 +29,7 @@ export async function getAISettingsForAdmin(): Promise<AISettingsForAdmin | null
   const { data } = await supabase
     .from("ai_settings")
     .select(
-      "provider, model, api_key_last4, connection_status, connection_tested_at, ai_enabled, evolution_assistant_enabled, show_review_notice, reports_enabled, patient_assistant_enabled, monthly_request_limit, daily_request_limit, monthly_request_limit_per_user, limit_action, transcription_enabled, transcription_api_key_last4, quick_evolution_enabled",
+      "provider, model, api_key_last4, connection_status, connection_tested_at, ai_enabled, evolution_assistant_enabled, show_review_notice, reports_enabled, patient_assistant_enabled, monthly_request_limit, daily_request_limit, monthly_request_limit_per_user, limit_action, transcription_enabled, transcription_api_key_last4",
     )
     .eq("id", 1)
     .maybeSingle();
@@ -56,7 +55,6 @@ export async function getAISettingsForAdmin(): Promise<AISettingsForAdmin | null
     transcriptionEnabled: data.transcription_enabled,
     hasTranscriptionApiKey: Boolean(data.transcription_api_key_last4),
     transcriptionApiKeyLast4: data.transcription_api_key_last4,
-    quickEvolutionEnabled: data.quick_evolution_enabled,
   };
 }
 
@@ -67,7 +65,6 @@ export interface AIFeatureFlags {
   reportsEnabled: boolean;
   patientAssistantEnabled: boolean;
   transcriptionEnabled: boolean;
-  quickEvolutionEnabled: boolean;
 }
 
 /**
@@ -81,7 +78,7 @@ export async function getAIFeatureFlags(): Promise<AIFeatureFlags> {
   const { data } = await admin
     .from("ai_settings")
     .select(
-      "ai_enabled, evolution_assistant_enabled, show_review_notice, reports_enabled, patient_assistant_enabled, transcription_enabled, quick_evolution_enabled",
+      "ai_enabled, evolution_assistant_enabled, show_review_notice, reports_enabled, patient_assistant_enabled, transcription_enabled",
     )
     .eq("id", 1)
     .maybeSingle();
@@ -93,6 +90,5 @@ export async function getAIFeatureFlags(): Promise<AIFeatureFlags> {
     reportsEnabled: data?.reports_enabled ?? false,
     patientAssistantEnabled: data?.patient_assistant_enabled ?? false,
     transcriptionEnabled: data?.transcription_enabled ?? false,
-    quickEvolutionEnabled: data?.quick_evolution_enabled ?? false,
   };
 }

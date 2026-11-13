@@ -38,13 +38,13 @@ function getSpeechRecognitionConstructor(): SpeechRecognitionConstructor | null 
 
 export type DictationStatus = "idle" | "recording" | "paused";
 
-export interface FieldDictationController<TField extends string = EvolutionTargetField> {
+export interface FieldDictationController {
   supported: boolean;
-  activeField: TField | null;
+  activeField: EvolutionTargetField | null;
   status: DictationStatus;
   interimText: string;
   error: string | null;
-  start: (field: TField, textarea: HTMLTextAreaElement | null) => void;
+  start: (field: EvolutionTargetField, textarea: HTMLTextAreaElement | null) => void;
   pause: () => void;
   resume: () => void;
   stop: () => void;
@@ -77,13 +77,11 @@ export function insertTextAt(original: string, insertion: string, pos: number | 
  * `onCommit` só é chamado quando a gravação de um campo é finalizada (parar,
  * ou trocar para outro campo) — nunca durante a gravação em si, que só
  * atualiza `interimText` para a prévia ao vivo. */
-export function useFieldDictation<TField extends string = EvolutionTargetField>(
-  onCommit: (field: TField, text: string, cursorPos: number | null) => void,
-) {
+export function useFieldDictation(onCommit: (field: EvolutionTargetField, text: string, cursorPos: number | null) => void) {
   const [Ctor] = useState<SpeechRecognitionConstructor | null>(getSpeechRecognitionConstructor);
   const supported = Ctor !== null;
 
-  const [activeField, setActiveField] = useState<TField | null>(null);
+  const [activeField, setActiveField] = useState<EvolutionTargetField | null>(null);
   const [status, setStatus] = useState<DictationStatus>("idle");
   const [interimText, setInterimText] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -96,10 +94,10 @@ export function useFieldDictation<TField extends string = EvolutionTargetField>(
     committed: "",
     session: "",
     cursorPos: null as number | null,
-    field: null as TField | null,
+    field: null as EvolutionTargetField | null,
   });
   const pendingActionRef = useRef<"pause" | "stop" | null>(null);
-  const queuedStartRef = useRef<{ field: TField; textarea: HTMLTextAreaElement | null } | null>(null);
+  const queuedStartRef = useRef<{ field: EvolutionTargetField; textarea: HTMLTextAreaElement | null } | null>(null);
 
   function commitCurrent() {
     const buf = bufferRef.current;
@@ -114,7 +112,7 @@ export function useFieldDictation<TField extends string = EvolutionTargetField>(
     if (field && text.trim()) onCommitRef.current(field, text, cursorPos);
   }
 
-  function beginRecording(field: TField, textarea: HTMLTextAreaElement | null) {
+  function beginRecording(field: EvolutionTargetField, textarea: HTMLTextAreaElement | null) {
     const recognition = recognitionRef.current;
     if (!recognition) return;
     const buf = bufferRef.current;
@@ -192,7 +190,7 @@ export function useFieldDictation<TField extends string = EvolutionTargetField>(
     recognitionRef.current = recognition;
   }, [Ctor]);
 
-  function start(field: TField, textarea: HTMLTextAreaElement | null) {
+  function start(field: EvolutionTargetField, textarea: HTMLTextAreaElement | null) {
     if (!recognitionRef.current) {
       setError("Ditado por voz não é suportado neste navegador.");
       return;
@@ -264,6 +262,6 @@ export function useFieldDictation<TField extends string = EvolutionTargetField>(
     }
   }
 
-  const controller: FieldDictationController<TField> = { supported, activeField, status, interimText, error, start, pause, resume, stop };
+  const controller: FieldDictationController = { supported, activeField, status, interimText, error, start, pause, resume, stop };
   return controller;
 }

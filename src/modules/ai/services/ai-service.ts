@@ -5,7 +5,6 @@ import { mockProvider } from "./providers/mock-provider";
 import { openaiProvider } from "./providers/openai-provider";
 import { anthropicProvider } from "./providers/anthropic-provider";
 import { geminiProvider } from "./providers/gemini-provider";
-import { QUICK_EVOLUTION_SYSTEM_PROMPT } from "./quick-evolution-prompt";
 
 const MODE_INSTRUCTIONS: Record<ImproveMode, string> = {
   ortografia: "Corrija apenas ortografia, gramática e pontuação. Não reescreva frases além do necessário para a correção.",
@@ -51,16 +50,6 @@ const REPORT_TEMPLATE_INSTRUCTIONS: Record<ReportTemplate, string> = {
   encaminhamento: "Seja objetivo e direcionado ao profissional que receberá o encaminhamento, destacando o motivo e o contexto relevante para a continuidade do cuidado.",
   alta: "Enfatize os objetivos alcançados, o estado final do paciente ao término do acompanhamento e recomendações para o futuro.",
 };
-
-export interface GenerateQuickEvolutionInput {
-  /** Resumo já normalizado (vícios de fala removidos) e com o nome do
-   * paciente mascarado — feito pelo chamador (quick-evolution-actions.ts)
-   * antes de chegar aqui. */
-  summary: string;
-  provider: AIProviderId;
-  apiKey: string | null;
-  model: string | null;
-}
 
 export interface GenerateReportInput {
   patientName: string;
@@ -139,18 +128,6 @@ export const AIService = {
 
   async transcribeAudio(): Promise<never> {
     throw new NotImplementedError("transcribeAudio");
-  },
-
-  /** Gera o rascunho da "Evolução Rápida" a partir do resumo único ditado/digitado pelo profissional. */
-  async generateQuickEvolution(input: GenerateQuickEvolutionInput): Promise<{ text: string; usage?: TextUsage }> {
-    const provider = resolveProvider(input.provider);
-    const result = await provider.complete(input.apiKey, {
-      system: QUICK_EVOLUTION_SYSTEM_PROMPT,
-      user: input.summary,
-      model: input.model ?? undefined,
-      maxTokens: 700,
-    });
-    return { text: result.text.trim(), usage: result.usage };
   },
 
   /** Gera o texto de um relatório a partir das evoluções já formatadas pelo chamador (reports-actions.ts). */

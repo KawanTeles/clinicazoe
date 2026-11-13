@@ -37,7 +37,6 @@ export default async function MyPatientDetailPage({ params }: { params: Promise<
   // para o assistente de escrita dentro do formulário de nova evolução.
   const evolutionAiEnabled = hasEvolutionAssistantPermission && flags.enabled && flags.evolutionAssistantEnabled;
   const evolutionTranscriptionEnabled = hasEvolutionAssistantPermission && flags.enabled && flags.transcriptionEnabled;
-  const evolutionQuickEnabled = hasEvolutionAssistantPermission && flags.enabled && flags.quickEvolutionEnabled;
 
   return (
     <MyPatientDetailTabs
@@ -47,7 +46,6 @@ export default async function MyPatientDetailPage({ params }: { params: Promise<
       aiAssistantEnabled={aiAssistantEnabled}
       evolutionAiEnabled={evolutionAiEnabled}
       evolutionTranscriptionEnabled={evolutionTranscriptionEnabled}
-      evolutionQuickEnabled={evolutionQuickEnabled}
       documents={documents}
     />
   );

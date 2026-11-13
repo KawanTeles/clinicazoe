@@ -33,7 +33,6 @@ interface MyPatientDetailTabsProps {
    * "🤖 Assistente IA", Q&A sobre o histórico). */
   evolutionAiEnabled?: boolean;
   evolutionTranscriptionEnabled?: boolean;
-  evolutionQuickEnabled?: boolean;
   documents: ClinicalDocumentView[];
 }
 
@@ -48,7 +47,6 @@ export function MyPatientDetailTabs({
   aiAssistantEnabled,
   evolutionAiEnabled,
   evolutionTranscriptionEnabled,
-  evolutionQuickEnabled,
   documents,
 }: MyPatientDetailTabsProps) {
   const [tab, setTab] = useState<Tab>("Dados");
@@ -116,10 +114,8 @@ export function MyPatientDetailTabs({
           <h2 className="text-sm font-bold uppercase tracking-wider text-text-secondary">Histórico Clínico</h2>
           <NewEvolutionLauncher
             patientId={patient.id}
-            patientName={patient.fullName}
             aiEnabled={evolutionAiEnabled}
             transcriptionEnabled={evolutionTranscriptionEnabled}
-            quickEvolutionEnabled={evolutionQuickEnabled}
           />
           <EvolutionTimeline
             patientId={patient.id}
