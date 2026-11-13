@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { EvolutionForm } from "@/modules/evolutions/components/EvolutionForm";
+import { QuickEvolutionForm } from "@/modules/evolutions/components/QuickEvolutionForm";
 import {
   createEvolution,
   loadAppointmentsAvailableForEvolution,
@@ -14,8 +15,12 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 
 interface NewEvolutionLauncherProps {
   patientId: string;
+  patientName?: string;
   aiEnabled?: boolean;
   transcriptionEnabled?: boolean;
+  /** Habilita o fluxo padrão de "Evolução Rápida" (resumo único + IA gera o
+   * rascunho) — independente de `aiEnabled` (Modo detalhado). */
+  quickEvolutionEnabled?: boolean;
 }
 
 /** Botão "Nova evolução" da ficha do paciente (aba Histórico Clínico).
@@ -25,12 +30,19 @@ interface NewEvolutionLauncherProps {
  * evolução própria, qual deles está sendo documentado — complementa
  * EvolutionPanel (aba "Evolução" de um atendimento específico), que resolve
  * o mesmo caso quando o profissional já está dentro do atendimento certo. */
-export function NewEvolutionLauncher({ patientId, aiEnabled, transcriptionEnabled }: NewEvolutionLauncherProps) {
+export function NewEvolutionLauncher({
+  patientId,
+  patientName,
+  aiEnabled,
+  transcriptionEnabled,
+  quickEvolutionEnabled,
+}: NewEvolutionLauncherProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [options, setOptions] = useState<EvolutionEligibleAppointment[] | null>(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+  const [detailedMode, setDetailedMode] = useState(false);
 
   async function handleOpen() {
     setOpen(true);
@@ -44,6 +56,7 @@ export function NewEvolutionLauncher({ patientId, aiEnabled, transcriptionEnable
     setOpen(false);
     setOptions(null);
     setSelectedAppointmentId(null);
+    setDetailedMode(false);
   }
 
   function handleSaved() {
@@ -72,15 +85,29 @@ export function NewEvolutionLauncher({ patientId, aiEnabled, transcriptionEnable
   if (selectedAppointmentId) {
     return (
       <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
-        <EvolutionForm
-          submitLabel="Registrar evolução"
-          onSubmit={(input) => createEvolution({ appointment_id: selectedAppointmentId, ...input })}
-          onCancel={() => setSelectedAppointmentId(null)}
-          onSaved={handleSaved}
-          aiEnabled={aiEnabled}
-          transcriptionEnabled={transcriptionEnabled}
-          appointmentId={selectedAppointmentId}
-        />
+        {detailedMode ? (
+          <EvolutionForm
+            submitLabel="Registrar evolução"
+            onSubmit={(input) => createEvolution({ appointment_id: selectedAppointmentId, ...input })}
+            onCancel={() => setSelectedAppointmentId(null)}
+            onSaved={handleSaved}
+            aiEnabled={aiEnabled}
+            transcriptionEnabled={transcriptionEnabled}
+            appointmentId={selectedAppointmentId}
+            onSwitchToQuickMode={() => setDetailedMode(false)}
+          />
+        ) : (
+          <QuickEvolutionForm
+            appointmentId={selectedAppointmentId}
+            patientName={patientName}
+            onSubmit={(input) => createEvolution({ appointment_id: selectedAppointmentId, ...input })}
+            onCancel={() => setSelectedAppointmentId(null)}
+            onSaved={handleSaved}
+            onSwitchToDetailedMode={() => setDetailedMode(true)}
+            aiEnabled={quickEvolutionEnabled}
+            transcriptionEnabled={transcriptionEnabled}
+          />
+        )}
       </div>
     );
   }

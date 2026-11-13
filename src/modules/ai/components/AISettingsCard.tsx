@@ -42,6 +42,7 @@ export function AISettingsCard({ initial }: { initial: AISettingsForAdmin }) {
   const [showReviewNotice, setShowReviewNotice] = useState(initial.showReviewNotice);
   const [reportsEnabled, setReportsEnabled] = useState(initial.reportsEnabled);
   const [patientAssistantEnabled, setPatientAssistantEnabled] = useState(initial.patientAssistantEnabled);
+  const [quickEvolutionEnabled, setQuickEvolutionEnabled] = useState(initial.quickEvolutionEnabled);
 
   const [transcriptionEnabled, setTranscriptionEnabled] = useState(initial.transcriptionEnabled);
   const [transcriptionApiKey, setTranscriptionApiKey] = useState("");
@@ -84,6 +85,7 @@ export function AISettingsCard({ initial }: { initial: AISettingsForAdmin }) {
       show_review_notice: showReviewNotice,
       reports_enabled: reportsEnabled,
       patient_assistant_enabled: patientAssistantEnabled,
+      quick_evolution_enabled: quickEvolutionEnabled,
     });
     if (togglesResult.error) {
       setSaving(false);
@@ -175,6 +177,11 @@ export function AISettingsCard({ initial }: { initial: AISettingsForAdmin }) {
         <Switch label="Exibir aviso de revisão obrigatória" checked={showReviewNotice} onChange={setShowReviewNotice} />
         <Switch label="Relatórios Inteligentes" checked={reportsEnabled} onChange={setReportsEnabled} />
         <Switch label="Assistente do Prontuário" checked={patientAssistantEnabled} onChange={setPatientAssistantEnabled} />
+        <Switch
+          label="Evolução Rápida (resumo único + IA gera o rascunho)"
+          checked={quickEvolutionEnabled}
+          onChange={setQuickEvolutionEnabled}
+        />
       </div>
 
       <div className="flex flex-col gap-3 border-t border-border/60 pt-4">

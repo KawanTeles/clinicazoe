@@ -42,6 +42,11 @@ export interface EvolutionView {
    * `professionalName`. */
   professionalNameSnapshot: string;
   addenda: EvolutionAddendumView[];
+  /** Resumo bruto original (ditado/digitado) que deu origem a esta evolução
+   * via "Evolução Rápida" — null para evoluções do Modo detalhado e para
+   * todo o histórico anterior à migração 0077. Mesma visibilidade do resto
+   * da evolução (RLS por vínculo ao paciente), nunca exposto a admin. */
+  rawSummaryInput: string | null;
 }
 
 async function denormalize(supabase: Supabase, rows: EvolutionRow[]): Promise<EvolutionView[]> {
@@ -116,6 +121,7 @@ async function denormalize(supabase: Supabase, rows: EvolutionRow[]): Promise<Ev
       wasEdited: row.updated_at !== row.created_at,
       professionalNameSnapshot: row.professional_name_snapshot,
       addenda: addendaByEvolutionId.get(row.id) ?? [],
+      rawSummaryInput: row.raw_summary_input,
     };
   });
 }
