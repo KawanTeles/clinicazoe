@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { AIDisclaimerNotice } from "@/modules/ai/components/AIDisclaimerNotice";
+import { AudioRecorderButton } from "@/modules/ai/components/AudioRecorderButton";
+import { useAudioRecorder } from "@/modules/ai/components/useAudioRecorder";
 import {
   insertTextAt,
   useFieldDictation,
@@ -145,6 +147,11 @@ export function QuickEvolutionForm({
     const index = Number(field.split("-")[1]);
     setTopicValues((prev) => prev.map((v, i) => (i === index ? insertTextAt(v, text, cursorPos) : v)));
   });
+
+  // Só o resumo tem gravação ao vivo (os campos por tópico, quando existem,
+  // são preenchidos pela IA a partir do resumo — não têm botão de gravação
+  // próprio, mesma assimetria que já existia no upload de arquivo).
+  const audioRecorder = useAudioRecorder<"summary">();
 
   const isDictating = dictation.activeField !== null;
   const isDictatingSummary = dictation.activeField === "summary";
@@ -422,26 +429,26 @@ export function QuickEvolutionForm({
           )}
 
           <div className="flex flex-wrap items-center gap-2">
-            <DictationControls field="summary" getTarget={() => summaryTextareaRef.current} dictation={dictation} />
+            {/* Ditado (Web Speech API) e gravação (MediaRecorder) nunca ativos
+                ao mesmo tempo no mesmo campo — são dois consumidores de
+                microfone distintos, abrir os dois juntos é, na melhor das
+                hipóteses, confuso, e em alguns navegadores disputa o mesmo
+                dispositivo de captura. */}
+            {audioRecorder.activeField === null && (
+              <DictationControls field="summary" getTarget={() => summaryTextareaRef.current} dictation={dictation} />
+            )}
             {transcriptionEnabled && !isDictating && (
-              <>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  isLoading={transcribing}
-                  onClick={() => audioInputRef.current?.click()}
-                >
-                  🎧 Transcrever áudio
-                </Button>
-                <input
-                  ref={audioInputRef}
-                  type="file"
-                  accept="audio/mpeg,audio/mp3,audio/mp4,audio/x-m4a,audio/m4a,audio/wav,audio/x-wav,audio/webm,.mp3,.m4a,.wav,.webm,.mp4,.mpeg,.mpga"
-                  className="hidden"
-                  onChange={handleAudioUpload}
-                />
-              </>
+              <AudioRecorderButton
+                field="summary"
+                recorder={audioRecorder}
+                appointmentId={appointmentId}
+                enabled
+                onTranscribed={(text) =>
+                  setRawSummary((prev) =>
+                    insertTextAt(prev, text, summaryTextareaRef.current?.selectionStart ?? prev.length),
+                  )
+                }
+              />
             )}
           </div>
 
@@ -451,6 +458,25 @@ export function QuickEvolutionForm({
             </p>
           )}
           {dictation.error && <p className="text-xs font-semibold text-danger">{dictation.error}</p>}
+
+          {transcriptionEnabled && !isDictating && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => audioInputRef.current?.click()}
+                className="text-[11px] font-semibold text-text-secondary hover:underline"
+              >
+                {transcribing ? "Transcrevendo arquivo..." : "ou envie um arquivo de áudio já gravado"}
+              </button>
+              <input
+                ref={audioInputRef}
+                type="file"
+                accept="audio/mpeg,audio/mp3,audio/mp4,audio/x-m4a,audio/m4a,audio/wav,audio/x-wav,audio/webm,.mp3,.m4a,.wav,.webm,.mp4,.mpeg,.mpga"
+                className="hidden"
+                onChange={handleAudioUpload}
+              />
+            </div>
+          )}
 
           {aiEnabled ? (
             <div className="flex flex-wrap items-center justify-between gap-2">

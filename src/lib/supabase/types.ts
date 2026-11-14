@@ -1521,6 +1521,7 @@ export interface Database {
           transcription_enabled: boolean;
           transcription_api_key_ciphertext: string | null;
           transcription_api_key_last4: string | null;
+          transcription_glossary: string | null;
           quick_evolution_enabled: boolean;
           updated_by: string | null;
           created_at: string;
@@ -1546,6 +1547,7 @@ export interface Database {
           transcription_enabled?: boolean;
           transcription_api_key_ciphertext?: string | null;
           transcription_api_key_last4?: string | null;
+          transcription_glossary?: string | null;
           quick_evolution_enabled?: boolean;
           updated_by?: string | null;
           created_at?: string;
@@ -1571,6 +1573,7 @@ export interface Database {
           transcription_enabled?: boolean;
           transcription_api_key_ciphertext?: string | null;
           transcription_api_key_last4?: string | null;
+          transcription_glossary?: string | null;
           quick_evolution_enabled?: boolean;
           updated_by?: string | null;
           created_at?: string;

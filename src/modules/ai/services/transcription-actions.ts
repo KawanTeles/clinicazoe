@@ -8,7 +8,8 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/modules/team/services/audit";
 import { getAIFeatureFlags } from "./ai-settings-queries";
 import { getTranscriptionAIConfig, checkAIUsageLimits } from "./ai-runtime";
-import { transcribeAudioWithWhisper } from "./providers/openai-whisper";
+import { transcribeAudio } from "./providers/openai-transcription";
+import { normalizeDictationFillers } from "./filler-normalization";
 
 const BUCKET = "session-audio";
 const MAX_BYTES = 25 * 1024 * 1024; // teto rígido da própria API do Whisper — não configurável
@@ -131,11 +132,16 @@ export async function transcribeSessionAudio(formData: FormData): Promise<{ erro
 
   let transcribedText: string;
   try {
-    const result = await transcribeAudioWithWhisper(config.apiKey, file, file.name);
-    transcribedText = result.text;
+    const result = await transcribeAudio(config.apiKey, file, file.name, { glossary: config.glossary });
+    // Mesma limpeza aplicada ao ditado ao vivo (item 6 do pedido: ignorar
+    // vícios de fala) — a transcrição por API tem os mesmos "né"/repetições
+    // que o reconhecimento de voz do navegador.
+    transcribedText = normalizeDictationFillers(result.text);
   } catch (err) {
     await supabase.storage.from(BUCKET).remove([path]);
-    console.error("[ai] transcribeAudioWithWhisper falhou:", err);
+    // Nunca logar o texto transcrito nem o áudio em si (item 9 do pedido) —
+    // só o erro da chamada, igual já fazia o fluxo de arquivo.
+    console.error("[ai] transcribeAudio falhou:", err);
     return { error: "Não foi possível transcrever o áudio. Tente novamente ou contate o administrador." };
   }
 

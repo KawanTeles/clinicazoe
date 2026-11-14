@@ -158,6 +158,10 @@ export async function updateAIFeatureToggles(input: {
 export async function updateTranscriptionSettings(input: {
   transcription_enabled: boolean;
   transcription_api_key: string;
+  /** Termos/siglas da área (Etapa 83) — null/vazio apaga o glossário salvo
+   * (diferente da chave, que mantém a anterior quando vem vazia: aqui não há
+   * segredo a preservar, "o admin limpou o campo" já É a intenção). */
+  transcription_glossary: string | null;
 }): Promise<ActionResult> {
   const session = await requireAIAdmin();
   if (!session) return { error: "Acesso negado." };
@@ -165,6 +169,7 @@ export async function updateTranscriptionSettings(input: {
   const supabase = await createClient();
   const update: AISettingsUpdate = {
     transcription_enabled: input.transcription_enabled,
+    transcription_glossary: input.transcription_glossary?.trim() || null,
     updated_by: session.user.id,
   };
 

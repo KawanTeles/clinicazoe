@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { AIDisclaimerNotice } from "@/modules/ai/components/AIDisclaimerNotice";
 import { FieldVoiceAssistant } from "@/modules/ai/components/FieldVoiceAssistant";
 import { insertTextAt, useFieldDictation, type EvolutionTargetField } from "@/modules/ai/components/useFieldDictation";
+import { useAudioRecorder } from "@/modules/ai/components/useAudioRecorder";
 import type { EvolutionContentInput } from "@/modules/evolutions/services/evolution-actions";
 
 interface EvolutionFormProps {
@@ -78,6 +79,10 @@ export function EvolutionForm({
     setValues((prev) => ({ ...prev, [field]: insertTextAt(prev[field] ?? "", text, cursorPos) }));
   });
 
+  // Mesmo controlador único para todos os campos — só um microfone pode
+  // estar gravando (ditado OU áudio) por vez no formulário inteiro.
+  const audioRecorder = useAudioRecorder<EvolutionTargetField>();
+
   const voiceAssistantEnabled = Boolean(aiEnabled && appointmentId);
 
   async function handleSubmit(e: FormEvent) {
@@ -88,6 +93,10 @@ export function EvolutionForm({
     }
     if (dictation.status !== "idle") {
       setError("Pare a gravação de voz em andamento antes de salvar.");
+      return;
+    }
+    if (audioRecorder.activeField !== null) {
+      setError("Pare ou finalize a gravação de áudio em andamento antes de salvar.");
       return;
     }
     setSaving(true);
@@ -115,6 +124,7 @@ export function EvolutionForm({
       {voiceAssistantEnabled && <AIDisclaimerNotice />}
       {FIELDS.map((field) => {
         const isDictatingField = dictation.activeField === field.key;
+        const isRecordingField = audioRecorder.activeField === field.key;
         return (
           <div key={field.key} className="flex flex-col gap-2">
             <Textarea
@@ -126,7 +136,7 @@ export function EvolutionForm({
               rows={field.rows ?? 3}
               value={values[field.key] ?? ""}
               onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
-              disabled={isDictatingField}
+              disabled={isDictatingField || isRecordingField}
             />
             {voiceAssistantEnabled && appointmentId && (
               <FieldVoiceAssistant
@@ -136,6 +146,7 @@ export function EvolutionForm({
                 onChangeValue={(text) => setValues((prev) => ({ ...prev, [field.key]: text }))}
                 getTextarea={() => textareaEls.current[field.key] ?? null}
                 dictation={dictation}
+                audioRecorder={audioRecorder}
                 appointmentId={appointmentId}
                 aiEnabled={aiEnabled}
                 transcriptionEnabled={transcriptionEnabled}

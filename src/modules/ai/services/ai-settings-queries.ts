@@ -21,6 +21,7 @@ export interface AISettingsForAdmin {
   transcriptionEnabled: boolean;
   hasTranscriptionApiKey: boolean;
   transcriptionApiKeyLast4: string | null;
+  transcriptionGlossary: string | null;
   quickEvolutionEnabled: boolean;
 }
 
@@ -30,7 +31,7 @@ export async function getAISettingsForAdmin(): Promise<AISettingsForAdmin | null
   const { data } = await supabase
     .from("ai_settings")
     .select(
-      "provider, model, api_key_last4, connection_status, connection_tested_at, ai_enabled, evolution_assistant_enabled, show_review_notice, reports_enabled, patient_assistant_enabled, monthly_request_limit, daily_request_limit, monthly_request_limit_per_user, limit_action, transcription_enabled, transcription_api_key_last4, quick_evolution_enabled",
+      "provider, model, api_key_last4, connection_status, connection_tested_at, ai_enabled, evolution_assistant_enabled, show_review_notice, reports_enabled, patient_assistant_enabled, monthly_request_limit, daily_request_limit, monthly_request_limit_per_user, limit_action, transcription_enabled, transcription_api_key_last4, transcription_glossary, quick_evolution_enabled",
     )
     .eq("id", 1)
     .maybeSingle();
@@ -56,6 +57,7 @@ export async function getAISettingsForAdmin(): Promise<AISettingsForAdmin | null
     transcriptionEnabled: data.transcription_enabled,
     hasTranscriptionApiKey: Boolean(data.transcription_api_key_last4),
     transcriptionApiKeyLast4: data.transcription_api_key_last4,
+    transcriptionGlossary: data.transcription_glossary,
     quickEvolutionEnabled: data.quick_evolution_enabled,
   };
 }

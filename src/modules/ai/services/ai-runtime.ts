@@ -40,6 +40,10 @@ export async function getActiveAIConfig(): Promise<{ error: string | null; confi
 
 export interface TranscriptionAIConfig {
   apiKey: string;
+  /** Termos/siglas da área (TEA, TDAH, ABA...), enviados como hint de
+   * contexto para a API de transcrição (Etapa 83). null quando o admin não
+   * cadastrou nenhum. */
+  glossary: string | null;
 }
 
 /** Lê e descriptografa a chave de transcrição — independente da chave do
@@ -51,7 +55,7 @@ export async function getTranscriptionAIConfig(): Promise<{ error: string | null
   const admin = createAdminClient();
   const { data: settings } = await admin
     .from("ai_settings")
-    .select("transcription_api_key_ciphertext")
+    .select("transcription_api_key_ciphertext, transcription_glossary")
     .eq("id", 1)
     .maybeSingle();
 
@@ -66,7 +70,7 @@ export async function getTranscriptionAIConfig(): Promise<{ error: string | null
     return { error: "Não foi possível acessar a chave de transcrição configurada. Contate o administrador." };
   }
 
-  return { error: null, config: { apiKey } };
+  return { error: null, config: { apiKey, glossary: settings.transcription_glossary } };
 }
 
 async function countAIRequests(admin: ReturnType<typeof createAdminClient>, since: string, actorId?: string) {
