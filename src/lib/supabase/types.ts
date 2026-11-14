@@ -1218,6 +1218,24 @@ export interface Database {
         };
         Relationships: [];
       };
+      evolution_tracking_settings: {
+        Row: {
+          id: number;
+          late_after_hours: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          late_after_hours?: number;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          late_after_hours?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       evolution_template_topics: {
         Row: {
           id: string;
@@ -1773,6 +1791,27 @@ export interface Database {
           created_at: string;
           updated_at: string;
         };
+      };
+      get_evolution_tracking: {
+        Args: {
+          p_date_from?: string | null;
+          p_date_to?: string | null;
+          p_professional_id?: string | null;
+          p_specialty_id?: string | null;
+        };
+        Returns: {
+          appointment_id: string;
+          professional_id: string;
+          professional_name: string;
+          patient_id: string;
+          patient_name: string;
+          specialty_id: string | null;
+          specialty_name: string | null;
+          appointment_date: string;
+          start_time: string;
+          end_time: string;
+          status: "concluida" | "em_rascunho" | "pendente";
+        }[];
       };
     };
     Enums: Record<string, never>;

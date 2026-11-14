@@ -119,3 +119,56 @@ export async function notifyStaff(params: {
     console.error("[notify] falha ao gravar notificação de staff:", err);
   }
 }
+
+/** Lembrete de evolução pendente, disparado pela Coordenação na tela de
+ * Acompanhamento (Etapa 81). SEM conteúdo clínico — só a contagem, nunca
+ * nome de paciente nem data de atendimento. Mesmo padrão de agrupamento de
+ * notifyAgendaChange: dentro de 4h, atualiza a notificação não lida em vez
+ * de inserir outra — evita o "evitar spam" pedido explicitamente no item 12
+ * do pedido original, sem precisar de tabela nova. */
+export async function notifyEvolutionPendingReminder(params: {
+  professionalId: string;
+  pendingCount: number;
+}) {
+  try {
+    const admin = createAdminClient();
+    const cooldownStart = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+    const entity = "evolution_tracking";
+    const type = "evolution.pending_reminder";
+
+    const { data: existing } = await admin
+      .from("notifications")
+      .select("id")
+      .eq("user_id", params.professionalId)
+      .eq("entity", entity)
+      .eq("type", type)
+      .is("read_at", null)
+      .gte("created_at", cooldownStart)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const title = "Evolução pendente";
+    const message =
+      params.pendingCount === 1
+        ? "Você tem 1 evolução pendente de registro."
+        : `Você tem ${params.pendingCount} evoluções pendentes de registro.`;
+
+    if (existing) {
+      await admin.from("notifications").update({ message, created_at: new Date().toISOString() }).eq("id", existing.id);
+      return { sent: false };
+    }
+
+    await admin.from("notifications").insert({
+      user_id: params.professionalId,
+      type,
+      title,
+      message,
+      entity,
+    });
+    return { sent: true };
+  } catch (err) {
+    console.error("[notify] falha ao gravar lembrete de evolução pendente:", err);
+    return { sent: false };
+  }
+}

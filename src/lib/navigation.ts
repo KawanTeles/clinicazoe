@@ -31,6 +31,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Evolução do Paciente", href: "/evolutions", permission: "evolutions.view.own", icon: "clipboard" },
   { label: "Modelos de Evolução", href: "/evolution-templates", permission: "evolution_templates.manage.own", icon: "clipboard" },
   { label: "Modelos de Evolução", href: "/evolution-templates", permission: "evolution_templates.manage.shared", icon: "clipboard" },
+  { label: "Acompanhamento de Evoluções", href: "/evolution-tracking", permission: "evolution_tracking.view", icon: "activity" },
   { label: "Relatórios IA", href: "/reports", permission: "ai.reports.use", icon: "sparkles" },
   { label: "Auditoria", href: "/audit", permission: "audit.view", icon: "activity" },
   { label: "Configurações", href: "/settings", permission: "settings.view", icon: "settings" },
