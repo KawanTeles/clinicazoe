@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
+import type { Database, EvolutionTopicContent } from "@/lib/supabase/types";
+import { parseTopicContents } from "./topic-content";
 
 type EvolutionRow = Database["public"]["Tables"]["patient_evolutions"]["Row"];
 type Supabase = Awaited<ReturnType<typeof createClient>>;
@@ -47,6 +48,11 @@ export interface EvolutionView {
    * todo o histórico anterior à migração 0077. Mesma visibilidade do resto
    * da evolução (RLS por vínculo ao paciente), nunca exposto a admin. */
   rawSummaryInput: string | null;
+  /** Conteúdo por tópico, com os rótulos CONGELADOS na assinatura (Etapa 79).
+   * null no histórico anterior e no Modo detalhado, que usam as 7 colunas
+   * fixas. Quando presente, a tela exibe por tópico; `clinicalEvolution` segue
+   * sendo a versão oficial e legível do mesmo conteúdo. */
+  topicContents: EvolutionTopicContent[] | null;
 }
 
 async function denormalize(supabase: Supabase, rows: EvolutionRow[]): Promise<EvolutionView[]> {
@@ -122,6 +128,10 @@ async function denormalize(supabase: Supabase, rows: EvolutionRow[]): Promise<Ev
       professionalNameSnapshot: row.professional_name_snapshot,
       addenda: addendaByEvolutionId.get(row.id) ?? [],
       rawSummaryInput: row.raw_summary_input,
+      // parseTopicContents, não o valor cru: a coluna é jsonb, então o Postgres
+      // aceita qualquer forma ali — uma linha gravada fora do app (script,
+      // correção manual) não pode quebrar a renderização do prontuário.
+      topicContents: parseTopicContents(row.topic_contents),
     };
   });
 }

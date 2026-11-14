@@ -100,7 +100,6 @@ export function NewEvolutionLauncher({
           <QuickEvolutionForm
             appointmentId={selectedAppointmentId}
             patientName={patientName}
-            onSubmit={(input) => createEvolution({ appointment_id: selectedAppointmentId, ...input })}
             onCancel={() => setSelectedAppointmentId(null)}
             onSaved={handleSaved}
             onSwitchToDetailedMode={() => setDetailedMode(true)}
