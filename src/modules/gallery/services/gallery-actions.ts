@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/modules/team/services/audit";
 import { revalidatePublicGalleryPages } from "@/lib/revalidate-public-site";
 import { processImageToWebp } from "@/lib/images/process-image";
+import { sniffImageType } from "@/lib/images/sniff-image-type";
 
 const ALLOWED_GALLERY_TYPES = ["image/png", "image/jpeg", "image/webp"];
 // A foto original pode ser grande (ex.: celular) — o que fica salvo é a
@@ -24,6 +25,7 @@ export async function uploadGalleryImages(formData: FormData): Promise<ActionRes
   const files = formData.getAll("files").filter((entry): entry is File => entry instanceof File && entry.size > 0);
   if (files.length === 0) return { error: "Nenhum arquivo selecionado." };
 
+  const buffers: Buffer[] = [];
   for (const file of files) {
     if (!ALLOWED_GALLERY_TYPES.includes(file.type)) {
       return { error: "Formato inválido. Envie PNG, JPG ou WEBP." };
@@ -31,6 +33,13 @@ export async function uploadGalleryImages(formData: FormData): Promise<ActionRes
     if (file.size > MAX_GALLERY_BYTES) {
       return { error: "Arquivo muito grande. Limite de 10MB por imagem." };
     }
+    const buffer = Buffer.from(await file.arrayBuffer());
+    // `file.type` é só o que o client declarou — confere o formato real
+    // pelos bytes antes de mandar pro sharp (ver sniff-image-type.ts).
+    if (!ALLOWED_GALLERY_TYPES.includes(sniffImageType(buffer) ?? "")) {
+      return { error: "Formato inválido. Envie PNG, JPG ou WEBP." };
+    }
+    buffers.push(buffer);
   }
 
   const admin = createAdminClient();
@@ -44,11 +53,11 @@ export async function uploadGalleryImages(formData: FormData): Promise<ActionRes
 
   const uploadedPaths: string[] = [];
 
-  for (const file of files) {
+  for (const [index] of files.entries()) {
     const path = `${randomUUID()}.webp`;
     let processed;
     try {
-      processed = await processImageToWebp(Buffer.from(await file.arrayBuffer()), {
+      processed = await processImageToWebp(buffers[index], {
         maxDimension: GALLERY_MAX_DIMENSION,
         quality: GALLERY_QUALITY,
       });

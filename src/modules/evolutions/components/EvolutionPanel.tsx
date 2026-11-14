@@ -81,7 +81,6 @@ export function EvolutionPanel({
           <QuickEvolutionForm
             appointmentId={appointmentId}
             patientName={patientName}
-            onSubmit={(input) => createEvolution({ appointment_id: appointmentId, ...input })}
             onCancel={() => setShowForm(false)}
             onSaved={handleSaved}
             onSwitchToDetailedMode={() => setDetailedMode(true)}

@@ -98,16 +98,29 @@ export function EvolutionDetailModal({
               <MetaField label="Especialidade" value={evolution.specialtyName ?? "—"} />
             </div>
 
-            {SECTIONS.map((section) => {
-              const value = evolution[section.key] as string | null;
-              if (!value) return null;
-              return (
-                <div key={section.key}>
-                  <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">{section.label}</p>
-                  <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-text-primary">{value}</p>
-                </div>
-              );
-            })}
+            {/* Evolução registrada por modelo de tópicos (Etapa 79) exibe os
+                tópicos com o rótulo CONGELADO na assinatura — renomear o tópico
+                no modelo depois não muda nada aqui. O histórico anterior e o
+                Modo detalhado continuam caindo nas 7 seções fixas. */}
+            {evolution.topicContents
+              ? evolution.topicContents.map((topic, index) => (
+                  <div key={`${topic.label}-${index}`}>
+                    <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">{topic.label}</p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-text-primary">
+                      {topic.content}
+                    </p>
+                  </div>
+                ))
+              : SECTIONS.map((section) => {
+                  const value = evolution[section.key] as string | null;
+                  if (!value) return null;
+                  return (
+                    <div key={section.key}>
+                      <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">{section.label}</p>
+                      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-text-primary">{value}</p>
+                    </div>
+                  );
+                })}
 
             <div className="border-t border-border/60 pt-3">
               <SignatureLine name={evolution.professionalNameSnapshot} at={evolution.createdAt} />

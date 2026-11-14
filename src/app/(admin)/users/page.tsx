@@ -10,7 +10,7 @@ export const metadata = {
   title: "Usuários — Espaço Zoe",
 };
 
-const FILTER_ROLES = ["admin", "recepcionista", "profissional", "paciente"] as const;
+const FILTER_ROLES = ["admin", "recepcionista", "profissional", "coordenacao", "paciente"] as const;
 const PAGE_SIZE = 20;
 
 export default async function UsersPage({

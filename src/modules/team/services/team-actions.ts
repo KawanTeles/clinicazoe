@@ -11,7 +11,16 @@ import { deleteUser } from "@/modules/user-management/services/user-actions";
 import { revalidatePublicSite } from "@/lib/revalidate-public-site";
 import { syncProfessionalStatus } from "@/modules/professionals/services/professional-actions";
 
-const TEAM_ROLES: Role[] = ["admin", "recepcionista", "profissional"];
+const TEAM_ROLES: Role[] = ["admin", "recepcionista", "profissional", "coordenacao"];
+
+/** O acúmulo da função de Coordenação (Etapa 78) só existe sobre um
+ * profissional que também atende. O gatilho profiles_normalize_coordinator
+ * garante isso no banco; normalizar aqui também evita gravar um valor que o
+ * banco vai descartar em silêncio, e deixa o audit log fiel ao que de fato
+ * ficou salvo. */
+function normalizeCoordinator(role: Role, isCoordinator: boolean | undefined) {
+  return role === "profissional" && isCoordinator === true;
+}
 
 async function requireAdmin() {
   const session = await getCurrentUser();
@@ -38,6 +47,8 @@ export interface CreateTeamMemberInput {
   password: string;
   phone: string;
   role: Role;
+  /** Acumula a função de Coordenação — só vale com role 'profissional'. */
+  is_coordinator?: boolean;
   specialty_ids?: string[];
   license_number?: string;
   show_license_publicly?: boolean;
@@ -102,8 +113,13 @@ export async function createTeamMember(
     return { error: "Usuário criado, mas houve falha ao conferir o cargo. Edite o membro para corrigir." };
   }
 
-  if (createdProfile.role !== input.role) {
-    const { error: roleFixError } = await supabase.from("profiles").update({ role: input.role }).eq("id", userId);
+  const isCoordinator = normalizeCoordinator(input.role, input.is_coordinator);
+
+  if (createdProfile.role !== input.role || isCoordinator) {
+    const { error: roleFixError } = await supabase
+      .from("profiles")
+      .update({ role: input.role, is_coordinator: isCoordinator })
+      .eq("id", userId);
     if (roleFixError) {
       return { error: "Usuário criado, mas houve falha ao definir o cargo correto. Edite o membro para corrigir." };
     }
@@ -166,7 +182,7 @@ export async function createTeamMember(
     action: "team_member.created",
     entity: "profiles",
     entityId: userId,
-    metadata: { role: input.role, email: input.email },
+    metadata: { role: input.role, is_coordinator: isCoordinator, email: input.email },
   });
 
   return { error: null, id: userId };
@@ -177,6 +193,8 @@ export interface UpdateTeamMemberInput {
   full_name: string;
   phone: string;
   role: Role;
+  /** Acumula a função de Coordenação — só vale com role 'profissional'. */
+  is_coordinator?: boolean;
   status: "active" | "inactive";
   password?: string;
   specialty_ids?: string[];
@@ -212,6 +230,7 @@ export async function updateTeamMember(
       full_name: input.full_name.trim(),
       phone: input.phone.trim() || null,
       role: input.role,
+      is_coordinator: normalizeCoordinator(input.role, input.is_coordinator),
       status: input.status,
     })
     .eq("id", input.id);
@@ -277,7 +296,7 @@ export async function updateTeamMember(
     action: "team_member.updated",
     entity: "profiles",
     entityId: input.id,
-    metadata: { role: input.role, status: input.status },
+    metadata: { role: input.role, is_coordinator: normalizeCoordinator(input.role, input.is_coordinator), status: input.status },
   });
 
   return { error: null };

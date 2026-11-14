@@ -22,7 +22,7 @@ export default async function NewTeamMemberPage() {
       <div>
         <h1 className="text-xl font-bold tracking-tight text-text-primary font-heading">Novo Membro</h1>
         <p className="mt-0.5 text-xs text-text-secondary">
-          Cadastre um administrador, recepcionista ou profissional da equipe.
+          Cadastre um administrador, recepcionista, profissional ou coordenação da equipe.
         </p>
       </div>
 

@@ -9,13 +9,15 @@ import { getAIFeatureFlags } from "./ai-settings-queries";
 import { getActiveAIConfig, checkAIUsageLimits } from "./ai-runtime";
 import { AIService } from "./ai-service";
 import { normalizeDictationFillers } from "./filler-normalization";
+import { QUICK_EVOLUTION_PROMPT_VERSION } from "./quick-evolution-prompt";
+import { parseTopicResponse } from "./topic-marker";
 
 async function requireProfessionalWithAIAccess() {
   const session = await getCurrentUser();
   if (!session || session.profile.role !== "profissional") {
     throw new Error("Acesso negado.");
   }
-  const allowed = await can(session.profile.role, "ai.evolution_assistant.use");
+  const allowed = await can(session.profile, "ai.evolution_assistant.use");
   if (!allowed) throw new Error("Acesso negado.");
   return session;
 }
@@ -46,16 +48,25 @@ function maskPatientName(text: string, patientFullName: string): string {
 export interface GenerateQuickEvolutionDraftInput {
   rawSummary: string;
   appointmentId: string;
+  /** Rótulos dos tópicos do modelo do profissional (Etapa 79). Com mais de um,
+   * a resposta volta já distribuída em `topics`; com um só, volta em `text`,
+   * como antes. */
+  topicLabels?: string[];
 }
 
 /** Gera o rascunho da evolução a partir do resumo único (ditado ou
  * digitado) do profissional — fluxo padrão de "Evolução Rápida". Nunca
  * salva nem assina nada: devolve o texto para a tela, que só grava quando o
- * profissional clicar em "Salvar e assinar" (createEvolution,
- * evolution-actions.ts). */
+ * profissional clicar em "Salvar e assinar" (signEvolutionFromDraft,
+ * draft-actions.ts). */
 export async function generateQuickEvolutionDraft(
   input: GenerateQuickEvolutionDraftInput,
-): Promise<{ error: string | null; text?: string }> {
+): Promise<{
+  error: string | null;
+  text?: string;
+  topics?: { label: string; content: string }[];
+  promptVersion?: string;
+}> {
   let session;
   try {
     session = await requireProfessionalWithAIAccess();
@@ -123,6 +134,7 @@ export async function generateQuickEvolutionDraft(
   try {
     generated = await AIService.generateQuickEvolution({
       summary: payload,
+      topicLabels: input.topicLabels,
       provider: config.provider,
       apiKey: config.apiKey,
       model: config.model,
@@ -141,8 +153,21 @@ export async function generateQuickEvolutionDraft(
       provider: config.provider,
       tokens_in: generated.usage?.inputTokens,
       tokens_out: generated.usage?.outputTokens,
+      topic_count: input.topicLabels?.length ?? 1,
+      prompt_version: QUICK_EVOLUTION_PROMPT_VERSION,
     },
   });
 
-  return { error: null, text: generated.text };
+  // Modelo com mais de um tópico: a resposta volta já distribuída nos campos.
+  // parseTopicResponse nunca descarta texto em silêncio — rótulo inventado
+  // pela IA vira [[REVISAR:]], que por sua vez bloqueia a assinatura.
+  if (input.topicLabels && input.topicLabels.length > 1) {
+    return {
+      error: null,
+      topics: parseTopicResponse(generated.text, input.topicLabels),
+      promptVersion: QUICK_EVOLUTION_PROMPT_VERSION,
+    };
+  }
+
+  return { error: null, text: generated.text, promptVersion: QUICK_EVOLUTION_PROMPT_VERSION };
 }

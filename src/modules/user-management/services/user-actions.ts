@@ -11,7 +11,7 @@ import type { Role, Status } from "@/lib/supabase/types";
 import { revalidatePublicSite } from "@/lib/revalidate-public-site";
 import { syncProfessionalStatus } from "@/modules/professionals/services/professional-actions";
 
-const ALL_ROLES: Role[] = ["admin", "recepcionista", "profissional", "paciente"];
+const ALL_ROLES: Role[] = ["admin", "recepcionista", "profissional", "paciente", "coordenacao"];
 const LAST_ADMIN_ERROR = "Não é possível remover o último administrador ativo do sistema.";
 
 async function requireAdmin() {

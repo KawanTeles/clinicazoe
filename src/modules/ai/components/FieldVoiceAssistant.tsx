@@ -6,6 +6,8 @@ import { improveEvolutionText } from "@/modules/ai/services/evolution-assistant-
 import { transcribeSessionAudio } from "@/modules/ai/services/transcription-actions";
 import { IMPROVE_MODE_LABELS, type ImproveMode } from "@/modules/ai/services/provider-types";
 import { insertTextAt, type EvolutionTargetField, type FieldDictationController } from "./useFieldDictation";
+import { AudioRecorderButton } from "./AudioRecorderButton";
+import type { AudioRecorderController } from "./useAudioRecorder";
 
 const MODES = Object.keys(IMPROVE_MODE_LABELS) as ImproveMode[];
 
@@ -16,6 +18,9 @@ interface FieldVoiceAssistantProps {
   onChangeValue: (text: string) => void;
   getTextarea: () => HTMLTextAreaElement | null;
   dictation: FieldDictationController;
+  /** Controlador de gravação ao vivo, compartilhado entre todos os campos
+   * do formulário (ver useAudioRecorder) — mesmo papel de `dictation`. */
+  audioRecorder: AudioRecorderController;
   appointmentId: string;
   /** Só true quando o profissional está vinculado à consulta e o recurso está habilitado pelo admin. */
   aiEnabled?: boolean;
@@ -34,6 +39,7 @@ export function FieldVoiceAssistant({
   onChangeValue,
   getTextarea,
   dictation,
+  audioRecorder,
   appointmentId,
   aiEnabled,
   transcriptionEnabled,
@@ -121,7 +127,10 @@ export function FieldVoiceAssistant({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        {dictation.supported && !isActive && (
+        {/* Escondido também quando OUTRO campo está gravando áudio (não só
+            ditando) — ditado (Web Speech) e gravação (MediaRecorder) nunca
+            ativos ao mesmo tempo, mesmo em campos diferentes. */}
+        {dictation.supported && !isActive && audioRecorder.activeField === null && (
           <Button type="button" size="sm" variant="outline" onClick={() => dictation.start(field, getTextarea())}>
             🎤 Ditar
           </Button>
@@ -149,15 +158,25 @@ export function FieldVoiceAssistant({
 
         {transcriptionEnabled && !isActive && (
           <>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              isLoading={transcribing}
-              onClick={() => audioInputRef.current?.click()}
-            >
-              🎧 Transcrever áudio
-            </Button>
+            <AudioRecorderButton
+              field={field}
+              recorder={audioRecorder}
+              appointmentId={appointmentId}
+              enabled
+              onTranscribed={(text) => {
+                const textarea = getTextarea();
+                onChangeValue(insertTextAt(value, text, textarea ? textarea.selectionStart : value.length));
+              }}
+            />
+            {audioRecorder.activeField === null && (
+              <button
+                type="button"
+                onClick={() => audioInputRef.current?.click()}
+                className="text-[11px] font-semibold text-text-secondary hover:underline"
+              >
+                {transcribing ? "Transcrevendo arquivo..." : "ou enviar arquivo"}
+              </button>
+            )}
             <input
               ref={audioInputRef}
               type="file"

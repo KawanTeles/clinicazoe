@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
 import { Badge } from "@/components/ui/Badge";
@@ -47,6 +48,7 @@ export function AISettingsCard({ initial }: { initial: AISettingsForAdmin }) {
   const [transcriptionEnabled, setTranscriptionEnabled] = useState(initial.transcriptionEnabled);
   const [transcriptionApiKey, setTranscriptionApiKey] = useState("");
   const [showTranscriptionKey, setShowTranscriptionKey] = useState(false);
+  const [transcriptionGlossary, setTranscriptionGlossary] = useState(initial.transcriptionGlossary ?? "");
 
   const [monthlyLimit, setMonthlyLimit] = useState(initial.monthlyRequestLimit?.toString() ?? "");
   const [dailyLimit, setDailyLimit] = useState(initial.dailyRequestLimit?.toString() ?? "");
@@ -108,6 +110,7 @@ export function AISettingsCard({ initial }: { initial: AISettingsForAdmin }) {
     const transcriptionResult = await updateTranscriptionSettings({
       transcription_enabled: transcriptionEnabled,
       transcription_api_key: transcriptionApiKey,
+      transcription_glossary: transcriptionGlossary,
     });
     setSaving(false);
     if (transcriptionResult.error) {
@@ -186,10 +189,10 @@ export function AISettingsCard({ initial }: { initial: AISettingsForAdmin }) {
 
       <div className="flex flex-col gap-3 border-t border-border/60 pt-4">
         <p className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
-          Transcrição de Áudio (Whisper/OpenAI)
+          Transcrição de Áudio (OpenAI, modelo gpt-4o-mini-transcribe)
         </p>
         <Switch
-          label="Habilitar transcrição de áudio na Evolução"
+          label="Habilitar transcrição de áudio na Evolução (gravação ao vivo e upload de arquivo)"
           checked={transcriptionEnabled}
           onChange={setTranscriptionEnabled}
         />
@@ -214,8 +217,23 @@ export function AISettingsCard({ initial }: { initial: AISettingsForAdmin }) {
             </Button>
           </div>
           <p className="text-[11px] text-text-muted">
-            Usada só para transcrever áudio (Whisper). Não precisa ser a mesma conta/chave do provedor de texto
-            configurado acima.
+            Usada só para transcrever áudio. Não precisa ser a mesma conta/chave do provedor de texto configurado
+            acima. O endpoint de transcrição da OpenAI não retém o áudio nem o texto após processar.
+          </p>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+            Glossário de termos da área (opcional)
+          </label>
+          <Textarea
+            rows={3}
+            placeholder="Ex.: TEA, TDAH, ABA, VB-MAPP, Denver, integração sensorial, ecolalia..."
+            value={transcriptionGlossary}
+            onChange={(e) => setTranscriptionGlossary(e.target.value)}
+          />
+          <p className="text-[11px] text-text-muted">
+            Siglas e termos técnicos que a equipe usa com frequência — ajuda a transcrição a reconhecê-los
+            corretamente em vez de tentar adivinhar uma palavra parecida.
           </p>
         </div>
       </div>

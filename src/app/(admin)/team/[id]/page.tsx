@@ -59,6 +59,7 @@ export default async function EditTeamMemberPage({
           email,
           phone: profile.phone ?? "",
           role: profile.role,
+          is_coordinator: profile.is_coordinator ?? false,
           status: profile.status,
           specialty_ids: specialtyIds,
           license_number: professional?.license_number ?? "",

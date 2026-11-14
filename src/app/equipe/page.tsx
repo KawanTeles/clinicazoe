@@ -20,7 +20,7 @@ export default async function EquipePublicPage() {
   const session = await getCurrentUser();
   const { clinic } = await getPublicWebsiteData();
 
-  const isStaffSession = session && ["admin", "recepcionista", "profissional"].includes(session.profile.role);
+  const isStaffSession = session && ["admin", "recepcionista", "profissional", "coordenacao"].includes(session.profile.role);
 
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col font-sans">

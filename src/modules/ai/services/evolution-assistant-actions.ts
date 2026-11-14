@@ -14,7 +14,7 @@ async function requireProfessionalWithAIAccess() {
   if (!session || session.profile.role !== "profissional") {
     throw new Error("Acesso negado.");
   }
-  const allowed = await can(session.profile.role, "ai.evolution_assistant.use");
+  const allowed = await can(session.profile, "ai.evolution_assistant.use");
   if (!allowed) throw new Error("Acesso negado.");
   return session;
 }

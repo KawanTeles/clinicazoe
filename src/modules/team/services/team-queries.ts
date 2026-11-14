@@ -9,7 +9,7 @@ export async function getTeamMembers() {
   const { data } = await supabase
     .from("profiles")
     .select("*")
-    .in("role", ["admin", "recepcionista", "profissional"])
+    .in("role", ["admin", "recepcionista", "profissional", "coordenacao"])
     .order("created_at", { ascending: false });
 
   const members = data ?? [];

@@ -24,8 +24,8 @@ export default async function MyPatientDetailPage({ params }: { params: Promise<
     await Promise.all([
       getPatientDetail(id),
       getEvolutionsForPatientPage(id, 1),
-      can(session.profile.role, "ai.patient_assistant.use"),
-      can(session.profile.role, "ai.evolution_assistant.use"),
+      can(session.profile, "ai.patient_assistant.use"),
+      can(session.profile, "ai.evolution_assistant.use"),
       getAIFeatureFlags(),
       getClinicalDocumentsForPatient(id),
     ]);

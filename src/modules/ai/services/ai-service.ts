@@ -5,7 +5,7 @@ import { mockProvider } from "./providers/mock-provider";
 import { openaiProvider } from "./providers/openai-provider";
 import { anthropicProvider } from "./providers/anthropic-provider";
 import { geminiProvider } from "./providers/gemini-provider";
-import { QUICK_EVOLUTION_SYSTEM_PROMPT } from "./quick-evolution-prompt";
+import { QUICK_EVOLUTION_SYSTEM_PROMPT, buildTopicModePrompt } from "./quick-evolution-prompt";
 
 const MODE_INSTRUCTIONS: Record<ImproveMode, string> = {
   ortografia: "Corrija apenas ortografia, gramática e pontuação. Não reescreva frases além do necessário para a correção.",
@@ -57,6 +57,10 @@ export interface GenerateQuickEvolutionInput {
    * paciente mascarado — feito pelo chamador (quick-evolution-actions.ts)
    * antes de chegar aqui. */
   summary: string;
+  /** Rótulos dos tópicos do modelo do profissional (Etapa 79). Com mais de um,
+   * a IA organiza a resposta neles e delimita cada tópico; com um só (o padrão
+   * de fábrica), o prompt aprovado é usado inalterado. */
+  topicLabels?: string[];
   provider: AIProviderId;
   apiKey: string | null;
   model: string | null;
@@ -144,11 +148,20 @@ export const AIService = {
   /** Gera o rascunho da "Evolução Rápida" a partir do resumo único ditado/digitado pelo profissional. */
   async generateQuickEvolution(input: GenerateQuickEvolutionInput): Promise<{ text: string; usage?: TextUsage }> {
     const provider = resolveProvider(input.provider);
+    // Com modelo de mais de um tópico (Etapa 79), a IA organiza o resumo nos
+    // tópicos DO PROFISSIONAL. Com um tópico só — o padrão de fábrica — usa o
+    // prompt aprovado, inalterado.
+    const system =
+      input.topicLabels && input.topicLabels.length > 1
+        ? buildTopicModePrompt(input.topicLabels)
+        : QUICK_EVOLUTION_SYSTEM_PROMPT;
     const result = await provider.complete(input.apiKey, {
-      system: QUICK_EVOLUTION_SYSTEM_PROMPT,
+      system,
       user: input.summary,
       model: input.model ?? undefined,
-      maxTokens: 700,
+      // Mais tópicos, mais texto a devolver — o teto de 700 cortava a resposta
+      // no meio a partir de ~4 tópicos.
+      maxTokens: input.topicLabels && input.topicLabels.length > 1 ? 1200 : 700,
     });
     return { text: result.text.trim(), usage: result.usage };
   },

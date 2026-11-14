@@ -13,7 +13,7 @@ export const metadata = {
   title: "Equipe — Espaço Zoe",
 };
 
-const FILTER_ROLES = ["admin", "recepcionista", "profissional"] as const;
+const FILTER_ROLES = ["admin", "recepcionista", "profissional", "coordenacao"] as const;
 const PAGE_SIZE = 20;
 
 export default async function TeamPage({

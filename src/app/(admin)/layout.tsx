@@ -30,7 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const [avatarUrl, permissions, notifications, unreadCount, clinicSettings, pendingRequestsCount, waitlistCount] =
     await Promise.all([
       getAvatarDisplayUrl(supabase, profile.avatar_path, profile.role, profile.avatar_url),
-      getPermissions(profile.role),
+      getPermissions(profile),
       getNotifications(session.user.id),
       getUnreadCount(session.user.id),
       getClinicSettings(),
@@ -39,7 +39,20 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     ]);
   const logoUrl = await getClinicLogoUrl(clinicSettings?.logo_path ?? null);
 
-  const items = NAV_ITEMS.filter((item) => permissions.has(item.permission));
+  // NAV_ITEMS lista o mesmo destino mais de uma vez de propósito, uma entrada
+  // por permissão que o alcança ("Agenda" via appointments.view.own e via
+  // appointments.manage, por exemplo). Até a Etapa 78 isso nunca duplicava na
+  // tela porque os papéis eram mutuamente exclusivos — ninguém tinha as duas
+  // permissões. Com o acúmulo de função (terapeuta + coordenação) isso deixou
+  // de ser verdade, então o menu precisa ficar com uma entrada por destino.
+  const vistos = new Set<string>();
+  const items = NAV_ITEMS.filter((item) => {
+    if (!permissions.has(item.permission)) return false;
+    const chave = `${item.href}|${item.label}`;
+    if (vistos.has(chave)) return false;
+    vistos.add(chave);
+    return true;
+  });
 
   return (
     <AdminShell

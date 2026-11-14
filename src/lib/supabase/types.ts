@@ -1,4 +1,4 @@
-export type Role = "admin" | "recepcionista" | "profissional" | "paciente";
+export type Role = "admin" | "recepcionista" | "profissional" | "paciente" | "coordenacao";
 export type Status = "active" | "inactive";
 export type PaymentMethod = "cartao" | "pix" | "dinheiro" | "convenio";
 export type AppointmentStatus =
@@ -30,6 +30,19 @@ export type FinancialDirection = "entrada" | "saida";
 export type ExpenseType = "fixa" | "variavel";
 export type TransactionPaymentMethod = "pix" | "dinheiro" | "cartao" | "transferencia" | "boleto" | "outro";
 
+/** Abrangência de um modelo de evolução (Etapa 79). A resolução para um
+ * profissional é sempre pessoal -> área -> global, nessa ordem. */
+export type EvolutionTemplateScope = "global" | "area" | "personal";
+
+/** Conteúdo de um tópico dentro de uma evolução. O `label` é CONGELADO no
+ * momento da assinatura: renomear o tópico no modelo depois não reescreve
+ * evolução nenhuma. */
+export interface EvolutionTopicContent {
+  label: string;
+  content: string;
+  order: number;
+}
+
 /** day: convenção de Date.prototype.getDay() (0 = domingo ... 6 = sábado). */
 export interface BusinessHourEntry {
   day: number;
@@ -49,6 +62,7 @@ export interface Database {
           avatar_path: string | null;
           avatar_url: string | null;
           role: Role;
+          is_coordinator: boolean;
           status: Status;
           last_sign_in_at: string | null;
           account_claimed_at: string | null;
@@ -63,6 +77,7 @@ export interface Database {
           avatar_path?: string | null;
           avatar_url?: string | null;
           role?: Role;
+          is_coordinator?: boolean;
           status?: Status;
           last_sign_in_at?: string | null;
           account_claimed_at?: string | null;
@@ -77,6 +92,7 @@ export interface Database {
           avatar_path?: string | null;
           avatar_url?: string | null;
           role?: Role;
+          is_coordinator?: boolean;
           status?: Status;
           last_sign_in_at?: string | null;
           account_claimed_at?: string | null;
@@ -1100,6 +1116,10 @@ export interface Database {
           home_guidance: string | null;
           observations: string | null;
           raw_summary_input: string | null;
+          topic_contents: EvolutionTopicContent[] | null;
+          template_id: string | null;
+          template_version: number | null;
+          ai_prompt_version: string | null;
           professional_name_snapshot: string;
           created_by: string;
           updated_by: string | null;
@@ -1120,6 +1140,10 @@ export interface Database {
           home_guidance?: string | null;
           observations?: string | null;
           raw_summary_input?: string | null;
+          topic_contents?: EvolutionTopicContent[] | null;
+          template_id?: string | null;
+          template_version?: number | null;
+          ai_prompt_version?: string | null;
           professional_name_snapshot?: string;
           created_by: string;
           updated_by?: string | null;
@@ -1140,7 +1164,155 @@ export interface Database {
           home_guidance?: string | null;
           observations?: string | null;
           raw_summary_input?: string | null;
+          topic_contents?: EvolutionTopicContent[] | null;
+          template_id?: string | null;
+          template_version?: number | null;
+          ai_prompt_version?: string | null;
           professional_name_snapshot?: string;
+          created_by?: string;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      evolution_templates: {
+        Row: {
+          id: string;
+          name: string;
+          scope: EvolutionTemplateScope;
+          specialty_id: string | null;
+          owner_professional_id: string | null;
+          version: number;
+          status: Status;
+          is_factory_default: boolean;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          scope: EvolutionTemplateScope;
+          specialty_id?: string | null;
+          owner_professional_id?: string | null;
+          version?: number;
+          status?: Status;
+          is_factory_default?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          scope?: EvolutionTemplateScope;
+          specialty_id?: string | null;
+          owner_professional_id?: string | null;
+          version?: number;
+          status?: Status;
+          is_factory_default?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      evolution_tracking_settings: {
+        Row: {
+          id: number;
+          late_after_hours: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          late_after_hours?: number;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          late_after_hours?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      evolution_template_topics: {
+        Row: {
+          id: string;
+          template_id: string;
+          label: string;
+          hint: string | null;
+          display_order: number;
+          hidden: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          template_id: string;
+          label: string;
+          hint?: string | null;
+          display_order?: number;
+          hidden?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          template_id?: string;
+          label?: string;
+          hint?: string | null;
+          display_order?: number;
+          hidden?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      evolution_drafts: {
+        Row: {
+          id: string;
+          appointment_id: string;
+          patient_id: string;
+          professional_id: string;
+          specialty_id: string | null;
+          template_id: string | null;
+          template_version: number | null;
+          topic_contents: EvolutionTopicContent[];
+          raw_summary_input: string | null;
+          ai_prompt_version: string | null;
+          created_by: string;
+          updated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          appointment_id: string;
+          patient_id: string;
+          professional_id: string;
+          specialty_id?: string | null;
+          template_id?: string | null;
+          template_version?: number | null;
+          topic_contents?: EvolutionTopicContent[];
+          raw_summary_input?: string | null;
+          ai_prompt_version?: string | null;
+          created_by: string;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          appointment_id?: string;
+          patient_id?: string;
+          professional_id?: string;
+          specialty_id?: string | null;
+          template_id?: string | null;
+          template_version?: number | null;
+          topic_contents?: EvolutionTopicContent[];
+          raw_summary_input?: string | null;
+          ai_prompt_version?: string | null;
           created_by?: string;
           updated_by?: string | null;
           created_at?: string;
@@ -1349,6 +1521,7 @@ export interface Database {
           transcription_enabled: boolean;
           transcription_api_key_ciphertext: string | null;
           transcription_api_key_last4: string | null;
+          transcription_glossary: string | null;
           quick_evolution_enabled: boolean;
           updated_by: string | null;
           created_at: string;
@@ -1374,6 +1547,7 @@ export interface Database {
           transcription_enabled?: boolean;
           transcription_api_key_ciphertext?: string | null;
           transcription_api_key_last4?: string | null;
+          transcription_glossary?: string | null;
           quick_evolution_enabled?: boolean;
           updated_by?: string | null;
           created_at?: string;
@@ -1399,6 +1573,7 @@ export interface Database {
           transcription_enabled?: boolean;
           transcription_api_key_ciphertext?: string | null;
           transcription_api_key_last4?: string | null;
+          transcription_glossary?: string | null;
           quick_evolution_enabled?: boolean;
           updated_by?: string | null;
           created_at?: string;
@@ -1619,6 +1794,27 @@ export interface Database {
           created_at: string;
           updated_at: string;
         };
+      };
+      get_evolution_tracking: {
+        Args: {
+          p_date_from?: string | null;
+          p_date_to?: string | null;
+          p_professional_id?: string | null;
+          p_specialty_id?: string | null;
+        };
+        Returns: {
+          appointment_id: string;
+          professional_id: string;
+          professional_name: string;
+          patient_id: string;
+          patient_name: string;
+          specialty_id: string | null;
+          specialty_name: string | null;
+          appointment_date: string;
+          start_time: string;
+          end_time: string;
+          status: "concluida" | "em_rascunho" | "pendente";
+        }[];
       };
     };
     Enums: Record<string, never>;
