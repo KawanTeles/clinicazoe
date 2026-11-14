@@ -11,7 +11,7 @@ import { ROLE_LABELS } from "@/lib/navigation";
 import type { Role, Status } from "@/lib/supabase/types";
 import { updateUser, uploadUserAvatar } from "@/modules/user-management/services/user-actions";
 
-const ALL_ROLES: Role[] = ["admin", "recepcionista", "profissional", "paciente"];
+const ALL_ROLES: Role[] = ["admin", "recepcionista", "profissional", "paciente", "coordenacao"];
 
 interface UserEditFormProps {
   userId: string;

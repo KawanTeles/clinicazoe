@@ -10,6 +10,7 @@ const ROLE_BADGE_TONE: Record<Role, "premium" | "success" | "neutral" | "warning
   admin: "premium",
   recepcionista: "warning",
   profissional: "success",
+  coordenacao: "premium",
   paciente: "neutral",
 };
 

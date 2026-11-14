@@ -36,6 +36,36 @@ function startOfMonthISO() {
   return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
 }
 
+/** Dashboard da Coordenação (Etapa 78) — só contagens operacionais da agenda.
+ *
+ * Existe separado de getStaffDashboard de propósito. O dashboard de staff
+ * consulta financial_entries, e a coordenação não tem policy nenhuma nessa
+ * tabela: a consulta não falharia, voltaria VAZIA, e a tela mostraria
+ * "Faturamento do mês: R$ 0,00" para uma clínica faturando normalmente. Não é
+ * vazamento, é pior em outro sentido — é número errado apresentado como certo.
+ * Melhor não ter o cartão do que ter o cartão mentindo. */
+export async function getCoordinationDashboard() {
+  const supabase = await createClient();
+  const today = todayISO();
+  const weekStart = startOfWeekISO();
+
+  const [{ data: appointments }, { count: activeProfessionals }] = await Promise.all([
+    supabase.from("appointments").select("appointment_date, status"),
+    supabase.from("professionals").select("id", { count: "exact", head: true }).eq("status", "active"),
+  ]);
+
+  const rows = appointments ?? [];
+  const activeStatuses = ["pendente", "confirmada"];
+
+  return {
+    todayCount: rows.filter((a) => a.appointment_date === today && activeStatuses.includes(a.status)).length,
+    weekCount: rows.filter((a) => a.appointment_date >= weekStart && activeStatuses.includes(a.status)).length,
+    completedCount: rows.filter((a) => a.status === "concluida").length,
+    cancelledCount: rows.filter((a) => a.status === "cancelada").length,
+    activeProfessionals: activeProfessionals ?? null,
+  };
+}
+
 export async function getStaffDashboard(role: Role, userId: string) {
   const supabase = await createClient();
   const today = todayISO();

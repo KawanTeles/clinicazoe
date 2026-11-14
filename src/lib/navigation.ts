@@ -29,6 +29,8 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Convênios", href: "/insurances", permission: "insurances.manage", icon: "building" },
   { label: "Categorias Financeiras", href: "/financial-categories", permission: "financial.categories.manage", icon: "dollar-sign" },
   { label: "Evolução do Paciente", href: "/evolutions", permission: "evolutions.view.own", icon: "clipboard" },
+  { label: "Modelos de Evolução", href: "/evolution-templates", permission: "evolution_templates.manage.own", icon: "clipboard" },
+  { label: "Modelos de Evolução", href: "/evolution-templates", permission: "evolution_templates.manage.shared", icon: "clipboard" },
   { label: "Relatórios IA", href: "/reports", permission: "ai.reports.use", icon: "sparkles" },
   { label: "Auditoria", href: "/audit", permission: "audit.view", icon: "activity" },
   { label: "Configurações", href: "/settings", permission: "settings.view", icon: "settings" },
@@ -40,4 +42,5 @@ export const ROLE_LABELS: Record<string, string> = {
   recepcionista: "Recepcionista",
   profissional: "Profissional",
   paciente: "Paciente",
+  coordenacao: "Coordenação",
 };

@@ -18,7 +18,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const session = await getCurrentUser();
   if (!session) return NextResponse.json({ error: "Acesso negado." }, { status: 401 });
 
-  const [canUse, flags] = await Promise.all([can(session.profile.role, "ai.reports.use"), getAIFeatureFlags()]);
+  const [canUse, flags] = await Promise.all([can(session.profile, "ai.reports.use"), getAIFeatureFlags()]);
   if (!canUse || !flags.enabled || !flags.reportsEnabled) {
     return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
   }

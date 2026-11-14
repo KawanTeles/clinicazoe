@@ -17,7 +17,7 @@ import {
   uploadTeamMemberAvatar,
 } from "@/modules/team/services/team-actions";
 
-const TEAM_ROLES: Role[] = ["profissional", "recepcionista", "admin"];
+const TEAM_ROLES: Role[] = ["profissional", "recepcionista", "coordenacao", "admin"];
 const MODALITIES: Modality[] = ["aba", "comum"];
 const MODALITY_TITLES: Record<Modality, string> = { aba: "ABA", comum: "Comum" };
 
@@ -46,6 +46,7 @@ interface TeamMemberFormProps {
     email: string;
     phone: string;
     role: Role;
+    is_coordinator: boolean;
     status: "active" | "inactive";
     specialty_ids: string[];
     license_number: string;
@@ -62,6 +63,7 @@ const DEFAULTS = {
   email: "",
   phone: "",
   role: "profissional" as Role,
+  is_coordinator: false,
   status: "active" as const,
   specialty_ids: [] as string[],
   license_number: "",
@@ -93,6 +95,7 @@ export function TeamMemberForm({
   const [email, setEmail] = useState(values.email);
   const [phone, setPhone] = useState(values.phone);
   const [role, setRole] = useState<Role>(values.role);
+  const [isCoordinator, setIsCoordinator] = useState(values.is_coordinator);
   const [status, setStatus] = useState<"active" | "inactive">(values.status);
   const [password, setPassword] = useState("");
   const [specialtyIds, setSpecialtyIds] = useState<string[]>(values.specialty_ids);
@@ -191,6 +194,7 @@ export function TeamMemberForm({
           password,
           phone,
           role,
+          is_coordinator: isCoordinator,
           ...professionalFields,
         });
         if (result.error) {
@@ -204,6 +208,7 @@ export function TeamMemberForm({
           full_name: fullName,
           phone,
           role,
+          is_coordinator: isCoordinator,
           status,
           password: password || undefined,
           ...professionalFields,
@@ -334,6 +339,29 @@ export function TeamMemberForm({
               </option>
             ))}
           </Select>
+
+          {/* Acúmulo da função de Coordenação (Etapa 78). Só aparece para
+              'profissional': o cargo "Coordenação" já é coordenação por si, e
+              nos outros cargos o acúmulo não existe — o gatilho
+              profiles_normalize_coordinator zera o valor no banco. */}
+          {role === "profissional" ? (
+            <label className="flex items-start gap-2 self-end pb-2 text-[11px] font-semibold text-text-secondary cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isCoordinator}
+                disabled={lockedBySelf}
+                onChange={(e) => setIsCoordinator(e.target.checked)}
+                className="mt-0.5 h-3.5 w-3.5 rounded border-border accent-primary cursor-pointer disabled:cursor-not-allowed"
+              />
+              <span>
+                Acumula a função de Coordenação
+                <span className="mt-0.5 block font-medium text-text-muted">
+                  Vê o acompanhamento de evoluções da equipe. Continua enxergando conteúdo clínico
+                  apenas dos pacientes que atende.
+                </span>
+              </span>
+            </label>
+          ) : null}
 
           {mode === "edit" ? (
             <Select

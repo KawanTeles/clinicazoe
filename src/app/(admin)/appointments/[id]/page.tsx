@@ -47,7 +47,7 @@ export default async function AppointmentDetailPage({ params }: { params: Promis
   let quickEvolutionEnabled = false;
   if (isLinkedProfessional) {
     const [hasPermission, flags] = await Promise.all([
-      can(session.profile.role, "ai.evolution_assistant.use"),
+      can(session.profile, "ai.evolution_assistant.use"),
       getAIFeatureFlags(),
     ]);
     aiEnabled = hasPermission && flags.enabled && flags.evolutionAssistantEnabled;

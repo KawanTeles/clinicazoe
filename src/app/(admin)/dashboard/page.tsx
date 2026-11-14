@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { getCurrentUser } from "@/lib/auth";
 import { formatCurrency } from "@/lib/whatsapp";
 import {
+  getCoordinationDashboard,
   getPatientDashboard,
   getStaffDashboard,
   getWeeklySeries,
@@ -56,6 +57,36 @@ export default async function DashboardPage() {
           <Link href="/book">
             <Button size="lg" className="shadow-button font-bold">Agendar novo atendimento</Button>
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Coordenação (Etapa 78) tem dashboard próprio: só números operacionais da
+  // agenda. Nada de financeiro — ela não tem acesso a financial_entries, e o
+  // dashboard de staff mostraria R$ 0,00 como se fosse o faturamento real.
+  // O acompanhamento de evoluções entra aqui na etapa da tela dele.
+  if (role === "coordenacao") {
+    const data = await getCoordinationDashboard();
+    return (
+      <div className="flex flex-col gap-8">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">
+            Coordenação
+          </h1>
+          <p className="mt-1 text-sm text-text-secondary">
+            Visão operacional da clínica. Conteúdo clínico das evoluções não é exibido aqui.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Kpi label="Atendimentos hoje" value={String(data.todayCount)} subtext="Agendados para a data atual" />
+          <Kpi label="Atendimentos esta semana" value={String(data.weekCount)} subtext="Últimos 7 dias em atividade" />
+          <Kpi label="Atendimentos realizados" value={String(data.completedCount)} subtext="Atendimentos concluídos" />
+          <Kpi label="Cancelamentos" value={String(data.cancelledCount)} subtext="Registros cancelados" />
+          {data.activeProfessionals !== null && (
+            <Kpi label="Profissionais ativos" value={String(data.activeProfessionals)} subtext="Corpo clínico disponível" />
+          )}
         </div>
       </div>
     );

@@ -13,7 +13,7 @@ export default async function NewReportPage() {
   if (!session) redirect("/equipe");
   if (session.profile.role !== "profissional") redirect("/reports");
 
-  const [canUse, flags] = await Promise.all([can(session.profile.role, "ai.reports.use"), getAIFeatureFlags()]);
+  const [canUse, flags] = await Promise.all([can(session.profile, "ai.reports.use"), getAIFeatureFlags()]);
   if (!canUse || !flags.enabled || !flags.reportsEnabled) redirect("/dashboard");
 
   return (

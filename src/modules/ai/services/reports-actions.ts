@@ -17,7 +17,7 @@ async function requireProfessionalWithReportsAccess() {
   if (!session || session.profile.role !== "profissional") {
     throw new Error("Acesso negado.");
   }
-  const allowed = await can(session.profile.role, "ai.reports.use");
+  const allowed = await can(session.profile, "ai.reports.use");
   if (!allowed) throw new Error("Acesso negado.");
   return session;
 }
@@ -31,7 +31,7 @@ async function requireProfessionalWithReportsAccess() {
 export async function searchPatientsForReport(query: string): Promise<PatientOption[]> {
   const session = await getCurrentUser();
   if (!session) return [];
-  const allowed = await can(session.profile.role, "ai.reports.use");
+  const allowed = await can(session.profile, "ai.reports.use");
   if (!allowed) return [];
 
   if (session.profile.role === "profissional") {
@@ -56,7 +56,7 @@ export async function listEvolutionsForReport(
 ): Promise<EvolutionOption[]> {
   const session = await getCurrentUser();
   if (!session || session.profile.role !== "profissional") return [];
-  const allowed = await can(session.profile.role, "ai.reports.use");
+  const allowed = await can(session.profile, "ai.reports.use");
   if (!allowed) return [];
 
   // getEvolutionsForPatient() enxerga o paciente inteiro desde a Etapa 69

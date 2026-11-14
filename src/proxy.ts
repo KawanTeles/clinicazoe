@@ -82,7 +82,7 @@ export async function proxy(request: NextRequest) {
 
   // 3. Redirecionamento amigável de login para rotas certas por papel
   if (pathname === "/equipe" && user) {
-    if (["admin", "recepcionista", "profissional"].includes(role ?? "")) {
+    if (["admin", "recepcionista", "profissional", "coordenacao"].includes(role ?? "")) {
       return NextResponse.redirect(new URL("/dashboard", SITE_URL));
     }
   }

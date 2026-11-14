@@ -18,7 +18,7 @@ export default async function ReportsPage() {
   const session = await getCurrentUser();
   if (!session) redirect("/equipe");
 
-  const [canUse, flags] = await Promise.all([can(session.profile.role, "ai.reports.use"), getAIFeatureFlags()]);
+  const [canUse, flags] = await Promise.all([can(session.profile, "ai.reports.use"), getAIFeatureFlags()]);
   if (!canUse || !flags.enabled || !flags.reportsEnabled) redirect("/dashboard");
 
   const reports = await listAIReports();

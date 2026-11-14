@@ -28,11 +28,11 @@ export default async function SettingsPage() {
   const session = await getCurrentUser();
   if (!session) redirect("/equipe");
 
-  const canManage = await can(session.profile.role, "settings.manage");
-  const canView = canManage || (await can(session.profile.role, "settings.view"));
+  const canManage = await can(session.profile, "settings.manage");
+  const canView = canManage || (await can(session.profile, "settings.view"));
   if (!canView) redirect("/dashboard");
 
-  const canManageAI = await can(session.profile.role, "ai.settings.manage");
+  const canManageAI = await can(session.profile, "ai.settings.manage");
 
   const [settings, holidays, galleryImages, homeFeaturedProfessionals, aiSettings, aiUsageStats] = await Promise.all([
     getClinicSettings(),
