@@ -33,6 +33,8 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Modelos de Evolução", href: "/evolution-templates", permission: "evolution_templates.manage.shared", icon: "clipboard" },
   { label: "Acompanhamento de Evoluções", href: "/evolution-tracking", permission: "evolution_tracking.view", icon: "activity" },
   { label: "Termo de Consentimento", href: "/consent-template", permission: "consent_templates.manage", icon: "shield" },
+  { label: "Protocolos de Avaliação", href: "/protocol-templates", permission: "protocol_templates.manage.own", icon: "clipboard" },
+  { label: "Protocolos de Avaliação", href: "/protocol-templates", permission: "protocol_templates.manage.shared", icon: "clipboard" },
   { label: "Liberações de Anexos", href: "/attachment-grants", permission: "attachment_grants.manage_inactive", icon: "shield" },
   { label: "Relatórios IA", href: "/reports", permission: "ai.reports.use", icon: "sparkles" },
   { label: "Auditoria", href: "/audit", permission: "audit.view", icon: "activity" },

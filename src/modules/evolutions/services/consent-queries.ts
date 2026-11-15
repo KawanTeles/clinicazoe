@@ -25,7 +25,7 @@ export async function getActiveConsentTemplate(): Promise<ConsentTemplateView | 
 export interface ConsentTemplateHistoryItem {
   id: string;
   version: number;
-  status: "active" | "inactive";
+  status: "active" | "archived";
   createdAt: string;
 }
 

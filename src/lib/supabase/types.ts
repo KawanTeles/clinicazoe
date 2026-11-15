@@ -34,6 +34,18 @@ export type TransactionPaymentMethod = "pix" | "dinheiro" | "cartao" | "transfer
  * profissional é sempre pessoal -> área -> global, nessa ordem. */
 export type EvolutionTemplateScope = "global" | "area" | "personal";
 export type EvolutionAttachmentKind = "imagem" | "documento" | "audio";
+/** Única tabela do banco que foge da convenção active/inactive (ver 0080) —
+ * de propósito: consent_templates é append-only, então "a versão anterior
+ * não está mais vigente" é "archived" (substituída por uma versão nova),
+ * nunca "inactive" (que sugeriria algo desligado manualmente). */
+export type ConsentTemplateStatus = "active" | "archived";
+export type TherapeuticProgramStatus = "active" | "mastered" | "paused" | "discontinued";
+export interface ProtocolAssessmentResponse {
+  domain: string | null;
+  label: string;
+  achieved: boolean;
+  notes: string | null;
+}
 
 /** Conteúdo de um tópico dentro de uma evolução. O `label` é CONGELADO no
  * momento da assinatura: renomear o tópico no modelo depois não reescreve
@@ -1326,7 +1338,7 @@ export interface Database {
           id: string;
           version: number;
           body: string;
-          status: Status;
+          status: ConsentTemplateStatus;
           created_by: string | null;
           created_at: string;
         };
@@ -1334,7 +1346,7 @@ export interface Database {
           id?: string;
           version: number;
           body: string;
-          status?: Status;
+          status?: ConsentTemplateStatus;
           created_by?: string | null;
           created_at?: string;
         };
@@ -1342,7 +1354,7 @@ export interface Database {
           id?: string;
           version?: number;
           body?: string;
-          status?: Status;
+          status?: ConsentTemplateStatus;
           created_by?: string | null;
           created_at?: string;
         };
@@ -1583,6 +1595,213 @@ export interface Database {
           file_path?: string;
           mime_type?: string;
           file_size_bytes?: number;
+          created_by?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      therapeutic_programs: {
+        Row: {
+          id: string;
+          patient_id: string;
+          professional_id: string;
+          name: string;
+          description: string | null;
+          mastery_criteria: string | null;
+          status: TherapeuticProgramStatus;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          patient_id: string;
+          professional_id: string;
+          name: string;
+          description?: string | null;
+          mastery_criteria?: string | null;
+          status?: TherapeuticProgramStatus;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          patient_id?: string;
+          professional_id?: string;
+          name?: string;
+          description?: string | null;
+          mastery_criteria?: string | null;
+          status?: TherapeuticProgramStatus;
+          created_by?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      program_data_sessions: {
+        Row: {
+          id: string;
+          program_id: string;
+          patient_id: string;
+          professional_id: string;
+          appointment_id: string | null;
+          session_date: string;
+          independent_count: number;
+          verbal_prompt_count: number;
+          gestural_prompt_count: number;
+          physical_prompt_count: number;
+          incorrect_count: number;
+          notes: string | null;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          program_id: string;
+          patient_id: string;
+          professional_id: string;
+          appointment_id?: string | null;
+          session_date?: string;
+          independent_count?: number;
+          verbal_prompt_count?: number;
+          gestural_prompt_count?: number;
+          physical_prompt_count?: number;
+          incorrect_count?: number;
+          notes?: string | null;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          program_id?: string;
+          patient_id?: string;
+          professional_id?: string;
+          appointment_id?: string | null;
+          session_date?: string;
+          independent_count?: number;
+          verbal_prompt_count?: number;
+          gestural_prompt_count?: number;
+          physical_prompt_count?: number;
+          incorrect_count?: number;
+          notes?: string | null;
+          created_by?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      protocol_templates: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          scope: EvolutionTemplateScope;
+          specialty_id: string | null;
+          owner_professional_id: string | null;
+          version: number;
+          status: Status;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          scope: EvolutionTemplateScope;
+          specialty_id?: string | null;
+          owner_professional_id?: string | null;
+          version?: number;
+          status?: Status;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          scope?: EvolutionTemplateScope;
+          specialty_id?: string | null;
+          owner_professional_id?: string | null;
+          version?: number;
+          status?: Status;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      protocol_items: {
+        Row: {
+          id: string;
+          template_id: string;
+          domain: string | null;
+          label: string;
+          display_order: number;
+          hidden: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          template_id: string;
+          domain?: string | null;
+          label: string;
+          display_order?: number;
+          hidden?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          template_id?: string;
+          domain?: string | null;
+          label?: string;
+          display_order?: number;
+          hidden?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      patient_protocol_assessments: {
+        Row: {
+          id: string;
+          template_id: string;
+          template_name: string;
+          template_version: number;
+          patient_id: string;
+          professional_id: string;
+          assessment_date: string;
+          responses: ProtocolAssessmentResponse[];
+          notes: string | null;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          template_id: string;
+          template_name: string;
+          template_version: number;
+          patient_id: string;
+          professional_id: string;
+          assessment_date?: string;
+          responses: ProtocolAssessmentResponse[];
+          notes?: string | null;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          template_id?: string;
+          template_name?: string;
+          template_version?: number;
+          patient_id?: string;
+          professional_id?: string;
+          assessment_date?: string;
+          responses?: ProtocolAssessmentResponse[];
+          notes?: string | null;
           created_by?: string;
           created_at?: string;
         };

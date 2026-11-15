@@ -6,6 +6,8 @@ import { EvolutionTimeline } from "@/modules/evolutions/components/EvolutionTime
 import { NewEvolutionLauncher } from "@/modules/evolutions/components/NewEvolutionLauncher";
 import { PatientAIAssistant } from "@/modules/ai/components/PatientAIAssistant";
 import { ClinicalDocuments, type EvolutionOption } from "@/modules/clinical-documents/components/ClinicalDocuments";
+import { TherapeuticProgramManager } from "@/modules/programs/components/TherapeuticProgramManager";
+import { ProtocolAssessmentPanel } from "@/modules/protocols/components/ProtocolAssessmentPanel";
 import type { EvolutionView } from "@/modules/evolutions/services/evolution-queries";
 import type { ClinicalDocumentView } from "@/modules/clinical-documents/services/clinical-document-queries";
 
@@ -37,7 +39,7 @@ interface MyPatientDetailTabsProps {
   documents: ClinicalDocumentView[];
 }
 
-const BASE_TABS = ["Dados", "Histórico Clínico", "Documentos"] as const;
+const BASE_TABS = ["Dados", "Histórico Clínico", "Documentos", "Programas", "Protocolos"] as const;
 const AI_TAB = "🤖 Assistente IA";
 type Tab = (typeof BASE_TABS)[number] | typeof AI_TAB;
 
@@ -138,6 +140,20 @@ export function MyPatientDetailTabs({
             initialDocuments={documents}
             evolutionOptions={evolutionOptions}
           />
+        </div>
+      )}
+
+      {tab === "Programas" && (
+        <div>
+          <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-text-secondary">Programas Terapêuticos</h2>
+          <TherapeuticProgramManager patientId={patient.id} />
+        </div>
+      )}
+
+      {tab === "Protocolos" && (
+        <div>
+          <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-text-secondary">Protocolos de Avaliação</h2>
+          <ProtocolAssessmentPanel patientId={patient.id} />
         </div>
       )}
 
