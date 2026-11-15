@@ -20,6 +20,7 @@ import {
   saveEvolutionDraft,
   signEvolutionFromDraft,
 } from "@/modules/evolutions/services/draft-actions";
+import { AttachmentPanel } from "@/modules/evolutions/components/AttachmentPanel";
 
 /** Campo em foco para o ditado: o resumo único, ou o tópico de índice N. */
 type DictationField = "summary" | `topic-${number}`;
@@ -118,6 +119,8 @@ export function QuickEvolutionForm({
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [template, setTemplate] = useState<TemplateInfo | null>(null);
+  const [patientId, setPatientId] = useState<string | null>(null);
+  const [draftId, setDraftId] = useState<string | null>(null);
 
   const [rawSummary, setRawSummary] = useState("");
   /** Um texto por tópico, na mesma ordem de `template.topics`. */
@@ -175,6 +178,8 @@ export function QuickEvolutionForm({
       }
 
       setTemplate(result.template);
+      setPatientId(result.patientId ?? null);
+      setDraftId(result.draft?.id ?? null);
 
       const salvos = result.draft?.topics ?? [];
       setTopicValues(
@@ -404,6 +409,15 @@ export function QuickEvolutionForm({
             {template.topics.length} tópicos
           </span>
         </p>
+      )}
+
+      {patientId && (
+        <AttachmentPanel
+          appointmentId={appointmentId}
+          patientId={patientId}
+          draftId={draftId}
+          onDraftIdResolved={setDraftId}
+        />
       )}
 
       {!drafting ? (

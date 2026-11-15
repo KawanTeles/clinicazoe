@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { AddendumForm, SignatureLine } from "@/modules/evolutions/components/AddendumForm";
+import { AttachmentAccessPanel } from "@/modules/evolutions/components/AttachmentAccessPanel";
 import { loadEvolutionVersions, type EvolutionAddendumResult } from "@/modules/evolutions/services/evolution-actions";
 import type { EvolutionVersionView, EvolutionView } from "@/modules/evolutions/services/evolution-queries";
 
@@ -125,6 +126,8 @@ export function EvolutionDetailModal({
             <div className="border-t border-border/60 pt-3">
               <SignatureLine name={evolution.professionalNameSnapshot} at={evolution.createdAt} />
             </div>
+
+            <AttachmentAccessPanel evolutionId={evolution.id} />
 
             {evolution.rawSummaryInput && (
               <details className="rounded-xl border border-border/60 bg-card-elevated/40 px-3.5 py-2.5 print:hidden">

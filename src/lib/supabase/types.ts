@@ -33,6 +33,7 @@ export type TransactionPaymentMethod = "pix" | "dinheiro" | "cartao" | "transfer
 /** Abrangência de um modelo de evolução (Etapa 79). A resolução para um
  * profissional é sempre pessoal -> área -> global, nessa ordem. */
 export type EvolutionTemplateScope = "global" | "area" | "personal";
+export type EvolutionAttachmentKind = "imagem" | "documento" | "audio";
 
 /** Conteúdo de um tópico dentro de uma evolução. O `label` é CONGELADO no
  * momento da assinatura: renomear o tópico no modelo depois não reescreve
@@ -1320,6 +1321,168 @@ export interface Database {
         };
         Relationships: [];
       };
+      consent_templates: {
+        Row: {
+          id: string;
+          version: number;
+          body: string;
+          status: Status;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          version: number;
+          body: string;
+          status?: Status;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          version?: number;
+          body?: string;
+          status?: Status;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      image_consents: {
+        Row: {
+          id: string;
+          patient_id: string;
+          template_id: string;
+          guardian_name: string;
+          guardian_relationship: string;
+          signature_image_path: string | null;
+          signed_document_path: string | null;
+          collected_by: string;
+          signed_at: string;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          patient_id: string;
+          template_id: string;
+          guardian_name: string;
+          guardian_relationship: string;
+          signature_image_path?: string | null;
+          signed_document_path?: string | null;
+          collected_by: string;
+          signed_at?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          patient_id?: string;
+          template_id?: string;
+          guardian_name?: string;
+          guardian_relationship?: string;
+          signature_image_path?: string | null;
+          signed_document_path?: string | null;
+          collected_by?: string;
+          signed_at?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      evolution_attachments: {
+        Row: {
+          id: string;
+          draft_id: string | null;
+          evolution_id: string | null;
+          patient_id: string;
+          professional_id: string;
+          kind: EvolutionAttachmentKind;
+          caption: string | null;
+          file_name: string;
+          file_path: string;
+          mime_type: string;
+          file_size_bytes: number;
+          consent_id: string | null;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          draft_id?: string | null;
+          evolution_id?: string | null;
+          patient_id: string;
+          professional_id: string;
+          kind: EvolutionAttachmentKind;
+          caption?: string | null;
+          file_name: string;
+          file_path: string;
+          mime_type: string;
+          file_size_bytes: number;
+          consent_id?: string | null;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          draft_id?: string | null;
+          evolution_id?: string | null;
+          patient_id?: string;
+          professional_id?: string;
+          kind?: EvolutionAttachmentKind;
+          caption?: string | null;
+          file_name?: string;
+          file_path?: string;
+          mime_type?: string;
+          file_size_bytes?: number;
+          consent_id?: string | null;
+          created_by?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      attachment_access_grants: {
+        Row: {
+          id: string;
+          attachment_id: string | null;
+          patient_id: string;
+          author_professional_id: string;
+          granted_to_professional_id: string;
+          granted_by: string;
+          justification: string;
+          granted_at: string;
+          revoked_at: string | null;
+          revoked_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          attachment_id?: string | null;
+          patient_id: string;
+          author_professional_id: string;
+          granted_to_professional_id: string;
+          granted_by: string;
+          justification: string;
+          granted_at?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          attachment_id?: string | null;
+          patient_id?: string;
+          author_professional_id?: string;
+          granted_to_professional_id?: string;
+          granted_by?: string;
+          justification?: string;
+          granted_at?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+        };
+        Relationships: [];
+      };
       patient_evolution_addenda: {
         Row: {
           id: string;
@@ -1814,6 +1977,16 @@ export interface Database {
           start_time: string;
           end_time: string;
           status: "concluida" | "em_rascunho" | "pendente";
+        }[];
+      };
+      get_patients_with_evolution_attachments: {
+        Args: {
+          p_author_professional_id: string;
+        };
+        Returns: {
+          patient_id: string;
+          patient_name: string;
+          attachment_count: number;
         }[];
       };
     };

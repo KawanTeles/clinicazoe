@@ -43,6 +43,7 @@ export interface EvolutionDraftView {
  */
 export async function openEvolutionEditor(appointmentId: string): Promise<{
   error: string | null;
+  patientId?: string;
   template?: { id: string; name: string; version: number; topics: { label: string; hint: string | null }[] };
   draft?: EvolutionDraftView | null;
 }> {
@@ -90,6 +91,7 @@ export async function openEvolutionEditor(appointmentId: string): Promise<{
 
   return {
     error: null,
+    patientId: appointment.patient_id,
     template: {
       id: template.id,
       name: template.name,
@@ -182,6 +184,27 @@ export async function discardEvolutionDraft(
   const session = await requireProfessional();
   const supabase = await createClient();
 
+  const { data: draftRow } = await supabase
+    .from("evolution_drafts")
+    .select("id")
+    .eq("appointment_id", appointmentId)
+    .eq("professional_id", session.user.id)
+    .maybeSingle();
+
+  // Remove os ARQUIVOS dos anexos do rascunho antes de apagar a linha — o
+  // delete em cascata (draft_id on delete cascade) só limpa as linhas de
+  // evolution_attachments, nunca os objetos no Storage, que ficariam órfãos
+  // (inacessíveis a mais ninguém, mas ocupando espaço para sempre).
+  if (draftRow) {
+    const { data: attachments } = await supabase
+      .from("evolution_attachments")
+      .select("file_path")
+      .eq("draft_id", draftRow.id);
+    if (attachments && attachments.length > 0) {
+      await supabase.storage.from("evolution-attachments").remove(attachments.map((a) => a.file_path));
+    }
+  }
+
   const { error } = await supabase
     .from("evolution_drafts")
     .delete()
@@ -190,6 +213,66 @@ export async function discardEvolutionDraft(
 
   if (error) return { error: "Não foi possível descartar o rascunho." };
   return { error: null };
+}
+
+/**
+ * Garante que existe uma linha de rascunho para o anexo se pendurar — o
+ * autosave do texto só cria o rascunho depois de 1.5s de digitação (Etapa
+ * 79), mas "Anexar" precisa funcionar num clique mesmo em um rascunho ainda
+ * vazio. NUNCA sobrescreve um rascunho já existente (por isso insert, não
+ * upsert com conteúdo) — só cria um vazio se não houver nenhum, e numa
+ * corrida entre duas abas, cai no 23505 e relê a linha que a outra criou.
+ */
+export async function ensureDraftId(appointmentId: string): Promise<{ error: string | null; draftId?: string }> {
+  const session = await requireProfessional();
+  const supabase = await createClient();
+
+  const { data: existing } = await supabase
+    .from("evolution_drafts")
+    .select("id")
+    .eq("appointment_id", appointmentId)
+    .eq("professional_id", session.user.id)
+    .maybeSingle();
+
+  if (existing) return { error: null, draftId: existing.id };
+
+  const { data: appointment } = await supabase
+    .from("appointments")
+    .select("patient_id, specialty_id, status")
+    .eq("id", appointmentId)
+    .maybeSingle();
+
+  if (!appointment) return { error: "Atendimento não encontrado." };
+  if (!["confirmada", "concluida"].includes(appointment.status)) {
+    return { error: "Só é possível anexar arquivos em atendimentos realizados." };
+  }
+
+  const { data: created, error } = await supabase
+    .from("evolution_drafts")
+    .insert({
+      appointment_id: appointmentId,
+      patient_id: appointment.patient_id,
+      professional_id: session.user.id,
+      specialty_id: appointment.specialty_id,
+      created_by: session.user.id,
+      updated_by: session.user.id,
+    })
+    .select("id")
+    .single();
+
+  if (!error) return { error: null, draftId: created.id };
+
+  if (error.code === "23505") {
+    const { data: raced } = await supabase
+      .from("evolution_drafts")
+      .select("id")
+      .eq("appointment_id", appointmentId)
+      .eq("professional_id", session.user.id)
+      .maybeSingle();
+    if (raced) return { error: null, draftId: raced.id };
+  }
+
+  return { error: "Não foi possível preparar o rascunho para o anexo." };
 }
 
 export interface SignEvolutionInput {
@@ -282,6 +365,24 @@ export async function signEvolutionFromDraft(
         ? "Você já registrou evolução para este atendimento."
         : "Não foi possível salvar a evolução.";
     return { error: message };
+  }
+
+  // Repontua os anexos do rascunho para a evolução recém-assinada ANTES de
+  // apagar o rascunho — a policy evolution_attachments_update_on_sign só
+  // permite essa troca enquanto draft_id ainda não é nulo; a ordem inversa
+  // (apagar o rascunho primeiro) cascatearia e apagaria os anexos também.
+  const { data: draftRow } = await supabase
+    .from("evolution_drafts")
+    .select("id")
+    .eq("appointment_id", input.appointment_id)
+    .eq("professional_id", session.user.id)
+    .maybeSingle();
+
+  if (draftRow) {
+    await supabase
+      .from("evolution_attachments")
+      .update({ draft_id: null, evolution_id: created.id })
+      .eq("draft_id", draftRow.id);
   }
 
   await supabase

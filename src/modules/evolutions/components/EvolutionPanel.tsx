@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { EvolutionForm } from "@/modules/evolutions/components/EvolutionForm";
 import { QuickEvolutionForm } from "@/modules/evolutions/components/QuickEvolutionForm";
 import { AddendumForm, SignatureLine } from "@/modules/evolutions/components/AddendumForm";
+import { AttachmentAccessPanel } from "@/modules/evolutions/components/AttachmentAccessPanel";
 import { createEvolution } from "@/modules/evolutions/services/evolution-actions";
 import type { EvolutionView } from "@/modules/evolutions/services/evolution-queries";
 
@@ -130,6 +131,10 @@ export function EvolutionPanel({
 
       <div className="mt-5 border-t border-border/60 pt-3">
         <SignatureLine name={evolution.professionalNameSnapshot} at={evolution.createdAt} />
+      </div>
+
+      <div className="mt-5">
+        <AttachmentAccessPanel evolutionId={evolution.id} />
       </div>
 
       {evolution.rawSummaryInput && (
