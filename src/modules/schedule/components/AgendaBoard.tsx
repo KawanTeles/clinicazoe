@@ -11,6 +11,7 @@ import { Modal } from "@/components/ui/Modal";
 import { getAgendaForProfessionals, type ProfessionalAgenda, type AgendaAppointmentCell } from "@/modules/schedule/services/agenda-queries";
 import { cancelAppointment, updateAppointmentStatus } from "@/modules/appointments/services/booking-actions";
 import { updateAppointmentDetails } from "@/modules/schedule/services/agenda-actions";
+import { markAsPaid } from "@/modules/financial/services/financial-actions";
 import { updateRecurringAppointment } from "@/modules/appointments/services/recurrence-actions";
 import { toLocalIsoDate } from "@/lib/date";
 
@@ -350,6 +351,12 @@ export function AgendaBoard({
                                 {statusBadge.label}
                               </Badge>
                             )}
+                            {appt.financialStatus === "em_aberto" && (
+                              <Badge tone="warning" className="px-1.5 py-0 text-[9px]">A receber</Badge>
+                            )}
+                            {appt.financialStatus === "pago" && (
+                              <Badge tone="success" className="px-1.5 py-0 text-[9px]">Pago</Badge>
+                            )}
                           </span>
                         </button>
                       );
@@ -432,6 +439,16 @@ function EditAppointmentForm({
     onDone();
   }
 
+  async function handleMarkAsPaid() {
+    setBusy(true);
+    const result = await markAsPaid(appointment.id);
+    setBusy(false);
+    if (result.error) return onError(result.error);
+    onDone();
+  }
+
+  const canMarkAsPaid = (viewerRole === "admin" || viewerRole === "recepcionista") && appointment.financialStatus === "em_aberto";
+
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-border bg-card-elevated/50 p-3 text-xs">
@@ -445,6 +462,14 @@ function EditAppointmentForm({
         )}
         {appointment.coTherapistNames.length > 0 && (
           <p className="mt-1 text-text-secondary">Coterapeutas: {appointment.coTherapistNames.join(", ")}</p>
+        )}
+        {appointment.financialStatus && (
+          <p className="mt-1 text-text-secondary">
+            Financeiro:{" "}
+            <Badge tone={appointment.financialStatus === "pago" ? "success" : "warning"} className="px-1.5 py-0 text-[9px]">
+              {appointment.financialStatus === "pago" ? "Pago" : "Em aberto"}
+            </Badge>
+          </p>
         )}
       </div>
 
@@ -465,6 +490,9 @@ function EditAppointmentForm({
       <Textarea label="Motivo (cancelamento ou falta justificada)" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ex: paciente remarcou por telefone" />
 
       <div className="flex flex-wrap justify-end gap-2 pt-2">
+        {canMarkAsPaid && (
+          <Button onClick={handleMarkAsPaid} disabled={busy}>Marcar como pago</Button>
+        )}
         <Button variant="outline" onClick={() => handleMarkStatus("concluida")} disabled={busy}>Marcar concluída</Button>
         <Button variant="outline" onClick={() => handleMarkStatus("faltou")} disabled={busy}>Marcar falta</Button>
         <Button variant="danger" onClick={handleCancel} disabled={busy}>Cancelar atendimento</Button>

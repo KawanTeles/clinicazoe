@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import type { AppointmentStatus, Modality, ParticularProduct, PaymentMethod } from "@/lib/supabase/types";
+import type { AppointmentStatus, FinancialStatus, Modality, ParticularProduct, PaymentMethod } from "@/lib/supabase/types";
 
 export interface AgendaSlotWindow {
   id: string;
@@ -41,6 +41,9 @@ export interface AgendaAppointmentCell {
   groupPatientNames: string[];
   /** Profissionais coterapeutas vinculados (além do principal). */
   coTherapistNames: string[];
+  /** Status do lançamento financeiro — null quando nenhum lançamento existe
+   * (mesmo campo de AppointmentView, appointment-queries.ts). */
+  financialStatus: FinancialStatus | null;
 }
 
 export interface ProfessionalAgenda {
@@ -122,7 +125,7 @@ export async function getAgendaForProfessionals(
   const groupIds = Array.from(new Set(allAppointments.map((a) => a.group_id).filter((id): id is string => !!id)));
   const appointmentIds = allAppointments.map((a) => a.id);
 
-  const [{ data: patients }, { data: insurances }, { data: groupSiblings }, { data: allCoTherapistLinks }] = await Promise.all([
+  const [{ data: patients }, { data: insurances }, { data: groupSiblings }, { data: allCoTherapistLinks }, { data: financialEntries }] = await Promise.all([
     patientIds.length > 0 ? supabase.from("profiles").select("id, full_name").in("id", patientIds) : Promise.resolve({ data: [] }),
     insuranceIds.length > 0
       ? supabase.from("insurances").select("id, name, color").in("id", insuranceIds)
@@ -133,10 +136,16 @@ export async function getAgendaForProfessionals(
     appointmentIds.length > 0
       ? supabase.from("appointment_professionals").select("appointment_id, professional_id").in("appointment_id", appointmentIds)
       : Promise.resolve({ data: [] }),
+    appointmentIds.length > 0
+      ? supabase.from("financial_entries").select("appointment_id, status").in("appointment_id", appointmentIds)
+      : Promise.resolve({ data: [] as { appointment_id: string; status: string }[] }),
   ]);
 
   const patientNameById = new Map((patients ?? []).map((p) => [p.id, p.full_name]));
   const insuranceById = new Map((insurances ?? []).map((i) => [i.id, i]));
+  const financialStatusByAppointmentId = new Map(
+    (financialEntries ?? []).map((f) => [f.appointment_id, f.status as FinancialStatus]),
+  );
 
   const groupPatientNamesByGroupId = new Map<string, string[]>();
   for (const row of groupSiblings ?? []) {
@@ -214,6 +223,7 @@ export async function getAgendaForProfessionals(
         ? (groupPatientNamesByGroupId.get(appt.group_id) ?? []).filter((n) => n !== patientNameById.get(appt.patient_id))
         : [],
       coTherapistNames: coTherapistNamesByAppointmentId.get(appt.id) ?? [],
+      financialStatus: financialStatusByAppointmentId.get(appt.id) ?? null,
     };
 
     for (const professionalId of involvedIds) {

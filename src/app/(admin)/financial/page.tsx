@@ -67,16 +67,25 @@ export default async function FinancialPage({
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <Card className="relative overflow-hidden">
           <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-amber-500 to-emerald-400" />
           <CardHeader>
-            <CardTitle className="text-xs uppercase tracking-wider text-text-secondary font-heading">Em Aberto</CardTitle>
+            <CardTitle className="text-xs uppercase tracking-wider text-text-secondary font-heading">A receber</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-extrabold text-text-primary font-heading">
               {formatCurrency(summary.emAberto)}
             </p>
+          </CardContent>
+        </Card>
+        <Card className="relative overflow-hidden">
+          <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-danger to-amber-500" />
+          <CardHeader>
+            <CardTitle className="text-xs uppercase tracking-wider text-text-secondary font-heading">Atrasado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-extrabold text-text-primary font-heading">{formatCurrency(summary.atrasado)}</p>
           </CardContent>
         </Card>
         <Card className="relative overflow-hidden">
@@ -90,7 +99,7 @@ export default async function FinancialPage({
         </Card>
       </div>
 
-      <FinancialTable entries={items} />
+      <FinancialTable entries={items} viewerRole={session.profile.role} />
       <Pagination page={page} totalPages={totalPages} basePath="/financial" />
 
       {isFinancialStaff && (

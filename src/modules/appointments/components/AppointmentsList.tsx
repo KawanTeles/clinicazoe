@@ -18,6 +18,7 @@ import {
   sendReminder,
   updateAppointmentStatus,
 } from "@/modules/appointments/services/booking-actions";
+import { markAsPaid } from "@/modules/financial/services/financial-actions";
 import { RecurrenceScopeDialog } from "@/modules/appointments/components/RecurrenceScopeDialog";
 import { AttachRecurrenceDialog } from "@/modules/appointments/components/AttachRecurrenceDialog";
 import { MarkAbsenceDialog } from "@/modules/appointments/components/MarkAbsenceDialog";
@@ -262,6 +263,18 @@ export function AppointmentsList({
     await refresh();
   }
 
+  async function handleMarkAsPaid(id: string) {
+    setBusyId(id);
+    const result = await markAsPaid(id);
+    setBusyId(null);
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Lançamento marcado como pago.");
+    await refresh();
+  }
+
   async function handleMarkAbsence(id: string, status: AbsenceStatus, reason?: string) {
     setBusyId(id);
     const result = await updateAppointmentStatus(id, status, reason);
@@ -383,7 +396,14 @@ export function AppointmentsList({
         </td>
         <td className="px-5 py-4 font-medium text-text-secondary">
           {appt.value != null ? (
-            formatCurrency(appt.value)
+            <div className="flex flex-col gap-1">
+              <span>{formatCurrency(appt.value)}</span>
+              {appt.financialStatus && (
+                <Badge tone={appt.financialStatus === "pago" ? "success" : "warning"} className="w-fit text-[10px]">
+                  {appt.financialStatus === "pago" ? "Pago" : appt.financialStatus === "cancelado" ? "Cancelado" : "Em aberto"}
+                </Badge>
+              )}
+            </div>
           ) : (
             <span className="font-semibold text-warning" title="Valor ainda não definido para este atendimento">
               Pendente
@@ -410,6 +430,11 @@ export function AppointmentsList({
                   Detalhes
                 </Button>
               </Link>
+            )}
+            {isStaff && appt.financialStatus === "em_aberto" && (
+              <Button size="sm" isLoading={busyId === appt.id} onClick={() => handleMarkAsPaid(appt.id)}>
+                Marcar como pago
+              </Button>
             )}
             {(isStaff || isOwnProfessional) && (appt.status === "pendente" || appt.status === "confirmada") && (
               <Button
