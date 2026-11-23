@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/modules/team/services/audit";
+import { hasPendingReviewMarkers } from "@/modules/ai/services/review-marker";
 import {
   getAppointmentsAvailableForEvolution,
   getEvolutionsForPatientPage,
@@ -71,6 +72,14 @@ export async function createEvolution(
 
   if (!input.clinical_evolution.trim()) {
     return { error: "Descreva a evolução clínica do paciente." };
+  }
+
+  // Mesma trava do fluxo de Evolução Rápida (signEvolutionFromDraft): se
+  // texto com marcador [[REVISAR:...]] pendente chegar aqui (ex.: colado de
+  // um rascunho de IA), a assinatura é recusada — a evolução é imutável
+  // depois do insert.
+  if (hasPendingReviewMarkers(input.clinical_evolution)) {
+    return { error: "Ainda há trechos marcados para revisão — resolva-os antes de assinar." };
   }
 
   const supabase = await createClient();

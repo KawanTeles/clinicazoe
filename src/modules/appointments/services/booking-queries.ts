@@ -1,7 +1,6 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarDisplayUrl } from "@/lib/supabase/storage";
 import { PARTICULAR_INSURANCE_NAME } from "@/lib/constants";
 import { toLocalIsoDate, todayLocalIso } from "@/lib/date";
@@ -75,15 +74,6 @@ export async function hasPatientConflict(
   return data.some((row) => row.group_id !== excludeGroupId);
 }
 
-/** Quando isPublic=true, usa o client de service role (bypassa RLS) — é o
- * que permite o wizard de agendamento público (sem sessão) ler
- * especialidades/convênios/profissionais/agenda, que hoje têm policy
- * `to authenticated`. Default false preserva o comportamento de todo call
- * site existente (client ligado à sessão, respeitando RLS). */
-async function getBookingClient(isPublic: boolean) {
-  return isPublic ? createAdminClient() : await createClient();
-}
-
 /** Rótulos usados só para compor o motivo textual de indisponibilidade —
  * a convenção de índice (0=domingo) é a mesma de `Date.prototype.getDay()`
  * usada em todo o módulo. */
@@ -97,14 +87,14 @@ const WEEKDAY_UNAVAILABLE_LABELS = [
   "aos sábados",
 ];
 
-export async function getInsuranceByName(name: string, isPublic = false) {
-  const supabase = await getBookingClient(isPublic);
+export async function getInsuranceByName(name: string) {
+  const supabase = await createClient();
   const { data } = await supabase.from("insurances").select("id, name").eq("name", name).single();
   return data;
 }
 
-export async function getBookableSpecialties(isPublic = false) {
-  const supabase = await getBookingClient(isPublic);
+export async function getBookableSpecialties() {
+  const supabase = await createClient();
   const { data } = await supabase
     .from("specialties")
     .select("id, name")
@@ -113,8 +103,8 @@ export async function getBookableSpecialties(isPublic = false) {
   return data ?? [];
 }
 
-export async function getBookableInsurances(specialtyId: string, isPublic = false) {
-  const supabase = await getBookingClient(isPublic);
+export async function getBookableInsurances(specialtyId: string) {
+  const supabase = await createClient();
 
   const { data: specialtyLinks } = await supabase
     .from("professional_specialties")
@@ -155,7 +145,7 @@ export async function getBookableInsurances(specialtyId: string, isPublic = fals
   const result = [...(insurances ?? [])];
 
   if (hasParticular) {
-    const particular = await getInsuranceByName(PARTICULAR_INSURANCE_NAME, isPublic);
+    const particular = await getInsuranceByName(PARTICULAR_INSURANCE_NAME);
     if (particular && !result.some((i) => i.id === particular.id)) {
       result.unshift(particular);
     }
@@ -164,9 +154,9 @@ export async function getBookableInsurances(specialtyId: string, isPublic = fals
   return result.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export async function getBookableProfessionals(specialtyId: string, insuranceId: string, isPublic = false) {
-  const supabase = await getBookingClient(isPublic);
-  const particular = await getInsuranceByName(PARTICULAR_INSURANCE_NAME, isPublic);
+export async function getBookableProfessionals(specialtyId: string, insuranceId: string) {
+  const supabase = await createClient();
+  const particular = await getInsuranceByName(PARTICULAR_INSURANCE_NAME);
   const isParticular = particular?.id === insuranceId;
 
   const { data: specialtyLinks } = await supabase
@@ -362,9 +352,8 @@ export async function getEffectiveDuration(
   professionalId: string,
   insuranceId: string,
   modality?: Modality,
-  isPublic = false,
 ): Promise<number> {
-  const supabase = await getBookingClient(isPublic);
+  const supabase = await createClient();
 
   let query = supabase
     .from("professional_insurances")
@@ -386,8 +375,8 @@ export async function getEffectiveDuration(
   return professional?.consultation_duration_minutes ?? 30;
 }
 
-export async function getAvailableDates(professionalId: string, daysAhead = 45, isPublic = false) {
-  const supabase = await getBookingClient(isPublic);
+export async function getAvailableDates(professionalId: string, daysAhead = 45) {
+  const supabase = await createClient();
   const [{ data: slots }, { data: exceptions }, holidays] = await Promise.all([
     supabase
       .from("schedule_slots")
@@ -609,9 +598,8 @@ export async function getAvailableTimes(
   insuranceId: string,
   date: string,
   modality?: Modality,
-  isPublic = false,
 ) {
-  const supabase = await getBookingClient(isPublic);
+  const supabase = await createClient();
 
   let durationQuery = supabase
     .from("professional_insurances")
@@ -723,10 +711,9 @@ export type ProfessionalPricingResult =
 export async function getProfessionalPricing(
   professionalId: string,
   insuranceId: string,
-  isPublic = false,
 ): Promise<ProfessionalPricingResult> {
-  const supabase = await getBookingClient(isPublic);
-  const particular = await getInsuranceByName(PARTICULAR_INSURANCE_NAME, isPublic);
+  const supabase = await createClient();
+  const particular = await getInsuranceByName(PARTICULAR_INSURANCE_NAME);
 
   if (particular?.id === insuranceId) {
     const { data: settings } = await supabase
@@ -764,9 +751,8 @@ export async function resolveAppointmentValue(
   insuranceId: string,
   modality?: Modality,
   particularProduct?: ParticularProduct,
-  isPublic = false,
 ): Promise<{ value: number | null; error: string | null }> {
-  const pricing = await getProfessionalPricing(professionalId, insuranceId, isPublic);
+  const pricing = await getProfessionalPricing(professionalId, insuranceId);
 
   const match =
     pricing.insuranceKind === "convenio"

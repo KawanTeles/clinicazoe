@@ -6,9 +6,12 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/modules/team/services/audit";
 import { getEvolutionsForPatient } from "@/modules/evolutions/services/evolution-queries";
 import { getPatientDetail } from "@/modules/patients/services/patient-queries";
+import { createClient } from "@/lib/supabase/server";
 import { getAIFeatureFlags } from "./ai-settings-queries";
 import { getActiveAIConfig, checkAIUsageLimits } from "./ai-runtime";
 import { AIService } from "./ai-service";
+import { maskForAI } from "./pii-masking";
+import { getPatientIdentityForMasking } from "./patient-identity-queries";
 
 async function requireProfessionalWithAssistantAccess() {
   const session = await getCurrentUser();
@@ -88,12 +91,20 @@ export async function askPatientAssistant(input: {
   const { error: configError, config } = await getActiveAIConfig();
   if (configError || !config) return { error: configError };
 
+  const supabase = await createClient();
+  const identity = await getPatientIdentityForMasking(supabase, input.patientId);
+  const maskingContext = {
+    patientName: patient.fullName,
+    professionalName: session.profile.full_name,
+    ...identity,
+  };
+
   let result: { text: string; usage?: { inputTokens: number; outputTokens: number } };
   try {
     result = await AIService.answerPatientQuestion({
-      patientName: patient.fullName,
-      question: input.question,
-      evolutionsText: formatEvolutionsText(evolutions),
+      patientName: maskForAI(patient.fullName, maskingContext),
+      question: maskForAI(input.question, maskingContext),
+      evolutionsText: maskForAI(formatEvolutionsText(evolutions), maskingContext),
       provider: config.provider,
       apiKey: config.apiKey,
       model: config.model,

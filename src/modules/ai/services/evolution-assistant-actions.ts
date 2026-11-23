@@ -2,11 +2,14 @@
 
 import { getCurrentUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
+import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/modules/team/services/audit";
 import { getAIFeatureFlags } from "./ai-settings-queries";
 import { getActiveAIConfig, checkAIUsageLimits } from "./ai-runtime";
 import { AIService } from "./ai-service";
+import { maskForAI } from "./pii-masking";
+import { getPatientIdentityForMasking } from "./patient-identity-queries";
 import type { ImproveMode } from "./provider-types";
 
 async function requireProfessionalWithAIAccess() {
@@ -51,10 +54,39 @@ export async function improveEvolutionText(input: {
   const { error: configError, config } = await getActiveAIConfig();
   if (configError || !config) return { error: configError };
 
+  // Best-effort: busca o paciente do atendimento só para mascarar nome e
+  // identificadores antes de mandar o texto à IA. Se a RLS não devolver o
+  // atendimento (não vinculado, inconsistência pontual), segue sem o nome —
+  // o catch-all de maskForAI ainda cobre CPF/telefone/e-mail/data digitados
+  // no texto.
+  const supabase = await createClient();
+  const { data: appointment } = await supabase
+    .from("appointments")
+    .select("patient_id")
+    .eq("id", input.appointmentId)
+    .maybeSingle();
+
+  let patientName: string | null = null;
+  let identity: Awaited<ReturnType<typeof getPatientIdentityForMasking>> = {};
+  if (appointment?.patient_id) {
+    const [{ data: patientProfile }, fetchedIdentity] = await Promise.all([
+      supabase.from("profiles").select("full_name").eq("id", appointment.patient_id).maybeSingle(),
+      getPatientIdentityForMasking(supabase, appointment.patient_id),
+    ]);
+    patientName = patientProfile?.full_name ?? null;
+    identity = fetchedIdentity;
+  }
+
+  const maskedText = maskForAI(input.rawText, {
+    patientName,
+    professionalName: session.profile.full_name,
+    ...identity,
+  });
+
   let improved: { text: string; usage?: { inputTokens: number; outputTokens: number } };
   try {
     improved = await AIService.improveEvolution({
-      rawText: input.rawText,
+      rawText: maskedText,
       mode: input.mode,
       provider: config.provider,
       apiKey: config.apiKey,

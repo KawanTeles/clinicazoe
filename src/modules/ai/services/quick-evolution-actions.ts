@@ -11,6 +11,8 @@ import { AIService } from "./ai-service";
 import { normalizeDictationFillers } from "./filler-normalization";
 import { QUICK_EVOLUTION_PROMPT_VERSION } from "./quick-evolution-prompt";
 import { parseTopicResponse } from "./topic-marker";
+import { maskForAI } from "./pii-masking";
+import { getPatientIdentityForMasking } from "./patient-identity-queries";
 
 async function requireProfessionalWithAIAccess() {
   const session = await getCurrentUser();
@@ -20,29 +22,6 @@ async function requireProfessionalWithAIAccess() {
   const allowed = await can(session.profile, "ai.evolution_assistant.use");
   if (!allowed) throw new Error("Acesso negado.");
   return session;
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-/** Mascara o nome do paciente (nome completo e primeiro nome) no texto
- * mandado à IA — nunca no texto original do profissional, que continua
- * intacto no campo e no resumo bruto salvo (item 13 do pedido de produto).
- * Best-effort: cobre o nome do paciente desta consulta, não CPF/telefone/
- * outros identificadores, que ficam fora do escopo pedido. */
-function maskPatientName(text: string, patientFullName: string): string {
-  const trimmedFullName = patientFullName.trim();
-  if (!trimmedFullName) return text;
-
-  let masked = text.replace(new RegExp(escapeRegExp(trimmedFullName), "gi"), "[paciente]");
-
-  const firstName = trimmedFullName.split(/\s+/)[0];
-  if (firstName && firstName.length >= 3) {
-    masked = masked.replace(new RegExp(`(?<![\\p{L}])${escapeRegExp(firstName)}(?![\\p{L}])`, "giu"), "[paciente]");
-  }
-
-  return masked;
 }
 
 export interface GenerateQuickEvolutionDraftInput {
@@ -127,8 +106,13 @@ export async function generateQuickEvolutionDraft(
   const { error: configError, config } = await getActiveAIConfig();
   if (configError || !config) return { error: configError };
 
+  const identity = await getPatientIdentityForMasking(supabase, appointment.patient_id);
   const normalized = normalizeDictationFillers(rawSummary);
-  const payload = patientProfile?.full_name ? maskPatientName(normalized, patientProfile.full_name) : normalized;
+  const payload = maskForAI(normalized, {
+    patientName: patientProfile?.full_name,
+    professionalName: session.profile.full_name,
+    ...identity,
+  });
 
   let generated: { text: string; usage?: { inputTokens: number; outputTokens: number } };
   try {
