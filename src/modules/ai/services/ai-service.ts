@@ -6,6 +6,7 @@ import { openaiProvider } from "./providers/openai-provider";
 import { anthropicProvider } from "./providers/anthropic-provider";
 import { geminiProvider } from "./providers/gemini-provider";
 import { QUICK_EVOLUTION_SYSTEM_PROMPT, buildTopicModePrompt } from "./quick-evolution-prompt";
+import { PROTOCOL_AI_SYSTEM_PROMPT } from "./protocol-ai-prompt";
 
 const MODE_INSTRUCTIONS: Record<ImproveMode, string> = {
   ortografia: "Corrija apenas ortografia, gramática e pontuação. Não reescreva frases além do necessário para a correção.",
@@ -61,6 +62,14 @@ export interface GenerateQuickEvolutionInput {
    * a IA organiza a resposta neles e delimita cada tópico; com um só (o padrão
    * de fábrica), o prompt aprovado é usado inalterado. */
   topicLabels?: string[];
+  provider: AIProviderId;
+  apiKey: string | null;
+  model: string | null;
+}
+
+export interface GenerateProtocolTemplateInput {
+  description: string;
+  specialtyName?: string | null;
   provider: AIProviderId;
   apiKey: string | null;
   model: string | null;
@@ -193,6 +202,24 @@ export const AIService = {
       user,
       model: input.model ?? undefined,
       maxTokens: 1200,
+    });
+    return { text: result.text.trim(), usage: result.usage };
+  },
+
+  /** Gera a LISTA DE ITENS de um protocolo de avaliação a partir da
+   * descrição do profissional (F9, "Criar com IA") — nunca publica nem
+   * assina nada, só devolve texto para protocol-ai-actions.ts montar um
+   * rascunho que o profissional revisa e publica manualmente. */
+  async generateProtocolTemplateItems(input: GenerateProtocolTemplateInput): Promise<{ text: string; usage?: TextUsage }> {
+    const provider = resolveProvider(input.provider);
+    const user = input.specialtyName
+      ? `Área/especialidade: ${input.specialtyName}\nDescrição do protocolo desejado: ${input.description}`
+      : `Descrição do protocolo desejado: ${input.description}`;
+    const result = await provider.complete(input.apiKey, {
+      system: PROTOCOL_AI_SYSTEM_PROMPT,
+      user,
+      model: input.model ?? undefined,
+      maxTokens: 2000,
     });
     return { text: result.text.trim(), usage: result.usage };
   },

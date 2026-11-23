@@ -11,10 +11,18 @@ import {
   createTherapeuticProgram,
   loadDataSessions,
   loadTherapeuticPrograms,
+  updateProgramMasteryCriteria,
   updateProgramStatus,
+  type StructuredMasteryCriteriaInput,
 } from "@/modules/programs/services/program-actions";
 import type { ProgramDataSessionView, TherapeuticProgramView } from "@/modules/programs/services/program-queries";
-import type { TherapeuticProgramStatus } from "@/lib/supabase/types";
+import { evaluateMasteryCriteria } from "@/lib/mastery-criteria";
+import type { MasteryCriteriaType, TherapeuticProgramStatus } from "@/lib/supabase/types";
+
+const CRITERIA_TYPE_LABELS: Record<MasteryCriteriaType, string> = {
+  percentage_independent: "% de respostas independentes",
+  consecutive_correct_count: "Contagem de respostas independentes",
+};
 
 const STATUS_LABEL: Record<TherapeuticProgramStatus, string> = {
   active: "Em andamento",
@@ -126,6 +134,7 @@ function CreateProgramForm({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [masteryCriteria, setMasteryCriteria] = useState("");
+  const [structuredCriteria, setStructuredCriteria] = useState<StructuredMasteryCriteriaInput | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -136,7 +145,7 @@ function CreateProgramForm({
     }
     setSaving(true);
     setError(null);
-    const result = await createTherapeuticProgram({ patientId, name, description, masteryCriteria });
+    const result = await createTherapeuticProgram({ patientId, name, description, masteryCriteria, structuredCriteria });
     setSaving(false);
     if (result.error) {
       setError(result.error);
@@ -156,11 +165,12 @@ function CreateProgramForm({
         placeholder="Ex.: Olhar para o examinador em até 3s quando chamado pelo nome, em 3 contextos diferentes."
       />
       <Input
-        label="Critério de domínio"
+        label="Critério de domínio (observação em texto livre, opcional)"
         value={masteryCriteria}
         onChange={(e) => setMasteryCriteria(e.target.value)}
         placeholder="Ex.: 80% de independência em 3 sessões consecutivas"
       />
+      <StructuredCriteriaFields value={structuredCriteria} onChange={setStructuredCriteria} />
       {error && <p className="text-xs font-semibold text-danger">{error}</p>}
       <div className="flex justify-end gap-2">
         <Button type="button" variant="secondary" onClick={onCancel} disabled={saving}>
@@ -169,6 +179,67 @@ function CreateProgramForm({
         <Button type="button" isLoading={saving} onClick={handleSubmit}>
           Criar programa
         </Button>
+      </div>
+    </div>
+  );
+}
+
+/** Campos numéricos do critério de domínio estruturado (F10) — reaproveitado
+ * na criação do programa e na edição de um já existente. null = sem
+ * critério estruturado (só o texto livre acima, ou nenhum critério). */
+function StructuredCriteriaFields({
+  value,
+  onChange,
+}: {
+  value: StructuredMasteryCriteriaInput | null;
+  onChange: (value: StructuredMasteryCriteriaInput | null) => void;
+}) {
+  const type = value?.type ?? "";
+
+  return (
+    <div className="flex flex-col gap-2 rounded-xl border border-border/70 bg-card-elevated/30 p-3">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+        Critério estruturado (opcional) — o sistema avisa automaticamente quando for atingido
+      </p>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <select
+          value={type}
+          onChange={(e) => {
+            const nextType = e.target.value as MasteryCriteriaType | "";
+            if (!nextType) {
+              onChange(null);
+              return;
+            }
+            onChange({ type: nextType, threshold: value?.threshold ?? 80, consecutiveSessions: value?.consecutiveSessions ?? 3 });
+          }}
+          className="h-10 rounded-xl border border-border bg-card-elevated px-3 text-xs font-medium text-text-primary"
+        >
+          <option value="">Nenhum critério estruturado</option>
+          {(Object.keys(CRITERIA_TYPE_LABELS) as MasteryCriteriaType[]).map((t) => (
+            <option key={t} value={t}>
+              {CRITERIA_TYPE_LABELS[t]}
+            </option>
+          ))}
+        </select>
+        {value && (
+          <>
+            <Input
+              label={value.type === "percentage_independent" ? "Percentual (%)" : "Quantidade mínima"}
+              type="number"
+              min={0}
+              max={value.type === "percentage_independent" ? 100 : undefined}
+              value={String(value.threshold)}
+              onChange={(e) => onChange({ ...value, threshold: Number(e.target.value) })}
+            />
+            <Input
+              label="Sessões consecutivas"
+              type="number"
+              min={1}
+              value={String(value.consecutiveSessions)}
+              onChange={(e) => onChange({ ...value, consecutiveSessions: Number(e.target.value) })}
+            />
+          </>
+        )}
       </div>
     </div>
   );
@@ -189,6 +260,17 @@ function ProgramDetail({
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [showEntryForm, setShowEntryForm] = useState(false);
   const [changingStatus, setChangingStatus] = useState(false);
+  const [editingCriteria, setEditingCriteria] = useState(false);
+  const [criteriaDraft, setCriteriaDraft] = useState<StructuredMasteryCriteriaInput | null>(
+    program.masteryCriteriaType && program.masteryCriteriaThreshold != null && program.masteryCriteriaConsecutiveSessions != null
+      ? {
+          type: program.masteryCriteriaType,
+          threshold: program.masteryCriteriaThreshold,
+          consecutiveSessions: program.masteryCriteriaConsecutiveSessions,
+        }
+      : null,
+  );
+  const [savingCriteria, setSavingCriteria] = useState(false);
 
   async function reloadSessions() {
     const list = await loadDataSessions(program.id);
@@ -207,6 +289,23 @@ function ProgramDetail({
     onStatusChanged();
   }
 
+  async function handleSaveCriteria() {
+    setSavingCriteria(true);
+    await updateProgramMasteryCriteria(program.id, criteriaDraft);
+    setSavingCriteria(false);
+    setEditingCriteria(false);
+    onStatusChanged();
+  }
+
+  const mastery =
+    program.masteryCriteriaType && program.masteryCriteriaThreshold != null && program.masteryCriteriaConsecutiveSessions != null
+      ? evaluateMasteryCriteria(sessions, {
+          type: program.masteryCriteriaType,
+          threshold: program.masteryCriteriaThreshold,
+          consecutiveSessions: program.masteryCriteriaConsecutiveSessions,
+        })
+      : null;
+
   return (
     <div className="flex flex-col gap-4">
       <button type="button" onClick={onBack} className="self-start text-xs font-semibold text-text-secondary hover:underline">
@@ -219,8 +318,23 @@ function ProgramDetail({
             <h3 className="text-lg font-bold text-text-primary">{program.name}</h3>
             {program.description && <p className="mt-1 text-sm text-text-secondary">{program.description}</p>}
             {program.masteryCriteria && (
-              <p className="mt-1 text-xs font-semibold text-text-secondary">Critério: {program.masteryCriteria}</p>
+              <p className="mt-1 text-xs font-semibold text-text-secondary">Observação: {program.masteryCriteria}</p>
             )}
+            {program.masteryCriteriaType && program.masteryCriteriaThreshold != null && program.masteryCriteriaConsecutiveSessions != null && (
+              <p className="mt-1 text-xs text-text-muted">
+                Critério estruturado: {CRITERIA_TYPE_LABELS[program.masteryCriteriaType]} ≥{" "}
+                {program.masteryCriteriaThreshold}
+                {program.masteryCriteriaType === "percentage_independent" ? "%" : ""} em{" "}
+                {program.masteryCriteriaConsecutiveSessions} sessões consecutivas
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => setEditingCriteria((v) => !v)}
+              className="mt-1 text-[11px] font-semibold text-[var(--primary)] hover:underline"
+            >
+              {editingCriteria ? "Cancelar edição do critério" : "Editar critério estruturado"}
+            </button>
           </div>
           <select
             value={program.status}
@@ -235,7 +349,28 @@ function ProgramDetail({
             ))}
           </select>
         </div>
+
+        {editingCriteria && (
+          <div className="mt-3 flex flex-col gap-2">
+            <StructuredCriteriaFields value={criteriaDraft} onChange={setCriteriaDraft} />
+            <div className="flex justify-end">
+              <Button size="sm" isLoading={savingCriteria} onClick={handleSaveCriteria}>
+                Salvar critério
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {mastery?.met && (
+        <div className="rounded-2xl border border-success/40 bg-success/10 p-4">
+          <p className="text-sm font-bold text-success">🎯 Critério de domínio atingido</p>
+          <p className="mt-1 text-xs text-text-secondary">
+            As últimas {mastery.sessionsEvaluated.length} sessões bateram o critério configurado. A decisão de avançar
+            de fase (mudar o status acima) é sua.
+          </p>
+        </div>
+      )}
 
       <div className="rounded-2xl border border-border bg-card p-5">
         <p className="mb-3 text-xs font-bold uppercase tracking-wider text-text-secondary">% de independência por sessão</p>
@@ -246,7 +381,12 @@ function ProgramDetail({
         )}
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <a href={`/api/programs/${program.id}/pdf`} target="_blank" rel="noopener noreferrer">
+          <Button size="sm" variant="outline">
+            Exportar PDF
+          </Button>
+        </a>
         <Button size="sm" onClick={() => setShowEntryForm((v) => !v)}>
           {showEntryForm ? "Cancelar" : "+ Registrar sessão"}
         </Button>

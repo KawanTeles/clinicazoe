@@ -40,11 +40,19 @@ export type EvolutionAttachmentKind = "imagem" | "documento" | "audio";
  * nunca "inactive" (que sugeriria algo desligado manualmente). */
 export type ConsentTemplateStatus = "active" | "archived";
 export type TherapeuticProgramStatus = "active" | "mastered" | "paused" | "discontinued";
+export type MasteryCriteriaType = "percentage_independent" | "consecutive_correct_count";
+export type ProtocolAiRequestStatus = "pending" | "processing" | "done" | "error";
 export interface ProtocolAssessmentResponse {
   domain: string | null;
   label: string;
   achieved: boolean;
   notes: string | null;
+  /** Congelado no momento da assinatura (point_value do item àquela
+   * época) — nunca recalculado contra o item atual, senão mudar a
+   * pontuação do protocolo reescreveria a pontuação de avaliações já
+   * assinadas. Ausente em avaliações salvas antes de existir pontuação
+   * (F9); tratar como 1 (comportamento antigo: contagem simples) ao ler. */
+  pointValue?: number;
 }
 
 /** Conteúdo de um tópico dentro de uma evolução. O `label` é CONGELADO no
@@ -1623,6 +1631,9 @@ export interface Database {
           name: string;
           description: string | null;
           mastery_criteria: string | null;
+          mastery_criteria_type: MasteryCriteriaType | null;
+          mastery_criteria_threshold: number | null;
+          mastery_criteria_consecutive_sessions: number | null;
           status: TherapeuticProgramStatus;
           created_by: string;
           created_at: string;
@@ -1635,6 +1646,9 @@ export interface Database {
           name: string;
           description?: string | null;
           mastery_criteria?: string | null;
+          mastery_criteria_type?: MasteryCriteriaType | null;
+          mastery_criteria_threshold?: number | null;
+          mastery_criteria_consecutive_sessions?: number | null;
           status?: TherapeuticProgramStatus;
           created_by: string;
           created_at?: string;
@@ -1647,6 +1661,9 @@ export interface Database {
           name?: string;
           description?: string | null;
           mastery_criteria?: string | null;
+          mastery_criteria_type?: MasteryCriteriaType | null;
+          mastery_criteria_threshold?: number | null;
+          mastery_criteria_consecutive_sessions?: number | null;
           status?: TherapeuticProgramStatus;
           created_by?: string;
           created_at?: string;
@@ -1715,6 +1732,8 @@ export interface Database {
           owner_professional_id: string | null;
           version: number;
           status: Status;
+          published_at: string | null;
+          scoring_enabled: boolean;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -1728,6 +1747,8 @@ export interface Database {
           owner_professional_id?: string | null;
           version?: number;
           status?: Status;
+          published_at?: string | null;
+          scoring_enabled?: boolean;
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -1741,6 +1762,8 @@ export interface Database {
           owner_professional_id?: string | null;
           version?: number;
           status?: Status;
+          published_at?: string | null;
+          scoring_enabled?: boolean;
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -1755,6 +1778,7 @@ export interface Database {
           label: string;
           display_order: number;
           hidden: boolean;
+          point_value: number;
           created_at: string;
           updated_at: string;
         };
@@ -1765,6 +1789,7 @@ export interface Database {
           label: string;
           display_order?: number;
           hidden?: boolean;
+          point_value?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -1775,6 +1800,79 @@ export interface Database {
           label?: string;
           display_order?: number;
           hidden?: boolean;
+          point_value?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      protocol_interpretation_bands: {
+        Row: {
+          id: string;
+          template_id: string;
+          domain: string | null;
+          min_score: number;
+          max_score: number;
+          label: string;
+          description: string | null;
+          display_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          template_id: string;
+          domain?: string | null;
+          min_score: number;
+          max_score: number;
+          label: string;
+          description?: string | null;
+          display_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          template_id?: string;
+          domain?: string | null;
+          min_score?: number;
+          max_score?: number;
+          label?: string;
+          description?: string | null;
+          display_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      protocol_ai_requests: {
+        Row: {
+          id: string;
+          requested_by: string;
+          description: string;
+          specialty_id: string | null;
+          status: ProtocolAiRequestStatus;
+          result_template_id: string | null;
+          error_message: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          requested_by: string;
+          description: string;
+          specialty_id?: string | null;
+          status?: ProtocolAiRequestStatus;
+          result_template_id?: string | null;
+          error_message?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          requested_by?: string;
+          description?: string;
+          specialty_id?: string | null;
+          status?: ProtocolAiRequestStatus;
+          result_template_id?: string | null;
+          error_message?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1791,6 +1889,8 @@ export interface Database {
           assessment_date: string;
           responses: ProtocolAssessmentResponse[];
           notes: string | null;
+          total_score: number | null;
+          interpretation_label: string | null;
           created_by: string;
           created_at: string;
         };
@@ -1804,6 +1904,8 @@ export interface Database {
           assessment_date?: string;
           responses: ProtocolAssessmentResponse[];
           notes?: string | null;
+          total_score?: number | null;
+          interpretation_label?: string | null;
           created_by: string;
           created_at?: string;
         };
@@ -1817,6 +1919,8 @@ export interface Database {
           assessment_date?: string;
           responses?: ProtocolAssessmentResponse[];
           notes?: string | null;
+          total_score?: number | null;
+          interpretation_label?: string | null;
           created_by?: string;
           created_at?: string;
         };

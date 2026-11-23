@@ -1,11 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
-import type { TherapeuticProgramStatus } from "@/lib/supabase/types";
+import type { MasteryCriteriaType, TherapeuticProgramStatus } from "@/lib/supabase/types";
 
 export interface TherapeuticProgramView {
   id: string;
   name: string;
   description: string | null;
   masteryCriteria: string | null;
+  masteryCriteriaType: MasteryCriteriaType | null;
+  masteryCriteriaThreshold: number | null;
+  masteryCriteriaConsecutiveSessions: number | null;
   status: TherapeuticProgramStatus;
   createdAt: string;
 }
@@ -17,7 +20,9 @@ export async function getTherapeuticProgramsForPatient(patientId: string): Promi
   const supabase = await createClient();
   const { data } = await supabase
     .from("therapeutic_programs")
-    .select("id, name, description, mastery_criteria, status, created_at")
+    .select(
+      "id, name, description, mastery_criteria, mastery_criteria_type, mastery_criteria_threshold, mastery_criteria_consecutive_sessions, status, created_at",
+    )
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false });
 
@@ -26,9 +31,49 @@ export async function getTherapeuticProgramsForPatient(patientId: string): Promi
     name: row.name,
     description: row.description,
     masteryCriteria: row.mastery_criteria,
+    masteryCriteriaType: row.mastery_criteria_type,
+    masteryCriteriaThreshold: row.mastery_criteria_threshold,
+    masteryCriteriaConsecutiveSessions: row.mastery_criteria_consecutive_sessions,
     status: row.status,
     createdAt: row.created_at,
   }));
+}
+
+export interface TherapeuticProgramDetail extends TherapeuticProgramView {
+  patientId: string;
+  professionalId: string;
+}
+
+/** Um programa específico, com patient_id/professional_id (que a listagem
+ * por paciente não precisa expor) — usado pela exportação em PDF, que
+ * precisa buscar nome do paciente/profissional sem já ter o patientId à
+ * mão. RLS (therapeutic_programs_select) continua sendo quem decide se a
+ * linha aparece. */
+export async function getTherapeuticProgramById(programId: string): Promise<TherapeuticProgramDetail | null> {
+  const supabase = await createClient();
+  const { data: row } = await supabase
+    .from("therapeutic_programs")
+    .select(
+      "id, patient_id, professional_id, name, description, mastery_criteria, mastery_criteria_type, mastery_criteria_threshold, mastery_criteria_consecutive_sessions, status, created_at",
+    )
+    .eq("id", programId)
+    .maybeSingle();
+
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    patientId: row.patient_id,
+    professionalId: row.professional_id,
+    name: row.name,
+    description: row.description,
+    masteryCriteria: row.mastery_criteria,
+    masteryCriteriaType: row.mastery_criteria_type,
+    masteryCriteriaThreshold: row.mastery_criteria_threshold,
+    masteryCriteriaConsecutiveSessions: row.mastery_criteria_consecutive_sessions,
+    status: row.status,
+    createdAt: row.created_at,
+  };
 }
 
 export interface ProgramDataSessionView {
