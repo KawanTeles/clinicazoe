@@ -26,6 +26,17 @@ import {
   type ImportBatchView,
 } from "@/modules/appointments/services/import-actions";
 import { parseCsv } from "@/lib/csv";
+import {
+  IMPORT_FIELD_KEYS,
+  IMPORT_FIELD_LABELS,
+  REQUIRED_IMPORT_FIELDS,
+  columnLetter,
+  guessColumnMapping,
+  isBlankMappedRow,
+  mapXlsxRows,
+  type ImportFieldKey,
+  type XlsxCellValue,
+} from "@/lib/xlsx-import";
 
 interface Option {
   id: string;
@@ -334,6 +345,11 @@ function AvulsoForm({ insurances, professionals }: { insurances: Option[]; profe
   );
 }
 
+interface XlsxSheet {
+  sheet: string;
+  data: XlsxCellValue[][];
+}
+
 function SpreadsheetImport({ insurances }: { insurances: Option[] }) {
   const router = useRouter();
   const [fileName, setFileName] = useState<string | null>(null);
@@ -346,11 +362,27 @@ function SpreadsheetImport({ insurances }: { insurances: Option[] }) {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ successCount: number; failures: { rowNumber: number; error: string }[] } | null>(null);
 
-  async function handleFile(file: File) {
-    setError(null);
-    setResult(null);
-    setFileName(file.name);
-    setLabel(file.name.replace(/\.csv$/i, ""));
+  // Estado só da importação por .xlsx — null enquanto for CSV (CSV não tem
+  // etapa de escolha de aba/mapeamento, cabeçalho fixo de sempre).
+  const [xlsxSheets, setXlsxSheets] = useState<XlsxSheet[] | null>(null);
+  const [selectedSheetName, setSelectedSheetName] = useState("");
+  const [columnMap, setColumnMap] = useState<Partial<Record<ImportFieldKey, number>>>({});
+  const [loadingXlsx, setLoadingXlsx] = useState(false);
+
+  async function runPreview(rawRows: ImportRowInput[]) {
+    setLoadingPreview(true);
+    const preview = await previewImportRows(rawRows);
+    setLoadingPreview(false);
+
+    if (preview.error) {
+      setError(preview.error);
+      return;
+    }
+    setRows(preview.rows);
+    setExcluded(new Set(preview.rows.filter((r) => !r.ok).map((r) => r.rowNumber)));
+  }
+
+  async function handleCsvFile(file: File) {
     const text = await file.text();
     const { headers, rows: parsedRows } = parseCsv(text);
 
@@ -378,16 +410,59 @@ function SpreadsheetImport({ insurances }: { insurances: Option[] }) {
       observacoes: row.observacoes,
     }));
 
-    setLoadingPreview(true);
-    const preview = await previewImportRows(rawRows);
-    setLoadingPreview(false);
+    await runPreview(rawRows);
+  }
 
-    if (preview.error) {
-      setError(preview.error);
-      return;
+  async function handleXlsxFile(file: File) {
+    setLoadingXlsx(true);
+    try {
+      // Import dinâmico: a biblioteca de leitura só é baixada quando alguém
+      // de fato escolhe um .xlsx — quem só usa CSV ou lançamento avulso
+      // nunca paga esse peso extra no bundle.
+      const { default: readXlsxFile } = await import("read-excel-file/browser");
+      const sheets = await readXlsxFile(file);
+
+      if (sheets.length === 0 || sheets.every((s) => s.data.length === 0)) {
+        setError("A planilha está vazia.");
+        return;
+      }
+
+      setXlsxSheets(sheets);
+      const firstNonEmpty = sheets.find((s) => s.data.length > 0) ?? sheets[0];
+      setSelectedSheetName(firstNonEmpty.sheet);
+      setColumnMap(guessColumnMapping(firstNonEmpty.data[0] ?? []));
+    } catch {
+      setError("Não foi possível ler este arquivo .xlsx. Confirme se não está corrompido ou protegido por senha.");
+    } finally {
+      setLoadingXlsx(false);
     }
-    setRows(preview.rows);
-    setExcluded(new Set(preview.rows.filter((r) => !r.ok).map((r) => r.rowNumber)));
+  }
+
+  async function handleFile(file: File) {
+    setError(null);
+    setResult(null);
+    setXlsxSheets(null);
+    setColumnMap({});
+    setFileName(file.name);
+    setLabel(file.name.replace(/\.(csv|xlsx|xls)$/i, ""));
+
+    if (/\.(xlsx|xls)$/i.test(file.name)) {
+      await handleXlsxFile(file);
+    } else {
+      await handleCsvFile(file);
+    }
+  }
+
+  const selectedSheet = xlsxSheets?.find((s) => s.sheet === selectedSheetName) ?? null;
+  const xlsxHeaderRow = selectedSheet?.data[0] ?? [];
+  const xlsxDataRows = selectedSheet?.data.slice(1) ?? [];
+  const missingRequiredFields = REQUIRED_IMPORT_FIELDS.filter((field) => columnMap[field] == null);
+
+  async function handleConfirmMapping() {
+    if (missingRequiredFields.length > 0 || !selectedSheet) return;
+    const mapped = mapXlsxRows(xlsxDataRows, columnMap).filter((row) => !isBlankMappedRow(row));
+    const rawRows: ImportRowInput[] = mapped.map((row) => ({ rowNumber: row.rowNumber, ...row.values }));
+    await runPreview(rawRows);
   }
 
   async function handleConfirm() {
@@ -441,12 +516,102 @@ function SpreadsheetImport({ insurances }: { insurances: Option[] }) {
     );
   }
 
+  if (!rows && xlsxSheets) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col gap-4 p-6">
+          <div>
+            <p className="text-sm font-bold text-text-primary">{fileName}</p>
+            <p className="text-xs text-text-secondary">
+              Escolha a aba e diga qual coluna da planilha é cada campo — diferente do CSV, o .xlsx não precisa ter o
+              cabeçalho com os nomes exatos.
+            </p>
+          </div>
+
+          {xlsxSheets.length > 1 && (
+            <Select
+              label="Aba da planilha"
+              value={selectedSheetName}
+              onChange={(e) => {
+                setSelectedSheetName(e.target.value);
+                const sheet = xlsxSheets.find((s) => s.sheet === e.target.value);
+                setColumnMap(guessColumnMapping(sheet?.data[0] ?? []));
+              }}
+            >
+              {xlsxSheets.map((s) => (
+                <option key={s.sheet} value={s.sheet}>
+                  {s.sheet} ({Math.max(0, s.data.length - 1)} linha{s.data.length - 1 !== 1 ? "s" : ""})
+                </option>
+              ))}
+            </Select>
+          )}
+
+          {xlsxHeaderRow.length === 0 ? (
+            <p className="text-xs font-semibold text-danger">Esta aba está vazia.</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {IMPORT_FIELD_KEYS.map((field) => {
+                const required = (REQUIRED_IMPORT_FIELDS as string[]).includes(field);
+                return (
+                  <Select
+                    key={field}
+                    label={`${IMPORT_FIELD_LABELS[field]}${required ? " *" : ""}`}
+                    value={columnMap[field] != null ? String(columnMap[field]) : ""}
+                    onChange={(e) =>
+                      setColumnMap((prev) => ({
+                        ...prev,
+                        [field]: e.target.value === "" ? undefined : Number(e.target.value),
+                      }))
+                    }
+                  >
+                    <option value="">{required ? "Selecione…" : "— Nenhuma —"}</option>
+                    {xlsxHeaderRow.map((cell, index) => (
+                      <option key={index} value={index}>
+                        {columnLetter(index)}: {String(cell ?? "(vazio)")}
+                      </option>
+                    ))}
+                  </Select>
+                );
+              })}
+            </div>
+          )}
+
+          {error && <p className="text-xs font-semibold text-danger">{error}</p>}
+
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setXlsxSheets(null);
+                setFileName(null);
+              }}
+            >
+              Escolher outro arquivo
+            </Button>
+            <Button
+              size="sm"
+              isLoading={loadingPreview}
+              disabled={missingRequiredFields.length > 0 || xlsxHeaderRow.length === 0}
+              onClick={handleConfirmMapping}
+            >
+              Continuar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!rows) {
     return (
       <Card>
         <CardContent className="flex flex-col gap-4 p-6">
           <div className="rounded-lg border border-border/80 bg-card-elevated/40 p-4 text-xs text-text-secondary">
-            <p className="font-bold text-text-primary">Colunas esperadas no CSV (cabeçalho na primeira linha):</p>
+            <p className="font-bold text-text-primary">
+              Colunas esperadas (cabeçalho na primeira linha, para CSV; para .xlsx a próxima tela deixa mapear cada
+              coluna manualmente):
+            </p>
             <p className="mt-1">
               <code>telefone_paciente</code>, <code>profissional</code>, <code>data</code> (DD/MM/AAAA),{" "}
               <code>hora</code> (HH:MM) — obrigatórias.
@@ -462,7 +627,7 @@ function SpreadsheetImport({ insurances }: { insurances: Option[] }) {
 
           <input
             type="file"
-            accept=".csv,text/csv"
+            accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) void handleFile(file);
@@ -470,6 +635,7 @@ function SpreadsheetImport({ insurances }: { insurances: Option[] }) {
             className="text-xs text-text-secondary"
           />
 
+          {loadingXlsx && <p className="text-xs text-text-muted animate-pulse">Lendo planilha…</p>}
           {loadingPreview && <p className="text-xs text-text-muted animate-pulse">Validando linhas…</p>}
           {error && <p className="text-xs font-semibold text-danger">{error}</p>}
         </CardContent>
