@@ -96,7 +96,34 @@ export function PatientsTable({ patients, page, totalPages, insurances, filters 
           Nenhum paciente encontrado com esses parâmetros.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
+        <>
+          {/* Cards — mobile/tablet */}
+          <ul className="flex flex-col gap-2.5 sm:hidden">
+            {patients.map((patient) => (
+              <li key={patient.id}>
+                <Link
+                  href={`/patients/${patient.id}`}
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 shadow-card active:border-primary/50"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate font-bold text-text-primary">{patient.fullName}</p>
+                      <Badge tone={patient.status === "active" ? "success" : "neutral"} className="shrink-0 text-[10px]">
+                        {patient.status === "active" ? "Ativo" : "Inativo"}
+                      </Badge>
+                    </div>
+                    <p className="truncate text-xs text-text-secondary">{patient.phone || "Sem telefone"}</p>
+                    <p className="truncate text-xs text-text-muted">
+                      {patient.city || "—"} · {patient.preferredInsuranceName || "Particular"}
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tabela — desktop */}
+          <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card shadow-card sm:block">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
               <tr>
@@ -133,7 +160,8 @@ export function PatientsTable({ patients, page, totalPages, insurances, filters 
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
 
       <Pagination

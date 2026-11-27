@@ -118,7 +118,35 @@ export default async function ScheduleChangesPage({
         </button>
       </form>
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+      {rows.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-xs font-medium text-text-secondary sm:hidden">
+          Nenhuma alteração encontrada.
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-2.5 sm:hidden">
+          {rows.map((row) => (
+            <li key={row.id} className="rounded-2xl border border-border bg-card p-4 shadow-card">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-xs font-semibold text-text-secondary">{new Date(row.createdAt).toLocaleString("pt-BR")}</p>
+                <span className="shrink-0 rounded-full bg-card-elevated px-2 py-0.5 text-[10px] font-bold text-text-secondary">
+                  {ACTION_LABELS[row.action] ?? row.action}
+                </span>
+              </div>
+              <p className="mt-1 text-sm font-bold text-text-primary">{ENTITY_LABELS[row.entityType] ?? row.entityType}</p>
+              <p className="text-xs text-text-secondary">
+                Agenda de {row.professionalName} · alterado por {row.changedByName}
+              </p>
+              {row.changes.length > 0 && (
+                <p className="mt-1.5 text-[11px] leading-relaxed text-text-muted">
+                  {row.changes.map((c) => `${c.field}: ${formatValue(c.old)} → ${formatValue(c.new)}`).join("; ")}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card sm:block">
         <table className="w-full text-left text-xs">
           <thead className="bg-card-elevated/60 text-[11px] uppercase tracking-wide text-text-secondary">
             <tr>

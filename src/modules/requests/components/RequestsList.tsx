@@ -74,7 +74,49 @@ export function RequestsList({ requests }: { requests: RequestView[] }) {
 
   return (
     <>
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
+      {/* Cards — mobile/tablet */}
+      <ul className="flex flex-col gap-2.5 sm:hidden">
+        {requests.map((req) => {
+          const attendance = getAttendanceInfo(req.insuranceName, req.paymentMethod, req.modality, req.particularProduct);
+          return (
+            <li key={req.id} className="rounded-2xl border border-border bg-card p-4 shadow-card">
+              <button type="button" onClick={() => setViewing(req)} className="flex w-full flex-col gap-1 text-left">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-bold text-text-primary">{req.patientName}</p>
+                  <Badge tone="warning" className="shrink-0 text-[10px]">Pendente</Badge>
+                </div>
+                <p className="text-xs text-text-secondary">{req.professionalName} · {req.specialtyName}</p>
+                <p className="text-xs text-text-secondary">
+                  {dateFormatter.format(new Date(`${req.date}T00:00:00`))}{" "}
+                  <span className="font-semibold text-text-primary">{req.startTime.slice(0, 5)}</span>
+                  {" · "}
+                  {attendance.isConvenio ? attendance.insuranceName : attendance.paymentMethodLabel}
+                </p>
+                <p className="text-xs font-semibold text-[var(--link)]">
+                  {req.value != null ? formatCurrency(req.value) : "Valor a definir"}
+                </p>
+              </button>
+              <div className="mt-3 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="danger"
+                  className="flex-1"
+                  isLoading={busyId === req.id}
+                  onClick={() => handleReject(req.id)}
+                >
+                  Recusar
+                </Button>
+                <Button size="sm" className="flex-1" isLoading={busyId === req.id} onClick={() => handleApprove(req.id)}>
+                  Aprovar
+                </Button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Tabela — desktop */}
+      <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card shadow-card sm:block">
         <table className="w-full min-w-[960px] text-left text-sm">
           <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
             <tr>

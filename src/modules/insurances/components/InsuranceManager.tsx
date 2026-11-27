@@ -134,7 +134,94 @@ export function InsuranceManager({ insurances }: { insurances: Insurance[] }) {
 
       {error && <p className="text-xs font-semibold text-danger">{error}</p>}
 
-      <div className="overflow-x-auto rounded-xl border border-border/80 bg-card shadow-xs">
+      {/* Cards — mobile/tablet */}
+      <ul className="flex flex-col gap-2.5 sm:hidden">
+        {insurances.map((insurance, index) => (
+          <li key={insurance.id} className="rounded-2xl border border-border bg-card p-4 shadow-card">
+            <div className="flex items-start gap-3">
+              <InsuranceLogoUploader insuranceId={insurance.id} logoUrl={insurance.logoUrl} />
+              <div className="min-w-0 flex-1">
+                {editingId === insurance.id ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      autoFocus
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      className="h-8 flex-1 rounded-md border border-border bg-card-elevated px-2.5 text-xs text-text-primary focus:border-primary focus:outline-none"
+                    />
+                    <Button size="sm" isLoading={busyId === insurance.id} onClick={() => handleSaveName(insurance.id)} className="h-7 shrink-0 text-[11px] px-2.5">
+                      Salvar
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="truncate font-bold text-text-primary">{insurance.name}</p>
+                )}
+                <Badge tone={insurance.status === "active" ? "success" : "neutral"} className="mt-1.5 text-[10px]">
+                  {insurance.status === "active" ? "Ativo" : "Inativo"}
+                </Badge>
+              </div>
+              <div className="flex shrink-0 flex-col gap-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0"
+                  disabled={index === 0 || reordering}
+                  onClick={() => handleMove(index, -1)}
+                  aria-label={`Mover ${insurance.name} para cima`}
+                >
+                  ▲
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0"
+                  disabled={index === insurances.length - 1 || reordering}
+                  onClick={() => handleMove(index, 1)}
+                  aria-label={`Mover ${insurance.name} para baixo`}
+                >
+                  ▼
+                </Button>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border/60 pt-3">
+              {editingId !== insurance.id && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="flex-1 text-[11px]"
+                  onClick={() => {
+                    setEditingId(insurance.id);
+                    setEditingName(insurance.name);
+                  }}
+                >
+                  Editar
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="secondary"
+                className="flex-1 text-[11px]"
+                isLoading={busyId === insurance.id}
+                onClick={() => handleToggleStatus(insurance)}
+              >
+                {insurance.status === "active" ? "Desativar" : "Ativar"}
+              </Button>
+              <Button
+                size="sm"
+                variant="danger"
+                className="flex-1 text-[11px]"
+                isLoading={busyId === insurance.id}
+                onClick={() => handleDelete(insurance)}
+              >
+                Excluir
+              </Button>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {/* Tabela — desktop */}
+      <div className="hidden overflow-x-auto rounded-xl border border-border/80 bg-card shadow-xs sm:block">
         <table className="w-full min-w-[500px] text-left text-xs">
           <thead className="border-b border-border/80 bg-card-elevated/70 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
             <tr>

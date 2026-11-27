@@ -116,6 +116,7 @@ export function AgendaBoard({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [editingAppointment, setEditingAppointment] = useState<AgendaAppointmentCell | null>(null);
+  const [mobileColumnKey, setMobileColumnKey] = useState<string | null>(null);
   const router = useRouter();
 
   const dates = mode === "profissional" ? weekDatesFrom(weekStart) : [todosDate];
@@ -123,6 +124,9 @@ export function AgendaBoard({
     mode === "profissional"
       ? dates.map((date) => ({ key: date, label: `${DAY_LABELS[new Date(`${date}T00:00:00`).getDay()]} ${date.split("-").reverse().slice(0, 2).join("/")}` }))
       : professionals.map((p) => ({ key: p.id, label: p.fullName }));
+
+  const todayIso = toLocalIsoDate(new Date());
+  const activeMobileColumn = columns.find((c) => c.key === mobileColumnKey) ?? columns.find((c) => c.key === todayIso) ?? columns[0];
 
   const relevantIds = mode === "profissional" ? [selectedProfessionalId].filter(Boolean) : professionals.map((p) => p.id);
   const agendas = relevantIds.map((id) => agendaByProfessionalId.get(id)).filter((a): a is ProfessionalAgenda => !!a);
@@ -201,6 +205,77 @@ export function AgendaBoard({
     void refetch(idsToRefresh, start, end);
   }
 
+  function renderCell(col: { key: string; label: string }, hour: string) {
+    const professionalId = mode === "profissional" ? selectedProfessionalId : col.key;
+    const date = mode === "profissional" ? col.key : todosDate;
+    const agenda = currentAgendaFor(col.key);
+    const dayOfWeek = new Date(`${date}T00:00:00`).getDay();
+
+    if (!agenda || !isWithinSlot(agenda, dayOfWeek, hour)) {
+      return <div className="h-14 rounded-lg bg-transparent" />;
+    }
+
+    const block = findBlock(agenda, date, dayOfWeek, hour);
+    if (block) {
+      return (
+        <div className="flex h-14 flex-col items-center justify-center rounded-lg border border-border bg-[repeating-linear-gradient(45deg,rgba(0,0,0,0.04),rgba(0,0,0,0.04)_6px,transparent_6px,transparent_12px)] text-[11px] font-bold text-text-muted">
+          {BLOCK_LABELS[block.blockType] ?? block.blockType}
+          {block.label && <span className="font-normal text-[10px]">{block.label}</span>}
+        </div>
+      );
+    }
+
+    const appt = findAppointment(agenda, date, hour);
+    if (!appt) {
+      return (
+        <button
+          type="button"
+          onClick={() =>
+            router.push(`/appointments/new?professionalId=${professionalId}&date=${date}&startTime=${hour}`)
+          }
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={() => void handleMove(professionalId, date, hour)}
+          className="h-14 w-full rounded-lg border border-dashed border-border/70 bg-card-elevated/30 text-[11px] text-text-muted hover:border-primary hover:bg-[var(--badge-bg)] hover:text-[var(--primary)] transition-colors"
+        >
+          + Livre
+        </button>
+      );
+    }
+
+    const statusBadge = STATUS_BADGE[appt.status];
+    return (
+      <button
+        type="button"
+        draggable
+        onDragStart={() => setDraggingId(appt.id)}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={() => void handleMove(professionalId, date, hour)}
+        onClick={() => setEditingAppointment(appt)}
+        className="flex h-14 w-full flex-col items-start justify-center gap-0.5 rounded-lg border-l-4 bg-card px-2.5 text-left shadow-xs hover:shadow-card transition-shadow cursor-grab active:cursor-grabbing"
+        style={{ borderLeftColor: appt.insuranceColor ?? "#999" }}
+      >
+        <span className="text-xs font-bold text-text-primary leading-tight line-clamp-1">
+          {appt.patientName}
+          {appt.groupPatientNames.length > 0 && ` + ${appt.groupPatientNames.join(", ")}`}
+        </span>
+        <span className="flex items-center gap-1 text-[10px] text-text-secondary">
+          {appt.groupId && <Badge tone="premium" className="px-1.5 py-0 text-[9px]">Conjugado</Badge>}
+          {statusBadge && statusBadge.label !== "Confirmada" && (
+            <Badge tone={statusBadge.tone} className="px-1.5 py-0 text-[9px]">
+              {statusBadge.label}
+            </Badge>
+          )}
+          {appt.financialStatus === "em_aberto" && (
+            <Badge tone="warning" className="px-1.5 py-0 text-[9px]">A receber</Badge>
+          )}
+          {appt.financialStatus === "pago" && (
+            <Badge tone="success" className="px-1.5 py-0 text-[9px]">Pago</Badge>
+          )}
+        </span>
+      </button>
+    );
+  }
+
   return (
     <div className="space-y-5">
       <Card>
@@ -270,101 +345,64 @@ export function AgendaBoard({
               Nenhum horário de trabalho cadastrado. Configure em Equipe → Horários.
             </p>
           ) : (
-            <div className={`overflow-x-auto ${loading ? "opacity-50 pointer-events-none" : ""}`}>
-              <div className="grid min-w-[720px] gap-1" style={{ gridTemplateColumns: `80px repeat(${columns.length}, minmax(140px, 1fr))` }}>
-                <div />
-                {columns.map((col) => (
-                  <div key={col.key} className="px-2 py-2 text-center text-xs font-bold uppercase tracking-wide text-text-secondary">
-                    {col.label}
+            <>
+              {/* Visão dia/lista — mobile */}
+              <div className={`sm:hidden ${loading ? "opacity-50 pointer-events-none" : ""}`}>
+                {columns.length > 1 && (
+                  <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1">
+                    {columns.map((col) => (
+                      <button
+                        key={col.key}
+                        type="button"
+                        onClick={() => setMobileColumnKey(col.key)}
+                        className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-colors ${
+                          activeMobileColumn?.key === col.key
+                            ? "border-primary bg-[var(--badge-bg)] text-[var(--primary)]"
+                            : "border-border bg-card-elevated text-text-secondary"
+                        }`}
+                      >
+                        {col.label}
+                      </button>
+                    ))}
                   </div>
-                ))}
-
-                {hours.map((hour) => (
-                  <>
-                    <div key={`hour-${hour}`} className="flex items-center justify-end pr-2 text-xs font-bold text-text-muted">
-                      {hour}
-                    </div>
-                    {columns.map((col) => {
-                      const professionalId = mode === "profissional" ? selectedProfessionalId : col.key;
-                      const date = mode === "profissional" ? col.key : todosDate;
-                      const agenda = currentAgendaFor(col.key);
-                      const dayOfWeek = new Date(`${date}T00:00:00`).getDay();
-
-                      if (!agenda || !isWithinSlot(agenda, dayOfWeek, hour)) {
-                        return <div key={`${col.key}-${hour}`} className="h-14 rounded-lg bg-transparent" />;
-                      }
-
-                      const block = findBlock(agenda, date, dayOfWeek, hour);
-                      if (block) {
-                        return (
-                          <div
-                            key={`${col.key}-${hour}`}
-                            className="flex h-14 flex-col items-center justify-center rounded-lg border border-border bg-[repeating-linear-gradient(45deg,rgba(0,0,0,0.04),rgba(0,0,0,0.04)_6px,transparent_6px,transparent_12px)] text-[11px] font-bold text-text-muted"
-                          >
-                            {BLOCK_LABELS[block.blockType] ?? block.blockType}
-                            {block.label && <span className="font-normal text-[10px]">{block.label}</span>}
-                          </div>
-                        );
-                      }
-
-                      const appt = findAppointment(agenda, date, hour);
-                      if (!appt) {
-                        return (
-                          <button
-                            key={`${col.key}-${hour}`}
-                            type="button"
-                            onClick={() =>
-                              router.push(
-                                `/appointments/new?professionalId=${professionalId}&date=${date}&startTime=${hour}`,
-                              )
-                            }
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={() => void handleMove(professionalId, date, hour)}
-                            className="h-14 rounded-lg border border-dashed border-border/70 bg-card-elevated/30 text-[11px] text-text-muted hover:border-primary hover:bg-[var(--badge-bg)] hover:text-[var(--primary)] transition-colors"
-                          >
-                            + Livre
-                          </button>
-                        );
-                      }
-
-                      const statusBadge = STATUS_BADGE[appt.status];
-                      return (
-                        <button
-                          key={`${col.key}-${hour}`}
-                          type="button"
-                          draggable
-                          onDragStart={() => setDraggingId(appt.id)}
-                          onDragOver={(e) => e.preventDefault()}
-                          onDrop={() => void handleMove(professionalId, date, hour)}
-                          onClick={() => setEditingAppointment(appt)}
-                          className="flex h-14 flex-col items-start justify-center gap-0.5 rounded-lg border-l-4 bg-card px-2.5 text-left shadow-xs hover:shadow-card transition-shadow cursor-grab active:cursor-grabbing"
-                          style={{ borderLeftColor: appt.insuranceColor ?? "#999" }}
-                        >
-                          <span className="text-xs font-bold text-text-primary leading-tight line-clamp-1">
-                            {appt.patientName}
-                            {appt.groupPatientNames.length > 0 && ` + ${appt.groupPatientNames.join(", ")}`}
-                          </span>
-                          <span className="flex items-center gap-1 text-[10px] text-text-secondary">
-                            {appt.groupId && <Badge tone="premium" className="px-1.5 py-0 text-[9px]">Conjugado</Badge>}
-                            {statusBadge && statusBadge.label !== "Confirmada" && (
-                              <Badge tone={statusBadge.tone} className="px-1.5 py-0 text-[9px]">
-                                {statusBadge.label}
-                              </Badge>
-                            )}
-                            {appt.financialStatus === "em_aberto" && (
-                              <Badge tone="warning" className="px-1.5 py-0 text-[9px]">A receber</Badge>
-                            )}
-                            {appt.financialStatus === "pago" && (
-                              <Badge tone="success" className="px-1.5 py-0 text-[9px]">Pago</Badge>
-                            )}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </>
-                ))}
+                )}
+                {activeMobileColumn && (
+                  <ul className="flex flex-col gap-1.5">
+                    {hours.map((hour) => (
+                      <li key={`m-${hour}`} className="flex items-stretch gap-2">
+                        <div className="flex w-12 shrink-0 items-center justify-end text-xs font-bold text-text-muted">
+                          {hour}
+                        </div>
+                        <div className="min-w-0 flex-1">{renderCell(activeMobileColumn, hour)}</div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-            </div>
+
+              {/* Grade semanal — desktop */}
+              <div className={`hidden overflow-x-auto sm:block ${loading ? "opacity-50 pointer-events-none" : ""}`}>
+                <div className="grid min-w-[720px] gap-1" style={{ gridTemplateColumns: `80px repeat(${columns.length}, minmax(140px, 1fr))` }}>
+                  <div />
+                  {columns.map((col) => (
+                    <div key={col.key} className="px-2 py-2 text-center text-xs font-bold uppercase tracking-wide text-text-secondary">
+                      {col.label}
+                    </div>
+                  ))}
+
+                  {hours.map((hour) => (
+                    <>
+                      <div key={`hour-${hour}`} className="flex items-center justify-end pr-2 text-xs font-bold text-text-muted">
+                        {hour}
+                      </div>
+                      {columns.map((col) => (
+                        <div key={`${col.key}-${hour}`}>{renderCell(col, hour)}</div>
+                      ))}
+                    </>
+                  ))}
+                </div>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

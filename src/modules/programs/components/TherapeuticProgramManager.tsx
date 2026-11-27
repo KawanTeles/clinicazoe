@@ -405,34 +405,54 @@ function ProgramDetail({
       )}
 
       {!loadingSessions && sessions.length > 0 && (
-        <div className="overflow-x-auto rounded-2xl border border-border bg-card">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
-              <tr>
-                <th className="px-4 py-3">Data</th>
-                <th className="px-4 py-3">Independente</th>
-                <th className="px-4 py-3">Dica verbal</th>
-                <th className="px-4 py-3">Dica gestual</th>
-                <th className="px-4 py-3">Dica física</th>
-                <th className="px-4 py-3">Incorreta</th>
-                <th className="px-4 py-3">Nota</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/40">
-              {[...sessions].reverse().map((s) => (
-                <tr key={s.id}>
-                  <td className="px-4 py-3 text-text-secondary">{dateTimeFormatter.format(new Date(s.createdAt))}</td>
-                  <td className="px-4 py-3 font-semibold text-text-primary">{s.independentCount}</td>
-                  <td className="px-4 py-3 text-text-secondary">{s.verbalPromptCount}</td>
-                  <td className="px-4 py-3 text-text-secondary">{s.gesturalPromptCount}</td>
-                  <td className="px-4 py-3 text-text-secondary">{s.physicalPromptCount}</td>
-                  <td className="px-4 py-3 text-text-secondary">{s.incorrectCount}</td>
-                  <td className="px-4 py-3 text-text-secondary">{s.notes || "—"}</td>
+        <>
+          {/* Cards — mobile/tablet */}
+          <ul className="flex flex-col gap-2.5 sm:hidden">
+            {[...sessions].reverse().map((s) => (
+              <li key={s.id} className="rounded-2xl border border-border bg-card p-4 shadow-card">
+                <p className="text-xs font-semibold text-text-secondary">{dateTimeFormatter.format(new Date(s.createdAt))}</p>
+                <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                  <p><span className="text-text-muted">Independente:</span> <span className="font-bold text-text-primary">{s.independentCount}</span></p>
+                  <p><span className="text-text-muted">Dica verbal:</span> <span className="text-text-secondary">{s.verbalPromptCount}</span></p>
+                  <p><span className="text-text-muted">Dica gestual:</span> <span className="text-text-secondary">{s.gesturalPromptCount}</span></p>
+                  <p><span className="text-text-muted">Dica física:</span> <span className="text-text-secondary">{s.physicalPromptCount}</span></p>
+                  <p><span className="text-text-muted">Incorreta:</span> <span className="text-text-secondary">{s.incorrectCount}</span></p>
+                </div>
+                {s.notes && <p className="mt-1.5 text-[11px] text-text-secondary">{s.notes}</p>}
+              </li>
+            ))}
+          </ul>
+
+          {/* Tabela — desktop */}
+          <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card sm:block">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
+                <tr>
+                  <th className="px-4 py-3">Data</th>
+                  <th className="px-4 py-3">Independente</th>
+                  <th className="px-4 py-3">Dica verbal</th>
+                  <th className="px-4 py-3">Dica gestual</th>
+                  <th className="px-4 py-3">Dica física</th>
+                  <th className="px-4 py-3">Incorreta</th>
+                  <th className="px-4 py-3">Nota</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {[...sessions].reverse().map((s) => (
+                  <tr key={s.id}>
+                    <td className="px-4 py-3 text-text-secondary">{dateTimeFormatter.format(new Date(s.createdAt))}</td>
+                    <td className="px-4 py-3 font-semibold text-text-primary">{s.independentCount}</td>
+                    <td className="px-4 py-3 text-text-secondary">{s.verbalPromptCount}</td>
+                    <td className="px-4 py-3 text-text-secondary">{s.gesturalPromptCount}</td>
+                    <td className="px-4 py-3 text-text-secondary">{s.physicalPromptCount}</td>
+                    <td className="px-4 py-3 text-text-secondary">{s.incorrectCount}</td>
+                    <td className="px-4 py-3 text-text-secondary">{s.notes || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );
