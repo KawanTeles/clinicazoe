@@ -144,7 +144,82 @@ export function FinancialTransactionsSection({
           Nenhum lançamento manual registrado ainda.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border/80 bg-card shadow-xs">
+        <>
+          {/* Cards — mobile/tablet */}
+          <ul className="flex flex-col gap-2.5 sm:hidden">
+            {items.map((item) => (
+              <li key={item.id} className="rounded-2xl border border-border bg-card p-4 shadow-card">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-bold text-text-primary">{item.description}</p>
+                    {item.professionalName && (
+                      <p className="truncate text-[11px] text-text-secondary">{item.professionalName}</p>
+                    )}
+                  </div>
+                  <p className="shrink-0 font-black text-text-primary">{formatCurrency(item.value)}</p>
+                </div>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  <span className="text-xs text-text-secondary">{item.categoryName}</span>
+                  <Badge tone={item.direction === "entrada" ? "success" : "warning"} className="text-[10px]">
+                    {item.direction === "entrada" ? "Entrada" : "Saída"}
+                    {item.expenseType ? ` · ${item.expenseType === "fixa" ? "Fixa" : "Variável"}` : ""}
+                  </Badge>
+                  <Badge tone={item.status === "pago" ? "success" : "warning"} className="text-[10px]">
+                    {item.status === "pago" ? "Pago" : "Em aberto"}
+                  </Badge>
+                </div>
+                <p className="mt-1.5 text-[11px] text-text-muted">
+                  Vencimento: {dateFormatter.format(new Date(`${item.dueDate}T00:00:00`))}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border/60 pt-3">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="flex-1 text-[11px]"
+                    onClick={() => {
+                      setEditing({
+                        id: item.id,
+                        direction: item.direction,
+                        category_id: item.categoryId,
+                        expense_type: item.expenseType,
+                        professional_id: item.professionalId,
+                        description: item.description,
+                        value: item.value,
+                        payment_method: (item.paymentMethod as FinancialTransactionEditTarget["payment_method"]) ?? null,
+                        due_date: item.dueDate,
+                        notes: item.notes,
+                      });
+                      setFormOpen(true);
+                    }}
+                  >
+                    Editar
+                  </Button>
+                  {item.status === "em_aberto" && (
+                    <Button
+                      size="sm"
+                      isLoading={busyId === item.id}
+                      className="flex-1 text-[11px]"
+                      onClick={() => handleMarkAsPaid(item.id)}
+                    >
+                      Marcar como pago
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    isLoading={busyId === item.id}
+                    className="flex-1 text-[11px]"
+                    onClick={() => handleCancel(item)}
+                  >
+                    Excluir
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tabela — desktop */}
+          <div className="hidden overflow-x-auto rounded-xl border border-border/80 bg-card shadow-xs sm:block">
           <table className="w-full min-w-[800px] text-left text-xs">
             <thead className="border-b border-border/80 bg-card-elevated/70 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
               <tr>
@@ -232,7 +307,8 @@ export function FinancialTransactionsSection({
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
 
       {page < totalPages && (

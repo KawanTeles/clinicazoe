@@ -34,67 +34,104 @@ export default async function AuditPage({
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
-            <tr>
-              <th className="px-5 py-4 font-bold">Quando</th>
-              <th className="px-5 py-4 font-bold">Autor</th>
-              <th className="px-5 py-4 font-bold">Ação</th>
-              <th className="px-5 py-4 font-bold">Entidade</th>
-              <th className="px-5 py-4 font-bold">Detalhes</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/40">
-            {logs.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-5 py-6 text-center text-text-muted">
-                  Nenhum evento registrado ainda.
-                </td>
-              </tr>
-            )}
+      {logs.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-xs font-medium text-text-secondary">
+          Nenhum evento registrado ainda.
+        </div>
+      ) : (
+        <>
+          {/* Cards — mobile/tablet */}
+          <ul className="flex flex-col gap-2.5 sm:hidden">
             {logs.map((log) => (
-              <tr key={log.id} className="transition-colors hover:bg-surface/50">
-                <td className="whitespace-nowrap px-5 py-4 font-medium text-text-secondary">
-                  {dateFormatter.format(new Date(log.created_at))}
-                </td>
-                <td className="px-5 py-4 font-semibold text-text-primary">{log.actorName}</td>
-                <td className="px-5 py-4">
-                  <Badge tone="neutral">{log.action}</Badge>
-                </td>
-                <td className="px-5 py-4 text-text-secondary">
+              <li key={log.id} className="rounded-2xl border border-border bg-card p-4 shadow-card">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-xs font-semibold text-text-secondary">{dateFormatter.format(new Date(log.created_at))}</p>
+                  <Badge tone="neutral" className="shrink-0 text-[10px]">{log.action}</Badge>
+                </div>
+                <p className="mt-1 text-sm font-bold text-text-primary">{log.actorName}</p>
+                <p className="text-xs text-text-secondary">
                   {log.entity}
                   {log.entity_id && (
-                    <span className="ml-1 font-mono text-xs text-[var(--link)]">
-                      #{log.entity_id.slice(0, 8)}
-                    </span>
+                    <span className="ml-1 font-mono text-[11px] text-[var(--link)]">#{log.entity_id.slice(0, 8)}</span>
                   )}
-                </td>
-                <td className="px-5 py-4">
-                  {log.ip || (log.metadata && Object.keys(log.metadata).length > 0) ? (
-                    <details className="group">
-                      <summary className="cursor-pointer text-xs font-semibold text-[var(--link)] hover:text-[var(--link-hover)]">ver detalhes</summary>
-                      <div className="mt-2 max-w-xs rounded-xl border border-border bg-card-elevated p-3 text-xs text-text-secondary">
-                        {log.ip && (
-                          <p className="mb-2 font-mono">
-                            <span className="font-sans font-bold uppercase tracking-wider text-text-muted">IP: </span>
-                            {log.ip}
-                          </p>
-                        )}
-                        {log.metadata && Object.keys(log.metadata).length > 0 && (
-                          <pre className="overflow-x-auto font-mono">{JSON.stringify(log.metadata, null, 2)}</pre>
-                        )}
-                      </div>
-                    </details>
-                  ) : (
-                    <span className="text-xs text-text-muted">—</span>
-                  )}
-                </td>
-              </tr>
+                </p>
+                {(log.ip || (log.metadata && Object.keys(log.metadata).length > 0)) && (
+                  <details className="group mt-2">
+                    <summary className="cursor-pointer text-xs font-semibold text-[var(--link)]">ver detalhes</summary>
+                    <div className="mt-2 rounded-xl border border-border bg-card-elevated p-3 text-xs text-text-secondary">
+                      {log.ip && (
+                        <p className="mb-2 font-mono">
+                          <span className="font-sans font-bold uppercase tracking-wider text-text-muted">IP: </span>
+                          {log.ip}
+                        </p>
+                      )}
+                      {log.metadata && Object.keys(log.metadata).length > 0 && (
+                        <pre className="overflow-x-auto font-mono">{JSON.stringify(log.metadata, null, 2)}</pre>
+                      )}
+                    </div>
+                  </details>
+                )}
+              </li>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </ul>
+
+          {/* Tabela — desktop */}
+          <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card shadow-card sm:block">
+            <table className="w-full min-w-[720px] text-left text-sm">
+              <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
+                <tr>
+                  <th className="px-5 py-4 font-bold">Quando</th>
+                  <th className="px-5 py-4 font-bold">Autor</th>
+                  <th className="px-5 py-4 font-bold">Ação</th>
+                  <th className="px-5 py-4 font-bold">Entidade</th>
+                  <th className="px-5 py-4 font-bold">Detalhes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {logs.map((log) => (
+                  <tr key={log.id} className="transition-colors hover:bg-surface/50">
+                    <td className="whitespace-nowrap px-5 py-4 font-medium text-text-secondary">
+                      {dateFormatter.format(new Date(log.created_at))}
+                    </td>
+                    <td className="px-5 py-4 font-semibold text-text-primary">{log.actorName}</td>
+                    <td className="px-5 py-4">
+                      <Badge tone="neutral">{log.action}</Badge>
+                    </td>
+                    <td className="px-5 py-4 text-text-secondary">
+                      {log.entity}
+                      {log.entity_id && (
+                        <span className="ml-1 font-mono text-xs text-[var(--link)]">
+                          #{log.entity_id.slice(0, 8)}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4">
+                      {log.ip || (log.metadata && Object.keys(log.metadata).length > 0) ? (
+                        <details className="group">
+                          <summary className="cursor-pointer text-xs font-semibold text-[var(--link)] hover:text-[var(--link-hover)]">ver detalhes</summary>
+                          <div className="mt-2 max-w-xs rounded-xl border border-border bg-card-elevated p-3 text-xs text-text-secondary">
+                            {log.ip && (
+                              <p className="mb-2 font-mono">
+                                <span className="font-sans font-bold uppercase tracking-wider text-text-muted">IP: </span>
+                                {log.ip}
+                              </p>
+                            )}
+                            {log.metadata && Object.keys(log.metadata).length > 0 && (
+                              <pre className="overflow-x-auto font-mono">{JSON.stringify(log.metadata, null, 2)}</pre>
+                            )}
+                          </div>
+                        </details>
+                      ) : (
+                        <span className="text-xs text-text-muted">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
       <Pagination page={page} totalPages={totalPages} basePath="/audit" />
     </div>
   );

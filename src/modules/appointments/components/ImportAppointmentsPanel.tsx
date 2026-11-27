@@ -665,7 +665,46 @@ function SpreadsheetImport({ insurances }: { insurances: Option[] }) {
           onChange={setImportFinancial}
         />
 
-        <div className="max-h-[480px] overflow-auto rounded-lg border border-border">
+        {/* Cards — mobile/tablet */}
+        <ul className="flex max-h-[480px] flex-col gap-2 overflow-auto sm:hidden">
+          {rows.map((row) => (
+            <li
+              key={row.rowNumber}
+              className={`rounded-lg border border-border/60 p-3 text-xs ${!row.ok ? "bg-danger/5" : "bg-card-elevated/30"}`}
+            >
+              <label className="flex items-center gap-1.5 font-bold text-text-primary">
+                <input
+                  type="checkbox"
+                  checked={row.ok && !excluded.has(row.rowNumber)}
+                  disabled={!row.ok}
+                  onChange={(e) => {
+                    const next = new Set(excluded);
+                    if (e.target.checked) next.delete(row.rowNumber);
+                    else next.add(row.rowNumber);
+                    setExcluded(next);
+                  }}
+                />
+                Linha {row.rowNumber}
+              </label>
+              {row.ok && row.resolved ? (
+                <div className="mt-1.5 flex flex-col gap-0.5 text-text-secondary">
+                  <p>{row.resolved.patientName} · {row.resolved.professionalName}</p>
+                  <p>
+                    {row.resolved.appointmentDate.split("-").reverse().join("/")} {row.resolved.startTime.slice(0, 5)}
+                    {" · "}
+                    {row.resolved.value != null ? formatCurrency(row.resolved.value) : <span className="text-warning">Pendente</span>}
+                  </p>
+                  <Badge tone="success" className="mt-1 w-fit text-[10px]">{STATUS_LABELS[row.resolved.status]}</Badge>
+                </div>
+              ) : (
+                <p className="mt-1.5 text-danger">{row.errors.join(" · ")}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        {/* Tabela — desktop */}
+        <div className="hidden max-h-[480px] overflow-auto rounded-lg border border-border sm:block">
           <table className="w-full text-xs">
             <thead className="sticky top-0 bg-card-elevated">
               <tr>

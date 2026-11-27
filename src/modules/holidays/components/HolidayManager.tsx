@@ -89,32 +89,50 @@ export function HolidayManager({ holidays }: { holidays: Holiday[] }) {
           Nenhum feriado cadastrado.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
-          <table className="w-full min-w-[420px] text-left text-sm">
-            <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
-              <tr>
-                <th className="px-5 py-3.5 font-bold">Data</th>
-                <th className="px-5 py-3.5 font-bold">Descrição</th>
-                <th className="px-5 py-3.5 font-bold text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/40">
-              {holidays.map((holiday) => (
-                <tr key={holiday.id} className="transition-colors hover:bg-card-elevated/40">
-                  <td className="px-5 py-4 font-bold text-text-primary">
-                    {dateFormatter.format(new Date(`${holiday.date}T00:00:00`))}
-                  </td>
-                  <td className="px-5 py-4 text-text-secondary">{holiday.description || "—"}</td>
-                  <td className="px-5 py-4 text-right">
-                    <Button size="sm" variant="danger" className="h-8 text-xs px-3" isLoading={busyId === holiday.id} onClick={() => handleDelete(holiday)}>
-                      Excluir
-                    </Button>
-                  </td>
+        <>
+          {/* Cards — mobile/tablet */}
+          <ul className="flex flex-col gap-2.5 sm:hidden">
+            {holidays.map((holiday) => (
+              <li key={holiday.id} className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 shadow-card">
+                <div className="min-w-0">
+                  <p className="font-bold text-text-primary">{dateFormatter.format(new Date(`${holiday.date}T00:00:00`))}</p>
+                  <p className="truncate text-xs text-text-secondary">{holiday.description || "—"}</p>
+                </div>
+                <Button size="sm" variant="danger" className="shrink-0 h-8 text-xs px-3" isLoading={busyId === holiday.id} onClick={() => handleDelete(holiday)}>
+                  Excluir
+                </Button>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tabela — desktop */}
+          <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card shadow-card sm:block">
+            <table className="w-full min-w-[420px] text-left text-sm">
+              <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
+                <tr>
+                  <th className="px-5 py-3.5 font-bold">Data</th>
+                  <th className="px-5 py-3.5 font-bold">Descrição</th>
+                  <th className="px-5 py-3.5 font-bold text-right">Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {holidays.map((holiday) => (
+                  <tr key={holiday.id} className="transition-colors hover:bg-card-elevated/40">
+                    <td className="px-5 py-4 font-bold text-text-primary">
+                      {dateFormatter.format(new Date(`${holiday.date}T00:00:00`))}
+                    </td>
+                    <td className="px-5 py-4 text-text-secondary">{holiday.description || "—"}</td>
+                    <td className="px-5 py-4 text-right">
+                      <Button size="sm" variant="danger" className="h-8 text-xs px-3" isLoading={busyId === holiday.id} onClick={() => handleDelete(holiday)}>
+                        Excluir
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

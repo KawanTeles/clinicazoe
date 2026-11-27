@@ -18,7 +18,43 @@ export function TeamTable({ members, currentUserId }: { members: Profile[]; curr
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
+    <>
+      {/* Cards — mobile/tablet */}
+      <ul className="flex flex-col gap-2.5 sm:hidden">
+        {members.map((member) => (
+          <li key={member.id} className="rounded-2xl border border-border bg-card p-4 shadow-card">
+            <Link href={`/team/${member.id}`} className="flex items-center gap-3">
+              <Avatar src={member.avatarUrl} name={member.full_name || "?"} size={40} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-bold text-text-primary">{member.full_name || "Sem nome"}</p>
+                <p className="truncate text-xs text-text-secondary">{ROLE_LABELS[member.role] ?? member.role}</p>
+                <p className="truncate text-xs text-text-muted">{member.phone || "Sem telefone"}</p>
+              </div>
+              <Badge tone={member.status === "active" ? "success" : "neutral"} className="shrink-0 text-[10px]">
+                {member.status === "active" ? "Ativo" : "Inativo"}
+              </Badge>
+            </Link>
+            <div className="mt-3 flex items-center justify-end gap-2 border-t border-border/60 pt-3">
+              <Link
+                href={`/team/${member.id}`}
+                className="inline-flex h-9 items-center rounded-xl border border-border bg-card-elevated px-3.5 text-xs font-semibold text-text-primary"
+              >
+                Editar
+              </Link>
+              <ToggleMemberStatusButton
+                id={member.id}
+                name={member.full_name || "este usuário"}
+                status={member.status}
+                isSelf={member.id === currentUserId}
+              />
+              <DeleteMemberButton id={member.id} name={member.full_name || "este usuário"} />
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {/* Tabela — desktop */}
+      <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card shadow-[0_10px_40px_rgba(0,0,0,0.25)] sm:block">
       <table className="w-full min-w-[640px] text-left text-sm">
         <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
           <tr>
@@ -70,6 +106,7 @@ export function TeamTable({ members, currentUserId }: { members: Profile[]; curr
           ))}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }

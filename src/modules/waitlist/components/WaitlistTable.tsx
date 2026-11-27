@@ -184,7 +184,40 @@ export function WaitlistTable({
           Nenhum registro encontrado com esses filtros.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
+        <>
+          {/* Cards — mobile/tablet */}
+          <ul className="flex flex-col gap-2.5 sm:hidden">
+            {entries.map((entry) => (
+              <li key={entry.id}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(entry.id)}
+                  className="flex w-full flex-col gap-1 rounded-2xl border border-border bg-card p-4 text-left shadow-card active:border-primary/50"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-bold text-text-primary">{entry.patientName}</p>
+                    <Badge tone={STATUS_TONES[entry.status]} className="shrink-0 text-[10px]">
+                      {STATUS_LABELS[entry.status]}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-text-secondary">
+                    {entry.specialtyName || "—"} · {entry.professionalName || "Sem preferência"}
+                  </p>
+                  <p className="text-xs text-text-secondary">
+                    {entry.insuranceName || "—"}
+                    {entry.modality && ` · ${MODALITY_LABELS[entry.modality]}`}
+                  </p>
+                  <div className="mt-1 flex items-center justify-between text-[11px] text-text-muted">
+                    <span>{entry.patientPhone}</span>
+                    <span>{dateFormatter.format(new Date(entry.createdAt))}</span>
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tabela — desktop */}
+          <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card shadow-card sm:block">
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="border-b border-border bg-card-elevated/80 text-xs font-bold uppercase tracking-wider text-text-secondary">
               <tr>
@@ -221,7 +254,8 @@ export function WaitlistTable({
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
 
       <Pagination

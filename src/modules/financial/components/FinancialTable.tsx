@@ -171,7 +171,84 @@ export function FinancialTable({ entries, viewerRole }: { entries: FinancialEntr
           Nenhum lançamento financeiro encontrado com estes filtros.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border/80 bg-card shadow-xs">
+        <>
+          {/* Cards — mobile/tablet */}
+          <ul className="flex flex-col gap-2.5 sm:hidden">
+            {filteredEntries.map((entry) => (
+              <li
+                key={entry.id}
+                className={`rounded-2xl border p-4 shadow-card ${entry.isOverdue ? "border-danger/40 bg-danger/5" : "border-border bg-card"}`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-bold text-text-primary">{entry.patientName}</p>
+                    <p className="truncate text-xs text-text-secondary">{entry.professionalName}</p>
+                  </div>
+                  {isFinancialStaff && entry.status === "em_aberto" && (
+                    <input
+                      type="checkbox"
+                      checked={selected.has(entry.id)}
+                      onChange={() => toggleSelected(entry.id)}
+                      aria-label={`Selecionar lançamento de ${entry.patientName}`}
+                      className="mt-1 h-4 w-4 shrink-0"
+                    />
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-text-muted">
+                  {entry.insuranceName} · {PAYMENT_LABELS[entry.paymentMethod] ?? entry.paymentMethod}
+                </p>
+                <div className="mt-2 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs text-text-secondary">
+                    {dateFormatter.format(new Date(`${entry.dueDate}T00:00:00`))}
+                    {entry.isOverdue && (
+                      <Badge tone="danger" className="text-[10px]">Atrasado</Badge>
+                    )}
+                  </div>
+                  <p className="font-black text-text-primary">{formatCurrency(entry.value)}</p>
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <Badge tone={entry.status === "pago" ? "success" : "warning"} className="text-[10px]">
+                    {entry.status === "pago" ? "Pago" : "Em aberto"}
+                  </Badge>
+                  {entry.status === "pago" && entry.paidAt && (
+                    <span className="text-[11px] text-text-muted">
+                      {entry.paidByName ?? "—"} · {dateFormatter.format(new Date(entry.paidAt))}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border/60 pt-3">
+                  {isFinancialStaff && entry.status === "em_aberto" && (
+                    <Button size="sm" isLoading={busyId === entry.id} onClick={() => handleMarkAsPaid(entry.id)} className="flex-1 text-[11px]">
+                      Marcar como pago
+                    </Button>
+                  )}
+                  {isFinancialStaff && entry.status === "pago" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 text-[11px]"
+                      onClick={() => {
+                        setUndoTarget(entry);
+                        setUndoReason("");
+                      }}
+                    >
+                      Desfazer
+                    </Button>
+                  )}
+                  {isFinancialStaff ? (
+                    <Button size="sm" variant="outline" className="flex-1 text-[11px]" onClick={() => setProofTarget(entry)}>
+                      {entry.hasProof ? "Ver comprovante" : "Anexar comprovante"}
+                    </Button>
+                  ) : entry.hasProof ? (
+                    <Badge tone="neutral" className="text-[10px]">Comprovante anexado</Badge>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tabela — desktop */}
+          <div className="hidden overflow-x-auto rounded-xl border border-border/80 bg-card shadow-xs sm:block">
           <table className="w-full min-w-[900px] text-left text-xs">
             <thead className="border-b border-border/80 bg-card-elevated/70 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
               <tr>
@@ -289,7 +366,8 @@ export function FinancialTable({ entries, viewerRole }: { entries: FinancialEntr
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
 
       <Modal
