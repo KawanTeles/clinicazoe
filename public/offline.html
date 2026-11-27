@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sem conexão — Espaço Zoe</title>
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #F1F8F4;
+    color: #403B4E;
+    padding: 24px;
+  }
+  .card {
+    max-width: 360px;
+    text-align: center;
+  }
+  img { width: 64px; height: 64px; margin-bottom: 16px; }
+  h1 { font-size: 18px; margin: 0 0 8px; }
+  p { font-size: 14px; color: #5C5568; line-height: 1.5; margin: 0 0 20px; }
+  button {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    background: #70A99A;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <img src="/android-chrome-192x192.png" alt="Espaço Zoe" />
+    <h1>Sem conexão com a internet</h1>
+    <p>Não foi possível carregar esta página. Verifique sua conexão e tente novamente — nenhum dado clínico fica salvo neste aparelho offline.</p>
+    <button onclick="location.reload()">Tentar novamente</button>
+  </div>
+</body>
+</html>

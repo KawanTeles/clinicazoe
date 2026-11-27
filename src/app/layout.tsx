@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Nunito, Geist, Manrope } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -24,6 +24,14 @@ const nunito = Nunito({
   variable: "--font-nunito",
   display: "swap",
 });
+
+// viewportFit: "cover" habilita env(safe-area-inset-*) no CSS — sem isso o
+// iPhone ignora a área atrás da barra de gestos e o menu inferior fixo
+// (BottomTabBar) cola sem respeitar o recorte.
+export const viewport: Viewport = {
+  themeColor: "#70A99A",
+  viewportFit: "cover",
+};
 
 const FALLBACK_NAME = "Espaço Zoe";
 const buildDescription = (name: string) =>
@@ -53,7 +61,16 @@ export async function generateMetadata(): Promise<Metadata> {
       ],
       apple: [{ url: "/apple-touch-icon.png?v=2", sizes: "180x180", type: "image/png" }],
     },
-    manifest: "/site.webmanifest?v=2",
+    manifest: "/site.webmanifest?v=3",
+    // Sem isso, abrir pela tela de início no iPhone ainda carrega dentro do
+    // Safari (barra de navegador visível) — appleWebApp é o jeito do Safari
+    // de aceitar "standalone", já que ele não lê display/start_url do
+    // manifest como o Chrome/Android.
+    appleWebApp: {
+      capable: true,
+      title: name,
+      statusBarStyle: "default",
+    },
     openGraph: {
       title: `${name} — Cuidado Terapêutico de Excelência`,
       description: DESCRIPTION,
@@ -85,6 +102,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 import { AnimationProvider } from "@/components/animation/AnimationProvider";
+import { ServiceWorkerRegister } from "@/components/layout/ServiceWorkerRegister";
 
 const SCHEMA_WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -173,6 +191,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body className="min-h-full flex flex-col bg-background text-text-primary font-sans transition-colors duration-300">
+        <ServiceWorkerRegister />
         <AnimationProvider>
           <ToastProvider>
             <ConfirmDialogProvider>{children}</ConfirmDialogProvider>
