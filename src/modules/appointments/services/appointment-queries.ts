@@ -157,6 +157,53 @@ export async function getAppointmentsForViewer(
   return { items, totalPages };
 }
 
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export interface TodayAppointmentItem extends AppointmentView {
+  /** Já existe evolução deste profissional para este atendimento — usado
+   * pela aba "Hoje" do menu mobile pra decidir "Fazer evolução" vs. já
+   * registrada, sem precisar de uma segunda viagem ao banco por item. */
+  hasEvolution: boolean;
+}
+
+/** Agenda do dia do profissional (próprio + coterapeuta), ordenada por
+ * horário — base da aba "Hoje" do menu mobile. Mesmo filtro de status de
+ * getAppointmentsForViewer("todos") (fora cancelada/remarcada): o que foi
+ * cancelado hoje não precisa ocupar espaço na tela mais usada do dia. */
+export async function getTodayAppointmentsForProfessional(
+  professionalId: string,
+): Promise<TodayAppointmentItem[]> {
+  const supabase = await createClient();
+  const today = todayISO();
+  const coTherapistAppointmentIds = await getCoTherapistAppointmentIds(supabase, professionalId);
+
+  let query = supabase
+    .from("appointments")
+    .select("*")
+    .eq("appointment_date", today)
+    .not("status", "in", '("cancelada","remarcada")');
+
+  query =
+    coTherapistAppointmentIds.length > 0
+      ? query.or(`professional_id.eq.${professionalId},id.in.(${coTherapistAppointmentIds.join(",")})`)
+      : query.eq("professional_id", professionalId);
+
+  const { data } = await query.order("start_time", { ascending: true });
+  const items = await denormalize(supabase, data ?? []);
+  if (items.length === 0) return [];
+
+  const { data: evolutions } = await supabase
+    .from("patient_evolutions")
+    .select("appointment_id")
+    .in("appointment_id", items.map((i) => i.id))
+    .eq("professional_id", professionalId);
+  const hasEvolutionSet = new Set((evolutions ?? []).map((e) => e.appointment_id));
+
+  return items.map((item) => ({ ...item, hasEvolution: hasEvolutionSet.has(item.id) }));
+}
+
 /** Conta atendimentos com valor ainda pendente (agendados sem preço
  * definido, Parte 2 do pedido de valor opcional) — usado só pro aviso
  * discreto no topo da agenda, por isso soma head-only (count), sem trazer

@@ -46,11 +46,15 @@ export function LoginForm({ signupHref = null, allowGoogle = false }: LoginFormP
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(() =>
-    searchParams.get("oauth_error") === "1"
-      ? "Não foi possível concluir o login com o Google. Tente novamente."
-      : null,
-  );
+  const [error, setError] = useState<string | null>(() => {
+    if (searchParams.get("oauth_error") === "1") {
+      return "Não foi possível concluir o login com o Google. Tente novamente.";
+    }
+    if (searchParams.get("reason") === "inactivity") {
+      return "Sua sessão expirou por inatividade. Faça login novamente.";
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 

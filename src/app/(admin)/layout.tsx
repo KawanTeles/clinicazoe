@@ -4,12 +4,13 @@ import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getAvatarDisplayUrl } from "@/lib/supabase/storage";
 import { getPermissions } from "@/lib/permissions";
-import { NAV_ITEMS } from "@/lib/navigation";
+import { resolveNavItems } from "@/lib/navigation";
 import { AdminShell } from "@/components/layout/AdminShell";
 import { getNotifications, getUnreadCount } from "@/modules/notifications/services/notification-queries";
 import { getClinicLogoUrl, getClinicSettings } from "@/modules/settings/services/settings-queries";
 import { getPendingRequestsCount } from "@/modules/requests/services/request-queries";
 import { getWaitlistUnseenCount } from "@/modules/waitlist/services/waitlist-queries";
+import { getPendingEvolutionsCount } from "@/modules/evolutions/services/evolution-queries";
 
 // Painel administrativo: rota inteira é privada. Definido no layout para
 // cobrir todas as ~30 páginas do grupo (admin) de uma vez só — páginas
@@ -27,16 +28,25 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const { profile } = session;
   const supabase = await createClient();
-  const [avatarUrl, permissions, notifications, unreadCount, clinicSettings, pendingRequestsCount, waitlistCount] =
-    await Promise.all([
-      getAvatarDisplayUrl(supabase, profile.avatar_path, profile.role, profile.avatar_url),
-      getPermissions(profile),
-      getNotifications(session.user.id),
-      getUnreadCount(session.user.id),
-      getClinicSettings(),
-      getPendingRequestsCount(),
-      getWaitlistUnseenCount(),
-    ]);
+  const [
+    avatarUrl,
+    permissions,
+    notifications,
+    unreadCount,
+    clinicSettings,
+    pendingRequestsCount,
+    waitlistCount,
+    pendingEvolutionsCount,
+  ] = await Promise.all([
+    getAvatarDisplayUrl(supabase, profile.avatar_path, profile.role, profile.avatar_url),
+    getPermissions(profile),
+    getNotifications(session.user.id),
+    getUnreadCount(session.user.id),
+    getClinicSettings(),
+    getPendingRequestsCount(),
+    getWaitlistUnseenCount(),
+    profile.role === "profissional" ? getPendingEvolutionsCount(session.user.id) : Promise.resolve(0),
+  ]);
   const logoUrl = await getClinicLogoUrl(clinicSettings?.logo_path ?? null);
 
   // NAV_ITEMS lista o mesmo destino mais de uma vez de propósito, uma entrada
@@ -45,14 +55,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // tela porque os papéis eram mutuamente exclusivos — ninguém tinha as duas
   // permissões. Com o acúmulo de função (terapeuta + coordenação) isso deixou
   // de ser verdade, então o menu precisa ficar com uma entrada por destino.
-  const vistos = new Set<string>();
-  const items = NAV_ITEMS.filter((item) => {
-    if (!permissions.has(item.permission)) return false;
-    const chave = `${item.href}|${item.label}`;
-    if (vistos.has(chave)) return false;
-    vistos.add(chave);
-    return true;
-  });
+  const items = resolveNavItems(permissions);
 
   return (
     <AdminShell
@@ -66,6 +69,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       waitlistCount={waitlistCount}
       clinicName={clinicSettings?.name || "Espaço Zoe"}
       logoUrl={logoUrl}
+      pendingEvolutionsCount={pendingEvolutionsCount}
     >
       {children}
     </AdminShell>

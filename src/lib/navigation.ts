@@ -42,6 +42,21 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Meu Perfil", href: "/profile", permission: "profile.edit.self", icon: "user" },
 ];
 
+/** Filtra NAV_ITEMS pelas permissões do usuário e deduplica destino repetido
+ * (ver comentário em app/(admin)/layout.tsx sobre o acúmulo terapeuta +
+ * coordenação). Compartilhado entre o layout (sidebar desktop) e a tela
+ * "Mais" do menu mobile — mesmo cálculo, duas vitrines diferentes. */
+export function resolveNavItems(permissions: Set<string>): NavItem[] {
+  const vistos = new Set<string>();
+  return NAV_ITEMS.filter((item) => {
+    if (!permissions.has(item.permission)) return false;
+    const chave = `${item.href}|${item.label}`;
+    if (vistos.has(chave)) return false;
+    vistos.add(chave);
+    return true;
+  });
+}
+
 export const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
   recepcionista: "Recepcionista",

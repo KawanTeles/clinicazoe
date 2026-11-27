@@ -225,6 +225,91 @@ export async function getAppointmentsAvailableForEvolution(
     }));
 }
 
+export interface PendingEvolutionItem extends EvolutionEligibleAppointment {
+  patientId: string;
+  patientName: string;
+}
+
+/** Mesma regra de elegibilidade de getAppointmentsAvailableForEvolution
+ * (atendimento confirmado/concluído, próprio ou como coterapeuta, ainda sem
+ * evolução deste profissional), só que entre TODOS os pacientes — base da
+ * aba "Evolução" do menu mobile, que mostra as pendências do dia a dia sem
+ * precisar entrar na ficha de cada paciente primeiro. */
+export async function getPendingEvolutionsForProfessional(
+  professionalId: string,
+): Promise<PendingEvolutionItem[]> {
+  const supabase = await createClient();
+
+  const [{ data: ownAppointments }, { data: coTherapistLinks }] = await Promise.all([
+    supabase
+      .from("appointments")
+      .select("id, appointment_date, start_time, specialty_id, patient_id")
+      .eq("professional_id", professionalId)
+      .in("status", ["confirmada", "concluida"]),
+    supabase.from("appointment_professionals").select("appointment_id").eq("professional_id", professionalId),
+  ]);
+
+  const coTherapistAppointmentIds = (coTherapistLinks ?? []).map((l) => l.appointment_id);
+  const { data: coTherapistAppointments } =
+    coTherapistAppointmentIds.length > 0
+      ? await supabase
+          .from("appointments")
+          .select("id, appointment_date, start_time, specialty_id, patient_id")
+          .in("id", coTherapistAppointmentIds)
+          .in("status", ["confirmada", "concluida"])
+      : { data: [] as typeof ownAppointments };
+
+  const byId = new Map<
+    string,
+    { id: string; appointment_date: string; start_time: string; specialty_id: string | null; patient_id: string }
+  >();
+  for (const a of [...(ownAppointments ?? []), ...(coTherapistAppointments ?? [])]) byId.set(a.id, a);
+  const appointments = Array.from(byId.values());
+  if (appointments.length === 0) return [];
+
+  const appointmentIds = appointments.map((a) => a.id);
+  const { data: existing } = await supabase
+    .from("patient_evolutions")
+    .select("appointment_id")
+    .in("appointment_id", appointmentIds)
+    .eq("professional_id", professionalId);
+  const existingSet = new Set((existing ?? []).map((e) => e.appointment_id));
+
+  const pending = appointments.filter((a) => !existingSet.has(a.id));
+  if (pending.length === 0) return [];
+
+  const specialtyIds = Array.from(
+    new Set(pending.map((a) => a.specialty_id).filter((id): id is string => Boolean(id))),
+  );
+  const patientIds = Array.from(new Set(pending.map((a) => a.patient_id)));
+  const [{ data: specialties }, { data: patients }] = await Promise.all([
+    specialtyIds.length > 0
+      ? supabase.from("specialties").select("id, name").in("id", specialtyIds)
+      : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+    supabase.from("profiles").select("id, full_name").in("id", patientIds),
+  ]);
+  const specialtyNameById = new Map((specialties ?? []).map((s) => [s.id, s.name]));
+  const patientNameById = new Map((patients ?? []).map((p) => [p.id, p.full_name]));
+
+  return pending
+    .sort((a, b) => (a.appointment_date + a.start_time < b.appointment_date + b.start_time ? 1 : -1))
+    .map((a) => ({
+      id: a.id,
+      date: a.appointment_date,
+      startTime: a.start_time,
+      specialtyName: a.specialty_id ? specialtyNameById.get(a.specialty_id) ?? null : null,
+      patientId: a.patient_id,
+      patientName: patientNameById.get(a.patient_id) ?? "Paciente",
+    }));
+}
+
+/** Só a contagem (badge da aba "Evolução") — evita buscar nomes/especialidades
+ * quando só o número importa (header, layout do painel). */
+export async function getPendingEvolutionsCount(professionalId: string): Promise<number> {
+  const items = await getPendingEvolutionsForProfessional(professionalId);
+  return items.length;
+}
+
 /** Busca cronológica completa (sem paginação) de um paciente. A RLS resolve
  * o escopo de LEITURA: desde a Etapa 69, qualquer profissional vinculado ao
  * paciente (não só quem escreveu) enxerga o histórico inteiro — admin
