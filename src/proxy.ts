@@ -16,11 +16,8 @@ const STAFF_ROUTES = [
   "/insurances",
   "/my-schedule",
   "/my-patients",
-  "/book",
   "/reports",
 ];
-
-const PATIENT_PROTECTED_ROUTES = ["/cliente/agendar"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -61,26 +58,14 @@ export async function proxy(request: NextRequest) {
     role = profile?.role ?? null;
   }
 
-  // 1. Proteger rotas da equipe (Admin, Recepção, Profissional)
+  // 1. Proteger rotas da equipe (Admin, Recepção, Profissional, Coordenação)
   const isStaffRoute = STAFF_ROUTES.some((route) => pathname.startsWith(route));
-  if (isStaffRoute) {
-    if (!user) {
-      const redirectUrl = new URL("/equipe", SITE_URL);
-      return NextResponse.redirect(redirectUrl);
-    }
-    // Se o usuário logado for paciente, proibir acesso ao painel da equipe
-    if (role === "paciente") {
-      return NextResponse.redirect(new URL("/cliente", SITE_URL));
-    }
+  if (isStaffRoute && !user) {
+    const redirectUrl = new URL("/equipe", SITE_URL);
+    return NextResponse.redirect(redirectUrl);
   }
 
-  // 2. Proteger área restrita do paciente
-  const isPatientRoute = PATIENT_PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
-  if (isPatientRoute && !user) {
-    return NextResponse.redirect(new URL("/cliente/login", SITE_URL));
-  }
-
-  // 3. Redirecionamento amigável de login para rotas certas por papel
+  // 2. Redirecionamento amigável de login para quem já está autenticado
   if (pathname === "/equipe" && user) {
     if (["admin", "recepcionista", "profissional", "coordenacao"].includes(role ?? "")) {
       return NextResponse.redirect(new URL("/dashboard", SITE_URL));
@@ -88,9 +73,6 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname === "/login" && user) {
-    if (role === "paciente") {
-      return NextResponse.redirect(new URL("/cliente", SITE_URL));
-    }
     return NextResponse.redirect(new URL("/dashboard", SITE_URL));
   }
 

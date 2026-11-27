@@ -223,20 +223,3 @@ export async function getWeeklySeries(role: Role, userId: string): Promise<Daily
   });
 }
 
-export async function getPatientDashboard(userId: string) {
-  const supabase = await createClient();
-  const today = todayISO();
-
-  const { data: appointments } = await supabase
-    .from("appointments")
-    .select("id, appointment_date, status")
-    .eq("patient_id", userId);
-
-  const rows = appointments ?? [];
-  const upcoming = rows.filter(
-    (a) => a.appointment_date >= today && ["pendente", "confirmada"].includes(a.status),
-  ).length;
-  const completed = rows.filter((a) => a.status === "concluida").length;
-
-  return { upcoming, completed };
-}

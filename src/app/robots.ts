@@ -2,10 +2,11 @@ import { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site-url";
 
 // Rotas do painel administrativo (grupo de rotas `(admin)`, sem prefixo na
-// URL), da área do paciente/equipe e de autenticação — nenhuma delas deve
-// ser rastreada ou indexada. Mantido em sincronia com o robots noindex de
-// cada rota (defesa em profundidade: disallow evita rastreio, noindex evita
-// indexação mesmo se a URL for descoberta por outro caminho).
+// URL), do login da equipe e de autenticação — nenhuma delas deve ser
+// rastreada ou indexada. Mantido em sincronia com o robots noindex de cada
+// rota (defesa em profundidade: disallow evita rastreio, noindex evita
+// indexação mesmo se a URL for descoberta por outro caminho). Não existe
+// mais login/área de paciente (removido) — nada a listar aqui por isso.
 // Sem barra final: o App Router não usa trailing slash nas URLs (ex.:
 // "/dashboard", não "/dashboard/"). Um disallow com barra final não bloqueia
 // a rota exata — só as filhas — por isso todos os prefixos abaixo cobrem a
@@ -14,7 +15,6 @@ const PRIVATE_PATHS = [
   "/dashboard",
   "/appointments",
   "/audit",
-  "/book",
   "/evolutions",
   "/financial",
   "/insurances",
@@ -30,10 +30,8 @@ const PRIVATE_PATHS = [
   "/team",
   "/users",
   "/waitlist",
-  "/cliente",
   "/equipe",
   "/login",
-  "/signup",
   "/auth",
 ];
 

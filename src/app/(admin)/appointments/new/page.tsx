@@ -64,7 +64,7 @@ export default async function NewAppointmentPage({ searchParams }: NewAppointmen
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">Novo Agendamento</h1>
         <p className="mt-1 text-sm text-text-secondary">
-          Mesmo fluxo utilizado pelo paciente na Área do Cliente — só quem realiza o agendamento muda.
+          Escolha convênio, profissional e horário para marcar o atendimento.
         </p>
       </div>
 

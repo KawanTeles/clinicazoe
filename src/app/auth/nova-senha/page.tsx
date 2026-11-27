@@ -21,8 +21,6 @@ export default async function NewPasswordPage() {
     redirect("/recuperar-senha?error=1");
   }
 
-  const redirectTo = session.profile.role === "paciente" ? "/cliente" : "/dashboard";
-
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background text-text-primary px-4 py-8">
       <PageEntrance className="w-full max-w-sm">
@@ -44,7 +42,7 @@ export default async function NewPasswordPage() {
           <AnimatedCard className="shadow-2xl border-border">
             <CardContent className="py-6 px-6">
               <Suspense>
-                <NewPasswordForm redirectTo={redirectTo} />
+                <NewPasswordForm redirectTo="/dashboard" />
               </Suspense>
             </CardContent>
           </AnimatedCard>

@@ -120,6 +120,57 @@ export async function createWaitlistEntry(
   return { error: null, whatsappLink };
 }
 
+export interface CreateWaitlistEntryForStaffInput extends CreateWaitlistEntryInput {
+  /** Paciente já cadastrado, escolhido via PatientPickerField — a Lista de
+   * Espera não aceita mais entrada anônima desde que o portal do paciente
+   * (único lugar que criava isso sozinho) deixou de existir. */
+  patientId: string;
+}
+
+/** Equivalente de createWaitlistEntry para quando é a própria equipe que
+ * adiciona alguém à lista (telefone, presencial) — único caminho de criação
+ * depois que o portal do paciente foi removido. Mesma tabela/regras de
+ * negócio, só troca quem é o dono da ação e de onde vem o patient_id. */
+export async function createWaitlistEntryForStaff(
+  input: CreateWaitlistEntryForStaffInput,
+): Promise<{ error: string | null; whatsappLink?: string | null }> {
+  const session = await requireStaff();
+
+  const supabase = await createClient();
+
+  const { data: entry, error } = await supabase
+    .from("waitlist_entries")
+    .insert({
+      patient_id: input.patientId,
+      patient_name: input.patientName,
+      patient_phone: input.patientPhone,
+      patient_email: input.patientEmail ?? null,
+      specialty_id: input.specialtyId,
+      professional_id: input.professionalId ?? null,
+      insurance_id: input.insuranceId,
+      modality: input.modality ?? null,
+      period_preference: input.periodPreference ?? null,
+      preferred_days: input.preferredDays,
+      notes: input.notes ?? null,
+      status: "aguardando",
+    })
+    .select("id")
+    .single();
+
+  if (error || !entry) {
+    return { error: "Não foi possível adicionar à Lista de Espera. Tente novamente." };
+  }
+
+  await logAudit({
+    actorId: session.user.id,
+    action: "waitlist.created",
+    entity: "waitlist_entries",
+    entityId: entry.id,
+  });
+
+  return { error: null };
+}
+
 /** Chamada ao abrir a página /waitlist: marca as entradas "aguardando" ainda
  * não vistas como vistas, o que zera o badge vermelho da sidebar sem alterar
  * o status/fila de atendimento em si. */

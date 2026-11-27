@@ -19,7 +19,8 @@ export default async function RequestsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">Solicitações</h1>
         <p className="mt-1 text-sm text-text-secondary">
-          Pedidos de agendamento enviados pela Área do Cliente, aguardando aprovação da equipe.
+          Histórico de pedidos de agendamento aguardando aprovação. O paciente não tem mais acesso próprio ao
+          sistema — novas solicitações só chegam aqui se alguém da equipe lançar um atendimento como pendente.
         </p>
       </div>
 

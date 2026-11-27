@@ -16,8 +16,6 @@ const PUBLIC_SITE_PATHS = [
   "/especialidades",
   "/profissionais",
   "/equipe",
-  "/cliente/login",
-  "/cliente/signup",
 ];
 
 /** Revalida todo o site público que depende de getPublicWebsiteData()

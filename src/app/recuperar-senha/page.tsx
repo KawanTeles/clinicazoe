@@ -14,10 +14,9 @@ export const metadata = {
 export default async function ForgotPasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; error?: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
-  const { from, error } = await searchParams;
-  const loginHref = from === "cliente" ? "/cliente/login" : "/login";
+  const { error } = await searchParams;
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background text-text-primary px-4 py-8">
@@ -51,7 +50,7 @@ export default async function ForgotPasswordPage({
           <AnimatedCard className="shadow-2xl border-border">
             <CardContent className="py-6 px-6">
               <Suspense>
-                <ForgotPasswordForm loginHref={loginHref} />
+                <ForgotPasswordForm />
               </Suspense>
             </CardContent>
           </AnimatedCard>

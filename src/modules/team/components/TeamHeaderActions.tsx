@@ -33,14 +33,13 @@ export function TeamHeaderActions({
         isOpen={isPatientModalOpen}
         onClose={() => setIsPatientModalOpen(false)}
         title="Adicionar Novo Paciente"
-        subtitle="Mesmo cadastro usado em Pacientes → Novo, com convênio e histórico — aqui o paciente já sai com e-mail e senha de acesso definidos."
+        subtitle="Mesmo cadastro usado em Pacientes → Novo, com convênio e histórico. O paciente não tem login próprio — o acesso ao sistema é só da equipe."
         size="xl"
       >
         <PatientForm
           mode="create"
           insurances={insurances}
           professionals={professionals}
-          withCredentials
           onCancel={() => setIsPatientModalOpen(false)}
         />
       </Modal>

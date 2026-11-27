@@ -4,7 +4,6 @@ import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
-  buildBookingMessage,
   buildCancellationMessage,
   buildConfirmationMessage,
   buildRejectionMessage,
@@ -55,168 +54,12 @@ async function notifyWaitlistForAllInvolved(params: {
   }
 }
 
-async function requirePatient() {
-  const session = await getCurrentUser();
-  if (!session || session.profile.role !== "paciente") {
-    throw new Error("Acesso negado.");
-  }
-  return session;
-}
-
 async function requireStaff() {
   const session = await getCurrentUser();
   if (!session || !["admin", "recepcionista"].includes(session.profile.role)) {
     throw new Error("Acesso negado.");
   }
   return session;
-}
-
-export interface CreateAppointmentInput {
-  professionalId: string;
-  specialtyId: string;
-  insuranceId: string;
-  scheduleSlotId: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  paymentMethod: PaymentMethod;
-  modality?: Modality;
-  particularProduct?: ParticularProduct;
-}
-
-export async function createAppointment(
-  input: CreateAppointmentInput,
-): Promise<{ error: string | null; whatsappLink?: string | null }> {
-  const session = await requirePatient();
-
-  const rateLimit = checkRateLimit(`booking:${session.user.id}`, 5, 60_000);
-  if (!rateLimit.allowed) {
-    return { error: `Muitas tentativas. Aguarde ${rateLimit.retryAfterSeconds}s e tente de novo.` };
-  }
-
-  const supabase = await createClient();
-
-  // Nunca confia no valor vindo do client: recalcula a partir da precificação real.
-  const pricing = await resolveAppointmentValue(
-    input.professionalId,
-    input.insuranceId,
-    input.modality,
-    input.particularProduct,
-  );
-  if (pricing.value == null) {
-    return { error: pricing.error ?? "Não foi possível calcular o valor do atendimento." };
-  }
-
-  // Revalida a disponibilidade no servidor antes de gravar (evita duplo agendamento).
-  const availableTimes = await getAvailableTimes(
-    input.professionalId,
-    input.insuranceId,
-    input.date,
-    input.modality,
-  );
-  const stillAvailable = availableTimes.some(
-    (slot) => slot.slotId === input.scheduleSlotId && slot.startTime === input.startTime,
-  );
-  if (!stillAvailable) {
-    return { error: "Esse horário não está mais disponível. Escolha outro." };
-  }
-
-  // Grava via RPC (book_appointment, migração 0066) em vez de INSERT direto:
-  // a checagem de capacidade + o INSERT rodam atômicos no banco (lock por
-  // profissional+data+horário), fechando a janela de corrida que a
-  // pré-checagem acima (getAvailableTimes) sozinha não cobre.
-  const { data: appointment, error } = await supabase.rpc("book_appointment", {
-    p_patient_id: session.user.id,
-    p_professional_id: input.professionalId,
-    // "" (professional sem especialidade cadastrada, "?? \"\"" no client pra
-    // satisfazer o <select>) não é um uuid válido — o Postgres rejeita com
-    // 22P02 antes de chegar na checagem de horário/capacidade, e isso cai no
-    // catch genérico abaixo ("Não foi possível criar o agendamento"), sem
-    // pista nenhuma da causa real. specialty_id é nullable no schema.
-    p_specialty_id: input.specialtyId || null,
-    p_insurance_id: input.insuranceId,
-    p_schedule_slot_id: input.scheduleSlotId,
-    p_appointment_date: input.date,
-    p_start_time: input.startTime,
-    p_end_time: input.endTime,
-    p_payment_method: input.paymentMethod,
-    p_value: pricing.value,
-    p_modality: input.modality ?? null,
-    p_particular_product: input.particularProduct ?? null,
-    p_source: "paciente",
-  });
-
-  if (error || !appointment) {
-    if (isSlotFullError(error)) {
-      return { error: "Esse horário acabou de ser ocupado por outra pessoa. Escolha outro horário." };
-    }
-    if (isPatientConflictError(error)) {
-      return { error: "Você já tem outro atendimento marcado nesse horário." };
-    }
-    return { error: "Não foi possível criar o agendamento. Tente novamente." };
-  }
-
-  await logAudit({
-    actorId: session.user.id,
-    action: "appointment.created",
-    entity: "appointments",
-    entityId: appointment.id,
-    metadata: { professionalId: input.professionalId, date: input.date, startTime: input.startTime },
-  });
-
-  await logScheduleChange({
-    changedBy: session.user.id,
-    professionalId: input.professionalId,
-    entityType: "appointment",
-    entityId: appointment.id,
-    action: "created",
-    changes: [
-      { field: "appointment_date", old: null, new: input.date },
-      { field: "start_time", old: null, new: input.startTime },
-    ],
-  });
-
-  const [{ data: professional }, { data: specialty }, { data: insurance }, { data: clinic }] =
-    await Promise.all([
-      supabase.from("professionals").select("id").eq("id", input.professionalId).single(),
-      supabase.from("specialties").select("name").eq("id", input.specialtyId).single(),
-      supabase.from("insurances").select("name").eq("id", input.insuranceId).single(),
-      supabase.from("clinic_settings").select("name, whatsapp_number").eq("id", 1).single(),
-    ]);
-
-  const [{ data: professionalProfile }] = await Promise.all([
-    supabase.from("profiles").select("full_name").eq("id", input.professionalId).single(),
-  ]);
-
-  if (!professional) return { error: null, whatsappLink: null };
-
-  const message = buildBookingMessage({
-    patientName: session.profile.full_name,
-    patientPhone: session.profile.phone ?? "",
-    specialtyName: specialty?.name ?? "",
-    professionalName: professionalProfile?.full_name ?? "",
-    insuranceName: insurance?.name ?? "",
-    appointmentDate: input.date,
-    startTime: input.startTime,
-    paymentMethod: input.paymentMethod,
-    modality: input.modality,
-    particularProduct: input.particularProduct,
-    clinicName: clinic?.name,
-  });
-
-  const whatsappLink = buildWhatsAppLink(clinic?.whatsapp_number, message);
-
-  await notifyStaff({
-    type: "appointment.pending",
-    title: "Novo atendimento pendente",
-    message: `${session.profile.full_name} agendou com ${professionalProfile?.full_name ?? "um profissional"} para ${input.date} às ${input.startTime.slice(0, 5)}.`,
-    entity: "appointments",
-    entityId: appointment.id,
-  });
-
-  await logPatientMessage({ patientId: session.user.id, appointmentId: appointment.id, type: "booking", sentBy: session.user.id });
-
-  return { error: null, whatsappLink };
 }
 
 export async function cancelAppointment(
@@ -411,24 +254,14 @@ export async function confirmAppointment(
 
   const whatsappLink = buildWhatsAppLink(patient?.phone, message);
 
-  await Promise.all([
-    notify({
-      userId: appointment.patient_id,
-      type: "appointment.confirmed",
-      title: "Atendimento confirmado",
-      message: `Seu atendimento com ${professionalProfile?.full_name ?? "o profissional"} em ${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)} foi confirmado.`,
-      entity: "appointments",
-      entityId: appointmentId,
-    }),
-    notify({
-      userId: appointment.professional_id,
-      type: "appointment.confirmed",
-      title: "Novo atendimento confirmado na sua agenda",
-      message: `${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)}.`,
-      entity: "appointments",
-      entityId: appointmentId,
-    }),
-  ]);
+  await notify({
+    userId: appointment.professional_id,
+    type: "appointment.confirmed",
+    title: "Novo atendimento confirmado na sua agenda",
+    message: `${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)}.`,
+    entity: "appointments",
+    entityId: appointmentId,
+  });
 
   await logPatientMessage({
     patientId: appointment.patient_id,
@@ -575,15 +408,6 @@ export async function rejectAppointmentRequest(
 
   const whatsappLink = buildWhatsAppLink(patient?.phone, message);
 
-  await notify({
-    userId: appointment.patient_id,
-    type: "appointment.rejected",
-    title: "Solicitação não aprovada",
-    message: `Sua solicitação de atendimento com ${professionalProfile?.full_name ?? "o profissional"} em ${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)} não foi aprovada. Entre em contato com a clínica para mais informações.`,
-    entity: "appointments",
-    entityId: appointmentId,
-  });
-
   await logPatientMessage({
     patientId: appointment.patient_id,
     appointmentId,
@@ -593,13 +417,6 @@ export async function rejectAppointmentRequest(
 
   return { error: null, whatsappLink };
 }
-
-const STATUS_LABELS: Record<string, string> = {
-  cancelada: "cancelado",
-  remarcada: "remarcado",
-  concluida: "concluído",
-  faltou: "marcado como falta",
-};
 
 export async function updateAppointmentStatus(
   appointmentId: string,
@@ -677,17 +494,6 @@ export async function updateAppointmentStatus(
       modality: appointment.modality,
       appointmentDate: appointment.appointment_date,
       startTime: appointment.start_time,
-    });
-  }
-
-  if (appointment && (status === "cancelada" || status === "remarcada")) {
-    await notify({
-      userId: appointment.patient_id,
-      type: `appointment.${status}`,
-      title: `Atendimento ${STATUS_LABELS[status]}`,
-      message: `Seu atendimento de ${appointment.appointment_date} às ${appointment.start_time.slice(0, 5)} foi ${STATUS_LABELS[status]} pela clínica.`,
-      entity: "appointments",
-      entityId: appointmentId,
     });
   }
 

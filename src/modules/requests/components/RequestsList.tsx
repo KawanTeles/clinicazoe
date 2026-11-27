@@ -67,7 +67,7 @@ export function RequestsList({ requests }: { requests: RequestView[] }) {
   if (requests.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center text-sm font-medium text-text-secondary">
-        Nenhuma solicitação pendente por aqui. Novos pedidos da Área do Cliente aparecem automaticamente.
+        Nenhuma solicitação pendente por aqui.
       </div>
     );
   }

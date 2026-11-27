@@ -46,13 +46,6 @@ export function formatCurrency(value: number) {
 import { getAttendanceInfo } from "./attendance";
 import type { Modality, ParticularProduct } from "./supabase/types";
 
-const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  cartao: "Cartão",
-  pix: "PIX",
-  dinheiro: "Dinheiro",
-  convenio: "Convênio",
-};
-
 const DEFAULT_CLINIC_NAME = "Espaço Zoe";
 
 export function appendClinicFooter(message: string, clinicPhone?: string | null, clinicName?: string | null): string {
@@ -184,7 +177,7 @@ export function buildStaffBookingConfirmationMessage(params: {
 }
 
 /** Enviada ao paciente quando a equipe recusa uma solicitação de agendamento
- * feita pela Área do Cliente ou pelo site público. */
+ * pendente. */
 export function buildRejectionMessage(params: {
   professionalName: string;
   appointmentDate: string;

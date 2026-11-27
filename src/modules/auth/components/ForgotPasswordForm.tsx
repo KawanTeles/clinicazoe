@@ -6,12 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { requestPasswordReset } from "@/modules/auth/services/auth-client";
 
-interface ForgotPasswordFormProps {
-  /** Pra onde o link "Entrar" deve levar — depende de qual tela originou o pedido (equipe ou paciente). */
-  loginHref?: string;
-}
-
-export function ForgotPasswordForm({ loginHref = "/login" }: ForgotPasswordFormProps) {
+export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -55,7 +50,7 @@ export function ForgotPasswordForm({ loginHref = "/login" }: ForgotPasswordFormP
       </Button>
       <p className="text-center text-xs text-text-secondary">
         Lembrou a senha?{" "}
-        <Link href={loginHref} className="font-semibold text-[var(--link)] hover:text-[var(--link-hover)] hover:underline">
+        <Link href="/login" className="font-semibold text-[var(--link)] hover:text-[var(--link-hover)] hover:underline">
           Entrar
         </Link>
       </p>

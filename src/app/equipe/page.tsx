@@ -51,7 +51,7 @@ export default async function EquipePublicPage() {
               <AnimatedCard className="shadow-2xl border-border">
                 <CardContent className="p-6 sm:p-8">
                   <Suspense>
-                    <LoginForm signupHref={null} />
+                    <LoginForm />
                   </Suspense>
                 </CardContent>
               </AnimatedCard>

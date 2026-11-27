@@ -46,10 +46,6 @@ export interface CreatePatientInput {
   full_name: string;
   phone: string;
   details: PatientDetailsInput;
-  /** Quando informada, o paciente já sai com login definido (fluxo de
-   * cadastro pela tela de Equipe) — exige e-mail real, sem o fallback de
-   * e-mail fake usado no cadastro rápido sem credenciais. */
-  password?: string;
 }
 
 function cleanDetails(details: PatientDetailsInput) {
@@ -83,18 +79,19 @@ export async function createPatient(
   const email = input.details.email?.trim();
   if (email && !validateEmail(email)) return { error: "E-mail inválido." };
 
-  if (input.password) {
-    if (!email) return { error: "Informe o e-mail de acesso do paciente." };
-    if (input.password.length < 8) return { error: "A senha precisa ter ao menos 8 caracteres." };
-  }
-
   const admin = createAdminClient();
   const loginEmail = email && email.includes("@") ? email : `paciente_${Date.now()}@clinicazoe.com.br`;
 
+  // Paciente não tem login — a conta em auth.users é só a identidade interna
+  // (profiles.id/appointments.patient_id apontam pra ela), por isso nasce
+  // banida (ver migration 0090). Nunca aceitar senha aqui: mesmo com e-mail
+  // real cadastrado, "esqueci minha senha" só funciona pra quem consegue
+  // autenticar — e banido não consegue, então não cria nenhuma porta de
+  // acesso por engano.
   const { data: created, error: createError } = await admin.auth.admin.createUser({
     email: loginEmail,
-    ...(input.password ? { password: input.password } : {}),
     email_confirm: true,
+    ban_duration: "876000h",
     user_metadata: { full_name: input.full_name.trim() },
     app_metadata: { role: "paciente" },
   });

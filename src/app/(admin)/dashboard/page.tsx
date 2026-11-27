@@ -6,7 +6,6 @@ import { getCurrentUser } from "@/lib/auth";
 import { formatCurrency } from "@/lib/whatsapp";
 import {
   getCoordinationDashboard,
-  getPatientDashboard,
   getStaffDashboard,
   getWeeklySeries,
 } from "@/modules/dashboard/services/dashboard-queries";
@@ -36,31 +35,6 @@ export default async function DashboardPage() {
   if (!session) redirect("/login");
 
   const { role } = session.profile;
-
-  if (role === "paciente") {
-    const data = await getPatientDashboard(session.user.id);
-    return (
-      <div className="flex flex-col gap-8">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary font-heading">
-            Olá, {session.profile.full_name.split(" ")[0]}
-          </h1>
-          <p className="mt-1 text-sm text-text-secondary">Sua visão geral na Espaço Zoe.</p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <Kpi label="Próximos atendimentos" value={String(data.upcoming)} subtext="Agendamentos confirmados ou pendentes" />
-          <Kpi label="Atendimentos concluídos" value={String(data.completed)} subtext="Histórico completo de atendimentos" />
-        </div>
-
-        <div>
-          <Link href="/book">
-            <Button size="lg" className="shadow-button font-bold">Agendar novo atendimento</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   // Coordenação (Etapa 78) tem dashboard próprio: só números operacionais da
   // agenda. Nada de financeiro — ela não tem acesso a financial_entries, e o

@@ -7,7 +7,6 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", permission: "dashboard.view", icon: "dashboard" },
-  { label: "Agendar Atendimento", href: "/book", permission: "appointments.book", icon: "calendar-plus" },
   { label: "Agenda", href: "/schedule", permission: "appointments.view.own", icon: "calendar" },
   { label: "Agenda", href: "/schedule", permission: "appointments.manage", icon: "calendar" },
   { label: "Alterações da Agenda", href: "/schedule/changes", permission: "schedule.changes.view", icon: "activity" },

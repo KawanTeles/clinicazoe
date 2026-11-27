@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Pagination } from "@/components/ui/Pagination";
@@ -10,6 +11,7 @@ import { MODALITY_LABELS } from "@/lib/constants";
 import type { WaitlistListItem } from "@/modules/waitlist/services/waitlist-queries";
 import type { WaitlistStatus } from "@/lib/supabase/types";
 import { WaitlistDetailModal } from "./WaitlistDetailModal";
+import { AddWaitlistEntryModal } from "./AddWaitlistEntryModal";
 
 interface Option {
   id: string;
@@ -81,6 +83,7 @@ export function WaitlistTable({
   const [search, setSearch] = useState(filters.q);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   function applyFilters(next: Partial<Filters>) {
     const merged = { ...filters, ...next };
@@ -138,6 +141,11 @@ export function WaitlistTable({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          {canManage && (
+            <Button size="sm" onClick={() => setAddOpen(true)} className="font-bold">
+              + Adicionar à lista
+            </Button>
+          )}
           <div className="w-40">
             <Select value={filters.specialty} onChange={(e) => applyFilters({ specialty: e.target.value })} className="h-10 text-xs py-0">
               <option value="">Especialidade</option>
@@ -232,6 +240,20 @@ export function WaitlistTable({
 
       {selectedEntry && (
         <WaitlistDetailModal entry={selectedEntry} onClose={() => setSelectedId(null)} canManage={canManage} />
+      )}
+
+      {canManage && (
+        <AddWaitlistEntryModal
+          isOpen={addOpen}
+          onClose={() => setAddOpen(false)}
+          onAdded={() => {
+            setAddOpen(false);
+            router.refresh();
+          }}
+          specialties={specialties}
+          professionals={professionals}
+          insurances={insurances}
+        />
       )}
     </div>
   );
