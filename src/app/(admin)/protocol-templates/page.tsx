@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { getManagedProtocolTemplates } from "@/modules/protocols/services/protocol-queries";
 import { getActiveSpecialties } from "@/modules/specialties/services/specialty-queries";
+import { getAIFeatureFlags } from "@/modules/ai/services/ai-settings-queries";
 import { ProtocolTemplateManager } from "@/modules/protocols/components/ProtocolTemplateManager";
 
 export const metadata = {
@@ -20,12 +21,13 @@ export default async function ProtocolTemplatesPage() {
 
   if (!canManageOwn && !canManageShared) redirect("/dashboard");
 
-  const [templates, specialties] = await Promise.all([
+  const [templates, specialties, aiFlags] = await Promise.all([
     getManagedProtocolTemplates({
       ownProfessionalId: canManageOwn ? session.user.id : undefined,
       includeShared: canManageShared,
     }),
-    canManageShared ? getActiveSpecialties() : Promise.resolve([]),
+    getActiveSpecialties(),
+    getAIFeatureFlags(),
   ]);
 
   return (
@@ -43,6 +45,7 @@ export default async function ProtocolTemplatesPage() {
         specialties={specialties}
         canManageOwn={canManageOwn}
         canManageShared={canManageShared}
+        aiEnabled={aiFlags.enabled}
       />
     </div>
   );

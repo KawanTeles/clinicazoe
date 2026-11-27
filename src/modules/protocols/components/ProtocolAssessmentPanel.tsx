@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 import { Textarea } from "@/components/ui/Textarea";
 import { Input } from "@/components/ui/Input";
 import {
@@ -11,6 +12,7 @@ import {
 } from "@/modules/protocols/services/protocol-actions";
 import type { ProtocolAssessmentView, ProtocolTemplateView } from "@/modules/protocols/services/protocol-queries";
 import type { ProtocolAssessmentResponse } from "@/lib/supabase/types";
+import { scoreAssessment, type ScorableResponse } from "@/lib/protocol-scoring";
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -20,6 +22,7 @@ export function ProtocolAssessmentPanel({ patientId }: { patientId: string }) {
   const [assessments, setAssessments] = useState<ProtocolAssessmentView[]>([]);
   const [loading, setLoading] = useState(true);
   const [applyingTemplateId, setApplyingTemplateId] = useState<string | null>(null);
+  const [previewTemplateId, setPreviewTemplateId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   async function reload() {
@@ -37,6 +40,7 @@ export function ProtocolAssessmentPanel({ patientId }: { patientId: string }) {
   }, [patientId]);
 
   const applyingTemplate = templates.find((t) => t.id === applyingTemplateId) ?? null;
+  const previewTemplate = templates.find((t) => t.id === previewTemplateId) ?? null;
 
   if (loading) {
     return <div className="h-32 w-full animate-pulse rounded-xl bg-card-elevated" />;
@@ -47,11 +51,24 @@ export function ProtocolAssessmentPanel({ patientId }: { patientId: string }) {
       <AssessmentForm
         template={applyingTemplate}
         patientId={patientId}
+        previewOnly={false}
         onCancel={() => setApplyingTemplateId(null)}
         onSaved={async () => {
           setApplyingTemplateId(null);
           await reload();
         }}
+      />
+    );
+  }
+
+  if (previewTemplate) {
+    return (
+      <AssessmentForm
+        template={previewTemplate}
+        patientId={patientId}
+        previewOnly
+        onCancel={() => setPreviewTemplateId(null)}
+        onSaved={() => setPreviewTemplateId(null)}
       />
     );
   }
@@ -62,8 +79,8 @@ export function ProtocolAssessmentPanel({ patientId }: { patientId: string }) {
         <p className="mb-3 text-xs font-bold uppercase tracking-wider text-text-secondary">Aplicar protocolo</p>
         {templates.length === 0 ? (
           <p className="text-sm text-text-secondary">
-            Nenhum protocolo disponível ainda. Peça para a administração ou monte um protocolo pessoal em "Protocolos de
-            Avaliação" nas configurações.
+            Nenhum protocolo disponível ainda. Peça para a administração ou monte e publique um protocolo pessoal em
+            &quot;Protocolos de Avaliação&quot; nas configurações.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
@@ -71,11 +88,16 @@ export function ProtocolAssessmentPanel({ patientId }: { patientId: string }) {
               <li key={t.id} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card-elevated/50 px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold text-text-primary">{t.name}</p>
-                  <p className="text-xs text-text-muted">{t.items.length} itens</p>
+                  <p className="text-xs text-text-muted">{t.items.length} itens{t.scoringEnabled ? " · com pontuação" : ""}</p>
                 </div>
-                <Button size="sm" onClick={() => setApplyingTemplateId(t.id)}>
-                  Aplicar
-                </Button>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setPreviewTemplateId(t.id)}>
+                    Prévia
+                  </Button>
+                  <Button size="sm" onClick={() => setApplyingTemplateId(t.id)}>
+                    Aplicar
+                  </Button>
+                </div>
               </li>
             ))}
           </ul>
@@ -101,9 +123,16 @@ export function ProtocolAssessmentPanel({ patientId }: { patientId: string }) {
                     <p className="text-sm font-semibold text-text-primary">{a.templateName}</p>
                     <p className="text-xs text-text-secondary">{dateFormatter.format(new Date(`${a.assessmentDate}T00:00:00`))}</p>
                   </div>
-                  <span className="text-xs font-semibold text-text-secondary">
-                    {achievedCount}/{a.responses.length} atingidos
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {a.totalScore != null && (
+                      <Badge tone="neutral" className="text-[10px]">
+                        {a.totalScore} pts{a.interpretationLabel ? ` · ${a.interpretationLabel}` : ""}
+                      </Badge>
+                    )}
+                    <span className="text-xs font-semibold text-text-secondary">
+                      {achievedCount}/{a.responses.length} atingidos
+                    </span>
+                  </div>
                 </button>
                 {expanded && (
                   <div className="flex flex-col gap-2 border-t border-border/60 px-4 py-3">
@@ -133,11 +162,13 @@ export function ProtocolAssessmentPanel({ patientId }: { patientId: string }) {
 function AssessmentForm({
   template,
   patientId,
+  previewOnly,
   onCancel,
   onSaved,
 }: {
   template: ProtocolTemplateView;
   patientId: string;
+  previewOnly: boolean;
   onCancel: () => void;
   onSaved: () => void;
 }) {
@@ -159,6 +190,16 @@ function AssessmentForm({
     return [...map.entries()];
   }, [template]);
 
+  const liveScore = useMemo(() => {
+    if (!template.scoringEnabled) return null;
+    const responses: ScorableResponse[] = template.items.map((item) => ({
+      domain: item.domain,
+      achieved: Boolean(achieved[item.id]),
+      pointValue: item.pointValue,
+    }));
+    return scoreAssessment(responses, template.bands);
+  }, [template, achieved]);
+
   async function handleSubmit() {
     setSaving(true);
     setError(null);
@@ -168,6 +209,7 @@ function AssessmentForm({
       label: item.label,
       achieved: Boolean(achieved[item.id]),
       notes: itemNotes[item.id]?.trim() || null,
+      pointValue: item.pointValue,
     }));
 
     const result = await submitProtocolAssessment({
@@ -195,11 +237,23 @@ function AssessmentForm({
       </button>
 
       <div className="rounded-2xl border border-border bg-card p-5">
-        <h3 className="text-lg font-bold text-text-primary">{template.name}</h3>
-        {template.description && <p className="mt-1 text-sm text-text-secondary">{template.description}</p>}
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-bold text-text-primary">{template.name}</h3>
+            {template.description && <p className="mt-1 text-sm text-text-secondary">{template.description}</p>}
+          </div>
+          {previewOnly && <Badge tone="warning">Prévia — nada aqui é salvo</Badge>}
+        </div>
       </div>
 
-      <Input label="Data da avaliação" type="date" value={assessmentDate} onChange={(e) => setAssessmentDate(e.target.value)} max={todayISO()} />
+      <Input
+        label="Data da avaliação"
+        type="date"
+        value={assessmentDate}
+        onChange={(e) => setAssessmentDate(e.target.value)}
+        max={todayISO()}
+        disabled={previewOnly}
+      />
 
       {grouped.map(([domain, items]) => (
         <div key={domain} className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-4">
@@ -216,22 +270,46 @@ function AssessmentForm({
                 className="mt-0.5 h-4 w-4 shrink-0"
               />
               <span className="flex-1 text-sm text-text-primary">{item.label}</span>
+              {template.scoringEnabled && <span className="text-xs font-semibold text-text-muted">{item.pointValue} pt(s)</span>}
             </label>
           ))}
+          {liveScore && domain && (
+            <p className="mt-1 text-xs font-semibold text-text-secondary">
+              Subtotal:{" "}
+              {liveScore.byDomain.find((d) => d.domain === domain)?.score ?? 0}/
+              {liveScore.byDomain.find((d) => d.domain === domain)?.maxPossible ?? 0}
+              {liveScore.byDomain.find((d) => d.domain === domain)?.band && (
+                <> · {liveScore.byDomain.find((d) => d.domain === domain)?.band?.label}</>
+              )}
+            </p>
+          )}
         </div>
       ))}
 
-      <Textarea label="Observações gerais (opcional)" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+      {liveScore && (
+        <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
+          <p className="text-sm font-bold text-text-primary">
+            Pontuação total: {liveScore.total.score}/{liveScore.total.maxPossible}
+          </p>
+          {liveScore.total.band && (
+            <p className="mt-1 text-xs font-semibold text-[var(--primary)]">{liveScore.total.band.label}</p>
+          )}
+        </div>
+      )}
+
+      <Textarea label="Observações gerais (opcional)" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} disabled={previewOnly} />
 
       {error && <p className="text-xs font-semibold text-danger">{error}</p>}
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="secondary" onClick={onCancel} disabled={saving}>
-          Cancelar
+          {previewOnly ? "Fechar prévia" : "Cancelar"}
         </Button>
-        <Button type="button" isLoading={saving} onClick={handleSubmit}>
-          Salvar avaliação
-        </Button>
+        {!previewOnly && (
+          <Button type="button" isLoading={saving} onClick={handleSubmit}>
+            Salvar avaliação
+          </Button>
+        )}
       </div>
     </div>
   );
