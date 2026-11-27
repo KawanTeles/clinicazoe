@@ -7,6 +7,7 @@ import { logAudit } from "@/modules/team/services/audit";
 import type { EvolutionTopicContent } from "@/lib/supabase/types";
 import { normalizeTopics, flattenTopics } from "./topic-content";
 import { resolveEvolutionTemplate, visibleTopics } from "./template-queries";
+import { hasPendingReviewMarkers } from "@/modules/ai/services/review-marker";
 
 async function requireProfessional() {
   const session = await getCurrentUser();
@@ -310,6 +311,14 @@ export async function signEvolutionFromDraft(
 
   if (!clinicalEvolution) {
     return { error: "Descreva a evolução antes de assinar." };
+  }
+
+  // Mesma regra do QuickEvolutionForm (pendingReview), replicada aqui porque
+  // a trava do cliente é só UX — nada impede uma chamada direta a esta action
+  // pulando o componente. A evolução é imutável após o insert, então deixar
+  // passar um [[REVISAR:...]] aqui o tornaria permanente no prontuário.
+  if (hasPendingReviewMarkers(clinicalEvolution)) {
+    return { error: "Ainda há trechos marcados para revisão — resolva-os antes de assinar." };
   }
 
   const supabase = await createClient();

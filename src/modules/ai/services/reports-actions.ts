@@ -10,6 +10,8 @@ import { listPatients, searchOwnPatients, type PatientOption } from "@/modules/p
 import { getAIFeatureFlags } from "./ai-settings-queries";
 import { getActiveAIConfig, checkAIUsageLimits } from "./ai-runtime";
 import { AIService } from "./ai-service";
+import { maskForAI } from "./pii-masking";
+import { getPatientIdentityForMasking } from "./patient-identity-queries";
 import { REPORT_TEMPLATE_LABELS, type ReportTemplate } from "./provider-types";
 
 async function requireProfessionalWithReportsAccess() {
@@ -171,12 +173,23 @@ export async function generateAIReport(input: {
         ? `${new Date(`${input.periodStart}T00:00:00`).toLocaleDateString("pt-BR")} a ${new Date(`${input.periodEnd}T00:00:00`).toLocaleDateString("pt-BR")}`
         : "todas as evoluções selecionadas";
 
+    // O nome real do paciente só é usado no TÍTULO do relatório (dado interno
+    // do prontuário, nunca sai da aplicação) — o que vai para o provedor de
+    // IA é sempre a versão mascarada, calculada abaixo (título é reconstruído
+    // com o nome real depois da chamada, não aproveita generated.title).
+    const identity = await getPatientIdentityForMasking(supabase, input.patientId);
+    const maskingContext = {
+      patientName: patient.full_name,
+      professionalName: session.profile.full_name,
+      ...identity,
+    };
+
     try {
       generated = await AIService.generateReport({
-        patientName: patient.full_name,
+        patientName: maskForAI(patient.full_name, maskingContext),
         template: input.template,
         periodLabel,
-        evolutionsText: formatEvolutionsText(selected),
+        evolutionsText: maskForAI(formatEvolutionsText(selected), maskingContext),
         provider: config.provider,
         apiKey: config.apiKey,
         model: config.model,
@@ -195,6 +208,11 @@ export async function generateAIReport(input: {
     };
   }
 
+  // Título sempre com o nome real (dado interno do prontuário) — independe
+  // de ter passado ou não pela IA, e independe do que generated.title trouxe
+  // (quando veio da IA, generated.title foi montado com o nome JÁ mascarado).
+  const reportTitle = `${REPORT_TEMPLATE_LABELS[input.template]} — ${patient.full_name}`;
+
   const { data: created, error } = await supabase
     .from("ai_reports")
     .insert({
@@ -204,7 +222,7 @@ export async function generateAIReport(input: {
       period_start: input.periodStart || null,
       period_end: input.periodEnd || null,
       evolution_ids: selected.map((e) => e.id),
-      title: generated.title,
+      title: reportTitle,
       content: generated.content,
       created_by: session.user.id,
     })

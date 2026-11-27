@@ -18,7 +18,7 @@ import { logScheduleChange } from "@/modules/schedule/services/change-log";
 import { logPatientMessage } from "@/modules/patients/services/message-log";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { notifyWaitlistMatches } from "@/modules/waitlist/services/waitlist-actions";
-import { cancelFinancialEntryForAppointment } from "@/modules/financial/services/financial-actions";
+import { cancelFinancialEntryForAppointment } from "@/modules/financial/services/financial-internal";
 import { getAvailableTimes, getCoTherapistsForAppointment, resolveAppointmentValue } from "./booking-queries";
 import { isPatientConflictError, isSlotFullError } from "./booking-errors";
 import {

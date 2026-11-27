@@ -10,10 +10,9 @@
  * fica atômica dentro da função (lock por profissional+data+horário), então
  * isso só acontece nos casos raros de corrida que a pré-checagem da
  * aplicação (getAvailableTimes, chamada antes do RPC) não pegou. Usado
- * pelos 3 pontos de criação de agendamento (createAppointment,
- * createAppointmentForPatient, createPublicAppointment) pra traduzir o erro
- * do banco numa mensagem amigável em vez de deixar estourar o texto cru do
- * Postgres. */
+ * pelos pontos de criação de agendamento (createAppointment,
+ * createAppointmentForPatient) pra traduzir o erro do banco numa mensagem
+ * amigável em vez de deixar estourar o texto cru do Postgres. */
 export function isSlotFullError(error: { message?: string } | null): boolean {
   return error?.message?.includes("SLOT_FULL") ?? false;
 }

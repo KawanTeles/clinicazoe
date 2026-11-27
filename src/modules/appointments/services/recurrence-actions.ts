@@ -12,7 +12,7 @@ import { logPatientMessage } from "@/modules/patients/services/message-log";
 import {
   cancelFinancialEntryForAppointment,
   cancelFinancialEntriesForAppointments,
-} from "@/modules/financial/services/financial-actions";
+} from "@/modules/financial/services/financial-internal";
 import type { AppointmentSource, Database, Modality, ParticularProduct, PaymentMethod, RecurrenceFrequency } from "@/lib/supabase/types";
 import { toLocalIsoDate, todayLocalIso } from "@/lib/date";
 import { getAvailableTimes, hasPatientConflict, resolveAppointmentValue } from "./booking-queries";
