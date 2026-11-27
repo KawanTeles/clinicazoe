@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Database, Modality, ParticularProduct, Role } from "@/lib/supabase/types";
+import type { Database, FinancialStatus, Modality, ParticularProduct, Role } from "@/lib/supabase/types";
 
 type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
 
@@ -25,6 +25,10 @@ export interface AppointmentView {
   reminderSentAt: string | null;
   groupId: string | null;
   absenceReason: string | null;
+  /** Status do lançamento financeiro (financial_entries) deste atendimento —
+   * null quando nenhum lançamento existe (ex.: atendimento ainda sem valor
+   * definido, ou importado sem "importar também o financeiro"). */
+  financialStatus: FinancialStatus | null;
 }
 
 async function denormalize(
@@ -39,8 +43,9 @@ async function denormalize(
     new Set(rows.map((r) => r.specialty_id).filter((id): id is string => Boolean(id))),
   );
   const insuranceIds = Array.from(new Set(rows.map((r) => r.insurance_id)));
+  const appointmentIds = rows.map((r) => r.id);
 
-  const [{ data: patients }, { data: professionals }, { data: specialties }, { data: insurances }] =
+  const [{ data: patients }, { data: professionals }, { data: specialties }, { data: insurances }, { data: financialEntries }] =
     await Promise.all([
       supabase.from("profiles").select("id, full_name, phone").in("id", patientIds),
       supabase.from("profiles").select("id, full_name").in("id", professionalIds),
@@ -48,12 +53,16 @@ async function denormalize(
         ? supabase.from("specialties").select("id, name").in("id", specialtyIds)
         : Promise.resolve({ data: [] as { id: string; name: string }[] }),
       supabase.from("insurances").select("id, name").in("id", insuranceIds),
+      supabase.from("financial_entries").select("appointment_id, status").in("appointment_id", appointmentIds),
     ]);
 
   const patientById = new Map((patients ?? []).map((p) => [p.id, p]));
   const professionalById = new Map((professionals ?? []).map((p) => [p.id, p]));
   const specialtyById = new Map((specialties ?? []).map((s) => [s.id, s.name]));
   const insuranceById = new Map((insurances ?? []).map((i) => [i.id, i.name]));
+  const financialStatusByAppointmentId = new Map(
+    (financialEntries ?? []).map((f) => [f.appointment_id, f.status as FinancialStatus]),
+  );
 
   return rows.map((row): AppointmentView => ({
     id: row.id,
@@ -77,6 +86,7 @@ async function denormalize(
     reminderSentAt: row.reminder_sent_at,
     groupId: row.group_id,
     absenceReason: row.absence_reason,
+    financialStatus: financialStatusByAppointmentId.get(row.id) ?? null,
   }));
 }
 

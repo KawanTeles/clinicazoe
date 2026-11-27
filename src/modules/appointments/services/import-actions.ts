@@ -409,6 +409,12 @@ export async function previewImportRows(rawRows: ImportRowInput[]): Promise<{ ro
 export async function confirmImportBatch(
   rows: ValidatedImportRow[],
   label: string,
+  /** [DECISÃO 2] da Fase 2 (auditoria pós-correções): importado NÃO gera
+   * lançamento financeiro por padrão — só se marcado explicitamente aqui
+   * (checkbox "Importar também o financeiro" na tela, desmarcado por
+   * padrão). Antes desta decisão, qualquer linha com valor preenchido
+   * sempre criava um lançamento, mesmo sem o usuário pedir. */
+  importFinancial = false,
 ): Promise<{ batchId: string | null; successCount: number; failures: { rowNumber: number; error: string }[]; error: string | null }> {
   const session = await requireStaff();
 
@@ -479,7 +485,7 @@ export async function confirmImportBatch(
       await sessionClient.from("appointments").update({ notes: r.notes }).eq("id", appointment.id);
     }
 
-    if (r.value != null) {
+    if (r.value != null && importFinancial) {
       await admin.from("financial_entries").insert({
         appointment_id: appointment.id,
         patient_id: r.patientId,
@@ -632,6 +638,9 @@ export interface CreateImportedAppointmentFromIdsInput {
   paymentMethod: PaymentMethod;
   value?: number | null;
   paid?: boolean;
+  /** [DECISÃO 2] — mesma regra de confirmImportBatch: só gera lançamento
+   * financeiro se marcado explicitamente. */
+  importFinancial?: boolean;
   status: AppointmentStatus;
   notes?: string | null;
 }
@@ -747,7 +756,7 @@ export async function createImportedAppointmentFromIds(
     await sessionClient.from("appointments").update({ notes: input.notes }).eq("id", appointment.id);
   }
 
-  if (value != null) {
+  if (value != null && input.importFinancial) {
     await admin.from("financial_entries").insert({
       appointment_id: appointment.id,
       patient_id: input.patientId,

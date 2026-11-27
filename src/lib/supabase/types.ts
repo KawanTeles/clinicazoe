@@ -735,6 +735,11 @@ export interface Database {
           due_date: string;
           status: FinancialStatus;
           paid_at: string | null;
+          paid_by: string | null;
+          payment_proof_path: string | null;
+          undone_at: string | null;
+          undone_by: string | null;
+          undo_reason: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -751,6 +756,11 @@ export interface Database {
           due_date: string;
           status?: FinancialStatus;
           paid_at?: string | null;
+          paid_by?: string | null;
+          payment_proof_path?: string | null;
+          undone_at?: string | null;
+          undone_by?: string | null;
+          undo_reason?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -767,6 +777,11 @@ export interface Database {
           due_date?: string;
           status?: FinancialStatus;
           paid_at?: string | null;
+          paid_by?: string | null;
+          payment_proof_path?: string | null;
+          undone_at?: string | null;
+          undone_by?: string | null;
+          undo_reason?: string | null;
           created_at?: string;
           updated_at?: string;
         };

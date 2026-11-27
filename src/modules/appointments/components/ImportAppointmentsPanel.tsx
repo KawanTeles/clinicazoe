@@ -114,6 +114,7 @@ function AvulsoForm({ insurances, professionals }: { insurances: Option[]; profe
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
   const [value, setValue] = useState("");
   const [paid, setPaid] = useState(false);
+  const [importFinancial, setImportFinancial] = useState(false);
   const [status, setStatus] = useState<AppointmentStatus>("confirmada");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
@@ -175,6 +176,7 @@ function AvulsoForm({ insurances, professionals }: { insurances: Option[]; profe
       paymentMethod,
       value: value.trim() ? Number(value.replace(",", ".")) : null,
       paid,
+      importFinancial,
       status,
       notes: notes.trim() || null,
     });
@@ -306,7 +308,16 @@ function AvulsoForm({ insurances, professionals }: { insurances: Option[]; profe
         </div>
 
         {value.trim() && (
-          <Switch label="Esse valor já foi recebido (marcar como pago)" checked={paid} onChange={setPaid} />
+          <div className="flex flex-col gap-2">
+            <Switch
+              label="Importar também para o financeiro (gerar lançamento)"
+              checked={importFinancial}
+              onChange={setImportFinancial}
+            />
+            {importFinancial && (
+              <Switch label="Esse valor já foi recebido (marcar como pago)" checked={paid} onChange={setPaid} />
+            )}
+          </div>
         )}
 
         <Textarea label="Observações (opcional)" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
@@ -329,6 +340,7 @@ function SpreadsheetImport({ insurances }: { insurances: Option[] }) {
   const [label, setLabel] = useState("");
   const [rows, setRows] = useState<ValidatedImportRow[] | null>(null);
   const [excluded, setExcluded] = useState<Set<number>>(new Set());
+  const [importFinancial, setImportFinancial] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -387,7 +399,7 @@ function SpreadsheetImport({ insurances }: { insurances: Option[] }) {
     }
     setConfirming(true);
     setError(null);
-    const res = await confirmImportBatch(toImport, label);
+    const res = await confirmImportBatch(toImport, label, importFinancial);
     setConfirming(false);
     if (res.error) {
       setError(res.error);
@@ -480,6 +492,12 @@ function SpreadsheetImport({ insurances }: { insurances: Option[] }) {
           </div>
           <Input label="Nome do lote" value={label} onChange={(e) => setLabel(e.target.value)} />
         </div>
+
+        <Switch
+          label="Importar também para o financeiro (gerar lançamento para as linhas com valor)"
+          checked={importFinancial}
+          onChange={setImportFinancial}
+        />
 
         <div className="max-h-[480px] overflow-auto rounded-lg border border-border">
           <table className="w-full text-xs">
