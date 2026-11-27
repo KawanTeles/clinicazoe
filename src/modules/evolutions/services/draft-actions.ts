@@ -47,6 +47,9 @@ export async function openEvolutionEditor(appointmentId: string): Promise<{
   patientId?: string;
   template?: { id: string; name: string; version: number; topics: { label: string; hint: string | null }[] };
   draft?: EvolutionDraftView | null;
+  /** Preferência pessoal do profissional (Etapa 91) — gerar o rascunho
+   * sozinho assim que o resumo termina, sem clicar em "Gerar evolução". */
+  autoGenerateEnabled?: boolean;
 }> {
   const session = await requireProfessional();
   const supabase = await createClient();
@@ -68,15 +71,16 @@ export async function openEvolutionEditor(appointmentId: string): Promise<{
     return { error: "Só é possível registrar evolução para atendimentos realizados." };
   }
 
-  let specialtyId = appointment.specialty_id;
-  if (!specialtyId) {
-    const { data: professional } = await supabase
-      .from("professionals")
-      .select("specialty_id")
-      .eq("id", session.user.id)
-      .maybeSingle();
-    specialtyId = professional?.specialty_id ?? null;
-  }
+  // Uma linha só: cobre o fallback de specialty_id (quando o atendimento não
+  // tem um registrado) e a preferência de geração automática — não vale dois
+  // round trips pra mesma linha por PK.
+  const { data: professional } = await supabase
+    .from("professionals")
+    .select("specialty_id, quick_evolution_auto_generate")
+    .eq("id", session.user.id)
+    .maybeSingle();
+
+  const specialtyId = appointment.specialty_id ?? professional?.specialty_id ?? null;
 
   const template = await resolveEvolutionTemplate(session.user.id, specialtyId);
   if (!template) {
@@ -110,6 +114,7 @@ export async function openEvolutionEditor(appointmentId: string): Promise<{
           updatedAt: draftRow.updated_at,
         }
       : null,
+    autoGenerateEnabled: professional?.quick_evolution_auto_generate ?? true,
   };
 }
 

@@ -36,3 +36,26 @@ export async function updateOwnProfessionalBio(bio: string): Promise<{ error: st
   revalidatePublicSite();
   return { error: null };
 }
+
+/**
+ * Liga/desliga a geração automática do rascunho na Evolução Rápida (Etapa
+ * 91) — preferência pessoal do profissional, padrão ligado. Desligada, a
+ * tela volta ao fluxo manual de sempre (botão "Gerar evolução"). Mesmo
+ * padrão de updateOwnProfessionalBio: client admin, restrito por aplicação
+ * à própria linha, sem precisar de policy de UPDATE em `professionals`.
+ */
+export async function updateOwnQuickEvolutionAutoGenerate(enabled: boolean): Promise<{ error: string | null }> {
+  const session = await getCurrentUser();
+  if (!session || session.profile.role !== "profissional") {
+    return { error: "Acesso negado." };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("professionals")
+    .update({ quick_evolution_auto_generate: enabled })
+    .eq("id", session.user.id);
+
+  if (error) return { error: "Não foi possível salvar a preferência." };
+  return { error: null };
+}

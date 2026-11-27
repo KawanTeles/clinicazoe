@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { AIDisclaimerNotice } from "@/modules/ai/components/AIDisclaimerNotice";
 import { AudioRecorderButton } from "@/modules/ai/components/AudioRecorderButton";
 import { useAudioRecorder } from "@/modules/ai/components/useAudioRecorder";
@@ -137,19 +138,65 @@ export function QuickEvolutionForm({
   const [genError, setGenError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  // Preferência da Etapa 91 (padrão ligado até carregar a real, abaixo) —
+  // gera o rascunho sozinho assim que o resumo termina, sem clicar em
+  // "Gerar evolução". Some com o toggle em "Meu Perfil".
+  const [autoGenerate, setAutoGenerate] = useState(true);
+  const [showOriginalSummary, setShowOriginalSummary] = useState(false);
+
+  const confirm = useConfirm();
 
   const summaryTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const topicRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const draftRegionRef = useRef<HTMLDivElement | null>(null);
+
+  // Desmontou (saiu da tela) no meio de uma geração em andamento: a resposta
+  // que chegar depois é descartada, nunca aplicada num componente que não
+  // existe mais (item 5 do pedido: cancelamento ao sair da tela).
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // Sinaliza (fora do setState, que precisa continuar puro) que uma entrada
+  // de voz acabou de terminar e, se a geração automática estiver ligada,
+  // deve disparar handleGenerate assim que o novo texto do resumo estiver
+  // de fato commitado no estado — ver o useEffect(rawSummary) abaixo.
+  const pendingAutoGenerateRef = useRef(false);
+  // Geração acabou de terminar com sucesso: a próxima vez que `drafting`
+  // virar true, foca a região do rascunho (item 4 do pedido: foco automático
+  // para já poder ler/ajustar). Não dispara em rascunho restaurado do
+  // servidor ao abrir a tela — só em geração desta sessão.
+  const justGeneratedRef = useRef(false);
 
   const dictation = useFieldDictation<DictationField>((field, text, cursorPos) => {
     if (field === "summary") {
       setRawSummary((prev) => insertTextAt(prev, text, cursorPos));
+      if (autoGenerate && !drafting) pendingAutoGenerateRef.current = true;
       return;
     }
     const index = Number(field.split("-")[1]);
     setTopicValues((prev) => prev.map((v, i) => (i === index ? insertTextAt(v, text, cursorPos) : v)));
   });
+
+  useEffect(() => {
+    if (pendingAutoGenerateRef.current) {
+      pendingAutoGenerateRef.current = false;
+      void handleGenerate("auto");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawSummary]);
+
+  useEffect(() => {
+    if (drafting && justGeneratedRef.current) {
+      justGeneratedRef.current = false;
+      draftRegionRef.current?.focus();
+    }
+  }, [drafting]);
 
   // Só o resumo tem gravação ao vivo (os campos por tópico, quando existem,
   // são preenchidos pela IA a partir do resumo — não têm botão de gravação
@@ -188,6 +235,7 @@ export function QuickEvolutionForm({
         ),
       );
       setRawSummary(result.draft?.rawSummaryInput ?? "");
+      setAutoGenerate(result.autoGenerateEnabled ?? true);
       // Rascunho com texto já escrito volta direto na etapa de revisão.
       const temTexto = salvos.some((s) => s.content.trim());
       setDrafting(temTexto);
@@ -251,8 +299,24 @@ export function QuickEvolutionForm({
     setTopicValues((prev) => prev.map((v, i) => (i === index ? value : v)));
   }
 
-  async function handleGenerate() {
+  async function handleGenerate(trigger: "auto" | "manual" = "manual") {
     if (!rawSummary.trim() || generating || dictation.status !== "idle" || !template) return;
+
+    // Voltou ao resumo, editou, e já existe rascunho ajustado de uma geração
+    // anterior: confirma antes de substituir (item 4 do pedido). O botão
+    // "Gerar de novo" dentro da revisão não passa por aqui — `drafting` já é
+    // true nesse caso, e esse clique já É o consentimento explícito.
+    if (!drafting && topicsPayload.some((t) => t.content.trim())) {
+      const confirmado = await confirm({
+        title: "Substituir o rascunho já ajustado?",
+        description:
+          "Você já tinha gerado (e talvez ajustado) um rascunho a partir do resumo anterior. Gerar de novo substitui esse texto pelo novo resumo.",
+        confirmLabel: "Gerar de novo",
+        cancelLabel: "Cancelar",
+      });
+      if (!confirmado || !mountedRef.current) return;
+    }
+
     setGenError(null);
     setGenerating(true);
 
@@ -260,8 +324,10 @@ export function QuickEvolutionForm({
       rawSummary,
       appointmentId,
       topicLabels: template.topics.map((t) => t.label),
+      trigger,
     });
 
+    if (!mountedRef.current) return;
     setGenerating(false);
 
     if (result.error) {
@@ -280,6 +346,7 @@ export function QuickEvolutionForm({
 
     setPromptVersion(result.promptVersion ?? null);
     setGeneratedByAI(true);
+    justGeneratedRef.current = true;
     setDrafting(true);
     setViewMode("preview");
   }
@@ -364,6 +431,7 @@ export function QuickEvolutionForm({
     setRawSummary((prev) =>
       insertTextAt(prev, result.text ?? "", summaryTextareaRef.current?.selectionStart ?? prev.length),
     );
+    if (autoGenerate && !drafting) pendingAutoGenerateRef.current = true;
   }
 
   function handleSummaryKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -457,11 +525,12 @@ export function QuickEvolutionForm({
                 recorder={audioRecorder}
                 appointmentId={appointmentId}
                 enabled
-                onTranscribed={(text) =>
+                onTranscribed={(text) => {
                   setRawSummary((prev) =>
                     insertTextAt(prev, text, summaryTextareaRef.current?.selectionStart ?? prev.length),
-                  )
-                }
+                  );
+                  if (autoGenerate && !drafting) pendingAutoGenerateRef.current = true;
+                }}
               />
             )}
           </div>
@@ -494,18 +563,22 @@ export function QuickEvolutionForm({
 
           {aiEnabled ? (
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-[11px] text-text-muted">Atalho: Ctrl+Enter para gerar</p>
+              <p className="text-[11px] text-text-muted">
+                {autoGenerate
+                  ? "O rascunho aparece sozinho ao parar a gravação/ditado — Ctrl+Enter gera agora"
+                  : "Atalho: Ctrl+Enter para gerar"}
+              </p>
               <div className="flex gap-2">
                 <Button type="button" variant="secondary" onClick={handleWriteManually} disabled={generating}>
                   Escrever manualmente
                 </Button>
                 <Button
                   type="button"
-                  onClick={handleGenerate}
+                  onClick={() => handleGenerate("manual")}
                   isLoading={generating}
                   disabled={!rawSummary.trim() || isDictating}
                 >
-                  ✨ Gerar evolução
+                  {autoGenerate ? "✓ Concluir resumo" : "✨ Gerar evolução"}
                 </Button>
               </div>
             </div>
@@ -541,11 +614,33 @@ export function QuickEvolutionForm({
           </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div
+          ref={draftRegionRef}
+          tabIndex={-1}
+          aria-label="Rascunho da evolução"
+          className="flex flex-col gap-3 outline-none"
+        >
           {generatedByAI && (
             <p className="rounded-lg border border-warning/25 bg-warning/10 px-3 py-2 text-[11px] font-medium text-text-secondary">
               Rascunho gerado por IA. Revise antes de assinar.
             </p>
+          )}
+
+          {rawSummary.trim() && (
+            <div className="flex flex-col gap-1">
+              <button
+                type="button"
+                onClick={() => setShowOriginalSummary((v) => !v)}
+                className="self-start text-[11px] font-semibold text-text-secondary hover:underline"
+              >
+                {showOriginalSummary ? "Ocultar resumo original" : "Ver resumo original"}
+              </button>
+              {showOriginalSummary && (
+                <p className="whitespace-pre-wrap rounded-lg border border-border/60 bg-card-elevated/60 px-3 py-2 text-xs text-text-secondary">
+                  {rawSummary}
+                </p>
+              )}
+            </div>
           )}
 
           {viewMode === "preview" ? (
@@ -646,7 +741,13 @@ export function QuickEvolutionForm({
             </div>
             <div className="flex flex-wrap gap-2">
               {generatedByAI && (
-                <Button type="button" variant="secondary" onClick={handleGenerate} isLoading={generating} disabled={saving}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => handleGenerate("manual")}
+                  isLoading={generating}
+                  disabled={saving}
+                >
                   Gerar de novo
                 </Button>
               )}

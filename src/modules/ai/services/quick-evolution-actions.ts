@@ -31,6 +31,10 @@ export interface GenerateQuickEvolutionDraftInput {
    * a resposta volta já distribuída em `topics`; com um só, volta em `text`,
    * como antes. */
   topicLabels?: string[];
+  /** Só para metadado de auditoria (Etapa 91) — nunca afeta o que é gerado
+   * nem nenhuma checagem de segurança/limite: é o mesmo caminho de servidor
+   * disparado pelo clique manual ou pelo gatilho automático. */
+  trigger?: "auto" | "manual";
 }
 
 /** Gera o rascunho da evolução a partir do resumo único (ditado ou
@@ -139,6 +143,7 @@ export async function generateQuickEvolutionDraft(
       tokens_out: generated.usage?.outputTokens,
       topic_count: input.topicLabels?.length ?? 1,
       prompt_version: QUICK_EVOLUTION_PROMPT_VERSION,
+      trigger: input.trigger ?? "manual",
     },
   });
 

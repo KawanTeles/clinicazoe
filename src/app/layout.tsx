@@ -55,13 +55,17 @@ export async function generateMetadata(): Promise<Metadata> {
     publisher: name,
     formatDetection: { email: false, address: false, telephone: false },
     icons: {
+      // v=4: ícones regenerados do logo-mestre (Etapa 91) — o conjunto
+      // anterior tinha um anel preto desenhado nos tamanhos pequenos/
+      // apple-touch-icon, que não existe no logo original.
       icon: [
-        { url: "/favicon-16x16.png?v=3", sizes: "16x16", type: "image/png" },
-        { url: "/favicon-32x32.png?v=3", sizes: "32x32", type: "image/png" },
+        { url: "/favicon.ico?v=4", sizes: "48x48", type: "image/x-icon" },
+        { url: "/favicon-16x16.png?v=4", sizes: "16x16", type: "image/png" },
+        { url: "/favicon-32x32.png?v=4", sizes: "32x32", type: "image/png" },
       ],
-      apple: [{ url: "/apple-touch-icon.png?v=2", sizes: "180x180", type: "image/png" }],
+      apple: [{ url: "/apple-touch-icon.png?v=4", sizes: "180x180", type: "image/png" }],
     },
-    manifest: "/site.webmanifest?v=3",
+    manifest: "/site.webmanifest?v=4",
     // Sem isso, abrir pela tela de início no iPhone ainda carrega dentro do
     // Safari (barra de navegador visível) — appleWebApp é o jeito do Safari
     // de aceitar "standalone", já que ele não lê display/start_url do
@@ -80,7 +84,7 @@ export async function generateMetadata(): Promise<Metadata> {
       url: SITE_URL,
       images: [
         {
-          url: "/og-image.png?v=3",
+          url: "/og-image.png?v=4",
           width: 1200,
           height: 630,
           alt: `${name} — Identidade Visual Oficial`,
@@ -91,7 +95,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: "summary_large_image",
       title: `${name} — Cuidado Terapêutico de Excelência`,
       description: DESCRIPTION,
-      images: ["/og-image.png"],
+      images: ["/og-image.png?v=4"],
     },
     robots: {
       index: true,
@@ -127,7 +131,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ...(clinic?.legal_name ? { legalName: clinic.legal_name } : {}),
     url: SITE_URL,
     logo: clinic?.logo_url ? `${clinic.logo_url}${clinic.logo_url.includes('?') ? '&' : '?'}v=2` : `${SITE_URL}/brand-logo.png?v=3`,
-    image: `${SITE_URL}/og-image.png?v=3`,
+    image: `${SITE_URL}/og-image.png?v=4`,
     description: DESCRIPTION,
     ...(clinic?.email ? { email: clinic.email } : {}),
     ...(clinic?.phone_primary || clinic?.whatsapp_number

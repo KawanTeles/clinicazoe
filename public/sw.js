@@ -9,7 +9,10 @@
 // fallback de offline.html só entra quando a rede falha, nunca cacheando a
 // página real). Se alterar este arquivo, não adicione padrões que cubram
 // /api/, RSC payloads ou rotas do painel (admin)/cliente.
-const CACHE_NAME = "zoe-static-v1";
+// v2: ícones regenerados (Etapa 91, Parte 4) — força o descarte do cache
+// antigo (favicon/apple-touch-icon/maskable/og-image com o anel preto e o
+// fundo quase-preto de antes) assim que este SW novo ativar.
+const CACHE_NAME = "zoe-static-v2";
 
 const PRECACHE_URLS = [
   "/offline.html",

@@ -6,9 +6,13 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { Switch } from "@/components/ui/Switch";
 import { updateOwnPassword, updateOwnProfile } from "@/modules/users/services/profile-client";
 import { uploadOwnAvatar } from "@/modules/users/services/profile-actions";
-import { updateOwnProfessionalBio } from "@/modules/professionals/services/professional-profile-actions";
+import {
+  updateOwnProfessionalBio,
+  updateOwnQuickEvolutionAutoGenerate,
+} from "@/modules/professionals/services/professional-profile-actions";
 
 const MAX_BIO_LENGTH = 500;
 
@@ -20,15 +24,30 @@ interface ProfileFormProps {
   /** Só profissionais têm biografia própria — especialidade, convênios e status continuam exclusivos da administradora. */
   isProfessional?: boolean;
   initialBio?: string;
+  /** Preferência da Evolução Rápida (Etapa 91): gerar o rascunho sozinho
+   * assim que o resumo termina (voz ou "Concluir resumo"), sem precisar
+   * clicar em "Gerar evolução". Padrão ligado. */
+  initialQuickEvolutionAutoGenerate?: boolean;
 }
 
-export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl, isProfessional = false, initialBio = "" }: ProfileFormProps) {
+export function ProfileForm({
+  userId,
+  initialFullName,
+  initialPhone,
+  avatarUrl,
+  isProfessional = false,
+  initialBio = "",
+  initialQuickEvolutionAutoGenerate = true,
+}: ProfileFormProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [fullName, setFullName] = useState(initialFullName);
   const [phone, setPhone] = useState(initialPhone);
   const [bio, setBio] = useState(initialBio);
+  const [quickEvolutionAutoGenerate, setQuickEvolutionAutoGenerate] = useState(initialQuickEvolutionAutoGenerate);
+  const [autoGenerateSaving, setAutoGenerateSaving] = useState(false);
+  const [autoGenerateError, setAutoGenerateError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(avatarUrl);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -93,6 +112,22 @@ export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl, 
 
     setMessage({ type: "success", text: "Foto atualizada com sucesso." });
     router.refresh();
+  }
+
+  // Preferência salva no próprio toggle (não espera o "Salvar Alterações" do
+  // resto do formulário) — é um liga/desliga, não um texto que se escreve e
+  // confirma; esperar o clique do botão geral só criaria a ilusão de "já
+  // desliguei" enquanto o servidor ainda está com o valor antigo.
+  async function handleToggleAutoGenerate(checked: boolean) {
+    setQuickEvolutionAutoGenerate(checked);
+    setAutoGenerateSaving(true);
+    setAutoGenerateError(null);
+    const result = await updateOwnQuickEvolutionAutoGenerate(checked);
+    setAutoGenerateSaving(false);
+    if (result.error) {
+      setQuickEvolutionAutoGenerate(!checked);
+      setAutoGenerateError(result.error);
+    }
   }
 
   async function handlePasswordSubmit(event: FormEvent) {
@@ -198,6 +233,32 @@ export function ProfileForm({ userId, initialFullName, initialPhone, avatarUrl, 
             onChange={(e) => setBio(e.target.value)}
             className="w-full rounded-lg border border-border bg-card-elevated px-3 py-2 text-xs text-text-primary placeholder:text-text-muted transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 resize-none"
           />
+        </div>
+      )}
+
+      {isProfessional && (
+        <div className="rounded-xl border border-border/80 bg-card p-4 flex flex-col gap-2.5 shadow-xs">
+          <div className="flex items-center justify-between border-b border-border/60 pb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--primary)] font-heading">
+              Evolução Rápida
+            </span>
+          </div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-semibold text-text-primary">Gerar rascunho automaticamente</span>
+              <span className="text-[11px] text-text-secondary">
+                Assim que o resumo da sessão termina (voz ou &ldquo;Concluir resumo&rdquo;), a IA já gera o rascunho da
+                evolução — sem precisar clicar em &ldquo;Gerar evolução&rdquo;. Você sempre revisa e assina antes de
+                salvar.
+              </span>
+            </div>
+            <Switch
+              checked={quickEvolutionAutoGenerate}
+              onChange={handleToggleAutoGenerate}
+              disabled={autoGenerateSaving}
+            />
+          </div>
+          {autoGenerateError && <p className="text-xs font-semibold text-danger">{autoGenerateError}</p>}
         </div>
       )}
 

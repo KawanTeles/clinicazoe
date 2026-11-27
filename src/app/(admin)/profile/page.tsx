@@ -18,13 +18,15 @@ export default async function ProfilePage() {
 
   const isProfessional = session.profile.role === "profissional";
   let initialBio = "";
+  let initialQuickEvolutionAutoGenerate = true;
   if (isProfessional) {
     const { data: professional } = await supabase
       .from("professionals")
-      .select("bio")
+      .select("bio, quick_evolution_auto_generate")
       .eq("id", session.user.id)
       .maybeSingle();
     initialBio = professional?.bio ?? "";
+    initialQuickEvolutionAutoGenerate = professional?.quick_evolution_auto_generate ?? true;
   }
 
   return (
@@ -46,6 +48,7 @@ export default async function ProfilePage() {
             avatarUrl={avatarUrl}
             isProfessional={isProfessional}
             initialBio={initialBio}
+            initialQuickEvolutionAutoGenerate={initialQuickEvolutionAutoGenerate}
           />
         </CardContent>
       </Card>

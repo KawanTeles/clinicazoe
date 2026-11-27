@@ -158,6 +158,7 @@ export interface Database {
           status: Status;
           consultation_duration_minutes: number;
           home_display_order: number | null;
+          quick_evolution_auto_generate: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -171,6 +172,7 @@ export interface Database {
           status?: Status;
           consultation_duration_minutes?: number;
           home_display_order?: number | null;
+          quick_evolution_auto_generate?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -184,6 +186,7 @@ export interface Database {
           status?: Status;
           consultation_duration_minutes?: number;
           home_display_order?: number | null;
+          quick_evolution_auto_generate?: boolean;
           created_at?: string;
           updated_at?: string;
         };
